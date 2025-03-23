@@ -9,6 +9,24 @@ interface UpcomingFixturesProps {
 }
 
 const UpcomingFixtures = ({ matches }: UpcomingFixturesProps) => {
+  // Generate placeholder logos for teams
+  const getTeamLogo = (teamName: string) => {
+    // This would ideally be replaced with actual team logos
+    const initials = teamName
+      .split(' ')
+      .map(word => word.charAt(0))
+      .join('')
+      .substring(0, 2)
+      .toUpperCase();
+    
+    // For Banks o' Dee we have an actual logo
+    if (teamName === "Banks o' Dee") {
+      return "/lovable-uploads/02654c64-77bc-4a05-ae93-7c8173d0dc3c.png";
+    }
+    
+    return `https://placehold.co/60x60/team-blue/white?text=${initials}`;
+  };
+
   return (
     <Card className="overflow-hidden border-team-gray hover:shadow-md transition-shadow bg-white flex flex-col h-full">
       <div className="bg-[#00105a] text-white font-medium p-3 flex items-center justify-center">
@@ -19,19 +37,37 @@ const UpcomingFixtures = ({ matches }: UpcomingFixturesProps) => {
         <div className="space-y-3 flex-1">
           {matches.map((match) => (
             <div key={match.id} className="p-3 border-b border-gray-100 last:border-0">
-              <div className="text-xs text-[#00105a] font-medium mb-2">
+              <div className="text-xs text-[#00105a] font-medium mb-1">
                 {match.competition} • {formatDate(match.date)} • {match.time}
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className={`font-medium w-[42%] text-right ${match.homeTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
-                  {match.homeTeam}
-                </span>
+                <div className="flex items-center w-[42%] justify-end space-x-1">
+                  <div className="w-6 h-6 flex-shrink-0 mr-1">
+                    <img 
+                      src={getTeamLogo(match.homeTeam)} 
+                      alt={`${match.homeTeam} logo`} 
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <span className={`font-medium ${match.homeTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
+                    {match.homeTeam}
+                  </span>
+                </div>
                 <span className="font-bold text-xs w-[16%] text-center">VS</span>
-                <span className={`font-medium w-[42%] text-left ${match.awayTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
-                  {match.awayTeam}
-                </span>
+                <div className="flex items-center w-[42%] justify-start space-x-1">
+                  <span className={`font-medium ${match.awayTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
+                    {match.awayTeam}
+                  </span>
+                  <div className="w-6 h-6 flex-shrink-0 ml-1">
+                    <img 
+                      src={getTeamLogo(match.awayTeam)} 
+                      alt={`${match.awayTeam} logo`} 
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="mt-2 text-xs text-gray-500 text-center">
+              <div className="mt-1 text-xs text-gray-500 text-center">
                 {match.venue}
               </div>
             </div>

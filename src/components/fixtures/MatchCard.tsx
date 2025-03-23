@@ -18,10 +18,10 @@ const getTeamLogo = (teamName: string) => {
   
   // For Banks o' Dee we have an actual logo
   if (teamName === "Banks o' Dee") {
-    return "/lovable-uploads/73ac703f-7365-4abb-811e-159280ad234b.png";
+    return "/lovable-uploads/02654c64-77bc-4a05-ae93-7c8173d0dc3c.png";
   }
   
-  return `https://placehold.co/80x80/team-blue/white?text=${initials}`;
+  return `https://placehold.co/100x100/team-blue/white?text=${initials}`;
 };
 
 const MatchCard = ({ match }: MatchCardProps) => {
@@ -35,14 +35,14 @@ const MatchCard = ({ match }: MatchCardProps) => {
           <span>{match.competition}</span>
           <span>{formatDate(match.date)} • {match.time}</span>
         </div>
-        <div className="p-4">
+        <div className="p-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center flex-1">
-              <div className="w-16 h-16 flex-shrink-0 mr-3">
+              <div className="w-20 h-20 flex-shrink-0 mr-2 flex items-center justify-center">
                 <img 
                   src={getTeamLogo(match.homeTeam)} 
                   alt={`${match.homeTeam} logo`} 
-                  className="w-full h-full object-contain"
+                  className="max-w-full max-h-full object-contain"
                 />
               </div>
               <div className="flex-1 text-right">
@@ -70,21 +70,21 @@ const MatchCard = ({ match }: MatchCardProps) => {
                   {match.awayTeam}
                 </p>
               </div>
-              <div className="w-16 h-16 flex-shrink-0 ml-3">
+              <div className="w-20 h-20 flex-shrink-0 ml-2 flex items-center justify-center">
                 <img 
                   src={getTeamLogo(match.awayTeam)} 
                   alt={`${match.awayTeam} logo`} 
-                  className="w-full h-full object-contain"
+                  className="max-w-full max-h-full object-contain"
                 />
               </div>
             </div>
           </div>
-          <div className="mt-2 text-xs text-gray-500 text-center">
+          <div className="mt-1 text-xs text-gray-500 text-center">
             {match.venue}
           </div>
           
           {!match.isCompleted && (
-            <div className="mt-3 flex justify-center">
+            <div className="mt-2 flex justify-center">
               <a 
                 href="/tickets" 
                 className="text-xs bg-team-blue text-white px-3 py-1 rounded hover:bg-team-navy transition-colors text-center"

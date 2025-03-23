@@ -83,7 +83,7 @@ const Index = () => {
       {/* Hero Section */}
       <Hero />
       
-      {/* Latest News - with new 12-column grid layout */}
+      {/* Latest News - with updated grid layout */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
@@ -112,8 +112,24 @@ const Index = () => {
               />
             </div>
             
-            {/* Secondary news items - each 3x6 */}
-            {mockNews.slice(1, 7).map((news, index) => (
+            {/* Right side grid - 3x3 cards */}
+            <div className="md:col-span-6 grid grid-cols-2 gap-6">
+              {mockNews.slice(1, 5).map((news) => (
+                <div key={news.id} className="col-span-1">
+                  <NewsCard
+                    title={news.title}
+                    excerpt={news.excerpt}
+                    image={news.image}
+                    date={news.date}
+                    category={news.category}
+                    size="small"
+                  />
+                </div>
+              ))}
+            </div>
+            
+            {/* Additional news items - each 3x6 */}
+            {mockNews.slice(5, 7).map((news) => (
               <div key={news.id} className="md:col-span-3">
                 <NewsCard
                   title={news.title}

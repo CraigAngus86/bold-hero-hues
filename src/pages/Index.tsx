@@ -10,27 +10,27 @@ import { ArrowRight, Calendar, Trophy, Users, MapPin } from 'lucide-react';
 const mockNews = [
   {
     id: 1,
-    title: "Banks o' Dee secure emphatic 3-0 victory against local rivals",
-    excerpt: "A dominant performance sees the team climb to second place in the Highland League table with goals from Robertson, McLeod, and Thomson.",
-    image: "https://images.unsplash.com/photo-1517022812141-23620dba5c23?auto=format&fit=crop&w=800&q=80",
-    date: "October 15, 2023",
-    category: "Match Report"
+    title: "Banks o' Dee crowned Highland League Cup Champions",
+    excerpt: "The team celebrates with fans after a hard-fought victory in the final, adding another prestigious trophy to the club's growing collection.",
+    image: "/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png",
+    date: "April 18, 2023",
+    category: "Cup Success"
   },
   {
     id: 2,
-    title: "Youth Academy players called up to Scotland U19 squad",
-    excerpt: "Two of our talented youngsters receive international recognition after impressive performances this season.",
-    image: "https://images.unsplash.com/photo-1466721591366-2d5fba72006d?auto=format&fit=crop&w=800&q=80",
-    date: "October 10, 2023",
-    category: "Academy"
+    title: "Thrilling victory in crucial league fixture",
+    excerpt: "Banks o' Dee forward displays exceptional skill in our latest match, helping the team secure an important three points in our title chase.",
+    image: "/lovable-uploads/122628af-86b4-4d7f-bfe3-01d4bf03d053.png",
+    date: "March 25, 2023",
+    category: "Match Report"
   },
   {
     id: 3,
-    title: "Stadium expansion plans unveiled at fan forum",
-    excerpt: "The club has revealed exciting plans to increase Spain Park's capacity and improve facilities over the next two years.",
-    image: "https://images.unsplash.com/photo-1493962853295-0fd70327578a?auto=format&fit=crop&w=800&q=80",
-    date: "October 5, 2023",
-    category: "Club News"
+    title: "Spain Park facilities showcase - The pride of Banks o' Dee",
+    excerpt: "Stunning aerial view of our recently upgraded stadium and facilities, situated in a picturesque location alongside the River Dee.",
+    image: "/lovable-uploads/7f997ef4-9019-4660-9e9e-4e230d7b1eb3.png",
+    date: "February 28, 2023",
+    category: "Stadium News"
   }
 ];
 
@@ -145,7 +145,7 @@ const Index = () => {
       <section className="relative py-20 bg-gray-900 overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img 
-            src="https://images.unsplash.com/photo-1452378174528-3090a4bba7b2?auto=format&fit=crop&w=2000&q=80" 
+            src="/lovable-uploads/7f997ef4-9019-4660-9e9e-4e230d7b1eb3.png" 
             alt="Spain Park Stadium" 
             className="w-full h-full object-cover opacity-30"
           />

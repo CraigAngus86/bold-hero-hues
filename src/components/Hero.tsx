@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -16,27 +15,27 @@ interface NewsItem {
 const mockNews: NewsItem[] = [
   {
     id: 1,
-    title: "Banks o' Dee clinch dramatic victory against Formartine United",
-    excerpt: "A last-minute goal secures all three points in a thrilling match at Spain Park.",
-    date: "October 2, 2023",
-    image: "https://images.unsplash.com/photo-1517022812141-23620dba5c23?auto=format&fit=crop&w=2000&q=80",
-    category: "Match Report"
+    title: "Banks o' Dee crowned Highland League Cup Champions",
+    excerpt: "The team celebrates after defeating Formartine United to claim the prestigious Highland League Cup.",
+    date: "April 18, 2023",
+    image: "/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png",
+    category: "Cup Success"
   },
   {
     id: 2,
-    title: "Youth Academy expands with new development program",
-    excerpt: "The club announces significant investment in youth development with new coaching staff.",
-    date: "September 28, 2023",
-    image: "https://images.unsplash.com/photo-1466721591366-2d5fba72006d?auto=format&fit=crop&w=2000&q=80",
-    category: "Club News"
+    title: "Goalkeeper makes crucial save in tense derby match",
+    excerpt: "Our keeper pulls off a spectacular save to maintain our clean sheet against local rivals.",
+    date: "March 12, 2023",
+    image: "/lovable-uploads/e2efc1b0-1c8a-4e98-9826-3030a5f5d247.png",
+    category: "Match Highlights"
   },
   {
     id: 3,
-    title: "Spain Park facilities upgrade completed ahead of schedule",
-    excerpt: "New stands and improved facilities ready for the upcoming season.",
-    date: "September 20, 2023",
-    image: "https://images.unsplash.com/photo-1493962853295-0fd70327578a?auto=format&fit=crop&w=2000&q=80",
-    category: "Infrastructure"
+    title: "Spain Park Stadium - Our home by the River Dee",
+    excerpt: "Aerial view of our recently upgraded facilities at Spain Park, the home of Banks o' Dee FC since 1924.",
+    date: "February 28, 2023",
+    image: "/lovable-uploads/7f997ef4-9019-4660-9e9e-4e230d7b1eb3.png",
+    category: "Stadium News"
   }
 ];
 

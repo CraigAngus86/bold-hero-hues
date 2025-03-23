@@ -34,7 +34,7 @@ const NewsCard = ({
         className
       )}
     >
-      <div className="overflow-hidden relative">
+      <div className="overflow-hidden relative h-64">
         <div className="absolute top-0 left-0 z-10 m-4">
           <span className="inline-block px-3 py-1 bg-white text-team-blue text-xs font-semibold rounded shadow-sm">
             {category}
@@ -43,7 +43,7 @@ const NewsCard = ({
         <img 
           src={image} 
           alt={title}
-          className="w-full h-60 object-cover transition-transform duration-700 group-hover:scale-105"
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
       </div>
       

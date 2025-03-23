@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from '@/lib/utils';
-import { ChevronRight } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 
 interface StaffMemberProps {
   name: string;
@@ -61,15 +61,19 @@ const StaffMemberCard = ({
               </div>
               
               <div className="bg-white px-2 py-1 flex-1 flex flex-col justify-center">
-                <h3 className="text-xs font-bold text-[#00105a] line-clamp-1">{name}</h3>
-                <p className="text-gray-500 font-medium text-xs line-clamp-1">{role}</p>
-                <button 
-                  className="text-[#00105a] text-xs font-medium mt-1 hover:underline self-start flex items-center"
-                  onClick={openDialog}
-                >
-                  Click for more details
-                  <ChevronRight className="w-3 h-3 ml-1" />
-                </button>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xs font-bold text-[#00105a] line-clamp-1">{name}</h3>
+                    <p className="text-gray-500 font-medium text-xs line-clamp-1">{role}</p>
+                  </div>
+                  <button 
+                    className="text-[#00105a] p-1 rounded-full hover:bg-gray-100 transition-colors"
+                    onClick={openDialog}
+                    aria-label="View details"
+                  >
+                    <ArrowUpRight className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -85,15 +89,19 @@ const StaffMemberCard = ({
                 />
               </div>
               <div className="flex-1 flex flex-col justify-center">
-                <h3 className="text-xs font-bold text-[#00105a]">{name}</h3>
-                <p className="text-gray-500 text-xs">{role}</p>
-                <button 
-                  className="text-[#00105a] text-xs font-medium mt-1 hover:underline self-start flex items-center"
-                  onClick={openDialog}
-                >
-                  Click for more details
-                  <ChevronRight className="w-3 h-3 ml-1" />
-                </button>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xs font-bold text-[#00105a]">{name}</h3>
+                    <p className="text-gray-500 text-xs">{role}</p>
+                  </div>
+                  <button 
+                    className="text-[#00105a] p-1 rounded-full hover:bg-gray-100 transition-colors"
+                    onClick={openDialog}
+                    aria-label="View details"
+                  >
+                    <ArrowUpRight className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>

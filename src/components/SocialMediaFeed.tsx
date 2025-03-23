@@ -3,49 +3,49 @@ import { useState, useEffect } from 'react';
 import { Twitter, Instagram } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-// Actual social media posts from Banks o' Dee FC
+// Latest social media posts from Banks o' Dee FC
 const realSocialPosts = [
   {
     id: 1,
     platform: 'twitter',
     username: 'banksodee_fc',
-    content: "NEXT MATCH 🏆 Banks o' Dee v @inverurielocos 🏟️ Spain Park ⏰ 3pm 🗓️ Saturday 27th July 2024 🎫 Adults £15, Concessions £10, U16s FREE #BODHIGHL",
-    date: 'July 25, 2024',
-    likes: 21,
-    comments: 3,
-    shares: 7,
-    image: '/lovable-uploads/BOD_Navy.png'
+    content: "𝗙𝗧 | Banks o' Dee 1-0 Turriff United. Craig Duguid's free-kick is enough to secure all three points at Spain Park. #BODHIGHL",
+    date: 'August 10, 2024',
+    likes: 28,
+    comments: 5,
+    shares: 8,
+    image: '/lovable-uploads/587f8bd1-4140-4179-89f8-dc2ac1b2e072.png'
   },
   {
     id: 2,
     platform: 'instagram',
     username: 'banksodeefc',
-    content: "BANKS O' DEE FOOTBALL CLUB ARE HIRING! We are currently recruiting for a Ladies 1st Team Manager/Coach ahead of the new season. Anyone interested should contact the club via social media or email to banksodeeLFC@gmail.com ⚽️",
-    date: 'July 22, 2024',
-    likes: 48,
-    comments: 0,
-    image: '/lovable-uploads/BOD_Navy.png'
+    content: "Full Time | Banks o' Dee 1-0 Turriff United. Craig Duguid's stunning free-kick is enough to secure all three points at Spain Park! ⚽️",
+    date: 'August 10, 2024',
+    likes: 82,
+    comments: 7,
+    image: '/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png'
   },
   {
     id: 3,
     platform: 'twitter',
     username: 'banksodee_fc',
-    content: "2024/25 HFCL Season Ticket prices 🎟️ Adult - £210 Concession - £130 We are also pleased to introduce a discounted Season Ticket for 12-16 year old's! 12-16 year old - £15 Under 12's remain FREE! Interested? Contact banksodeefcst@gmail.com",
-    date: 'July 18, 2024',
-    likes: 16,
+    content: "🔵 Banks o' Dee XI v Turriff United: A.Coutts, Byrne, Hay, Paton, Angus, Forbes, Duguid (C), Dalling, Bugeja, Peters, Logan. Subs: Yunus, Antoniazzi, Phillip, Ritchie, Mair, Watson, T.Coutts.",
+    date: 'August 10, 2024',
+    likes: 19,
     comments: 0,
-    shares: 5,
+    shares: 4,
     image: null
   },
   {
     id: 4,
     platform: 'instagram',
     username: 'banksodeefc',
-    content: "Getting ready for the new season 💪 Pre-season friendly v Huntly FC at Spain Park. Great workout for the squad as we build towards our first league match.",
-    date: 'July 15, 2024',
-    likes: 75,
-    comments: 5,
-    image: '/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png'
+    content: "NEXT MATCH | Banks o' Dee v Turriff United. Saturday 10th August, 3PM at Spain Park. Adults £15, Concessions £10 & U16s FREE.",
+    date: 'August 8, 2024',
+    likes: 64,
+    comments: 3,
+    image: '/lovable-uploads/BOD_Navy.png'
   }
 ];
 

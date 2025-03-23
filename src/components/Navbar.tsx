@@ -23,7 +23,7 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="relative z-10 flex items-center">
             <img 
-              src="/lovable-uploads/BOD_White.png" 
+              src="/lovable-uploads/587f8bd1-4140-4179-89f8-dc2ac1b2e072.png" 
               alt="Banks o' Dee FC Logo" 
               className="h-16 md:h-20 transition-all duration-300 mr-3"
             />
@@ -68,7 +68,7 @@ const Navbar = () => {
           )}>
             <div className="flex flex-col items-center justify-center h-full">
               <img 
-                src="/lovable-uploads/BOD_White.png" 
+                src="/lovable-uploads/587f8bd1-4140-4179-89f8-dc2ac1b2e072.png" 
                 alt="Banks o' Dee FC Logo" 
                 className="h-24 mb-8"
               />

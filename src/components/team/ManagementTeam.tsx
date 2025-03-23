@@ -20,9 +20,9 @@ interface ManagementTeamProps {
 const ManagementTeam = ({ staff }: ManagementTeamProps) => {
   const [isOpen, setIsOpen] = useState(false);
   
-  // Show only first 4 staff members initially, then the rest in collapsible content
-  const initialStaff = staff.slice(0, 4);
-  const remainingStaff = staff.slice(4);
+  // Show only first 12 staff members initially, then the rest in collapsible content
+  const initialStaff = staff.slice(0, 12);
+  const remainingStaff = staff.slice(12);
 
   return (
     <motion.div 
@@ -50,19 +50,7 @@ const ManagementTeam = ({ staff }: ManagementTeamProps) => {
           ))}
         </div>
         
-        {staff.length > 4 && (
-          <div className="flex justify-center mt-6">
-            <CollapsibleTrigger className="bg-white p-3 rounded-full shadow-md hover:bg-gray-100 transition-colors border border-[#00105a]/20 flex items-center justify-center">
-              {isOpen ? (
-                <ChevronUp className="w-5 h-5 text-[#00105a]" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-[#00105a]" />
-              )}
-            </CollapsibleTrigger>
-          </div>
-        )}
-        
-        {staff.length > 4 && (
+        {remainingStaff.length > 0 && (
           <CollapsibleContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mt-8">
               {remainingStaff.map((member) => (
@@ -77,6 +65,18 @@ const ManagementTeam = ({ staff }: ManagementTeamProps) => {
               ))}
             </div>
           </CollapsibleContent>
+        )}
+        
+        {remainingStaff.length > 0 && (
+          <div className="flex justify-center mt-6">
+            <CollapsibleTrigger className="bg-white p-3 rounded-full shadow-md hover:bg-gray-100 transition-colors border border-[#00105a]/20 flex items-center justify-center">
+              {isOpen ? (
+                <ChevronUp className="w-5 h-5 text-[#00105a]" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-[#00105a]" />
+              )}
+            </CollapsibleTrigger>
+          </div>
         )}
       </Collapsible>
     </motion.div>

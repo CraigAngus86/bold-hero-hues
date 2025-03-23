@@ -17,9 +17,9 @@ const TeamGrid = () => {
     ? players 
     : players.filter(player => player.position === selectedPosition);
   
-  // Show only first 4 players initially, then the rest in collapsible content
-  const initialPlayers = filteredPlayers.slice(0, 4);
-  const remainingPlayers = filteredPlayers.slice(4);
+  // Show only first 12 players initially, then the rest in collapsible content
+  const initialPlayers = filteredPlayers.slice(0, 12);
+  const remainingPlayers = filteredPlayers.slice(12);
   
   return (
     <motion.section 
@@ -42,7 +42,15 @@ const TeamGrid = () => {
       <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
         <PlayerList players={initialPlayers} />
         
-        {filteredPlayers.length > 4 && (
+        {remainingPlayers.length > 0 && (
+          <CollapsibleContent>
+            <div className="mt-8">
+              <PlayerList players={remainingPlayers} />
+            </div>
+          </CollapsibleContent>
+        )}
+        
+        {remainingPlayers.length > 0 && (
           <div className="flex justify-center mt-6">
             <CollapsibleTrigger className="bg-white p-3 rounded-full shadow-md hover:bg-gray-100 transition-colors border border-[#00105a]/20 flex items-center justify-center">
               {isOpen ? (
@@ -52,14 +60,6 @@ const TeamGrid = () => {
               )}
             </CollapsibleTrigger>
           </div>
-        )}
-        
-        {filteredPlayers.length > 4 && (
-          <CollapsibleContent>
-            <div className="mt-8">
-              <PlayerList players={remainingPlayers} />
-            </div>
-          </CollapsibleContent>
         )}
       </Collapsible>
     </motion.section>

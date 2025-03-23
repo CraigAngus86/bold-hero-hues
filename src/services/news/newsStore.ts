@@ -24,7 +24,7 @@ export const useNewsStore = create<NewsStore>()(
           : 1;
         
         return {
-          news: [...state.news, { ...newsItem, id: newId, size: newsItem.size || 'medium' }]
+          news: [...state.news, { ...newsItem, id: newId }]
         };
       }),
       

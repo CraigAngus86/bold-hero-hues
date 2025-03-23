@@ -1,10 +1,10 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PlusCircle, Edit, Trash } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useNewsStore, NewsItem, formatDate, getDbDateFormat } from '@/services/news';
@@ -22,8 +22,7 @@ const NewsManager = () => {
       excerpt: '',
       image: '',
       date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
-      category: '',
-      size: 'medium'
+      category: ''
     });
     setDialogOpen(true);
   };
@@ -153,22 +152,6 @@ const NewsManager = () => {
                   className="col-span-3"
                   required
                 />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="size" className="text-right text-sm font-medium">Size</label>
-                <Select 
-                  value={currentNews?.size || 'medium'} 
-                  onValueChange={(value) => setCurrentNews(prev => prev ? {...prev, size: value as 'small' | 'medium' | 'large'} : null)}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select size" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="small">Small</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="large">Large</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <label htmlFor="image" className="text-right text-sm font-medium">Image URL</label>

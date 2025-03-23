@@ -1,3 +1,4 @@
+
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
@@ -15,14 +16,8 @@ const Index = () => {
   // Sort all news by date
   const sortedNews = [...news].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   
-  // Get the top 3 for hero
-  const heroNews = sortedNews.slice(0, 3);
-  
-  // Get news items for the Latest News section, excluding those in the hero
-  const heroNewsIds = heroNews.map(item => item.id);
-  const latestNews = sortedNews
-    .filter(item => !heroNewsIds.includes(item.id))
-    .slice(0, 5);
+  // Get the top 6 news items for the Latest News section
+  const latestNews = sortedNews.slice(0, 6);
   
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -31,7 +26,7 @@ const Index = () => {
       {/* Hero Section */}
       <Hero />
       
-      {/* Latest News - with mixed card sizes - moved above fixtures section */}
+      {/* Latest News - with fixed grid layout */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-6">
@@ -45,19 +40,54 @@ const Index = () => {
             </a>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {latestNews.map((news, index) => (
-              <NewsCard
-                key={news.id}
-                title={news.title}
-                excerpt={news.excerpt}
-                image={news.image}
-                date={formatDate(news.date)}
-                category={news.category}
-                size={news.size as 'small' | 'medium' | 'large'}
-                className={index === 0 ? 'lg:col-span-2 lg:row-span-2' : ''}
-              />
-            ))}
+          <div className="grid grid-cols-12 gap-6">
+            {latestNews.map((newsItem, index) => {
+              // First item is large (spans 6x6)
+              if (index === 0) {
+                return (
+                  <div key={newsItem.id} className="col-span-12 md:col-span-6 row-span-2">
+                    <NewsCard
+                      title={newsItem.title}
+                      excerpt={newsItem.excerpt}
+                      image={newsItem.image}
+                      date={formatDate(newsItem.date)}
+                      category={newsItem.category}
+                      size="large"
+                    />
+                  </div>
+                );
+              }
+              
+              // Items 2-3 are medium (spans 3x3)
+              if (index >= 1 && index <= 2) {
+                return (
+                  <div key={newsItem.id} className="col-span-12 sm:col-span-6 md:col-span-3">
+                    <NewsCard
+                      title={newsItem.title}
+                      excerpt={newsItem.excerpt}
+                      image={newsItem.image}
+                      date={formatDate(newsItem.date)}
+                      category={newsItem.category}
+                      size="medium"
+                    />
+                  </div>
+                );
+              }
+              
+              // Items 4-6 are small (spans 2x2)
+              return (
+                <div key={newsItem.id} className="col-span-12 sm:col-span-4 md:col-span-2">
+                  <NewsCard
+                    title={newsItem.title}
+                    excerpt={newsItem.excerpt}
+                    image={newsItem.image}
+                    date={formatDate(newsItem.date)}
+                    category={newsItem.category}
+                    size="small"
+                  />
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>

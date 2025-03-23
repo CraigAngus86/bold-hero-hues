@@ -6,5 +6,4 @@ export interface NewsItem {
   image: string;
   date: string;
   category: string;
-  size?: 'small' | 'medium' | 'large';
 }

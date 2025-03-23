@@ -1,6 +1,7 @@
 
 import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Mail, Phone, MapPin, Lock } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -106,7 +107,12 @@ const Footer = () => {
                 Subscribe to receive the latest match updates and club news.
               </p>
               <div className="flex flex-col space-y-2">
-                <input 
+                <Input 
+                  type="text" 
+                  placeholder="Your full name" 
+                  className="bg-white/10 border border-white/20 px-4 py-2 rounded-md text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 text-sm"
+                />
+                <Input 
                   type="email" 
                   placeholder="Your email address" 
                   className="bg-white/10 border border-white/20 px-4 py-2 rounded-md text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 text-sm"
@@ -126,12 +132,12 @@ const Footer = () => {
           <p>© {currentYear} Banks o' Dee Football Club. All rights reserved.</p>
           <div className="mt-4 md:mt-0 flex space-x-4">
             <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+            <Link to="/terms" className="hover:text-white transition-colors">Terms of Use</Link>
+            <Link to="/contact" className="hover:text-white transition-colors">Contact</Link>
             <Link to="/admin" className="hover:text-white transition-colors flex items-center">
               <Lock className="w-3 h-3 mr-1" />
               Admin
             </Link>
-            <Link to="/terms" className="hover:text-white transition-colors">Terms of Use</Link>
-            <Link to="/contact" className="hover:text-white transition-colors">Contact</Link>
           </div>
         </div>
       </div>

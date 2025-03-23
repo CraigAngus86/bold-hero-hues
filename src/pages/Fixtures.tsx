@@ -1,5 +1,4 @@
 
-import { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { motion } from 'framer-motion';
@@ -7,34 +6,22 @@ import FixturesFilter from '@/components/fixtures/FixturesFilter';
 import MonthFixtures from '@/components/fixtures/MonthFixtures';
 import NoFixturesFound from '@/components/fixtures/NoFixturesFound';
 import { mockMatches, competitions } from '@/components/fixtures/fixturesMockData';
-import { getAvailableMonths, groupMatchesByMonth } from '@/components/fixtures/types';
+import { useFixturesFilter } from '@/hooks/useFixturesFilter';
 
 const Fixtures = () => {
-  const [selectedCompetition, setSelectedCompetition] = useState("All Competitions");
-  const [selectedMonth, setSelectedMonth] = useState("All Months");
-  const [showPast, setShowPast] = useState(true);
-  const [showUpcoming, setShowUpcoming] = useState(true);
-  
-  const availableMonths = getAvailableMonths(mockMatches);
-  
-  const filteredMatches = mockMatches.filter(match => {
-    const competitionMatch = selectedCompetition === "All Competitions" || match.competition === selectedCompetition;
-    const timeframeMatch = (showPast && match.isCompleted) || (showUpcoming && !match.isCompleted);
-    
-    const matchMonth = new Date(match.date).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
-    const monthMatch = selectedMonth === "All Months" || matchMonth === selectedMonth;
-    
-    return competitionMatch && timeframeMatch && monthMatch;
-  });
-  
-  const groupedMatches = groupMatchesByMonth(filteredMatches);
-  
-  const clearFilters = () => {
-    setSelectedCompetition("All Competitions");
-    setSelectedMonth("All Months");
-    setShowPast(true);
-    setShowUpcoming(true);
-  };
+  const {
+    filteredMatches,
+    selectedCompetition,
+    setSelectedCompetition,
+    selectedMonth,
+    setSelectedMonth,
+    showPast,
+    setShowPast,
+    showUpcoming,
+    setShowUpcoming,
+    availableMonths,
+    clearFilters
+  } = useFixturesFilter({ matches: mockMatches, competitions });
   
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -69,8 +56,8 @@ const Fixtures = () => {
           />
           
           <div className="space-y-10">
-            {Object.keys(groupedMatches).length > 0 ? (
-              Object.entries(groupedMatches).map(([month, matches]) => (
+            {Object.keys(filteredMatches).length > 0 ? (
+              Object.entries(filteredMatches).map(([month, matches]) => (
                 <MonthFixtures
                   key={month}
                   month={month}

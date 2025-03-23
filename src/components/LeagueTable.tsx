@@ -2,13 +2,27 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import LeagueTableContent from './league/LeagueTableContent';
-import { mockLeagueData, TeamStats } from './league/types';
+import { TeamStats } from './league/types';
+import { fetchLeagueTable } from '@/services/leagueDataService';
 
 const LeagueTable = () => {
   const [leagueData, setLeagueData] = useState<TeamStats[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   
   useEffect(() => {
-    setLeagueData(mockLeagueData);
+    const getLeagueData = async () => {
+      try {
+        setIsLoading(true);
+        const data = await fetchLeagueTable();
+        setLeagueData(data);
+      } catch (error) {
+        console.error('Error loading league data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    getLeagueData();
   }, []);
   
   return (
@@ -31,7 +45,14 @@ const LeagueTable = () => {
           transition={{ duration: 0.4 }}
           className="bg-white rounded-lg shadow-sm overflow-hidden"
         >
-          <LeagueTableContent leagueData={leagueData} />
+          {isLoading ? (
+            <div className="p-8 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-team-blue mx-auto"></div>
+              <p className="mt-2 text-gray-600">Loading league table...</p>
+            </div>
+          ) : (
+            <LeagueTableContent leagueData={leagueData} />
+          )}
         </motion.div>
       </div>
     </section>

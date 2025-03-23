@@ -5,16 +5,31 @@ import LeagueTableContent from './LeagueTableContent';
 import TableLegend from './TableLegend';
 import LeagueStatsPanel from './LeagueStatsPanel';
 import LeagueInfoPanel from './LeagueInfoPanel';
-import { TeamStats, fullMockLeagueData } from './types';
+import { TeamStats } from './types';
+import { fetchLeagueTable } from '@/services/leagueDataService';
 
 const LeagueTablePage = () => {
   const [leagueData, setLeagueData] = useState<TeamStats[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   
-  // In a real app, this would fetch from an API
   useEffect(() => {
-    // Sort by position
-    const sortedData = [...fullMockLeagueData].sort((a, b) => a.position - b.position);
-    setLeagueData(sortedData);
+    const getLeagueData = async () => {
+      try {
+        setIsLoading(true);
+        // Fetch the full league table data
+        const data = await fetchLeagueTable();
+        
+        // Sort by position
+        const sortedData = [...data].sort((a, b) => a.position - b.position);
+        setLeagueData(sortedData);
+      } catch (error) {
+        console.error('Error loading league data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    getLeagueData();
   }, []);
   
   return (
@@ -44,7 +59,14 @@ const LeagueTablePage = () => {
         transition={{ duration: 0.4, delay: 0.2 }}
         className="bg-white rounded-lg shadow-md overflow-hidden mb-10"
       >
-        <LeagueTableContent leagueData={leagueData} />
+        {isLoading ? (
+          <div className="p-12 text-center">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-team-blue mx-auto"></div>
+            <p className="mt-3 text-gray-600">Loading league table...</p>
+          </div>
+        ) : (
+          <LeagueTableContent leagueData={leagueData} />
+        )}
       </motion.div>
       
       {/* League Information */}

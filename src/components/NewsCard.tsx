@@ -11,7 +11,8 @@ interface NewsCardProps {
   date: string;
   category: string;
   featured?: boolean;
-  size?: 'small' | 'medium' | 'large';  // Added size option
+  size?: 'small' | 'medium' | 'large';
+  reduced?: boolean; // New prop to indicate reduced height
   className?: string;
 }
 
@@ -23,6 +24,7 @@ const NewsCard = ({
   category,
   featured = false,
   size = 'medium',
+  reduced = false,
   className,
 }: NewsCardProps) => {
   return (
@@ -42,7 +44,8 @@ const NewsCard = ({
       <div className={cn(
         "overflow-hidden relative",
         size === 'small' ? "h-44" : "h-64",
-        size === 'large' ? "h-80" : ""
+        size === 'large' && reduced ? "h-60" : "", // Reduced height for large card (75% of original)
+        size === 'large' && !reduced ? "h-80" : ""
       )}>
         <div className="absolute top-0 left-0 z-10 m-4">
           <Badge className="bg-[#c5e7ff] hover:bg-[#c5e7ff]/90 text-[#00105a] text-xs font-semibold">
@@ -77,7 +80,8 @@ const NewsCard = ({
         <p className={cn(
           "text-gray-600 mb-4 flex-1",
           size === 'small' ? "line-clamp-2" : "line-clamp-3",
-          size === 'large' ? "text-lg" : ""
+          size === 'large' && reduced ? "line-clamp-2" : "", // Fewer lines for reduced large card
+          size === 'large' && !reduced ? "text-lg" : ""
         )}>
           {excerpt}
         </p>

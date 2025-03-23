@@ -1,4 +1,3 @@
-
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
@@ -54,6 +53,24 @@ const mockNews = [
     date: "January 30, 2023",
     category: "Community",
     size: "small"
+  },
+  {
+    id: 6,
+    title: "Club announces new partnership with local business",
+    excerpt: "Exciting new sponsorship deal set to boost club finances and provide new opportunities for community engagement.",
+    image: "/lovable-uploads/7f997ef4-9019-4660-9e9e-4e230d7b1eb3.png",
+    date: "January 15, 2023",
+    category: "Sponsorship",
+    size: "small"
+  },
+  {
+    id: 7,
+    title: "Fan zone upgrades planned for next season",
+    excerpt: "New amenities and improved facilities coming to enhance matchday experience for supporters of all ages.",
+    image: "/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png",
+    date: "January 10, 2023",
+    category: "Stadium News",
+    size: "small"
   }
 ];
 
@@ -65,7 +82,7 @@ const Index = () => {
       {/* Hero Section */}
       <Hero />
       
-      {/* Latest News - with mixed card sizes - moved above fixtures section */}
+      {/* Latest News - with modified card layout */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
@@ -80,19 +97,60 @@ const Index = () => {
             </a>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {mockNews.map((news, index) => (
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+            {/* Feature news item - reduced to 75% vertical height */}
+            <div className="md:col-span-8 lg:col-span-8">
               <NewsCard
-                key={news.id}
-                title={news.title}
-                excerpt={news.excerpt}
-                image={news.image}
-                date={news.date}
-                category={news.category}
-                size={news.size as 'small' | 'medium' | 'large'}
-                className={index === 0 ? 'lg:col-span-2 lg:row-span-2' : ''}
+                key={mockNews[0].id}
+                title={mockNews[0].title}
+                excerpt={mockNews[0].excerpt}
+                image={mockNews[0].image}
+                date={mockNews[0].date}
+                category={mockNews[0].category}
+                size="large"
+                reduced={true}
               />
-            ))}
+            </div>
+            
+            {/* Other news items - right column */}
+            <div className="md:col-span-4 lg:col-span-4 grid grid-rows-3 gap-6">
+              {mockNews.slice(1, 4).map((news) => (
+                <NewsCard
+                  key={news.id}
+                  title={news.title}
+                  excerpt={news.excerpt}
+                  image={news.image}
+                  date={news.date}
+                  category={news.category}
+                  size="small"
+                />
+              ))}
+            </div>
+
+            {/* Two small cards below the large card */}
+            <div className="md:col-span-4 lg:col-span-4">
+              <NewsCard
+                key={mockNews[4].id}
+                title={mockNews[4].title}
+                excerpt={mockNews[4].excerpt}
+                image={mockNews[4].image}
+                date={mockNews[4].date}
+                category={mockNews[4].category}
+                size="small"
+              />
+            </div>
+            
+            <div className="md:col-span-4 lg:col-span-4">
+              <NewsCard
+                key={mockNews[5].id}
+                title={mockNews[5].title}
+                excerpt={mockNews[5].excerpt}
+                image={mockNews[5].image}
+                date={mockNews[5].date}
+                category={mockNews[5].category}
+                size="small"
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -100,7 +158,7 @@ const Index = () => {
       {/* Fixtures, Results & Table Section */}
       <FixturesSection />
       
-      {/* Social Media Feed Section - moved below fixtures */}
+      {/* Social Media Feed Section */}
       <SocialMediaFeed />
       
       {/* Sponsors Carousel */}

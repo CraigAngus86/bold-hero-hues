@@ -1,109 +1,113 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
+import { ArrowLeft, Filter } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import NewsCard from '@/components/NewsCard';
-import { motion } from 'framer-motion';
-import { Search } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import Footer from '@/components/Footer';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useNewsStore, formatDate } from '@/services/news';
+import { NewsItem } from '@/services/news/types';
 
 const News = () => {
   const { news } = useNewsStore();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [filteredNews, setFilteredNews] = useState<NewsItem[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   
-  const categories = ['All', ...Array.from(new Set(news.map(item => item.category)))];
+  // Get unique categories from news items
+  const categories = ['all', ...Array.from(new Set(news.map(item => item.category)))];
   
-  const filteredNews = news.filter(newsItem => {
-    const matchesSearch = newsItem.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         newsItem.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesCategory = selectedCategory === 'All' || newsItem.category === selectedCategory;
-    
-    return matchesSearch && matchesCategory;
-  });
-  
+  useEffect(() => {
+    if (selectedCategory === 'all') {
+      setFilteredNews([...news].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    } else {
+      setFilteredNews(
+        [...news]
+          .filter(item => item.category === selectedCategory)
+          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      );
+    }
+  }, [selectedCategory, news]);
+
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="flex flex-col min-h-screen">
       <Navbar />
       
-      <div className="pt-32 pb-20">
+      <main className="flex-1 pt-16 pb-20">
         <div className="container mx-auto px-4">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mb-12 text-center"
-          >
-            <h1 className="text-4xl md:text-5xl font-bold text-team-blue mb-4">Latest News</h1>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Stay up to date with the latest happenings at Banks o' Dee FC.
+          {/* Breadcrumb */}
+          <div className="mb-8 flex items-center text-sm text-gray-500">
+            <Link to="/" className="hover:text-team-blue transition-colors flex items-center">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Home
+            </Link>
+            <span className="mx-2">/</span>
+            <span className="text-gray-700 font-medium">News</span>
+          </div>
+          
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">News & Updates</h1>
+            <p className="text-gray-600 max-w-2xl">
+              Stay up to date with the latest happenings at Banks o' Dee Football Club, from match reports to club announcements and community activities.
             </p>
-          </motion.div>
+          </div>
           
-          <div className="mb-12">
-            <div className="flex flex-col md:flex-row gap-4 justify-between">
-              <div className="relative max-w-md w-full">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search news..."
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-team-blue focus:border-transparent"
-                  value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
-                />
-              </div>
-              
-              <div className="flex flex-wrap gap-2">
-                {categories.map(category => (
-                  <button
-                    key={category}
-                    className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                      selectedCategory === category 
-                        ? 'bg-team-blue text-white' 
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                    onClick={() => setSelectedCategory(category)}
-                  >
-                    {category}
-                  </button>
-                ))}
-              </div>
+          {/* Filter */}
+          <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-gray-500" />
+              <span className="text-gray-700 font-medium">Filter by:</span>
             </div>
+            
+            <Select
+              value={selectedCategory}
+              onValueChange={setSelectedCategory}
+            >
+              <SelectTrigger className="w-full sm:w-[200px]">
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map(category => (
+                  <SelectItem key={category} value={category}>
+                    {category === 'all' ? 'All Categories' : category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredNews.length > 0 ? (
-              filteredNews.map((newsItem) => (
-                <NewsCard
-                  key={newsItem.id}
-                  title={newsItem.title}
-                  excerpt={newsItem.excerpt}
-                  image={newsItem.image}
-                  date={formatDate(newsItem.date)}
-                  category={newsItem.category}
-                  size={newsItem.size as 'small' | 'medium' | 'large'}
-                  className={newsItem.size === 'large' ? 'md:col-span-2' : ''}
-                />
-              ))
-            ) : (
-              <div className="col-span-full text-center py-12">
-                <p className="text-gray-500 text-lg">No news articles found matching your search criteria.</p>
-                <button 
-                  className="mt-4 text-team-blue hover:underline"
-                  onClick={() => {
-                    setSearchTerm('');
-                    setSelectedCategory('All');
-                  }}
-                >
-                  Clear filters
-                </button>
-              </div>
-            )}
+          {/* News Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {filteredNews.map((item) => (
+              <NewsCard
+                key={item.id}
+                title={item.title}
+                excerpt={item.excerpt}
+                image={item.image}
+                date={formatDate(item.date)}
+                category={item.category}
+                className="h-full"
+              />
+            ))}
           </div>
+          
+          {filteredNews.length === 0 && (
+            <div className="text-center py-12">
+              <h3 className="text-xl font-medium text-gray-700 mb-2">No news found</h3>
+              <p className="text-gray-500 mb-6">There are no news articles in this category at the moment.</p>
+              <Button onClick={() => setSelectedCategory('all')}>View All News</Button>
+            </div>
+          )}
         </div>
-      </div>
+      </main>
       
       <Footer />
     </div>

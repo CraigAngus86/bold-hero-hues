@@ -42,23 +42,24 @@ const Index = () => {
           
           <div className="grid grid-cols-12 gap-6">
             {latestNews.map((newsItem, index) => {
-              // First item is large (spans 6x6)
+              // First item is large (spans 6x3)
               if (index === 0) {
                 return (
-                  <div key={newsItem.id} className="col-span-12 md:col-span-6 row-span-2">
+                  <div key={newsItem.id} className="col-span-12 md:col-span-6">
                     <NewsCard
                       title={newsItem.title}
                       excerpt={newsItem.excerpt}
                       image={newsItem.image}
                       date={formatDate(newsItem.date)}
                       category={newsItem.category}
-                      size="large"
+                      featured={true}
+                      className="h-full"
                     />
                   </div>
                 );
               }
               
-              // All other items are medium (3x3)
+              // All other items are small (3x3)
               return (
                 <div key={newsItem.id} className="col-span-12 sm:col-span-6 md:col-span-3">
                   <NewsCard
@@ -67,7 +68,7 @@ const Index = () => {
                     image={newsItem.image}
                     date={formatDate(newsItem.date)}
                     category={newsItem.category}
-                    size="medium"
+                    className="h-full"
                   />
                 </div>
               );

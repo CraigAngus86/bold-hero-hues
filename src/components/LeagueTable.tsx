@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
@@ -175,7 +176,7 @@ const LeagueTable = () => {
                       <div className="flex items-center space-x-3">
                         {team.team === "Banks o' Dee" ? (
                           <img 
-                            src="/lovable-uploads/banks-o-dee-logo.png" 
+                            src="/lovable-uploads/banks-o-dee-dark-logo.png" 
                             alt="Banks o' Dee logo"
                             className="w-8 h-8 object-contain"
                           />

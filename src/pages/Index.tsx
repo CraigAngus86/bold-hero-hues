@@ -54,24 +54,6 @@ const mockNews = [
     date: "January 30, 2023",
     category: "Community",
     size: "small"
-  },
-  {
-    id: 6,
-    title: "New signing joins from Premier League academy",
-    excerpt: "Exciting young talent makes the move to Spain Park after impressing in youth setup at top-flight club.",
-    image: "/lovable-uploads/7f997ef4-9019-4660-9e9e-4e230d7b1eb3.png",
-    date: "January 15, 2023",
-    category: "Transfer News",
-    size: "small"
-  },
-  {
-    id: 7,
-    title: "Club announces new partnership with local business",
-    excerpt: "Strategic partnership set to benefit both organizations and strengthen community ties in Aberdeen.",
-    image: "/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png",
-    date: "January 10, 2023",
-    category: "Club News",
-    size: "small"
   }
 ];
 
@@ -83,7 +65,7 @@ const Index = () => {
       {/* Hero Section */}
       <Hero />
       
-      {/* Latest News - with modified card layout */}
+      {/* Latest News - with mixed card sizes - moved above fixtures section */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
@@ -98,66 +80,19 @@ const Index = () => {
             </a>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            {/* Main featured news card - now taking 75% of the width (3 of 4 columns) */}
-            <div className="md:col-span-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {mockNews.map((news, index) => (
               <NewsCard
-                key={mockNews[0].id}
-                title={mockNews[0].title}
-                excerpt={mockNews[0].excerpt}
-                image={mockNews[0].image}
-                date={mockNews[0].date}
-                category={mockNews[0].category}
-                size="large"
-                featured={true}
+                key={news.id}
+                title={news.title}
+                excerpt={news.excerpt}
+                image={news.image}
+                date={news.date}
+                category={news.category}
+                size={news.size as 'small' | 'medium' | 'large'}
+                className={index === 0 ? 'lg:col-span-2 lg:row-span-2' : ''}
               />
-            </div>
-            
-            {/* Right side column with 2 small cards stacked */}
-            <div className="md:col-span-1 flex flex-col gap-6">
-              <NewsCard
-                key={mockNews[1].id}
-                title={mockNews[1].title}
-                excerpt={mockNews[1].excerpt}
-                image={mockNews[1].image}
-                date={mockNews[1].date}
-                category={mockNews[1].category}
-                size="small"
-              />
-              <NewsCard
-                key={mockNews[2].id}
-                title={mockNews[2].title}
-                excerpt={mockNews[2].excerpt}
-                image={mockNews[2].image}
-                date={mockNews[2].date}
-                category={mockNews[2].category}
-                size="small"
-              />
-            </div>
-            
-            {/* Lower row with 4 small cards */}
-            <div className="col-span-1 md:col-span-2">
-              <NewsCard
-                key={mockNews[3].id}
-                title={mockNews[3].title}
-                excerpt={mockNews[3].excerpt}
-                image={mockNews[3].image}
-                date={mockNews[3].date}
-                category={mockNews[3].category}
-                size="small"
-              />
-            </div>
-            <div className="col-span-1 md:col-span-2">
-              <NewsCard
-                key={mockNews[4].id}
-                title={mockNews[4].title}
-                excerpt={mockNews[4].excerpt}
-                image={mockNews[4].image}
-                date={mockNews[4].date}
-                category={mockNews[4].category}
-                size="small"
-              />
-            </div>
+            ))}
           </div>
         </div>
       </section>

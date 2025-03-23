@@ -5,58 +5,37 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PlusCircle, Edit, Trash } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-
-// Mock news data for demonstration
-const initialNews = [
-  {
-    id: 1,
-    title: "Banks o' Dee crowned Highland League Cup Champions",
-    excerpt: "The team celebrates with fans after a hard-fought victory in the final.",
-    image: "/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png",
-    date: "2023-04-18",
-    category: "Cup Success"
-  },
-  {
-    id: 2,
-    title: "Thrilling victory in crucial league fixture",
-    excerpt: "Banks o' Dee forward displays exceptional skill in our latest match.",
-    image: "/lovable-uploads/122628af-86b4-4d7f-bfe3-01d4bf03d053.png",
-    date: "2023-03-25",
-    category: "Match Report"
-  }
-];
-
-interface NewsItem {
-  id: number;
-  title: string;
-  excerpt: string;
-  image: string;
-  date: string;
-  category: string;
-}
+import { useNewsStore, NewsItem, formatDate, getDbDateFormat } from '@/services/newsService';
 
 const NewsManager = () => {
   const { toast } = useToast();
-  const [news, setNews] = useState<NewsItem[]>(initialNews);
+  const { news, addNews, updateNews, deleteNews } = useNewsStore();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentNews, setCurrentNews] = useState<NewsItem | null>(null);
   
   const openNewDialog = () => {
     setCurrentNews({
-      id: news.length > 0 ? Math.max(...news.map(item => item.id)) + 1 : 1,
+      id: 0, // This will be set by the store
       title: '',
       excerpt: '',
       image: '',
       date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
-      category: ''
+      category: '',
+      size: 'medium'
     });
     setDialogOpen(true);
   };
   
   const openEditDialog = (newsItem: NewsItem) => {
-    setCurrentNews(newsItem);
+    // Make sure we convert any display-formatted dates to YYYY-MM-DD
+    const formattedNews = {
+      ...newsItem,
+      date: getDbDateFormat(newsItem.date)
+    };
+    setCurrentNews(formattedNews);
     setDialogOpen(true);
   };
   
@@ -66,11 +45,10 @@ const NewsManager = () => {
   };
   
   const handleDelete = (id: number) => {
-    const updatedNews = news.filter(item => item.id !== id);
-    setNews(updatedNews);
+    deleteNews(id);
     toast({
       title: "News item deleted",
-      description: "The news item has been successfully deleted.",
+      description: "The news item has been successfully deleted."
     });
   };
   
@@ -79,16 +57,17 @@ const NewsManager = () => {
     
     if (!currentNews) return;
     
-    if (news.some(item => item.id === currentNews.id)) {
+    if (currentNews.id > 0) {
       // Update existing
-      setNews(news.map(item => item.id === currentNews.id ? currentNews : item));
+      updateNews(currentNews);
       toast({
         title: "News updated",
         description: "The news item has been successfully updated."
       });
     } else {
-      // Add new
-      setNews([...news, currentNews]);
+      // Add new - id will be assigned in the store
+      const { id, ...newsWithoutId } = currentNews;
+      addNews(newsWithoutId);
       toast({
         title: "News added",
         description: "A new news item has been successfully added."
@@ -122,7 +101,7 @@ const NewsManager = () => {
             <TableRow key={item.id}>
               <TableCell className="font-medium">{item.title}</TableCell>
               <TableCell>{item.category}</TableCell>
-              <TableCell>{item.date}</TableCell>
+              <TableCell>{formatDate(item.date)}</TableCell>
               <TableCell>
                 <div className="flex space-x-2">
                   <Button variant="ghost" size="sm" onClick={() => openEditDialog(item)}>
@@ -141,7 +120,7 @@ const NewsManager = () => {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-[550px]">
           <DialogHeader>
-            <DialogTitle>{currentNews?.id && news.some(item => item.id === currentNews.id) ? 'Edit News' : 'Add News'}</DialogTitle>
+            <DialogTitle>{currentNews?.id ? 'Edit News' : 'Add News'}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSave}>
             <div className="grid gap-4 py-4">
@@ -175,6 +154,22 @@ const NewsManager = () => {
                   className="col-span-3"
                   required
                 />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <label htmlFor="size" className="text-right text-sm font-medium">Size</label>
+                <Select 
+                  value={currentNews?.size || 'medium'} 
+                  onValueChange={(value) => setCurrentNews(prev => prev ? {...prev, size: value as 'small' | 'medium' | 'large'} : null)}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select size" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="small">Small</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="large">Large</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <label htmlFor="image" className="text-right text-sm font-medium">Image URL</label>

@@ -9,7 +9,7 @@ import { clearLeagueDataCache } from '@/services/leagueDataService';
 import { toast } from 'sonner';
 import { PenSquare, Users, Trophy, Calendar, Newspaper, RotateCcw } from 'lucide-react';
 import AdminNewsSection from '@/components/admin/news/AdminNewsSection';
-import AdminTeamSection from '@/components/admin/AdminTeamSection';
+import AdminTeamSection from '@/components/admin/team/AdminTeamSection';
 import AdminLeagueSection from '@/components/admin/AdminLeagueSection';
 import AdminFixturesSection from '@/components/admin/AdminFixturesSection';
 

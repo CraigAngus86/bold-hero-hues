@@ -31,7 +31,8 @@ export const scrapeHighlandLeagueData = async (): Promise<{
 // Function to scrape the league table
 export const scrapeLeagueTable = async (): Promise<TeamStats[]> => {
   try {
-    const response = await fetch('http://www.highlandfootballleague.com/table', {
+    // Updated URL to the correct endpoint
+    const response = await fetch('http://www.highlandfootballleague.com/LeagueTable/', {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; BanksODeeFC/1.0)'
       }
@@ -45,21 +46,46 @@ export const scrapeLeagueTable = async (): Promise<TeamStats[]> => {
     const $ = cheerio.load(html);
     
     const leagueTable: TeamStats[] = [];
-    const tableRows = $('table.leaguetable tbody tr');
+    // Select the current league table - looking for the main table element
+    const tableRows = $('table.leaguetable tbody tr, .league-table tbody tr');
+    
+    // If no rows found with the original selector, try alternative selectors
+    if (tableRows.length === 0) {
+      console.log('No rows found with primary selector, trying alternatives');
+      const alternativeTables = $('table tbody tr');
+      if (alternativeTables.length > 0) {
+        console.log('Found table with alternative selector, rows:', alternativeTables.length);
+      }
+    }
+    
+    console.log('Found table rows:', tableRows.length);
+    
+    let currentSeason = "2024-2025";
+    // Try to extract the current season from the page
+    const seasonText = $('h1, h2, h3').text();
+    if (seasonText.includes("2024") || seasonText.includes("24-25") || seasonText.includes("2024-25")) {
+      currentSeason = "2024-2025";
+    }
+    console.log('Identified season:', currentSeason);
     
     tableRows.each((index, element) => {
       const cells = $(element).find('td');
       
+      if (cells.length < 9) {
+        console.log('Skipping row with insufficient cells:', cells.length);
+        return; // skip rows that don't have enough cells
+      }
+      
       // Extract the data from each cell
-      const position = parseInt($(cells[0]).text().trim(), 10);
+      const position = parseInt($(cells[0]).text().trim(), 10) || index + 1;
       const team = $(cells[1]).text().trim();
-      const played = parseInt($(cells[2]).text().trim(), 10);
-      const won = parseInt($(cells[3]).text().trim(), 10);
-      const drawn = parseInt($(cells[4]).text().trim(), 10);
-      const lost = parseInt($(cells[5]).text().trim(), 10);
-      const goalsFor = parseInt($(cells[6]).text().trim(), 10);
-      const goalsAgainst = parseInt($(cells[7]).text().trim(), 10);
-      const points = parseInt($(cells[9]).text().trim(), 10);
+      const played = parseInt($(cells[2]).text().trim(), 10) || 0;
+      const won = parseInt($(cells[3]).text().trim(), 10) || 0;
+      const drawn = parseInt($(cells[4]).text().trim(), 10) || 0;
+      const lost = parseInt($(cells[5]).text().trim(), 10) || 0;
+      const goalsFor = parseInt($(cells[6]).text().trim(), 10) || 0;
+      const goalsAgainst = parseInt($(cells[7]).text().trim(), 10) || 0;
+      const points = parseInt($(cells[9]).text().trim(), 10) || 0;
       const goalDifference = goalsFor - goalsAgainst;
       
       // Extract form if available
@@ -89,6 +115,11 @@ export const scrapeLeagueTable = async (): Promise<TeamStats[]> => {
       });
     });
     
+    if (leagueTable.length === 0) {
+      console.error('Failed to extract league table data');
+      throw new Error('No league table data found');
+    }
+    
     return leagueTable;
   } catch (error) {
     console.error('Error scraping league table:', error);
@@ -99,7 +130,8 @@ export const scrapeLeagueTable = async (): Promise<TeamStats[]> => {
 // Function to scrape fixtures
 export const scrapeFixtures = async (): Promise<Match[]> => {
   try {
-    const response = await fetch('http://www.highlandfootballleague.com/fixtures', {
+    // Updated URL to the correct endpoint
+    const response = await fetch('http://www.highlandfootballleague.com/Fixtures/', {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; BanksODeeFC/1.0)'
       }
@@ -113,17 +145,29 @@ export const scrapeFixtures = async (): Promise<Match[]> => {
     const $ = cheerio.load(html);
     
     const fixtures: Match[] = [];
-    const fixtureRows = $('.fixture');
+    // Try multiple selectors to find fixtures
+    const fixtureRows = $('.fixture, .fixturelist-item, tr.fixture-row');
+    
+    console.log('Found fixture rows:', fixtureRows.length);
+    
+    // If no rows found with the original selector, log the HTML to help debug
+    if (fixtureRows.length === 0) {
+      console.log('No rows found with primary fixture selectors, trying alternatives');
+      // Try to find any divs or tables that might contain fixtures
+      const possibleContainers = $('div:contains("fixture"), table:contains("fixture")');
+      console.log('Possible fixture containers found:', possibleContainers.length);
+    }
     
     fixtureRows.each((index, element) => {
-      const date = $(element).find('.date').text().trim();
+      // Try different ways of extracting the data based on the HTML structure
+      const date = $(element).find('.date, [data-date], td:nth-child(1)').text().trim();
       const parsedDate = parseDate(date);
       
-      const competition = $(element).find('.competition').text().trim();
-      const homeTeam = $(element).find('.home_team').text().trim();
-      const awayTeam = $(element).find('.away_team').text().trim();
-      const venue = $(element).find('.venue').text().trim() || 'TBC';
-      const time = $(element).find('.time').text().trim() || '15:00';
+      const competition = $(element).find('.competition, [data-competition], td:nth-child(2)').text().trim();
+      const homeTeam = $(element).find('.home_team, .home-team, td:nth-child(3)').text().trim();
+      const awayTeam = $(element).find('.away_team, .away-team, td:nth-child(5)').text().trim();
+      const venue = $(element).find('.venue, [data-venue], td:nth-child(6)').text().trim() || 'TBC';
+      const time = $(element).find('.time, [data-time], td:nth-child(7)').text().trim() || '15:00';
       
       // Only include fixtures where Banks o' Dee is playing or where we're interested in the fixture
       if (homeTeam === "Banks o' Dee" || awayTeam === "Banks o' Dee" || shouldIncludeFixture(homeTeam, awayTeam)) {
@@ -150,7 +194,8 @@ export const scrapeFixtures = async (): Promise<Match[]> => {
 // Function to scrape results
 export const scrapeResults = async (): Promise<Match[]> => {
   try {
-    const response = await fetch('http://www.highlandfootballleague.com/results', {
+    // Updated URL to the correct endpoint
+    const response = await fetch('http://www.highlandfootballleague.com/Results/', {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; BanksODeeFC/1.0)'
       }
@@ -164,22 +209,37 @@ export const scrapeResults = async (): Promise<Match[]> => {
     const $ = cheerio.load(html);
     
     const results: Match[] = [];
-    const resultRows = $('.result');
+    // Try multiple selectors to find results
+    const resultRows = $('.result, .resultlist-item, tr.result-row');
+    
+    console.log('Found result rows:', resultRows.length);
+    
+    // If no rows found with the original selector, try alternative approaches
+    if (resultRows.length === 0) {
+      console.log('No rows found with primary result selectors, trying alternatives');
+      const possibleContainers = $('div:contains("result"), table:contains("result")');
+      console.log('Possible result containers found:', possibleContainers.length);
+    }
     
     resultRows.each((index, element) => {
-      const date = $(element).find('.date').text().trim();
+      const date = $(element).find('.date, [data-date], td:nth-child(1)').text().trim();
       const parsedDate = parseDate(date);
       
-      const competition = $(element).find('.competition').text().trim();
-      const homeTeam = $(element).find('.home_team').text().trim();
-      const awayTeam = $(element).find('.away_team').text().trim();
-      const scoreText = $(element).find('.score').text().trim();
-      const venue = $(element).find('.venue').text().trim() || 'Unknown';
+      const competition = $(element).find('.competition, [data-competition], td:nth-child(2)').text().trim();
+      const homeTeam = $(element).find('.home_team, .home-team, td:nth-child(3)').text().trim();
+      const awayTeam = $(element).find('.away_team, .away-team, td:nth-child(5)').text().trim();
+      const scoreText = $(element).find('.score, [data-score], td:nth-child(4)').text().trim();
+      const venue = $(element).find('.venue, [data-venue], td:nth-child(6)').text().trim() || 'Unknown';
       
       // Parse score
       const scoreParts = scoreText.split('-');
-      const homeScore = parseInt(scoreParts[0].trim(), 10);
-      const awayScore = parseInt(scoreParts[1].trim(), 10);
+      let homeScore = 0;
+      let awayScore = 0;
+      
+      if (scoreParts.length >= 2) {
+        homeScore = parseInt(scoreParts[0].trim(), 10) || 0;
+        awayScore = parseInt(scoreParts[1].trim(), 10) || 0;
+      }
       
       // Only include results where Banks o' Dee is playing or where we're interested in the match
       if (homeTeam === "Banks o' Dee" || awayTeam === "Banks o' Dee" || shouldIncludeFixture(homeTeam, awayTeam)) {

@@ -1,45 +1,88 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Info } from 'lucide-react';
+import { CalendarRange, Trophy, Info } from 'lucide-react';
 
-const LeagueInfoPanel = () => {
+interface LeagueInfoPanelProps {
+  currentSeason?: string;
+}
+
+const LeagueInfoPanel = ({ currentSeason = "2024-2025" }: LeagueInfoPanelProps) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.3 }}
-      className="bg-white rounded-lg shadow-sm p-6"
+      className="mb-12 grid grid-cols-1 md:grid-cols-3 gap-6"
     >
-      <div className="flex items-center mb-4">
-        <Info className="w-5 h-5 text-team-blue mr-2" />
-        <h2 className="text-xl font-bold text-team-blue">About the Highland League</h2>
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="flex items-center mb-4">
+          <CalendarRange className="h-6 w-6 text-team-blue mr-2" />
+          <h3 className="text-xl font-semibold text-gray-800">Season Information</h3>
+        </div>
+        <p className="text-gray-600 mb-3">
+          The {currentSeason} Highland Football League season runs from August 2024 through May 2025.
+        </p>
+        <ul className="space-y-2 text-gray-600">
+          <li className="flex items-start">
+            <span className="inline-block w-3 h-3 rounded-full bg-team-blue mt-1.5 mr-2"></span>
+            <span>17 clubs compete in the league</span>
+          </li>
+          <li className="flex items-start">
+            <span className="inline-block w-3 h-3 rounded-full bg-team-blue mt-1.5 mr-2"></span>
+            <span>Each team plays 32 matches (home and away)</span>
+          </li>
+          <li className="flex items-start">
+            <span className="inline-block w-3 h-3 rounded-full bg-team-blue mt-1.5 mr-2"></span>
+            <span>3 points for a win, 1 point for a draw</span>
+          </li>
+        </ul>
       </div>
-      <p className="text-gray-600 mb-4">
-        The Scottish Highland Football League is a senior football league in Scotland, 
-        catering for teams in the northern parts of the country. The league currently 
-        consists of 17 teams and sits at level 5 in the Scottish football league system, 
-        below the SPFL League Two.
-      </p>
-      <p className="text-gray-600 mb-4">
-        Since the 2014–15 season, the Highland League champions have played against the 
-        Lowland League champions for a chance to play against the bottom club in League Two, 
-        with the winner earning a place in the SPFL.
-      </p>
-      <div className="mt-6">
-        <h3 className="font-bold text-gray-700 mb-2">Key Dates</h3>
-        <ul className="space-y-2">
+      
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="flex items-center mb-4">
+          <Trophy className="h-6 w-6 text-team-blue mr-2" />
+          <h3 className="text-xl font-semibold text-gray-800">Promotion & Relegation</h3>
+        </div>
+        <p className="text-gray-600 mb-3">
+          The Highland League champions may be promoted to Scottish League Two via playoffs.
+        </p>
+        <ul className="space-y-2 text-gray-600">
           <li className="flex items-start">
-            <span className="w-2 h-2 bg-team-blue rounded-full mr-2 mt-2"></span>
-            <span>Season started: July 29, 2023</span>
+            <span className="inline-block w-3 h-3 rounded-full bg-team-blue mt-1.5 mr-2"></span>
+            <span>Champions play in the pyramid playoffs</span>
           </li>
           <li className="flex items-start">
-            <span className="w-2 h-2 bg-team-blue rounded-full mr-2 mt-2"></span>
-            <span>Projected end date: April 27, 2024</span>
+            <span className="inline-block w-3 h-3 rounded-full bg-team-blue mt-1.5 mr-2"></span>
+            <span>Bottom club may face relegation playoffs</span>
           </li>
           <li className="flex items-start">
-            <span className="w-2 h-2 bg-team-blue rounded-full mr-2 mt-2"></span>
-            <span>Play-off dates: May 2024</span>
+            <span className="inline-block w-3 h-3 rounded-full bg-team-blue mt-1.5 mr-2"></span>
+            <span>No automatic relegation from the Highland League</span>
+          </li>
+        </ul>
+      </div>
+      
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="flex items-center mb-4">
+          <Info className="h-6 w-6 text-team-blue mr-2" />
+          <h3 className="text-xl font-semibold text-gray-800">About the League</h3>
+        </div>
+        <p className="text-gray-600 mb-3">
+          The Scottish Highland Football League is a senior league in the north of Scotland.
+        </p>
+        <ul className="space-y-2 text-gray-600">
+          <li className="flex items-start">
+            <span className="inline-block w-3 h-3 rounded-full bg-team-blue mt-1.5 mr-2"></span>
+            <span>Founded in 1893, one of Scotland's oldest leagues</span>
+          </li>
+          <li className="flex items-start">
+            <span className="inline-block w-3 h-3 rounded-full bg-team-blue mt-1.5 mr-2"></span>
+            <span>Part of the Scottish football pyramid since 2014</span>
+          </li>
+          <li className="flex items-start">
+            <span className="inline-block w-3 h-3 rounded-full bg-team-blue mt-1.5 mr-2"></span>
+            <span>Covers the north and northeast of Scotland</span>
           </li>
         </ul>
       </div>

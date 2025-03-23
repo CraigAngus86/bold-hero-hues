@@ -6,16 +6,22 @@ import LeagueTableContent from './league/LeagueTableContent';
 import { TeamStats } from './league/types';
 import { fetchLeagueTable } from '@/services/leagueDataService';
 import { RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { clearLeagueDataCache } from '@/services/leagueDataService';
+import { toast } from "sonner";
 
 const LeagueTable = () => {
   const [leagueData, setLeagueData] = useState<TeamStats[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [currentSeason, setCurrentSeason] = useState<string>("2024-2025");
   
   const loadLeagueData = async (refresh = false) => {
     try {
       if (refresh) {
         setIsRefreshing(true);
+        // Clear the cache if refreshing
+        clearLeagueDataCache();
       } else {
         setIsLoading(true);
       }
@@ -23,8 +29,15 @@ const LeagueTable = () => {
       const data = await fetchLeagueTable();
       const sortedData = [...data].sort((a, b) => a.position - b.position);
       setLeagueData(sortedData);
+      
+      if (refresh) {
+        toast.success("League table refreshed");
+      }
     } catch (error) {
       console.error('Error loading league data:', error);
+      if (refresh) {
+        toast.error("Failed to refresh league table");
+      }
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -35,10 +48,35 @@ const LeagueTable = () => {
     loadLeagueData();
   }, []);
   
+  const handleRefresh = () => {
+    loadLeagueData(true);
+  };
+  
   return (
     <section className="py-12 bg-team-gray">
       <div className="container mx-auto px-4">
-        <h2 className="text-2xl font-semibold text-team-blue mb-6 text-center">Highland League Table</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-semibold text-team-blue">Highland League Table {currentSeason}</h2>
+          <Button 
+            onClick={handleRefresh} 
+            size="sm" 
+            variant="outline" 
+            disabled={isRefreshing}
+            className="text-team-blue border-team-blue hover:bg-team-lightBlue"
+          >
+            {isRefreshing ? (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                Refreshing...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Refresh
+              </>
+            )}
+          </Button>
+        </div>
         
         <div className="flex justify-end mb-4">
           <Link 

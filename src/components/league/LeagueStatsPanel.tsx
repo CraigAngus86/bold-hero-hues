@@ -7,9 +7,10 @@ import FormIndicator from './FormIndicator';
 
 interface LeagueStatsPanelProps {
   leagueData: TeamStats[];
+  season?: string;
 }
 
-const LeagueStatsPanel = ({ leagueData }: LeagueStatsPanelProps) => {
+const LeagueStatsPanel = ({ leagueData, season = "2024-2025" }: LeagueStatsPanelProps) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -28,7 +29,7 @@ const LeagueStatsPanel = ({ leagueData }: LeagueStatsPanelProps) => {
         <Calendar className="w-10 h-10 text-team-blue mr-4" />
         <div>
           <p className="text-xs text-gray-500">Season</p>
-          <p className="font-bold text-lg">2023-24</p>
+          <p className="font-bold text-lg">{season}</p>
         </div>
       </div>
       <div className="bg-white shadow-sm rounded-lg p-4 flex items-center">

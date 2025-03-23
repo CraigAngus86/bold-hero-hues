@@ -16,6 +16,8 @@ const LeagueTablePage = () => {
   const [leagueData, setLeagueData] = useState<TeamStats[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [dataSeason, setDataSeason] = useState<string>("2024-2025");
+  const [lastUpdated, setLastUpdated] = useState<string>("");
   
   const loadLeagueData = async (refresh = false) => {
     try {
@@ -34,6 +36,9 @@ const LeagueTablePage = () => {
       const sortedData = [...data].sort((a, b) => a.position - b.position);
       setLeagueData(sortedData);
       
+      // Set last updated timestamp
+      setLastUpdated(new Date().toLocaleString());
+      
       if (refresh) {
         toast.success("League table refreshed successfully");
       }
@@ -48,6 +53,16 @@ const LeagueTablePage = () => {
   
   useEffect(() => {
     loadLeagueData();
+    
+    // Try to get cache timestamp to show when data was last updated
+    try {
+      const timestamp = localStorage.getItem('highland_league_cache_timestamp');
+      if (timestamp) {
+        setLastUpdated(new Date(parseInt(timestamp, 10)).toLocaleString());
+      }
+    } catch (e) {
+      console.error('Error getting cache timestamp:', e);
+    }
   }, []);
   
   const handleRefresh = () => {
@@ -64,8 +79,13 @@ const LeagueTablePage = () => {
       >
         <h1 className="text-4xl md:text-5xl font-bold text-team-blue mb-4">Highland League Table</h1>
         <p className="text-gray-600 max-w-2xl mx-auto">
-          Current standings for the 2023-24 Scottish Highland Football League.
+          Current standings for the {dataSeason} Scottish Highland Football League.
         </p>
+        {lastUpdated && (
+          <p className="text-sm text-gray-500 mt-2">
+            Data last updated: {lastUpdated}
+          </p>
+        )}
       </motion.div>
       
       {/* Table Key/Legend */}
@@ -94,7 +114,7 @@ const LeagueTablePage = () => {
       </div>
       
       {/* League Stats Summary */}
-      <LeagueStatsPanel leagueData={leagueData} />
+      <LeagueStatsPanel leagueData={leagueData} season={dataSeason} />
       
       {/* Main League Table */}
       <motion.div
@@ -114,7 +134,7 @@ const LeagueTablePage = () => {
       </motion.div>
       
       {/* League Information */}
-      <LeagueInfoPanel />
+      <LeagueInfoPanel currentSeason={dataSeason} />
     </div>
   );
 };

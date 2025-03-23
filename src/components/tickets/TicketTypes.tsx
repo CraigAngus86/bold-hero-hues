@@ -1,5 +1,5 @@
 
-import { Ticket } from 'lucide-react';
+import { Ticket, Phone } from 'lucide-react';
 
 interface TicketPriceProps {
   type: string;

@@ -13,7 +13,7 @@ const Footer = () => {
           <div className="md:col-span-1">
             <div className="flex flex-col items-center md:items-start">
               <img 
-                src="/lovable-uploads/940ac3a1-b89d-40c9-957e-217a64371120.png" 
+                src="/lovable-uploads/cb95b9fb-0f2d-42ef-9788-10509a80ed6e.png" 
                 alt="Banks o' Dee FC Logo" 
                 className="h-20 mb-4"
               />

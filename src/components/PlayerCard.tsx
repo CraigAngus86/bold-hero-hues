@@ -38,7 +38,7 @@ const PlayerCard = (props: PlayerCardProps) => {
     >
       <div 
         className={cn(
-          "relative w-full rounded-lg overflow-hidden transition-all duration-700 preserve-3d cursor-pointer shadow-lg hover:shadow-xl h-[400px]",
+          "relative w-full rounded-lg overflow-hidden transition-all duration-700 preserve-3d cursor-pointer shadow-lg hover:shadow-xl aspect-square",
           isFlipped ? "rotate-y-180" : ""
         )}
         onClick={(e) => {

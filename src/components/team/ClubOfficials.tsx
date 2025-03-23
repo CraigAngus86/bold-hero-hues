@@ -1,6 +1,7 @@
 
 import { Briefcase } from 'lucide-react';
 import { motion } from 'framer-motion';
+import OfficialCard from './OfficialCard';
 
 interface ClubOfficial {
   name: string;
@@ -37,33 +38,14 @@ const ClubOfficials = ({ officials }: ClubOfficialsProps) => {
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         {officialsWithImages.map((official) => (
-          <motion.div
+          <OfficialCard
             key={official.name}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-          >
-            <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
-              <div className="flex items-center p-4">
-                <div className="w-16 h-16 overflow-hidden rounded-md mr-4 bg-gray-100">
-                  {official.image && (
-                    <img 
-                      src={official.image} 
-                      alt={official.name} 
-                      className="w-full h-full object-cover object-top"
-                    />
-                  )}
-                </div>
-                <div>
-                  <h3 className="font-bold text-lg">{official.name}</h3>
-                  <p className="text-[#00105a] font-medium text-sm">{official.role}</p>
-                </div>
-              </div>
-              <div className="px-4 pb-4">
-                <p className="text-gray-600 text-sm line-clamp-2">{official.bio}</p>
-              </div>
-            </div>
-          </motion.div>
+            name={official.name}
+            role={official.role}
+            image={official.image}
+            bio={official.bio}
+            experience={official.experience}
+          />
         ))}
       </div>
     </motion.div>

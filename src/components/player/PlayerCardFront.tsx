@@ -11,7 +11,7 @@ const PlayerCardFront = ({ name, position, image }: PlayerCardFrontProps) => {
   return (
     <div className="absolute inset-0 backface-hidden">
       <div className="h-full flex flex-col">
-        <div className="relative h-72 overflow-hidden bg-gradient-to-b from-[#00105a] to-[#00105a]/80">
+        <div className="relative h-3/4 overflow-hidden bg-gradient-to-b from-[#00105a] to-[#00105a]/80">
           <img 
             src={image} 
             alt={name} 

@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { cn } from '@/lib/utils';
 import { ChevronRight } from 'lucide-react';
 
-interface StaffMemberProps {
+interface OfficialProps {
   name: string;
   role: string;
   image: string;
@@ -13,13 +13,13 @@ interface StaffMemberProps {
   experience: string;
 }
 
-const StaffMemberCard = ({
+const OfficialCard = ({
   name,
   role,
   image,
   bio,
   experience,
-}: StaffMemberProps) => {
+}: OfficialProps) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
@@ -84,11 +84,9 @@ const StaffMemberCard = ({
                 </div>
               </div>
               
-              {bio && (
-                <div className="flex-1 overflow-y-auto text-gray-600 text-sm pr-2">
-                  <p>{bio}</p>
-                </div>
-              )}
+              <div className="flex-1 overflow-y-auto text-gray-600 text-sm pr-2">
+                <p>{bio}</p>
+              </div>
               
               <div className="mt-auto pt-4 text-xs text-center text-gray-400">
                 Tap to view details
@@ -114,7 +112,7 @@ const StaffMemberCard = ({
           </div>
           <div className="md:w-2/3">
             <div className="mb-4">
-              <h3 className="text-lg font-semibold text-[#00105a]">Staff Details</h3>
+              <h3 className="text-lg font-semibold text-[#00105a]">Official Details</h3>
               <div className="bg-gray-50 p-3 rounded-md mt-2">
                 <p className="text-sm text-gray-500">Role</p>
                 <p className="font-medium">{role}</p>
@@ -135,4 +133,4 @@ const StaffMemberCard = ({
   );
 };
 
-export default StaffMemberCard;
+export default OfficialCard;

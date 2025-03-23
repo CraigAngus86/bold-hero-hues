@@ -2,13 +2,7 @@
 import { useState } from 'react';
 import { Users, ShoppingCart, Plus, Minus } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Match } from './types';
 
 interface TicketFormProps {
@@ -25,6 +19,19 @@ interface TicketFormProps {
   addToBasket: () => void;
 }
 
+interface TicketOption {
+  value: string;
+  label: string;
+  price: number;
+}
+
+const ticketOptions: TicketOption[] = [
+  { value: "adult", label: "Adult", price: 10.00 },
+  { value: "concession", label: "Concession - Over 65 / Student", price: 6.00 },
+  { value: "under16", label: "Under 16", price: 3.00 },
+  { value: "family", label: "Family - 2 Adults + 2 Under 16", price: 20.00 }
+];
+
 const TicketForm = ({
   selectedMatch,
   ticketType,
@@ -40,25 +47,24 @@ const TicketForm = ({
 }: TicketFormProps) => {
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         <div>
           <label className="block text-gray-700 font-medium mb-2">
             Ticket Type
           </label>
-          <Select
-            value={ticketType}
-            onValueChange={(value) => setTicketType(value)}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select ticket type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="adult">Adult (£10.00)</SelectItem>
-              <SelectItem value="concession">Concession - Over 65 / Student (£6.00)</SelectItem>
-              <SelectItem value="under16">Under 16 (£3.00)</SelectItem>
-              <SelectItem value="family">Family - 2 Adults + 2 Under 16 (£20.00)</SelectItem>
-            </SelectContent>
-          </Select>
+          <RadioGroup value={ticketType} onValueChange={setTicketType} className="space-y-3">
+            {ticketOptions.map((option) => (
+              <div key={option.value} className="flex items-center justify-between border border-gray-200 p-3 rounded-md hover:border-team-blue/50 transition-colors">
+                <div className="flex items-center">
+                  <RadioGroupItem value={option.value} id={option.value} className="mr-3 text-team-blue" />
+                  <label htmlFor={option.value} className="cursor-pointer font-medium">
+                    {option.label}
+                  </label>
+                </div>
+                <span className="font-bold text-team-blue">£{option.price.toFixed(2)}</span>
+              </div>
+            ))}
+          </RadioGroup>
         </div>
         
         <div>

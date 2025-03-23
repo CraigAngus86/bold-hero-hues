@@ -87,22 +87,23 @@ const Tickets = () => {
           </motion.div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Left Column - Match Selection */}
+            {/* Left Column - Season Tickets Card and Match Selection */}
             <motion.div 
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
               className="md:col-span-1 flex flex-col"
             >
-              <MatchSelection 
-                upcomingMatches={upcomingMatches}
-                selectedMatch={selectedMatch}
-                onMatchSelect={handleMatchSelect}
-              />
+              {/* Season Tickets Card - Moved to top */}
+              <SeasonTicketsCard />
               
-              {/* Season Tickets Callout */}
+              {/* Match Selection - Now below Season Tickets */}
               <div className="mt-6">
-                <SeasonTicketsCard />
+                <MatchSelection 
+                  upcomingMatches={upcomingMatches}
+                  selectedMatch={selectedMatch}
+                  onMatchSelect={handleMatchSelect}
+                />
               </div>
             </motion.div>
             

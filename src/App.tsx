@@ -6,6 +6,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Index from "./pages/Index";
+import News from "./pages/News";
+import Team from "./pages/Team";
+import Fixtures from "./pages/Fixtures";
+import LeagueTable from "./pages/LeagueTable";
+import Stadium from "./pages/Stadium";
+import Tickets from "./pages/Tickets";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -19,12 +25,12 @@ const App = () => (
         <AnimatePresence mode="wait">
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/about" element={<NotFound />} />
-            <Route path="/team" element={<NotFound />} />
-            <Route path="/fixtures" element={<NotFound />} />
-            <Route path="/table" element={<NotFound />} />
-            <Route path="/stadium" element={<NotFound />} />
-            <Route path="/news" element={<NotFound />} />
+            <Route path="/news" element={<News />} />
+            <Route path="/team" element={<Team />} />
+            <Route path="/fixtures" element={<Fixtures />} />
+            <Route path="/table" element={<LeagueTable />} />
+            <Route path="/stadium" element={<Stadium />} />
+            <Route path="/tickets" element={<Tickets />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

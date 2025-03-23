@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import PlayerCard from './PlayerCard';
@@ -18,57 +17,158 @@ interface Player {
   biography: string;
 }
 
-const mockPlayers: Player[] = [
+const players: Player[] = [
   {
     id: 1,
-    name: "Jamie Buglass",
+    name: "Daniel Hoban",
     position: "Goalkeeper",
     number: 1,
     image: "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=800&q=80",
     stats: {
-      appearances: 24,
-      cleanSheets: 12
+      appearances: 18,
+      cleanSheets: 8
     },
-    biography: "Jamie has been the first-choice goalkeeper for Banks o' Dee since 2019. Known for his exceptional reflexes and commanding presence in the box."
+    biography: "Daniel joined Banks o' Dee in 2022 and has been a reliable presence between the posts."
   },
   {
     id: 2,
-    name: "Mark Gilmour",
-    position: "Defender",
-    number: 4,
-    image: "https://images.unsplash.com/photo-1498609458988-7b2c698fecfe?auto=format&fit=crop&w=800&q=80",
+    name: "Fraser Hobday",
+    position: "Goalkeeper",
+    number: 13,
+    image: "https://images.unsplash.com/photo-1598550476439-6847785fcea6?auto=format&fit=crop&w=800&q=80",
     stats: {
-      appearances: 28,
-      goals: 2,
-      assists: 3
+      appearances: 10,
+      cleanSheets: 4
     },
-    biography: "A rock in defense, Mark is known for his exceptional aerial ability and leadership at the back. Club captain since 2021."
+    biography: "Fraser provides strong competition for the goalkeeper position and has made vital saves when called upon."
   },
   {
     id: 3,
-    name: "Liam Duell",
-    position: "Midfielder",
-    number: 8,
-    image: "https://images.unsplash.com/photo-1506432278326-7878fc8740cc?auto=format&fit=crop&w=800&q=80",
+    name: "Jevan Anderson",
+    position: "Defender",
+    number: 2,
+    image: "https://images.unsplash.com/photo-1631757229605-c990f337570f?auto=format&fit=crop&w=800&q=80",
     stats: {
-      appearances: 30,
-      goals: 6,
-      assists: 10
+      appearances: 24,
+      goals: 1,
+      assists: 2
     },
-    biography: "The engine of the team, Liam controls the midfield with his excellent passing range and vision. Local Aberdeen talent who joined the club in 2020."
+    biography: "Jevan is a strong, consistent defender who brings professional experience to the backline."
   },
   {
     id: 4,
-    name: "Hamish MacLeod",
+    name: "Darryn Kelly",
+    position: "Defender",
+    number: 4,
+    image: "https://images.unsplash.com/photo-1627076632318-8b9a16723e81?auto=format&fit=crop&w=800&q=80",
+    stats: {
+      appearances: 22,
+      goals: 3,
+      assists: 1
+    },
+    biography: "A commanding centre-back with excellent aerial ability and leadership qualities."
+  },
+  {
+    id: 5,
+    name: "Ryan Cunningham",
+    position: "Defender",
+    number: 3,
+    image: "https://images.unsplash.com/photo-1605971658318-d527373e4d5d?auto=format&fit=crop&w=800&q=80",
+    stats: {
+      appearances: 20,
+      assists: 4
+    },
+    biography: "Ryan is an attacking full-back known for his pace and crossing ability."
+  },
+  {
+    id: 6,
+    name: "Dean Lawrie",
+    position: "Defender",
+    number: 5,
+    image: "https://images.unsplash.com/photo-1590515680467-5417b4e7fedb?auto=format&fit=crop&w=800&q=80",
+    stats: {
+      appearances: 19,
+      goals: 2
+    },
+    biography: "Dean is a versatile defender who can play in multiple positions across the backline."
+  },
+  {
+    id: 7,
+    name: "Kane Winton",
+    position: "Midfielder",
+    number: 6,
+    image: "https://images.unsplash.com/photo-1506432278326-7878fc8740cc?auto=format&fit=crop&w=800&q=80",
+    stats: {
+      appearances: 26,
+      goals: 3,
+      assists: 5
+    },
+    biography: "Kane is the engine room of the team, breaking up opposition attacks and starting our own with intelligent passing."
+  },
+  {
+    id: 8,
+    name: "Michael Philipson",
+    position: "Midfielder",
+    number: 8,
+    image: "https://images.unsplash.com/photo-1543326727-cf6c39e8f84c?auto=format&fit=crop&w=800&q=80",
+    stats: {
+      appearances: 25,
+      goals: 7,
+      assists: 9
+    },
+    biography: "A creative midfielder with excellent vision and passing ability. Michael creates numerous chances each game."
+  },
+  {
+    id: 9,
+    name: "Lachie Macleod",
+    position: "Midfielder",
+    number: 10,
+    image: "https://images.unsplash.com/photo-1491309055486-24ae511c15c7?auto=format&fit=crop&w=800&q=80",
+    stats: {
+      appearances: 23,
+      goals: 10,
+      assists: 7
+    },
+    biography: "Lachie is a dynamic attacking midfielder known for his skill on the ball and ability to score from distance."
+  },
+  {
+    id: 10,
+    name: "Mark Gilmour",
     position: "Forward",
     number: 9,
     image: "https://images.unsplash.com/photo-1499368919119-2c7332a83f39?auto=format&fit=crop&w=800&q=80",
     stats: {
-      appearances: 26,
-      goals: 18,
+      appearances: 28,
+      goals: 15,
+      assists: 6
+    },
+    biography: "Mark is a clinical striker with excellent movement and finishing ability. Top scorer last season."
+  },
+  {
+    id: 11,
+    name: "Liam Duell",
+    position: "Forward",
+    number: 11,
+    image: "https://images.unsplash.com/photo-1516292077215-e0e28f992fe4?auto=format&fit=crop&w=800&q=80",
+    stats: {
+      appearances: 25,
+      goals: 12,
+      assists: 8
+    },
+    biography: "A pacy winger who loves to take on defenders and create chances for teammates or finish himself."
+  },
+  {
+    id: 12,
+    name: "Jack Henderson",
+    position: "Forward",
+    number: 17,
+    image: "https://images.unsplash.com/photo-1495360010541-f48722b34f7d?auto=format&fit=crop&w=800&q=80",
+    stats: {
+      appearances: 22,
+      goals: 9,
       assists: 7
     },
-    biography: "The team's top scorer for the past two seasons, Hamish is a clinical finisher with pace to burn. Joined from local rivals in 2018."
+    biography: "Jack is a versatile forward who can play across the front line, known for his work rate and finishing."
   }
 ];
 
@@ -78,11 +178,11 @@ const TeamGrid = () => {
   const [selectedPosition, setSelectedPosition] = useState("All");
   
   const filteredPlayers = selectedPosition === "All" 
-    ? mockPlayers 
-    : mockPlayers.filter(player => player.position === selectedPosition);
+    ? players 
+    : players.filter(player => player.position === selectedPosition);
   
   return (
-    <section className="py-20 px-4">
+    <section className="py-20 px-4 bg-white">
       <div className="container mx-auto">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -91,14 +191,14 @@ const TeamGrid = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">Team & Management</h2>
+          <h2 className="text-4xl font-bold text-team-blue mb-4">Team & Management</h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Meet the players and staff who represent Banks o' Dee FC. Click on a player card to learn more about them.
           </p>
         </motion.div>
         
         <div className="mb-10 flex justify-center">
-          <div className="inline-flex flex-wrap gap-2 bg-gray-100 p-1 rounded-lg">
+          <div className="inline-flex flex-wrap gap-2 bg-team-gray p-1 rounded-lg">
             {positions.map((position) => (
               <button
                 key={position}
@@ -106,7 +206,7 @@ const TeamGrid = () => {
                 className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                   selectedPosition === position
                     ? "bg-team-blue text-white"
-                    : "text-gray-700 hover:bg-gray-200"
+                    : "text-gray-700 hover:bg-team-lightBlue/50"
                 }`}
               >
                 {position}

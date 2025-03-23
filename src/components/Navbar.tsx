@@ -22,12 +22,12 @@ const Navbar = () => {
   }, []);
 
   const navLinks = [
-    { name: 'About Us', href: '/about' },
+    { name: 'News', href: '/news' },
     { name: 'Team & Management', href: '/team' },
     { name: 'Fixtures', href: '/fixtures' },
     { name: 'League Table', href: '/table' },
     { name: 'Spain Park', href: '/stadium' },
-    { name: 'News', href: '/news' },
+    { name: 'Tickets', href: '/tickets' },
   ];
 
   return (

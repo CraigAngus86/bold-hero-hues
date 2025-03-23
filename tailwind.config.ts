@@ -54,12 +54,13 @@ export default {
 					foreground: 'hsl(var(--card-foreground))'
 				},
 				team: {
-					blue: '#00247D',     // Darker blue from logo
-					red: '#CF142B',      // Red from logo
-					gold: '#FFD700',     // Gold accent
-					navy: '#001F3F',     // Darker navy variation
-					lightBlue: '#4D8FCC', // Lighter blue for accents
-					white: '#FFFFFF'
+					blue: '#00105a',     // Main shirt color - dark blue
+					lightBlue: '#c5e7ff', // Secondary shirt color
+					navy: '#000c40',     // Darker variation of main color
+					gray: '#f0f0f0',     // Light gray for backgrounds
+					darkGray: '#333333', // Darker gray for text
+					red: '#CF142B',      // Red accent for warnings/important info
+					white: '#FFFFFF'     // White for text contrast
 				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',

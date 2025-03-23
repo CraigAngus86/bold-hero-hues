@@ -3,9 +3,12 @@ import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
 import NewsCard from '@/components/NewsCard';
+import SponsorsCarousel from '@/components/SponsorsCarousel';
+import FixturesSection from '@/components/FixturesSection';
+import LeagueTable from '@/components/LeagueTable';
 import TeamGrid from '@/components/TeamGrid';
 import Footer from '@/components/Footer';
-import { ArrowRight, Calendar, Trophy, Users, MapPin } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 const mockNews = [
   {
@@ -45,79 +48,21 @@ const Index = () => {
       {/* Hero Section */}
       <Hero />
       
-      {/* Quick Links Section - Redesigned */}
-      <section className="py-12 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              { 
-                icon: <Calendar className="w-8 h-8" />, 
-                title: "Fixtures", 
-                description: "View upcoming matches and past results", 
-                link: "/fixtures",
-                color: "bg-team-blue text-white",
-                hoverColor: "hover:bg-team-navy"
-              },
-              { 
-                icon: <Trophy className="w-8 h-8" />, 
-                title: "League Table", 
-                description: "Check our position in the Highland League", 
-                link: "/table",
-                color: "bg-team-red text-white",
-                hoverColor: "hover:bg-team-red/90"
-              },
-              { 
-                icon: <Users className="w-8 h-8" />, 
-                title: "Team & Management", 
-                description: "Meet the players and coaching staff", 
-                link: "/team",
-                color: "bg-team-gold text-team-navy",
-                hoverColor: "hover:bg-team-gold/90"
-              },
-              { 
-                icon: <MapPin className="w-8 h-8" />, 
-                title: "Spain Park", 
-                description: "Information about our home ground", 
-                link: "/stadium",
-                color: "bg-team-lightBlue text-white",
-                hoverColor: "hover:bg-team-lightBlue/90"
-              }
-            ].map((item, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: index * 0.1 }}
-                className="h-full"
-              >
-                <a 
-                  href={item.link} 
-                  className={`flex flex-col h-full rounded-lg overflow-hidden ${item.color} shadow-lg hover:shadow-xl transition-all duration-300 ${item.hoverColor}`}
-                >
-                  <div className="p-6 flex flex-col h-full">
-                    <div className="mb-4 flex items-center justify-start">
-                      {item.icon}
-                    </div>
-                    <h3 className="text-xl font-bold mb-2">{item.title}</h3>
-                    <p className="opacity-85 text-sm flex-1 mb-4">{item.description}</p>
-                    <div className="mt-auto flex items-center text-sm font-medium transition-transform">
-                      View Details <ArrowRight className="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" />
-                    </div>
-                  </div>
-                </a>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Sponsors Carousel */}
+      <SponsorsCarousel />
+      
+      {/* Fixtures Section */}
+      <FixturesSection />
+      
+      {/* League Table Section */}
+      <LeagueTable />
       
       {/* Latest News - with mixed card sizes */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Latest News</h2>
+              <h2 className="text-3xl font-bold text-team-blue mb-2">Latest News</h2>
               <p className="text-gray-600 max-w-2xl">Stay updated with the latest happenings from Banks o' Dee FC.</p>
             </div>
             <a 
@@ -144,9 +89,6 @@ const Index = () => {
           </div>
         </div>
       </section>
-      
-      {/* Feature Team Members */}
-      <TeamGrid />
       
       {/* Stadium Section */}
       <section className="relative py-20 bg-gray-900 overflow-hidden">
@@ -178,7 +120,7 @@ const Index = () => {
               <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
                 <a 
                   href="/stadium" 
-                  className="inline-flex items-center justify-center bg-team-red text-white px-6 py-3 rounded-md font-medium hover:bg-team-red/90 transition-colors"
+                  className="inline-flex items-center justify-center bg-team-lightBlue text-team-blue px-6 py-3 rounded-md font-medium hover:bg-white transition-colors"
                 >
                   Stadium Information
                 </a>

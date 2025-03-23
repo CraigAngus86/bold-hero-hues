@@ -15,6 +15,7 @@ interface TeamStats {
   goalDifference: number;
   points: number;
   form: string[];
+  logo?: string;
 }
 
 // Mock data for the league table
@@ -30,7 +31,8 @@ const mockLeagueData: TeamStats[] = [
     goalsAgainst: 8,
     goalDifference: 16,
     points: 25,
-    form: ["W", "W", "W", "D", "W"]
+    form: ["W", "W", "W", "D", "W"],
+    logo: "https://placehold.co/40x40/team-white/team-blue?text=BT"
   },
   {
     position: 2,
@@ -43,7 +45,8 @@ const mockLeagueData: TeamStats[] = [
     goalsAgainst: 7,
     goalDifference: 13,
     points: 24,
-    form: ["W", "W", "W", "L", "W"]
+    form: ["W", "W", "W", "L", "W"],
+    logo: "https://placehold.co/40x40/team-white/team-blue?text=BC"
   },
   {
     position: 3,
@@ -56,7 +59,8 @@ const mockLeagueData: TeamStats[] = [
     goalsAgainst: 10,
     goalDifference: 12,
     points: 23,
-    form: ["W", "D", "W", "W", "D"]
+    form: ["W", "D", "W", "W", "D"],
+    logo: "/lovable-uploads/cb95b9fb-0f2d-42ef-9788-10509a80ed6e.png"
   },
   {
     position: 4,
@@ -69,7 +73,8 @@ const mockLeagueData: TeamStats[] = [
     goalsAgainst: 11,
     goalDifference: 10,
     points: 22,
-    form: ["L", "W", "W", "W", "W"]
+    form: ["L", "W", "W", "W", "W"],
+    logo: "https://placehold.co/40x40/team-white/team-blue?text=FR"
   },
   {
     position: 5,
@@ -82,7 +87,8 @@ const mockLeagueData: TeamStats[] = [
     goalsAgainst: 12,
     goalDifference: 6,
     points: 19,
-    form: ["W", "W", "L", "W", "L"]
+    form: ["W", "W", "L", "W", "L"],
+    logo: "https://placehold.co/40x40/team-white/team-blue?text=FU"
   },
   {
     position: 6,
@@ -95,7 +101,8 @@ const mockLeagueData: TeamStats[] = [
     goalsAgainst: 10,
     goalDifference: 5,
     points: 17,
-    form: ["D", "W", "L", "W", "D"]
+    form: ["D", "W", "L", "W", "D"],
+    logo: "https://placehold.co/40x40/team-white/team-blue?text=HU"
   }
 ];
 
@@ -169,7 +176,14 @@ const LeagueTable = () => {
                   >
                     <TableCell className="font-medium text-center">{team.position}</TableCell>
                     <TableCell className="font-medium">
-                      {team.team}
+                      <div className="flex items-center space-x-3">
+                        <img 
+                          src={team.logo || "https://placehold.co/40x40/gray/white?text=Logo"} 
+                          alt={`${team.team} logo`}
+                          className="w-8 h-8 object-contain"
+                        />
+                        <span>{team.team}</span>
+                      </div>
                     </TableCell>
                     <TableCell className="text-center">{team.played}</TableCell>
                     <TableCell className="text-center">{team.won}</TableCell>

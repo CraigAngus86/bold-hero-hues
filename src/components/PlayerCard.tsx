@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DialogTrigger } from '@radix-ui/react-dialog';
 import { cn } from '@/lib/utils';
+import { ChevronRight } from 'lucide-react';
 
 interface PlayerCardProps {
   name: string;
@@ -55,16 +56,6 @@ const PlayerCard = ({
             <div className="absolute inset-0 backface-hidden">
               <div className="h-full flex flex-col">
                 <div className="relative h-80 overflow-hidden bg-gradient-to-b from-[#00105a] to-[#00105a]/80">
-                  <div className="absolute left-4 top-4 z-10">
-                    {/* Square headshot */}
-                    <div className="w-16 h-16 overflow-hidden rounded-md border-2 border-white">
-                      <img 
-                        src={image} 
-                        alt={name} 
-                        className="w-full h-full object-cover object-top"
-                      />
-                    </div>
-                  </div>
                   <img 
                     src={image} 
                     alt={name} 
@@ -72,8 +63,9 @@ const PlayerCard = ({
                   />
                   
                   {/* Click for more indicator */}
-                  <div className="absolute bottom-4 right-4 bg-white/80 px-2 py-1 rounded text-xs font-medium text-[#00105a] animate-pulse">
-                    Click for more
+                  <div className="absolute bottom-4 right-4 bg-white/80 px-3 py-1.5 rounded-full text-xs font-medium text-[#00105a] animate-pulse flex items-center">
+                    <span>Click for more</span>
+                    <ChevronRight className="w-4 h-4 ml-1" />
                   </div>
                 </div>
                 
@@ -137,7 +129,7 @@ const PlayerCard = ({
                 )}
                 
                 <div className="mt-auto pt-4 text-xs text-center text-gray-400">
-                  Click to flip card
+                  Click for more
                 </div>
               </div>
             </div>

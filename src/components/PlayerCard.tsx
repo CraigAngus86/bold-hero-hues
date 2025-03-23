@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import PlayerCardFront from './player/PlayerCardFront';
 import PlayerCardBack from './player/PlayerCardBack';
+import { ChevronRight } from 'lucide-react';
 
 interface PlayerCardProps {
   name: string;
@@ -54,6 +55,11 @@ const PlayerCard = (props: PlayerCardProps) => {
           position={props.position} 
           image={props.image} 
         />
+        
+        <div className="absolute bottom-12 right-4 bg-white/80 px-3 py-1.5 rounded-full text-xs font-medium text-[#00105a] animate-pulse flex items-center z-10">
+          <span>Click for more</span>
+          <ChevronRight className="w-4 h-4 ml-1" />
+        </div>
         
         <PlayerCardBack
           name={props.name}

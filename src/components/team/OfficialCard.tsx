@@ -52,7 +52,7 @@ const OfficialCard = ({
           {/* Front Card */}
           <div className="absolute inset-0 backface-hidden">
             <div className="h-full flex flex-col">
-              <div className="relative h-3/4 overflow-hidden bg-gradient-to-b from-[#00105a] to-[#00105a]/80">
+              <div className="relative h-4/5 overflow-hidden bg-gradient-to-b from-[#00105a] to-[#00105a]/80">
                 <img 
                   src={image} 
                   alt={name} 
@@ -93,15 +93,16 @@ const OfficialCard = ({
                 </div>
               </div>
               
-              <div className="flex-1 overflow-y-auto text-gray-600 text-sm pr-2">
-                <p>{bio}</p>
-              </div>
-              
               <div 
-                className="mt-auto pt-4 text-xs text-center text-gray-400 cursor-pointer"
-                onClick={openDialog}
+                className="mt-auto pt-4 text-center cursor-pointer"
               >
-                Click for more details
+                <button 
+                  className="bg-[#00105a] text-white px-4 py-2 rounded-md inline-flex items-center"
+                  onClick={openDialog}
+                >
+                  View Details
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </button>
               </div>
             </div>
           </div>

@@ -58,16 +58,16 @@ const SocialMediaFeed = () => {
   }, []);
   
   return (
-    <section className="py-10 bg-team-gray">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-team-blue mb-2">Social Media</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+    <section className="py-6 bg-team-gray">
+      <div className="container mx-auto px-3">
+        <div className="text-center mb-4">
+          <h2 className="text-2xl font-bold text-team-blue mb-1">Social Media</h2>
+          <p className="text-gray-600 max-w-2xl mx-auto text-sm">
             Follow us on social media to stay updated with everything happening at Banks o' Dee FC.
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           {socialPosts.map((post) => (
             <motion.div
               key={post.id}
@@ -78,32 +78,32 @@ const SocialMediaFeed = () => {
               className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
             >
               {/* Header */}
-              <div className="flex items-center p-3 border-b border-gray-100">
-                <div className={`p-2 rounded-full mr-2 ${post.platform === 'twitter' ? 'bg-[#1DA1F2]/10 text-[#1DA1F2]' : 'bg-[#C13584]/10 text-[#C13584]'}`}>
-                  {post.platform === 'twitter' ? <Twitter className="w-4 h-4" /> : <Instagram className="w-4 h-4" />}
+              <div className="flex items-center p-2 border-b border-gray-100">
+                <div className={`p-1.5 rounded-full mr-1.5 ${post.platform === 'twitter' ? 'bg-[#1DA1F2]/10 text-[#1DA1F2]' : 'bg-[#C13584]/10 text-[#C13584]'}`}>
+                  {post.platform === 'twitter' ? <Twitter className="w-3.5 h-3.5" /> : <Instagram className="w-3.5 h-3.5" />}
                 </div>
                 <div>
-                  <p className="font-semibold text-sm">@{post.username}</p>
-                  <p className="text-xs text-gray-500">{post.date}</p>
+                  <p className="font-semibold text-xs">@{post.username}</p>
+                  <p className="text-[10px] text-gray-500">{post.date}</p>
                 </div>
               </div>
               
               {/* Content */}
-              <div className="p-3">
-                <p className="text-sm text-gray-700 mb-3">{post.content}</p>
+              <div className="p-2">
+                <p className="text-xs text-gray-700 mb-2 line-clamp-3">{post.content}</p>
                 
                 {post.image && (
-                  <div className="rounded-md overflow-hidden mb-3">
+                  <div className="rounded-md overflow-hidden mb-2">
                     <img 
                       src={post.image} 
                       alt="Social media post" 
-                      className="w-full h-40 object-cover"
+                      className="w-full h-32 object-cover"
                     />
                   </div>
                 )}
                 
                 {/* Stats */}
-                <div className="flex justify-between text-xs text-gray-500">
+                <div className="flex justify-between text-[10px] text-gray-500">
                   <span>{post.likes} Likes</span>
                   <span>{post.comments} Comments</span>
                   {post.shares && <span>{post.shares} Shares</span>}
@@ -113,25 +113,25 @@ const SocialMediaFeed = () => {
           ))}
         </div>
         
-        <div className="text-center mt-8">
-          <div className="flex justify-center space-x-4">
+        <div className="text-center mt-4">
+          <div className="flex justify-center space-x-3">
             <a 
               href="https://x.com/banksodee_fc" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="bg-team-blue text-white p-3 rounded-full hover:bg-team-lightBlue transition-colors"
+              className="bg-team-blue text-white p-2.5 rounded-full hover:bg-team-lightBlue transition-colors"
               aria-label="Twitter/X"
             >
-              <Twitter className="w-5 h-5" />
+              <Twitter className="w-4 h-4" />
             </a>
             <a 
               href="https://www.instagram.com/banksodeefc/" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="bg-team-blue text-white p-3 rounded-full hover:bg-team-lightBlue transition-colors"
+              className="bg-team-blue text-white p-2.5 rounded-full hover:bg-team-lightBlue transition-colors"
               aria-label="Instagram"
             >
-              <Instagram className="w-5 h-5" />
+              <Instagram className="w-4 h-4" />
             </a>
           </div>
         </div>

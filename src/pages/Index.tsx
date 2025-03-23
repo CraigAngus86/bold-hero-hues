@@ -14,7 +14,8 @@ const mockNews = [
     excerpt: "The team celebrates with fans after a hard-fought victory in the final, adding another prestigious trophy to the club's growing collection.",
     image: "/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png",
     date: "April 18, 2023",
-    category: "Cup Success"
+    category: "Cup Success",
+    size: "large"
   },
   {
     id: 2,
@@ -22,7 +23,8 @@ const mockNews = [
     excerpt: "Banks o' Dee forward displays exceptional skill in our latest match, helping the team secure an important three points in our title chase.",
     image: "/lovable-uploads/122628af-86b4-4d7f-bfe3-01d4bf03d053.png",
     date: "March 25, 2023",
-    category: "Match Report"
+    category: "Match Report",
+    size: "small"
   },
   {
     id: 3,
@@ -30,7 +32,8 @@ const mockNews = [
     excerpt: "Stunning aerial view of our recently upgraded stadium and facilities, situated in a picturesque location alongside the River Dee.",
     image: "/lovable-uploads/7f997ef4-9019-4660-9e9e-4e230d7b1eb3.png",
     date: "February 28, 2023",
-    category: "Stadium News"
+    category: "Stadium News",
+    size: "small"
   }
 ];
 
@@ -42,38 +45,42 @@ const Index = () => {
       {/* Hero Section */}
       <Hero />
       
-      {/* Quick Links Section */}
-      <section className="py-12">
+      {/* Quick Links Section - Redesigned */}
+      <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
               { 
-                icon: <Calendar className="w-6 h-6" />, 
+                icon: <Calendar className="w-8 h-8" />, 
                 title: "Fixtures", 
                 description: "View upcoming matches and past results", 
                 link: "/fixtures",
-                color: "from-blue-500 to-blue-600" 
+                color: "bg-team-blue text-white",
+                hoverColor: "hover:bg-team-navy"
               },
               { 
-                icon: <Trophy className="w-6 h-6" />, 
+                icon: <Trophy className="w-8 h-8" />, 
                 title: "League Table", 
                 description: "Check our position in the Highland League", 
                 link: "/table",
-                color: "from-emerald-500 to-emerald-600" 
+                color: "bg-team-red text-white",
+                hoverColor: "hover:bg-team-red/90"
               },
               { 
-                icon: <Users className="w-6 h-6" />, 
+                icon: <Users className="w-8 h-8" />, 
                 title: "Team & Management", 
                 description: "Meet the players and coaching staff", 
                 link: "/team",
-                color: "from-amber-500 to-amber-600" 
+                color: "bg-team-gold text-team-navy",
+                hoverColor: "hover:bg-team-gold/90"
               },
               { 
-                icon: <MapPin className="w-6 h-6" />, 
+                icon: <MapPin className="w-8 h-8" />, 
                 title: "Spain Park", 
                 description: "Information about our home ground", 
                 link: "/stadium",
-                color: "from-indigo-500 to-indigo-600" 
+                color: "bg-team-lightBlue text-white",
+                hoverColor: "hover:bg-team-lightBlue/90"
               }
             ].map((item, index) => (
               <motion.div
@@ -82,21 +89,19 @@ const Index = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: index * 0.1 }}
+                className="h-full"
               >
                 <a 
                   href={item.link} 
-                  className="block group h-full"
+                  className={`flex flex-col h-full rounded-lg overflow-hidden ${item.color} shadow-lg hover:shadow-xl transition-all duration-300 ${item.hoverColor}`}
                 >
-                  <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 p-6 h-full flex flex-col overflow-hidden relative">
-                    <div className={`absolute top-0 left-0 w-2 h-full bg-gradient-to-b ${item.color}`}></div>
-                    <div className="mb-4">
-                      <div className={`inline-flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-br ${item.color} text-white`}>
-                        {item.icon}
-                      </div>
+                  <div className="p-6 flex flex-col h-full">
+                    <div className="mb-4 flex items-center justify-start">
+                      {item.icon}
                     </div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">{item.title}</h3>
-                    <p className="text-gray-600 text-sm flex-1">{item.description}</p>
-                    <div className="mt-4 flex items-center text-sm font-medium text-team-blue group-hover:translate-x-1 transition-transform">
+                    <h3 className="text-xl font-bold mb-2">{item.title}</h3>
+                    <p className="opacity-85 text-sm flex-1 mb-4">{item.description}</p>
+                    <div className="mt-auto flex items-center text-sm font-medium transition-transform">
                       View Details <ArrowRight className="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" />
                     </div>
                   </div>
@@ -107,7 +112,7 @@ const Index = () => {
         </div>
       </section>
       
-      {/* Latest News */}
+      {/* Latest News - with mixed card sizes */}
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
@@ -117,13 +122,13 @@ const Index = () => {
             </div>
             <a 
               href="/news" 
-              className="mt-4 md:mt-0 inline-flex items-center bg-team-blue hover:bg-team-blue/90 text-white px-4 py-2 rounded-md transition-colors"
+              className="mt-4 md:mt-0 inline-flex items-center bg-team-blue hover:bg-team-navy text-white px-4 py-2 rounded-md transition-colors"
             >
               View All News <ArrowRight className="w-4 h-4 ml-2" />
             </a>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {mockNews.map((news) => (
               <NewsCard
                 key={news.id}
@@ -132,13 +137,15 @@ const Index = () => {
                 image={news.image}
                 date={news.date}
                 category={news.category}
+                size={news.size as 'small' | 'medium' | 'large'}
+                className={news.size === 'large' ? 'lg:col-span-2' : news.size === 'small' ? 'lg:col-span-1' : ''}
               />
             ))}
           </div>
         </div>
       </section>
       
-      {/* Featured Team Members */}
+      {/* Feature Team Members */}
       <TeamGrid />
       
       {/* Stadium Section */}
@@ -171,7 +178,7 @@ const Index = () => {
               <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
                 <a 
                   href="/stadium" 
-                  className="inline-flex items-center justify-center bg-white text-team-blue px-6 py-3 rounded-md font-medium hover:bg-gray-100 transition-colors"
+                  className="inline-flex items-center justify-center bg-team-red text-white px-6 py-3 rounded-md font-medium hover:bg-team-red/90 transition-colors"
                 >
                   Stadium Information
                 </a>

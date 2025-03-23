@@ -2,6 +2,7 @@
 import { motion } from 'framer-motion';
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 interface NewsCardProps {
   title: string;
@@ -10,6 +11,7 @@ interface NewsCardProps {
   date: string;
   category: string;
   featured?: boolean;
+  size?: 'small' | 'medium' | 'large';  // Added size option
   className?: string;
 }
 
@@ -20,6 +22,7 @@ const NewsCard = ({
   date,
   category,
   featured = false,
+  size = 'medium',
   className,
 }: NewsCardProps) => {
   return (
@@ -31,14 +34,20 @@ const NewsCard = ({
       className={cn(
         "group rounded-lg overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl bg-white h-full flex flex-col",
         featured ? "md:col-span-2" : "",
+        size === 'large' ? "md:col-span-2" : "",
+        size === 'small' ? "md:col-span-1" : "",
         className
       )}
     >
-      <div className="overflow-hidden relative h-64">
+      <div className={cn(
+        "overflow-hidden relative",
+        size === 'small' ? "h-48" : "h-64",
+        size === 'large' ? "h-80" : ""
+      )}>
         <div className="absolute top-0 left-0 z-10 m-4">
-          <span className="inline-block px-3 py-1 bg-white text-team-blue text-xs font-semibold rounded shadow-sm">
+          <Badge className="bg-team-red hover:bg-team-red/90 text-white text-xs font-semibold">
             {category}
-          </span>
+          </Badge>
         </div>
         <img 
           src={image} 
@@ -47,22 +56,34 @@ const NewsCard = ({
         />
       </div>
       
-      <div className="p-6 flex-1 flex flex-col">
+      <div className={cn(
+        "p-6 flex-1 flex flex-col",
+        size === 'large' ? "p-8" : "",
+        size === 'small' ? "p-4" : ""
+      )}>
         <div className="flex items-center mb-3 text-sm text-gray-500">
           <CalendarIcon className="w-4 h-4 mr-2" />
           <span>{date}</span>
         </div>
         
-        <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-team-blue transition-colors">
+        <h3 className={cn(
+          "font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-team-blue transition-colors",
+          size === 'large' ? "text-2xl" : "text-xl",
+          size === 'small' ? "text-lg" : ""
+        )}>
           {title}
         </h3>
         
-        <p className="text-gray-600 mb-4 flex-1 line-clamp-3">
+        <p className={cn(
+          "text-gray-600 mb-4 flex-1",
+          size === 'small' ? "line-clamp-2" : "line-clamp-3",
+          size === 'large' ? "text-lg" : ""
+        )}>
           {excerpt}
         </p>
         
         <div className="mt-auto">
-          <button className="text-team-blue font-medium inline-flex items-center transition-colors hover:text-team-silver">
+          <button className="text-team-blue font-medium inline-flex items-center transition-colors hover:text-team-red">
             Read Full Story
             <svg className="w-4 h-4 ml-1 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />

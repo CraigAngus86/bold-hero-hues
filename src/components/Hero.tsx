@@ -1,6 +1,6 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface NewsItem {
@@ -43,13 +43,6 @@ const Hero = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoplay, setIsAutoplay] = useState(true);
   const autoplayRef = useRef<NodeJS.Timeout | null>(null);
-  
-  const goToPrevious = () => {
-    setCurrentIndex((prevIndex) => 
-      prevIndex === 0 ? mockNews.length - 1 : prevIndex - 1
-    );
-    resetAutoplay();
-  };
   
   const goToNext = () => {
     setCurrentIndex((prevIndex) => 
@@ -126,7 +119,7 @@ const Hero = () => {
             }}
             className="max-w-4xl"
           >
-            <span className="inline-block px-3 py-1 mb-4 bg-white text-team-blue text-xs font-semibold rounded">
+            <span className="inline-block px-3 py-1 mb-4 bg-team-red text-white text-xs font-semibold rounded">
               {mockNews[currentIndex].category}
             </span>
             <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight">
@@ -146,7 +139,7 @@ const Hero = () => {
           </motion.div>
         </AnimatePresence>
         
-        {/* Navigation Controls */}
+        {/* Navigation Controls - Dots only */}
         <div className="absolute bottom-16 left-0 right-0 flex justify-center space-x-2 z-30">
           {mockNews.map((_, index) => (
             <button
@@ -162,22 +155,6 @@ const Hero = () => {
             />
           ))}
         </div>
-        
-        {/* Arrow Controls */}
-        <button 
-          className="absolute left-4 md:left-8 top-1/2 transform -translate-y-1/2 z-30 bg-white/10 hover:bg-white/20 backdrop-blur-md p-3 rounded-full transition-colors"
-          onClick={goToPrevious}
-          aria-label="Previous slide"
-        >
-          <ChevronLeft className="w-6 h-6 text-white" />
-        </button>
-        <button 
-          className="absolute right-4 md:right-8 top-1/2 transform -translate-y-1/2 z-30 bg-white/10 hover:bg-white/20 backdrop-blur-md p-3 rounded-full transition-colors"
-          onClick={goToNext}
-          aria-label="Next slide"
-        >
-          <ChevronRight className="w-6 h-6 text-white" />
-        </button>
       </div>
     </section>
   );

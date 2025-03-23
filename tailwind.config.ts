@@ -54,8 +54,11 @@ export default {
 					foreground: 'hsl(var(--card-foreground))'
 				},
 				team: {
-					blue: '#0c2340',
-					silver: '#8A898C',
+					blue: '#00247D',     // Darker blue from logo
+					red: '#CF142B',      // Red from logo
+					gold: '#FFD700',     // Gold accent
+					navy: '#001F3F',     // Darker navy variation
+					lightBlue: '#4D8FCC', // Lighter blue for accents
 					white: '#FFFFFF'
 				},
 				sidebar: {

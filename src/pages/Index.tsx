@@ -1,3 +1,4 @@
+
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
@@ -82,7 +83,7 @@ const Index = () => {
       {/* Hero Section */}
       <Hero />
       
-      {/* Latest News - with modified card layout */}
+      {/* Latest News - with new 12-column grid layout */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
@@ -98,8 +99,8 @@ const Index = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-            {/* Feature news item - reduced to 75% vertical height */}
-            <div className="md:col-span-8 lg:col-span-8">
+            {/* Feature news item - 6x6 */}
+            <div className="md:col-span-6">
               <NewsCard
                 key={mockNews[0].id}
                 title={mockNews[0].title}
@@ -108,15 +109,13 @@ const Index = () => {
                 date={mockNews[0].date}
                 category={mockNews[0].category}
                 size="large"
-                reduced={true}
               />
             </div>
             
-            {/* Other news items - right column */}
-            <div className="md:col-span-4 lg:col-span-4 grid grid-rows-3 gap-6">
-              {mockNews.slice(1, 4).map((news) => (
+            {/* Secondary news items - each 3x6 */}
+            {mockNews.slice(1, 7).map((news, index) => (
+              <div key={news.id} className="md:col-span-3">
                 <NewsCard
-                  key={news.id}
                   title={news.title}
                   excerpt={news.excerpt}
                   image={news.image}
@@ -124,33 +123,8 @@ const Index = () => {
                   category={news.category}
                   size="small"
                 />
-              ))}
-            </div>
-
-            {/* Two small cards below the large card */}
-            <div className="md:col-span-4 lg:col-span-4">
-              <NewsCard
-                key={mockNews[4].id}
-                title={mockNews[4].title}
-                excerpt={mockNews[4].excerpt}
-                image={mockNews[4].image}
-                date={mockNews[4].date}
-                category={mockNews[4].category}
-                size="small"
-              />
-            </div>
-            
-            <div className="md:col-span-4 lg:col-span-4">
-              <NewsCard
-                key={mockNews[5].id}
-                title={mockNews[5].title}
-                excerpt={mockNews[5].excerpt}
-                image={mockNews[5].image}
-                date={mockNews[5].date}
-                category={mockNews[5].category}
-                size="small"
-              />
-            </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>

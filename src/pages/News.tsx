@@ -16,13 +16,20 @@ import {
 import { useNewsStore, formatDate } from '@/services/news';
 import { NewsItem } from '@/services/news/types';
 
+// Define the allowed categories
+const ALLOWED_CATEGORIES = ['Club News', 'Match Reports', 'Spain Park', 'Community'];
+
 const News = () => {
   const { news } = useNewsStore();
   const [filteredNews, setFilteredNews] = useState<NewsItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   
-  // Get unique categories from news items
-  const categories = ['all', ...Array.from(new Set(news.map(item => item.category)))];
+  // Get unique categories that are in the allowed list
+  const categories = ['all', ...Array.from(new Set(
+    news
+      .map(item => item.category)
+      .filter(category => ALLOWED_CATEGORIES.includes(category))
+  ))];
   
   useEffect(() => {
     if (selectedCategory === 'all') {

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -55,7 +56,7 @@ const Hero = () => {
   
   return (
     <section 
-      className="relative w-full h-screen overflow-hidden bg-[#00105a]"
+      className="relative w-full h-[600px] overflow-hidden bg-[#00105a]"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
@@ -77,7 +78,7 @@ const Hero = () => {
         </motion.div>
       </AnimatePresence>
       
-      <div className="container mx-auto px-4 relative z-20 h-full flex flex-col justify-end pb-32">
+      <div className="container mx-auto px-4 relative z-20 h-full flex flex-col justify-end pb-20">
         <AnimatePresence mode="wait">
           <motion.div
             key={heroNews[currentIndex].id}
@@ -110,7 +111,7 @@ const Hero = () => {
           </motion.div>
         </AnimatePresence>
         
-        <div className="absolute bottom-16 left-0 right-0 flex justify-center space-x-2 z-30">
+        <div className="absolute bottom-6 left-0 right-0 flex justify-center space-x-2 z-30">
           {heroNews.map((_, index) => (
             <button
               key={index}

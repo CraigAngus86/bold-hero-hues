@@ -1,7 +1,7 @@
 
 import { NewsItem } from './types';
 
-// Initial news data
+// Initial news data with standardized categories
 export const initialNews: NewsItem[] = [
   {
     id: 1,
@@ -9,7 +9,7 @@ export const initialNews: NewsItem[] = [
     excerpt: "The team celebrates with fans after a hard-fought victory in the final, adding another prestigious trophy to the club's growing collection.",
     image: "/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png",
     date: "April 18, 2023",
-    category: "Cup Success"
+    category: "Club News"
   },
   {
     id: 2,
@@ -17,7 +17,7 @@ export const initialNews: NewsItem[] = [
     excerpt: "Banks o' Dee forward displays exceptional skill in our latest match, helping the team secure an important three points in our title chase.",
     image: "/lovable-uploads/122628af-86b4-4d7f-bfe3-01d4bf03d053.png",
     date: "March 25, 2023",
-    category: "Match Report"
+    category: "Match Reports"
   },
   {
     id: 3,
@@ -33,7 +33,7 @@ export const initialNews: NewsItem[] = [
     excerpt: "Club reveals plans to expand youth development program with new coaching staff and improved training facilities for young talents.",
     image: "/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png",
     date: "February 15, 2023",
-    category: "Youth News"
+    category: "Club News"
   },
   {
     id: 5,
@@ -73,7 +73,7 @@ export const initialNews: NewsItem[] = [
     excerpt: "The club has secured the signature of a highly-rated young goalkeeper from the local youth academy to bolster the squad depth.",
     image: "/lovable-uploads/e2efc1b0-1c8a-4e98-9826-3030a5f5d247.png",
     date: "November 15, 2022",
-    category: "Transfer News"
+    category: "Club News"
   },
   {
     id: 10,
@@ -81,7 +81,7 @@ export const initialNews: NewsItem[] = [
     excerpt: "Banks o' Dee FC is proud to announce a new sponsorship deal with a prominent local business to support community initiatives.",
     image: "/lovable-uploads/7f997ef4-9019-4660-9e9e-4e230d7b1eb3.png",
     date: "October 30, 2022",
-    category: "Sponsorship"
+    category: "Club News"
   },
   {
     id: 11,
@@ -89,7 +89,7 @@ export const initialNews: NewsItem[] = [
     excerpt: "Banks o' Dee Women's team continues their strong form with another convincing win in the regional league.",
     image: "/lovable-uploads/122628af-86b4-4d7f-bfe3-01d4bf03d053.png",
     date: "October 18, 2022",
-    category: "Women's Team"
+    category: "Match Reports"
   },
   {
     id: 12,
@@ -121,7 +121,7 @@ export const initialNews: NewsItem[] = [
     excerpt: "The latest range of official club merchandise is now available for purchase in the club shop and online store.",
     image: "/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png",
     date: "August 28, 2022",
-    category: "Club Shop"
+    category: "Club News"
   },
   {
     id: 16,
@@ -129,7 +129,7 @@ export const initialNews: NewsItem[] = [
     excerpt: "The Highland League has released the full fixture list for the upcoming season, with Banks o' Dee starting with a home match.",
     image: "/lovable-uploads/122628af-86b4-4d7f-bfe3-01d4bf03d053.png",
     date: "August 15, 2022",
-    category: "Fixtures"
+    category: "Club News"
   },
   {
     id: 17,
@@ -137,7 +137,7 @@ export const initialNews: NewsItem[] = [
     excerpt: "The Banks o' Dee squad has traveled to a specialized training facility to prepare for the challenges of the upcoming campaign.",
     image: "/lovable-uploads/e2efc1b0-1c8a-4e98-9826-3030a5f5d247.png",
     date: "July 30, 2022",
-    category: "Pre-season"
+    category: "Club News"
   },
   {
     id: 18,
@@ -145,7 +145,7 @@ export const initialNews: NewsItem[] = [
     excerpt: "The club will be running weekly football camps throughout the summer holidays to engage with the local community and develop young talent.",
     image: "/lovable-uploads/7f997ef4-9019-4660-9e9e-4e230d7b1eb3.png",
     date: "July 15, 2022",
-    category: "Youth News"
+    category: "Community"
   },
   {
     id: 19,
@@ -161,7 +161,7 @@ export const initialNews: NewsItem[] = [
     excerpt: "A talented young player from our youth academy has been rewarded with his first professional contract after impressive performances.",
     image: "/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png",
     date: "June 15, 2022",
-    category: "Youth News"
+    category: "Club News"
   },
   {
     id: 21,
@@ -173,11 +173,11 @@ export const initialNews: NewsItem[] = [
   },
   {
     id: 22,
-    title: "Club launches new environmental sustainability initiative",
-    excerpt: "Banks o' Dee is committed to a greener future with the launch of a comprehensive environmental program at Spain Park Stadium.",
+    title: "Banks o' Dee secures important away victory",
+    excerpt: "A resilient performance saw our team earn three valuable points on the road against tough opposition in the Highland League.",
     image: "/lovable-uploads/122628af-86b4-4d7f-bfe3-01d4bf03d053.png",
     date: "May 22, 2022",
-    category: "Club News"
+    category: "Match Reports"
   },
   {
     id: 23,
@@ -197,34 +197,34 @@ export const initialNews: NewsItem[] = [
   },
   {
     id: 25,
-    title: "Women's team secures major sponsorship deal",
-    excerpt: "Banks o' Dee Women have announced a significant new sponsorship agreement that will support the growth and development of the women's squad.",
+    title: "Women's team secures major victory in cup competition",
+    excerpt: "Banks o' Dee Women have advanced to the next round of the cup after an impressive display against higher-ranked opposition.",
     image: "/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png",
     date: "April 15, 2022",
-    category: "Women's Team"
+    category: "Match Reports"
   },
   {
     id: 26,
-    title: "Club to host summer football festival",
+    title: "Club to host summer football festival at Spain Park",
     excerpt: "Spain Park will be transformed into a celebration of football this summer with tournaments, entertainment, and activities for all ages.",
     image: "/lovable-uploads/122628af-86b4-4d7f-bfe3-01d4bf03d053.png",
     date: "April 2, 2022",
-    category: "Events"
+    category: "Spain Park"
   },
   {
     id: 27,
-    title: "Banks o' Dee launches new official podcast",
-    excerpt: "Fans can now enjoy weekly behind-the-scenes content, interviews with players and staff, and match analysis through the club's new podcast.",
+    title: "Dramatic late winner secures crucial three points",
+    excerpt: "A 90th minute goal gave Banks o' Dee a vital victory in their pursuit of Highland League success this season.",
     image: "/lovable-uploads/7f997ef4-9019-4660-9e9e-4e230d7b1eb3.png",
     date: "March 20, 2022",
-    category: "Media"
+    category: "Match Reports"
   },
   {
     id: 28,
-    title: "New training facilities completed ahead of schedule",
+    title: "New training facilities at Spain Park completed ahead of schedule",
     excerpt: "The club is proud to unveil state-of-the-art training facilities that will benefit all teams from youth level through to the first team.",
     image: "/lovable-uploads/e2efc1b0-1c8a-4e98-9826-3030a5f5d247.png",
     date: "March 8, 2022",
-    category: "Facilities"
+    category: "Spain Park"
   }
 ];

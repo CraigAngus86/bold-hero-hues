@@ -9,24 +9,6 @@ interface UpcomingFixturesProps {
 }
 
 const UpcomingFixtures = ({ matches }: UpcomingFixturesProps) => {
-  // Generate placeholder logos for teams
-  const getTeamLogo = (teamName: string) => {
-    // This would ideally be replaced with actual team logos
-    const initials = teamName
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-      .substring(0, 2)
-      .toUpperCase();
-    
-    // For Banks o' Dee we use the official logo
-    if (teamName === "Banks o' Dee") {
-      return "/lovable-uploads/8f2cd33f-1e08-494a-9aaa-65792ee9418a.png";
-    }
-    
-    return `https://placehold.co/60x60/team-blue/white?text=${initials}`;
-  };
-
   return (
     <Card className="overflow-hidden border-team-gray hover:shadow-md transition-shadow bg-white flex flex-col h-full">
       <div className="bg-[#00105a] text-white font-medium p-3 flex items-center justify-center">
@@ -41,30 +23,16 @@ const UpcomingFixtures = ({ matches }: UpcomingFixturesProps) => {
                 {match.competition} • {formatDate(match.date)} • {match.time}
               </div>
               <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center w-[42%] justify-end space-x-1">
-                  <div className="w-8 h-8 flex-shrink-0 mr-1 flex items-center justify-center">
-                    <img 
-                      src={getTeamLogo(match.homeTeam)} 
-                      alt={`${match.homeTeam} logo`} 
-                      className={`object-contain ${match.homeTeam === "Banks o' Dee" ? "w-8" : "max-h-7 max-w-7"}`}
-                    />
-                  </div>
+                <div className="flex items-center w-[42%] justify-end">
                   <span className={`font-medium ${match.homeTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
                     {match.homeTeam}
                   </span>
                 </div>
-                <span className="font-bold text-xs w-[16%] text-center">VS</span>
-                <div className="flex items-center w-[42%] justify-start space-x-1">
+                <span className="font-bold text-xs w-[16%] text-center bg-[#c5e7ff] px-3 py-1 rounded">VS</span>
+                <div className="flex items-center w-[42%] justify-start">
                   <span className={`font-medium ${match.awayTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
                     {match.awayTeam}
                   </span>
-                  <div className="w-8 h-8 flex-shrink-0 ml-1 flex items-center justify-center">
-                    <img 
-                      src={getTeamLogo(match.awayTeam)} 
-                      alt={`${match.awayTeam} logo`} 
-                      className={`object-contain ${match.awayTeam === "Banks o' Dee" ? "w-8" : "max-h-7 max-w-7"}`}
-                    />
-                  </div>
                 </div>
               </div>
               <div className="text-xs text-gray-500 text-center -mt-0.5">

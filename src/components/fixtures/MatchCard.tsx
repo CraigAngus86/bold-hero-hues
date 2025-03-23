@@ -37,12 +37,12 @@ const MatchCard = ({ match }: MatchCardProps) => {
         </div>
         <div className="p-2 relative">
           <div className="flex items-center justify-between gap-1">
-            <div className="flex items-center flex-1">
-              <div className="w-10 h-10 flex-shrink-0 mr-1 flex items-center justify-center">
+            <div className="flex items-center flex-1 relative">
+              <div className="w-10 h-12 flex-shrink-0 mr-1 flex items-center justify-center relative z-10">
                 <img 
                   src={getTeamLogo(match.homeTeam)} 
                   alt={`${match.homeTeam} logo`} 
-                  className={`max-w-full max-h-full object-contain ${match.homeTeam === "Banks o' Dee" ? "w-10" : ""}`}
+                  className={`max-w-full max-h-full object-contain ${match.homeTeam === "Banks o' Dee" ? "w-10 absolute top-0 h-16" : ""}`}
                 />
               </div>
               <div className="flex-1 text-right">
@@ -53,38 +53,38 @@ const MatchCard = ({ match }: MatchCardProps) => {
             </div>
             
             {match.isCompleted ? (
-              <div className="flex items-center justify-center space-x-2 font-bold mx-1">
-                <span className="w-7 h-7 flex items-center justify-center bg-team-gray rounded">{match.homeScore}</span>
+              <div className="flex items-center justify-center space-x-2 font-bold mx-1 z-10">
+                <span className="w-7 h-7 flex items-center justify-center bg-[#c5e7ff] rounded">{match.homeScore}</span>
                 <span className="text-xs">-</span>
-                <span className="w-7 h-7 flex items-center justify-center bg-team-gray rounded">{match.awayScore}</span>
+                <span className="w-7 h-7 flex items-center justify-center bg-[#c5e7ff] rounded">{match.awayScore}</span>
               </div>
             ) : (
-              <div className="flex items-center justify-center font-bold text-sm mx-1">
-                <span>VS</span>
+              <div className="flex items-center justify-center font-bold text-sm mx-1 z-10">
+                <span className="bg-[#c5e7ff] px-3 py-1 rounded">VS</span>
               </div>
             )}
             
-            <div className="flex items-center flex-1">
+            <div className="flex items-center flex-1 relative">
               <div className="flex-1 text-left">
                 <p className={`font-semibold ${match.awayTeam === "Banks o' Dee" ? "text-team-blue" : ""}`}>
                   {match.awayTeam}
                 </p>
               </div>
-              <div className="w-10 h-10 flex-shrink-0 ml-1 flex items-center justify-center">
+              <div className="w-10 h-12 flex-shrink-0 ml-1 flex items-center justify-center relative z-10">
                 <img 
                   src={getTeamLogo(match.awayTeam)} 
                   alt={`${match.awayTeam} logo`} 
-                  className={`max-w-full max-h-full object-contain ${match.awayTeam === "Banks o' Dee" ? "w-10" : ""}`}
+                  className={`max-w-full max-h-full object-contain ${match.awayTeam === "Banks o' Dee" ? "w-10 absolute top-0 h-16" : ""}`}
                 />
               </div>
             </div>
           </div>
-          <div className="text-xs text-gray-500 text-center mt-0.5 mb-1">
+          <div className="text-xs text-gray-500 text-center mt-0.5 mb-1 relative z-20">
             {match.venue}
           </div>
           
           {!match.isCompleted && (
-            <div className="flex justify-center">
+            <div className="flex justify-center relative z-20">
               <a 
                 href="/tickets" 
                 className="text-xs bg-team-blue text-white px-3 py-1 rounded hover:bg-team-navy transition-colors text-center"

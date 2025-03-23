@@ -1,6 +1,6 @@
 
 import { Link } from 'react-router-dom';
-import { Facebook, Twitter, Instagram, Mail, Phone, MapPin } from 'lucide-react';
+import { Facebook, Twitter, Instagram, Mail, Phone, MapPin, Lock } from 'lucide-react';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -75,6 +75,12 @@ const Footer = () => {
               </li>
               <li>
                 <Link to="/tickets" className="text-white/80 hover:text-white transition-colors">Tickets</Link>
+              </li>
+              <li>
+                <Link to="/admin" className="text-white/80 hover:text-white transition-colors flex items-center">
+                  <Lock className="w-4 h-4 mr-1" />
+                  Admin
+                </Link>
               </li>
             </ul>
           </div>

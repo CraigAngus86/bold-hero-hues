@@ -19,7 +19,14 @@ import NotFound from "./pages/NotFound";
 const App = () => {
   // Create a new QueryClient instance inside the component
   // This fixes the "dispatcher.useEffect" error
-  const [queryClient] = useState(() => new QueryClient());
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: 1,
+        staleTime: 5 * 60 * 1000, // 5 minutes
+      },
+    },
+  }));
 
   return (
     <QueryClientProvider client={queryClient}>

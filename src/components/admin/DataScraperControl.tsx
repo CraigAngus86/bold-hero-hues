@@ -5,7 +5,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { fetchLeagueData, clearLeagueDataCache } from '@/services/leagueDataService';
-import { RefreshCcw, AlertCircle, CheckCircle2, Info } from 'lucide-react';
+import { scrapeLeagueTable, scrapeFixtures, scrapeResults } from '@/services/highlandLeagueScraper';
+import { RefreshCcw, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { TeamStats } from '@/components/league/types';
 import { Match } from '@/components/fixtures/types';
 
@@ -18,7 +19,7 @@ const DataScraperControl = () => {
   const [results, setResults] = useState<Match[]>([]);
   const [activeTab, setActiveTab] = useState('all');
 
-  const handleLoadData = async () => {
+  const handleScrapeAll = async () => {
     setIsLoading(true);
     setError(null);
     setSuccess(null);
@@ -30,10 +31,10 @@ const DataScraperControl = () => {
       setFixtures(data.fixtures);
       setResults(data.results);
       
-      setSuccess('Successfully loaded all Highland League data!');
+      setSuccess('Successfully fetched all Highland League data!');
     } catch (error) {
-      console.error('Error loading data:', error);
-      setError('Failed to load data. Check console for details.');
+      console.error('Error scraping data:', error);
+      setError('Failed to scrape data. Check console for details.');
     } finally {
       setIsLoading(false);
     }
@@ -49,30 +50,67 @@ const DataScraperControl = () => {
     }, 3000);
   };
 
+  const handleScrapeLeagueTable = async () => {
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+    
+    try {
+      const data = await scrapeLeagueTable();
+      setLeagueTable(data);
+      setSuccess('Successfully fetched league table data!');
+    } catch (error) {
+      console.error('Error scraping league table:', error);
+      setError('Failed to scrape league table. Check console for details.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleScrapeFixtures = async () => {
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+    
+    try {
+      const data = await scrapeFixtures();
+      setFixtures(data);
+      setSuccess('Successfully fetched fixtures data!');
+    } catch (error) {
+      console.error('Error scraping fixtures:', error);
+      setError('Failed to scrape fixtures. Check console for details.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleScrapeResults = async () => {
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+    
+    try {
+      const data = await scrapeResults();
+      setResults(data);
+      setSuccess('Successfully fetched results data!');
+    } catch (error) {
+      console.error('Error scraping results:', error);
+      setError('Failed to scrape results. Check console for details.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
-        <CardTitle>Highland League Data Manager</CardTitle>
+        <CardTitle>Highland League Data Scraper</CardTitle>
         <CardDescription>
-          View and manage cached league data
+          Fetch and visualize data from the Highland Football League website
         </CardDescription>
       </CardHeader>
       
       <CardContent>
-        <Alert className="mb-6 bg-amber-50 border-amber-300">
-          <Info className="h-4 w-4 text-amber-600" />
-          <AlertTitle className="text-amber-800">Browser Limitations</AlertTitle>
-          <AlertDescription className="text-amber-700">
-            <p>Due to CORS restrictions, direct scraping from external websites is not possible in the browser.</p>
-            <p className="mt-2">The application is currently using mock data. For a production site, you would need:</p>
-            <ul className="list-disc ml-6 mt-1">
-              <li>A server-side solution (Node.js, Supabase, etc.)</li>
-              <li>An API endpoint to fetch the data securely</li>
-              <li>Or manual data updates through this admin panel</li>
-            </ul>
-          </AlertDescription>
-        </Alert>
-
         {error && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
@@ -91,21 +129,45 @@ const DataScraperControl = () => {
         
         <div className="flex flex-wrap gap-2 mb-6">
           <Button 
-            onClick={handleLoadData} 
+            onClick={handleScrapeAll} 
             disabled={isLoading}
             className="bg-team-blue hover:bg-team-navy flex items-center"
           >
             {isLoading ? (
               <>
                 <RefreshCcw className="mr-2 h-4 w-4 animate-spin" />
-                <span>Loading...</span>
+                <span>Scraping...</span>
               </>
             ) : (
               <>
                 <RefreshCcw className="mr-2 h-4 w-4" />
-                <span>Load Data</span>
+                <span>Scrape All Data</span>
               </>
             )}
+          </Button>
+          
+          <Button 
+            onClick={handleScrapeLeagueTable}
+            disabled={isLoading}
+            variant="outline"
+          >
+            Scrape League Table
+          </Button>
+          
+          <Button 
+            onClick={handleScrapeFixtures}
+            disabled={isLoading}
+            variant="outline"
+          >
+            Scrape Fixtures
+          </Button>
+          
+          <Button 
+            onClick={handleScrapeResults}
+            disabled={isLoading}
+            variant="outline"
+          >
+            Scrape Results
           </Button>
           
           <Button 
@@ -202,7 +264,7 @@ const DataScraperControl = () => {
       </CardContent>
       
       <CardFooter className="text-sm text-gray-500">
-        <p>To implement real-time scraping, you would need a backend server to avoid CORS restrictions.</p>
+        <p>Note: Due to CORS restrictions, the scraper will not work directly in the browser. A server-side solution is recommended for production use.</p>
       </CardFooter>
     </Card>
   );

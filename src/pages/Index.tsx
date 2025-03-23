@@ -16,8 +16,8 @@ const Index = () => {
   // Sort all news by date
   const sortedNews = [...news].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   
-  // Get the top 6 news items for the Latest News section
-  const latestNews = sortedNews.slice(0, 6);
+  // Skip the first 3 items (shown in hero) and get the next 6 news items for the Latest News section
+  const latestNews = sortedNews.slice(3, 9);
   
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">

@@ -1,8 +1,9 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CalendarDays, Clock } from 'lucide-react';
+import { CalendarDays, Clock, Trophy } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 
 interface Match {
   id: number;
@@ -15,6 +16,20 @@ interface Match {
   competition: string;
   isCompleted: boolean;
   venue: string;
+}
+
+interface TeamStats {
+  position: number;
+  team: string;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
+  points: number;
+  form: string[];
 }
 
 // Mock data for demonstration - this would be fetched from an API
@@ -89,15 +104,116 @@ const mockMatches: Match[] = [
   }
 ];
 
+// Mock data for the league table
+const mockLeagueData: TeamStats[] = [
+  {
+    position: 1,
+    team: "Buckie Thistle",
+    played: 10,
+    won: 8,
+    drawn: 1,
+    lost: 1,
+    goalsFor: 24,
+    goalsAgainst: 8,
+    goalDifference: 16,
+    points: 25,
+    form: ["W", "W", "W", "D", "W"]
+  },
+  {
+    position: 2,
+    team: "Brechin City",
+    played: 10,
+    won: 8,
+    drawn: 0,
+    lost: 2,
+    goalsFor: 20,
+    goalsAgainst: 7,
+    goalDifference: 13,
+    points: 24,
+    form: ["W", "W", "W", "L", "W"]
+  },
+  {
+    position: 3,
+    team: "Banks o' Dee",
+    played: 10,
+    won: 7,
+    drawn: 2,
+    lost: 1,
+    goalsFor: 22,
+    goalsAgainst: 10,
+    goalDifference: 12,
+    points: 23,
+    form: ["W", "D", "W", "W", "D"]
+  },
+  {
+    position: 4,
+    team: "Fraserburgh",
+    played: 10,
+    won: 7,
+    drawn: 1,
+    lost: 2,
+    goalsFor: 21,
+    goalsAgainst: 11,
+    goalDifference: 10,
+    points: 22,
+    form: ["L", "W", "W", "W", "W"]
+  },
+  {
+    position: 5,
+    team: "Formartine United",
+    played: 10,
+    won: 6,
+    drawn: 1,
+    lost: 3,
+    goalsFor: 18,
+    goalsAgainst: 12,
+    goalDifference: 6,
+    points: 19,
+    form: ["W", "W", "L", "W", "L"]
+  },
+  {
+    position: 6,
+    team: "Huntly",
+    played: 10,
+    won: 5,
+    drawn: 2,
+    lost: 3,
+    goalsFor: 15,
+    goalsAgainst: 10,
+    goalDifference: 5,
+    points: 17,
+    form: ["D", "W", "L", "W", "D"]
+  }
+];
+
 const formatDate = (dateString: string) => {
   const options: Intl.DateTimeFormatOptions = { weekday: 'short', day: 'numeric', month: 'short' };
   return new Date(dateString).toLocaleDateString('en-GB', options);
 };
 
+// Form indicator component
+const FormIndicator = ({ result }: { result: string }) => {
+  const getColor = (result: string) => {
+    switch (result) {
+      case 'W': return 'bg-green-500';
+      case 'D': return 'bg-yellow-500';
+      case 'L': return 'bg-red-500';
+      default: return 'bg-gray-300';
+    }
+  };
+  
+  return (
+    <span className={`${getColor(result)} text-white text-xs font-bold w-5 h-5 inline-flex items-center justify-center rounded-full`}>
+      {result}
+    </span>
+  );
+};
+
 const FixturesSection = () => {
   const [recentMatches, setRecentMatches] = useState<Match[]>([]);
   const [upcomingMatches, setUpcomingMatches] = useState<Match[]>([]);
-
+  const [leagueData, setLeagueData] = useState<TeamStats[]>([]);
+  
   // In a real app, this would fetch from an API
   useEffect(() => {
     // Get recent matches (last 3)
@@ -114,115 +230,136 @@ const FixturesSection = () => {
     
     setRecentMatches(recent);
     setUpcomingMatches(upcoming);
+    setLeagueData(mockLeagueData);
   }, []);
 
   return (
-    <section className="py-12 bg-white">
+    <section className="py-10 bg-team-gray">
       <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row justify-between items-center mb-8">
-          <h2 className="text-3xl font-bold text-team-blue mb-4 md:mb-0">Fixtures & Results</h2>
-          <a 
-            href="/fixtures" 
-            className="px-5 py-2 bg-team-blue text-white rounded-md hover:bg-team-navy transition-colors text-sm font-medium"
-          >
-            View All Fixtures
-          </a>
-        </div>
+        <h2 className="text-3xl font-bold text-team-blue mb-8 text-center">Fixtures, Results & Table</h2>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Recent Results */}
-          <div>
-            <h3 className="text-xl font-semibold text-team-darkGray mb-4 flex items-center">
-              <Clock className="w-5 h-5 mr-2 text-team-blue" />
-              Recent Results
-            </h3>
-            <div className="space-y-4">
-              {recentMatches.map((match) => (
-                <motion.div
-                  key={match.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Card className="overflow-hidden border-team-gray hover:shadow-md transition-shadow">
-                    <CardContent className="p-0">
-                      <div className="bg-team-lightBlue text-team-blue text-xs font-medium p-2">
-                        {match.competition} • {formatDate(match.date)}
-                      </div>
-                      <div className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1 text-right pr-3">
-                            <p className={`font-semibold ${match.homeTeam === "Banks o' Dee" ? "text-team-blue" : ""}`}>
-                              {match.homeTeam}
-                            </p>
-                          </div>
-                          <div className="flex items-center justify-center space-x-2 font-bold">
-                            <span className="w-8 h-8 flex items-center justify-center bg-team-gray rounded">{match.homeScore}</span>
-                            <span className="text-xs">-</span>
-                            <span className="w-8 h-8 flex items-center justify-center bg-team-gray rounded">{match.awayScore}</span>
-                          </div>
-                          <div className="flex-1 text-left pl-3">
-                            <p className={`font-semibold ${match.awayTeam === "Banks o' Dee" ? "text-team-blue" : ""}`}>
-                              {match.awayTeam}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="mt-2 text-xs text-gray-500 text-center">
-                          {match.venue}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Recent Results Card */}
+          <Card className="overflow-hidden border-team-gray hover:shadow-md transition-shadow bg-white">
+            <div className="bg-team-blue text-white font-medium p-3 flex items-center justify-center">
+              <Clock className="w-5 h-5 mr-2" />
+              <h3 className="text-lg font-semibold">Recent Results</h3>
             </div>
-          </div>
+            <CardContent className="p-4">
+              <div className="space-y-3">
+                {recentMatches.map((match) => (
+                  <div key={match.id} className="p-2 border-b border-gray-100 last:border-0">
+                    <div className="text-xs text-team-blue font-medium mb-1">
+                      {match.competition} • {formatDate(match.date)}
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className={`font-medium ${match.homeTeam === "Banks o' Dee" ? "text-team-blue" : ""}`}>
+                        {match.homeTeam}
+                      </span>
+                      <div className="flex items-center justify-center space-x-1 font-bold">
+                        <span className="w-6 h-6 flex items-center justify-center bg-team-lightBlue rounded-sm">{match.homeScore}</span>
+                        <span className="text-xs">-</span>
+                        <span className="w-6 h-6 flex items-center justify-center bg-team-lightBlue rounded-sm">{match.awayScore}</span>
+                      </div>
+                      <span className={`font-medium ${match.awayTeam === "Banks o' Dee" ? "text-team-blue" : ""}`}>
+                        {match.awayTeam}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 text-center">
+                <a 
+                  href="/fixtures" 
+                  className="inline-block px-4 py-2 bg-team-lightBlue text-team-blue text-sm font-medium rounded hover:bg-team-blue hover:text-white transition-colors"
+                >
+                  All Results
+                </a>
+              </div>
+            </CardContent>
+          </Card>
           
-          {/* Upcoming Fixtures */}
-          <div>
-            <h3 className="text-xl font-semibold text-team-darkGray mb-4 flex items-center">
-              <CalendarDays className="w-5 h-5 mr-2 text-team-blue" />
-              Upcoming Fixtures
-            </h3>
-            <div className="space-y-4">
-              {upcomingMatches.map((match) => (
-                <motion.div
-                  key={match.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Card className="overflow-hidden border-team-gray hover:shadow-md transition-shadow">
-                    <CardContent className="p-0">
-                      <div className="bg-team-blue text-white text-xs font-medium p-2">
-                        {match.competition} • {formatDate(match.date)} • {match.time}
-                      </div>
-                      <div className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1 text-right pr-3">
-                            <p className={`font-semibold ${match.homeTeam === "Banks o' Dee" ? "text-team-blue" : ""}`}>
-                              {match.homeTeam}
-                            </p>
-                          </div>
-                          <div className="flex items-center justify-center font-bold text-sm">
-                            <span>VS</span>
-                          </div>
-                          <div className="flex-1 text-left pl-3">
-                            <p className={`font-semibold ${match.awayTeam === "Banks o' Dee" ? "text-team-blue" : ""}`}>
-                              {match.awayTeam}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="mt-2 text-xs text-gray-500 text-center">
-                          {match.venue}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
+          {/* Upcoming Fixtures Card */}
+          <Card className="overflow-hidden border-team-gray hover:shadow-md transition-shadow bg-white">
+            <div className="bg-team-blue text-white font-medium p-3 flex items-center justify-center">
+              <CalendarDays className="w-5 h-5 mr-2" />
+              <h3 className="text-lg font-semibold">Upcoming Fixtures</h3>
             </div>
-          </div>
+            <CardContent className="p-4">
+              <div className="space-y-3">
+                {upcomingMatches.map((match) => (
+                  <div key={match.id} className="p-2 border-b border-gray-100 last:border-0">
+                    <div className="text-xs text-team-blue font-medium mb-1">
+                      {match.competition} • {formatDate(match.date)} • {match.time}
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className={`font-medium ${match.homeTeam === "Banks o' Dee" ? "text-team-blue" : ""}`}>
+                        {match.homeTeam}
+                      </span>
+                      <span className="font-bold text-xs">VS</span>
+                      <span className={`font-medium ${match.awayTeam === "Banks o' Dee" ? "text-team-blue" : ""}`}>
+                        {match.awayTeam}
+                      </span>
+                    </div>
+                    <div className="mt-1 text-xs text-gray-500 text-center">
+                      {match.venue}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 text-center">
+                <a 
+                  href="/fixtures" 
+                  className="inline-block px-4 py-2 bg-team-lightBlue text-team-blue text-sm font-medium rounded hover:bg-team-blue hover:text-white transition-colors"
+                >
+                  All Fixtures
+                </a>
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* League Table Card */}
+          <Card className="overflow-hidden border-team-gray hover:shadow-md transition-shadow bg-white">
+            <div className="bg-team-blue text-white font-medium p-3 flex items-center justify-center">
+              <Trophy className="w-5 h-5 mr-2" />
+              <h3 className="text-lg font-semibold">Highland League</h3>
+            </div>
+            <CardContent className="p-4">
+              <div className="text-xs">
+                <Table>
+                  <TableHeader className="bg-team-lightBlue">
+                    <TableRow>
+                      <TableHead className="py-2 text-team-blue">Pos</TableHead>
+                      <TableHead className="text-team-blue text-left">Team</TableHead>
+                      <TableHead className="text-team-blue text-center">P</TableHead>
+                      <TableHead className="text-team-blue text-center">Pts</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {leagueData.map((team) => (
+                      <TableRow 
+                        key={team.position}
+                        className={team.team === "Banks o' Dee" ? "bg-team-lightBlue/30" : ""}
+                      >
+                        <TableCell className="py-1 font-medium text-center">{team.position}</TableCell>
+                        <TableCell className="py-1 font-medium">{team.team}</TableCell>
+                        <TableCell className="py-1 text-center">{team.played}</TableCell>
+                        <TableCell className="py-1 text-center font-bold">{team.points}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <div className="mt-3 text-center">
+                <a 
+                  href="/table" 
+                  className="inline-block px-4 py-2 bg-team-lightBlue text-team-blue text-sm font-medium rounded hover:bg-team-blue hover:text-white transition-colors"
+                >
+                  Full Table
+                </a>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </section>

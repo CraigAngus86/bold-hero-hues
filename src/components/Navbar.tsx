@@ -36,7 +36,7 @@ const Navbar = () => {
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
         scrolled 
           ? 'bg-white shadow-md py-3' 
-          : 'bg-transparent py-5'
+          : 'bg-team-blue bg-opacity-90 shadow-md py-5'
       )}
     >
       <div className="container mx-auto px-4">
@@ -46,10 +46,7 @@ const Navbar = () => {
             <img 
               src="/lovable-uploads/b937e144-e94f-4e75-881f-1e560c6b520a.png" 
               alt="Banks o' Dee FC Logo" 
-              className={cn(
-                "h-12 md:h-16 transition-all duration-300 mr-3",
-                scrolled ? "brightness-100" : "brightness-100"
-              )}
+              className="h-12 md:h-16 transition-all duration-300 mr-3"
             />
             <h1 className={cn(
               "font-display font-bold text-xl md:text-2xl tracking-tight transition-colors duration-300 hidden md:block",
@@ -67,8 +64,8 @@ const Navbar = () => {
                   <Link 
                     to={link.href} 
                     className={cn(
-                      "font-medium text-sm transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-team-blue after:transition-all after:duration-300 hover:after:w-full",
-                      scrolled ? "text-gray-800 hover:text-team-blue" : "text-white hover:text-white/80"
+                      "font-medium text-sm transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-team-lightBlue after:transition-all after:duration-300 hover:after:w-full",
+                      scrolled ? "text-gray-800 hover:text-team-blue" : "text-white hover:text-team-lightBlue"
                     )}
                   >
                     {link.name}
@@ -85,13 +82,10 @@ const Navbar = () => {
             aria-label={isOpen ? "Close menu" : "Open menu"}
           >
             {isOpen ? (
-              <X className={cn(
-                "w-6 h-6 transition-colors", 
-                scrolled ? "text-gray-800" : "text-white"
-              )} />
+              <X className="text-white w-6 h-6" />
             ) : (
               <Menu className={cn(
-                "w-6 h-6 transition-colors", 
+                "w-6 h-6", 
                 scrolled ? "text-gray-800" : "text-white"
               )} />
             )}

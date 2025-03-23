@@ -11,14 +11,7 @@ const Footer = () => {
         <div className="py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Club Info */}
           <div className="md:col-span-1">
-            <div className="flex flex-col items-center md:items-start">
-              <img 
-                src="/lovable-uploads/cb95b9fb-0f2d-42ef-9788-10509a80ed6e.png" 
-                alt="Banks o' Dee FC Logo" 
-                className="h-20 mb-4"
-              />
-              <h3 className="text-xl font-bold mb-4">Banks o' Dee FC</h3>
-            </div>
+            <h3 className="text-lg font-bold mb-4">Banks o' Dee FC</h3>
             <p className="text-white/80 mb-4">
               Highland League football club based in Aberdeen, Scotland. 
               Established 1902.
@@ -98,10 +91,10 @@ const Footer = () => {
             </ul>
           </div>
           
-          {/* Match Updates */}
+          {/* Join the Club (previously "Match Updates") */}
           <div className="md:col-span-1">
-            <h3 className="text-lg font-bold mb-4">Match Updates</h3>
-            <form className="mt-4">
+            <h3 className="text-lg font-bold mb-4">Join the Club</h3>
+            <form className="mb-6">
               <p className="text-white/80 mb-3 text-sm">
                 Subscribe to receive the latest match updates and club news.
               </p>
@@ -119,6 +112,14 @@ const Footer = () => {
                 </button>
               </div>
             </form>
+            {/* Logo moved here */}
+            <div className="flex justify-center md:justify-start">
+              <img 
+                src="/lovable-uploads/banks-o-dee-dark-logo.png" 
+                alt="Banks o' Dee FC Logo" 
+                className="h-20"
+              />
+            </div>
           </div>
         </div>
         

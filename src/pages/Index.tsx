@@ -65,13 +65,12 @@ const Index = () => {
       {/* Hero Section */}
       <Hero />
       
-      {/* Latest News - with mixed card sizes */}
+      {/* Latest News - with mixed card sizes - moved above fixtures section */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
             <div>
               <h2 className="text-3xl font-bold text-team-blue mb-2">Latest News</h2>
-              <p className="text-gray-600 max-w-2xl">Stay updated with the latest happenings from Banks o' Dee FC.</p>
             </div>
             <a 
               href="/news" 
@@ -101,7 +100,7 @@ const Index = () => {
       {/* Fixtures, Results & Table Section */}
       <FixturesSection />
       
-      {/* Social Media Feed Section */}
+      {/* Social Media Feed Section - moved below fixtures */}
       <SocialMediaFeed />
       
       {/* Sponsors Carousel */}

@@ -8,7 +8,7 @@ const mockSocialPosts = [
   {
     id: 1,
     platform: 'twitter',
-    username: 'BanksODeeFc',
+    username: 'banksodee_fc',
     content: 'Congratulations to our first team on their impressive 3-1 victory against Formartine United! #BODHIGHL',
     date: '2 hours ago',
     likes: 42,
@@ -19,7 +19,7 @@ const mockSocialPosts = [
   {
     id: 2,
     platform: 'instagram',
-    username: 'banksodeefootballclub',
+    username: 'banksodeefc',
     content: 'The calm before the storm. Spain Park looking immaculate ahead of tomorrow\'s big match! #MatchDay #HighlandLeague',
     date: '1 day ago',
     likes: 128,
@@ -29,7 +29,7 @@ const mockSocialPosts = [
   {
     id: 3,
     platform: 'twitter',
-    username: 'BanksODeeFc',
+    username: 'banksodee_fc',
     content: 'Ticket details for our upcoming Scottish Cup fixture are now available on our website! Secure yours early to avoid disappointment. #ScottishCup',
     date: '2 days ago',
     likes: 36,
@@ -40,7 +40,7 @@ const mockSocialPosts = [
   {
     id: 4,
     platform: 'instagram',
-    username: 'banksodeefootballclub',
+    username: 'banksodeefc',
     content: 'Youth training sessions are back this weekend! All age groups welcome. Contact our youth development team for more information. #YouthFootball #NextGeneration',
     date: '3 days ago',
     likes: 95,
@@ -65,24 +65,6 @@ const SocialMediaFeed = () => {
           <p className="text-gray-600 max-w-2xl mx-auto">
             Follow us on social media to stay updated with everything happening at Banks o' Dee FC.
           </p>
-          <div className="flex justify-center space-x-4 mt-6">
-            <a 
-              href="https://twitter.com" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="bg-team-blue text-white p-3 rounded-full hover:bg-team-lightBlue transition-colors"
-            >
-              <Twitter className="w-5 h-5" />
-            </a>
-            <a 
-              href="https://instagram.com" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="bg-team-blue text-white p-3 rounded-full hover:bg-team-lightBlue transition-colors"
-            >
-              <Instagram className="w-5 h-5" />
-            </a>
-          </div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -132,14 +114,26 @@ const SocialMediaFeed = () => {
         </div>
         
         <div className="text-center mt-10">
-          <a 
-            href="https://linktr.ee/banksodeefc" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="inline-flex items-center bg-team-blue hover:bg-team-navy text-white px-6 py-3 rounded-md transition-colors text-sm font-medium"
-          >
-            Follow Us
-          </a>
+          <div className="flex justify-center space-x-4">
+            <a 
+              href="https://x.com/banksodee_fc" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="bg-team-blue text-white p-3 rounded-full hover:bg-team-lightBlue transition-colors"
+              aria-label="Twitter/X"
+            >
+              <Twitter className="w-5 h-5" />
+            </a>
+            <a 
+              href="https://www.instagram.com/banksodeefc/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="bg-team-blue text-white p-3 rounded-full hover:bg-team-lightBlue transition-colors"
+              aria-label="Instagram"
+            >
+              <Instagram className="w-5 h-5" />
+            </a>
+          </div>
         </div>
       </div>
     </section>

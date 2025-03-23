@@ -21,7 +21,7 @@ const UpcomingFixtures = ({ matches }: UpcomingFixturesProps) => {
     
     // For Banks o' Dee we have an updated logo
     if (teamName === "Banks o' Dee") {
-      return "/lovable-uploads/0617ed5b-43b8-449c-870e-5bba374f7cb4.png";
+      return "/lovable-uploads/122628af-86b4-4d7f-bfe3-01d4bf03d053.png";
     }
     
     return `https://placehold.co/60x60/team-blue/white?text=${initials}`;
@@ -42,7 +42,7 @@ const UpcomingFixtures = ({ matches }: UpcomingFixturesProps) => {
               </div>
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center w-[42%] justify-end space-x-1">
-                  <div className="w-6 h-6 flex-shrink-0 mr-1">
+                  <div className="w-5 h-5 flex-shrink-0 mr-1">
                     <img 
                       src={getTeamLogo(match.homeTeam)} 
                       alt={`${match.homeTeam} logo`} 
@@ -58,7 +58,7 @@ const UpcomingFixtures = ({ matches }: UpcomingFixturesProps) => {
                   <span className={`font-medium ${match.awayTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
                     {match.awayTeam}
                   </span>
-                  <div className="w-6 h-6 flex-shrink-0 ml-1">
+                  <div className="w-5 h-5 flex-shrink-0 ml-1">
                     <img 
                       src={getTeamLogo(match.awayTeam)} 
                       alt={`${match.awayTeam} logo`} 
@@ -67,7 +67,7 @@ const UpcomingFixtures = ({ matches }: UpcomingFixturesProps) => {
                   </div>
                 </div>
               </div>
-              <div className="text-xs text-gray-500 text-center mt-0.5">
+              <div className="text-xs text-gray-500 text-center mt-0">
                 {match.venue}
               </div>
             </div>

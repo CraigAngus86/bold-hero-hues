@@ -18,15 +18,15 @@ const TeamRow = ({ team }: TeamRowProps) => {
         <div className="flex items-center space-x-3">
           {team.team === "Banks o' Dee" ? (
             <img 
-              src="/lovable-uploads/0617ed5b-43b8-449c-870e-5bba374f7cb4.png" 
+              src="/lovable-uploads/122628af-86b4-4d7f-bfe3-01d4bf03d053.png" 
               alt="Banks o' Dee logo"
-              className="w-12 h-12 object-contain"
+              className="w-10 h-10 object-contain"
             />
           ) : (
             <img 
               src={team.logo || "https://placehold.co/60x60/gray/white?text=Logo"} 
               alt={`${team.team} logo`}
-              className="w-12 h-12 object-contain"
+              className="w-10 h-10 object-contain"
             />
           )}
           <span>{team.team}</span>

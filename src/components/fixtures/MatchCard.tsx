@@ -18,7 +18,7 @@ const getTeamLogo = (teamName: string) => {
   
   // For Banks o' Dee we have an updated logo
   if (teamName === "Banks o' Dee") {
-    return "/lovable-uploads/0617ed5b-43b8-449c-870e-5bba374f7cb4.png";
+    return "/lovable-uploads/122628af-86b4-4d7f-bfe3-01d4bf03d053.png";
   }
   
   return `https://placehold.co/100x100/team-blue/white?text=${initials}`;
@@ -36,9 +36,9 @@ const MatchCard = ({ match }: MatchCardProps) => {
           <span>{formatDate(match.date)} • {match.time}</span>
         </div>
         <div className="p-2">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-1">
             <div className="flex items-center flex-1">
-              <div className="w-16 h-16 flex-shrink-0 mr-1 flex items-center justify-center">
+              <div className="w-12 h-12 flex-shrink-0 mr-1 flex items-center justify-center">
                 <img 
                   src={getTeamLogo(match.homeTeam)} 
                   alt={`${match.homeTeam} logo`} 
@@ -70,7 +70,7 @@ const MatchCard = ({ match }: MatchCardProps) => {
                   {match.awayTeam}
                 </p>
               </div>
-              <div className="w-16 h-16 flex-shrink-0 ml-1 flex items-center justify-center">
+              <div className="w-12 h-12 flex-shrink-0 ml-1 flex items-center justify-center">
                 <img 
                   src={getTeamLogo(match.awayTeam)} 
                   alt={`${match.awayTeam} logo`} 
@@ -79,12 +79,12 @@ const MatchCard = ({ match }: MatchCardProps) => {
               </div>
             </div>
           </div>
-          <div className="text-xs text-gray-500 text-center mt-0.5">
+          <div className="text-xs text-gray-500 text-center mt-0">
             {match.venue}
           </div>
           
           {!match.isCompleted && (
-            <div className="mt-1.5 flex justify-center">
+            <div className="mt-1 flex justify-center">
               <a 
                 href="/tickets" 
                 className="text-xs bg-team-blue text-white px-3 py-1 rounded hover:bg-team-navy transition-colors text-center"

@@ -6,15 +6,32 @@ import StaffMemberCard from './StaffMemberCard';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useTeamStore } from '@/services/teamService';
 
-const ManagementTeam = () => {
+interface ManagementTeamProps {
+  staff?: Array<{
+    name: string;
+    role: string;
+    image: string;
+    bio: string;
+    experience: string;
+  }>;
+}
+
+const ManagementTeam = ({ staff: propStaff }: ManagementTeamProps = {}) => {
   const [isOpen, setIsOpen] = useState(false);
   const { getManagementStaff } = useTeamStore();
   
-  const staff = getManagementStaff();
+  // Use staff from props if provided, otherwise get from store
+  const staff = propStaff || getManagementStaff().map(member => ({
+    name: member.name,
+    role: member.role || '',
+    image: member.image,
+    bio: member.bio || '',
+    experience: member.experience || ''
+  }));
   
-  // Show only first 12 staff members initially, then the rest in collapsible content
-  const initialStaff = staff.slice(0, 12);
-  const remainingStaff = staff.slice(12);
+  // Show only first 4 staff members initially, then the rest in collapsible content
+  const initialStaff = staff.slice(0, 4);
+  const remainingStaff = staff.slice(4);
 
   return (
     <motion.div 
@@ -30,14 +47,14 @@ const ManagementTeam = () => {
       
       <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {initialStaff.map((member) => (
+          {initialStaff.map((member, index) => (
             <StaffMemberCard
-              key={member.name}
+              key={member.name + index}
               name={member.name}
-              role={member.role || ''}
+              role={member.role}
               image={member.image}
-              bio={member.bio || ''}
-              experience={member.experience || ''}
+              bio={member.bio}
+              experience={member.experience}
             />
           ))}
         </div>
@@ -45,14 +62,14 @@ const ManagementTeam = () => {
         {remainingStaff.length > 0 && (
           <CollapsibleContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mt-8">
-              {remainingStaff.map((member) => (
+              {remainingStaff.map((member, index) => (
                 <StaffMemberCard
-                  key={member.name}
+                  key={member.name + (index + initialStaff.length)}
                   name={member.name}
-                  role={member.role || ''}
+                  role={member.role}
                   image={member.image}
-                  bio={member.bio || ''}
-                  experience={member.experience || ''}
+                  bio={member.bio}
+                  experience={member.experience}
                 />
               ))}
             </div>

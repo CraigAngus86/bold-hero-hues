@@ -6,15 +6,32 @@ import OfficialCard from './OfficialCard';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useTeamStore } from '@/services/teamService';
 
-const ClubOfficials = () => {
+interface ClubOfficialsProps {
+  officials?: Array<{
+    name: string;
+    role: string;
+    image: string;
+    bio?: string;
+    experience?: string;
+  }>;
+}
+
+const ClubOfficials = ({ officials: propOfficials }: ClubOfficialsProps = {}) => {
   const [isOpen, setIsOpen] = useState(false);
   const { getClubOfficials } = useTeamStore();
   
-  const officials = getClubOfficials();
+  // Use officials from props if provided, otherwise get from store
+  const officials = propOfficials || getClubOfficials().map(official => ({
+    name: official.name,
+    role: official.role || '',
+    image: official.image,
+    bio: official.bio || '',
+    experience: official.experience || ''
+  }));
   
-  // Show only first 12 officials initially, then the rest in collapsible content
-  const initialOfficials = officials.slice(0, 12);
-  const remainingOfficials = officials.slice(12);
+  // Show only first 4 officials initially, then the rest in collapsible content
+  const initialOfficials = officials.slice(0, 4);
+  const remainingOfficials = officials.slice(4);
 
   return (
     <motion.div 
@@ -30,11 +47,11 @@ const ClubOfficials = () => {
       
       <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {initialOfficials.map((official) => (
+          {initialOfficials.map((official, index) => (
             <OfficialCard
-              key={official.name}
+              key={official.name + index}
               name={official.name}
-              role={official.role || ''}
+              role={official.role}
               image={official.image}
               bio={official.bio || ''}
               experience={official.experience || ''}
@@ -45,11 +62,11 @@ const ClubOfficials = () => {
         {remainingOfficials.length > 0 && (
           <CollapsibleContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mt-8">
-              {remainingOfficials.map((official) => (
+              {remainingOfficials.map((official, index) => (
                 <OfficialCard
-                  key={official.name}
+                  key={official.name + (index + initialOfficials.length)}
                   name={official.name}
-                  role={official.role || ''}
+                  role={official.role}
                   image={official.image}
                   bio={official.bio || ''}
                   experience={official.experience || ''}

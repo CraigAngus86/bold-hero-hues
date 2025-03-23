@@ -2,19 +2,19 @@
 import { motion } from 'framer-motion';
 import PlayerCard from '../PlayerCard';
 import PlayerCardDialog from '../player/PlayerCardDialog';
-import { Player } from '@/data/players';
 import { useState } from 'react';
 import { Dialog } from '@/components/ui/dialog';
+import { TeamMember } from '@/services/teamService';
 
 interface PlayerListProps {
-  players: Player[];
+  players: TeamMember[];
 }
 
 const PlayerList = ({ players }: PlayerListProps) => {
-  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+  const [selectedPlayer, setSelectedPlayer] = useState<TeamMember | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const handlePlayerClick = (player: Player) => {
+  const handlePlayerClick = (player: TeamMember) => {
     setSelectedPlayer(player);
     setIsDialogOpen(true);
   };
@@ -31,11 +31,11 @@ const PlayerList = ({ players }: PlayerListProps) => {
           >
             <PlayerCard
               name={player.name}
-              position={player.position}
-              number={player.number}
+              position={player.position || ''}
+              number={player.number || 0}
               image={player.image}
-              stats={player.stats}
-              biography={player.biography}
+              stats={player.stats || {}}
+              biography={player.biography || ''}
               onClick={() => handlePlayerClick(player)}
             />
           </motion.div>
@@ -46,11 +46,11 @@ const PlayerList = ({ players }: PlayerListProps) => {
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <PlayerCardDialog
             name={selectedPlayer.name}
-            position={selectedPlayer.position}
-            number={selectedPlayer.number}
+            position={selectedPlayer.position || ''}
+            number={selectedPlayer.number || 0}
             image={selectedPlayer.image}
-            stats={selectedPlayer.stats}
-            biography={selectedPlayer.biography}
+            stats={selectedPlayer.stats || {}}
+            biography={selectedPlayer.biography || ''}
           />
         </Dialog>
       )}

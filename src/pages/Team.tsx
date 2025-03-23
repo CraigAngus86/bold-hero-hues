@@ -1,3 +1,4 @@
+
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import TeamGrid from '@/components/TeamGrid';
@@ -56,12 +57,12 @@ const Team = () => {
   ];
 
   const clubOfficials = [
-    { name: "Thomas Stewart", role: "Club Chairman", image: profileImageUrl },
-    { name: "Margaret Wilson", role: "Vice Chairman", image: profileImageUrl },
-    { name: "Craig Stevenson", role: "Club Secretary", image: profileImageUrl },
-    { name: "Alan McRae", role: "Treasurer", image: profileImageUrl },
-    { name: "Gordon Smith", role: "Commercial Director", image: profileImageUrl },
-    { name: "Eleanor Grant", role: "Community Relations", image: profileImageUrl }
+    { name: "Thomas Stewart", role: "Club Chairman", image: profileImageUrl, bio: "Serving as club chairman since 2018.", experience: "15 years in sports administration" },
+    { name: "Margaret Wilson", role: "Vice Chairman", image: profileImageUrl, bio: "Dedicated to growing the club's community presence.", experience: "Former business consultant" },
+    { name: "Craig Stevenson", role: "Club Secretary", image: profileImageUrl, bio: "Handles all administrative duties with precision.", experience: "10 years with the club" },
+    { name: "Alan McRae", role: "Treasurer", image: profileImageUrl, bio: "Manages the club's finances efficiently.", experience: "Chartered accountant" },
+    { name: "Gordon Smith", role: "Commercial Director", image: profileImageUrl, bio: "Leads commercial partnerships and sponsorships.", experience: "Background in marketing" },
+    { name: "Eleanor Grant", role: "Community Relations", image: profileImageUrl, bio: "Develops our community outreach programs.", experience: "Former schoolteacher" }
   ];
 
   return (

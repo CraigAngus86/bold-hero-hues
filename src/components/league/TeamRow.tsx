@@ -15,20 +15,22 @@ const TeamRow = ({ team }: TeamRowProps) => {
     >
       <TableCell className="font-medium text-center">{team.position}</TableCell>
       <TableCell className="font-medium">
-        <div className="flex items-center space-x-2">
-          {team.team === "Banks o' Dee" ? (
-            <img 
-              src="/lovable-uploads/8f2cd33f-1e08-494a-9aaa-65792ee9418a.png" 
-              alt="Banks o' Dee logo"
-              className="w-9 h-9 object-contain"
-            />
-          ) : (
-            <img 
-              src={team.logo || "https://placehold.co/60x60/gray/white?text=Logo"} 
-              alt={`${team.team} logo`}
-              className="w-8 h-8 object-contain"
-            />
-          )}
+        <div className="flex items-center">
+          <div className="w-10 h-10 flex items-center justify-center mr-2">
+            {team.team === "Banks o' Dee" ? (
+              <img 
+                src="/lovable-uploads/8f2cd33f-1e08-494a-9aaa-65792ee9418a.png" 
+                alt="Banks o' Dee logo"
+                className="w-9 h-9 object-contain"
+              />
+            ) : (
+              <img 
+                src={team.logo || "https://placehold.co/60x60/gray/white?text=Logo"} 
+                alt={`${team.team} logo`}
+                className="w-8 h-8 object-contain"
+              />
+            )}
+          </div>
           <span>{team.team}</span>
         </div>
       </TableCell>

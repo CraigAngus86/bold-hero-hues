@@ -1,11 +1,10 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Phone } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { toast } from "sonner";
-import { MatchSelection, PurchasePanel, TicketTypes, SeasonTicketsCard } from '@/components/tickets';
+import { MatchSelection, PurchasePanel, SeasonTicketsCard } from '@/components/tickets';
 import { Match, BasketItem } from '@/components/tickets/types';
 import { getTicketTypeName } from '@/components/tickets/utils';
 
@@ -101,18 +100,10 @@ const Tickets = () => {
                 onMatchSelect={handleMatchSelect}
               />
               
-              {/* Ticket Information */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="mt-6"
-              >
-                <TicketTypes />
-              </motion.div>
-              
               {/* Season Tickets Callout */}
-              <SeasonTicketsCard />
+              <div className="mt-6">
+                <SeasonTicketsCard />
+              </div>
             </motion.div>
             
             {/* Right Column - Ticket Purchase Form */}

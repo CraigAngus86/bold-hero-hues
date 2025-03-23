@@ -63,7 +63,7 @@ const Stadium = () => {
               className="md:col-span-2"
             >
               <h2 className="text-2xl font-bold text-team-blue mb-4">About Spain Park</h2>
-              <div className="prose max-w-none text-gray-700">
+              <div className="prose max-w-none text-gray-700 space-y-4">
                 <p>
                   Spain Park has been the home of Banks o' Dee FC since 1924. The ground is located 
                   on the south side of the River Dee in Aberdeen and provides a picturesque setting for football matches.
@@ -167,7 +167,7 @@ const Stadium = () => {
                 <div className="mt-6 pt-6 border-t border-gray-200">
                   <a 
                     href="/tickets" 
-                    className="block w-full bg-team-blue text-white text-center py-3 rounded-md font-medium hover:bg-team-navy transition-colors"
+                    className="block w-full bg-white text-team-blue border border-team-blue text-center py-3 rounded-md font-medium hover:bg-team-blue hover:text-white transition-colors"
                   >
                     Buy Match Tickets
                   </a>
@@ -229,13 +229,18 @@ const Stadium = () => {
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2166.8694370807243!2d-2.119705!3d57.133963!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x488470eebfb2881d%3A0x5db1eb0f4e85a5bd!2sSpain%20Park!5e0!3m2!1sen!2suk!4v1695896352378!5m2!1sen!2suk" 
                   width="100%" 
                   height="450" 
-                  style={{ border: 0 }} 
+                  style={{ border: 0, position: 'relative' }} 
                   allowFullScreen 
                   loading="lazy" 
                   referrerPolicy="no-referrer-when-downgrade"
                   title="Map to Spain Park"
                   className="rounded-lg"
                 ></iframe>
+                <div className="absolute" style={{ top: "57.128010%", left: "calc(50% - 2.094700%)", transform: "translate(-50%, -50%)", zIndex: 10 }}>
+                  <div className="w-8 h-8 bg-team-blue rounded-full flex items-center justify-center border-2 border-white shadow-lg">
+                    <MapPin className="w-5 h-5 text-white" />
+                  </div>
+                </div>
               </div>
             </div>
           </motion.div>

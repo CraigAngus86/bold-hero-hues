@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Mail, Users, ShoppingCart, Plus, Minus } from 'lucide-react';
+import { Users, ShoppingCart, Plus, Minus } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -95,34 +95,6 @@ const TicketForm = ({
               <Plus className="h-4 w-4" />
             </Button>
           </div>
-        </div>
-      </div>
-      
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            <Mail className="w-4 h-4 inline mr-1" /> Email Address
-          </label>
-          <input
-            type="email"
-            placeholder="Your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-team-blue focus:border-transparent"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            <Users className="w-4 h-4 inline mr-1" /> Full Name
-          </label>
-          <input
-            type="text"
-            placeholder="Your name"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-team-blue focus:border-transparent"
-          />
         </div>
       </div>
       

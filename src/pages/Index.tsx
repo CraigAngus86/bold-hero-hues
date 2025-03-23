@@ -68,9 +68,9 @@ const Index = () => {
       {/* Latest News - with mixed card sizes - moved above fixtures section */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
-          <h2 className="text-2xl font-semibold text-team-blue mb-6 text-center">Latest News</h2>
-          
-          <div className="flex justify-end mb-4">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-semibold text-team-blue">Latest News</h2>
+            
             <a 
               href="/news" 
               className="inline-flex items-center bg-team-lightBlue hover:bg-team-blue hover:text-white text-team-blue px-4 py-2 rounded-md transition-colors"

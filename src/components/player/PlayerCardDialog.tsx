@@ -57,6 +57,49 @@ const PlayerCardDialog = ({
             </div>
           </div>
           
+          {stats && (
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-[#00105a] mb-2">Season Statistics</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {stats.appearances !== undefined && (
+                  <div className="bg-gray-50 p-3 rounded-md">
+                    <div className="flex flex-col">
+                      <p className="text-sm text-gray-500">Appearances</p>
+                      <p className="font-medium">{stats.appearances}</p>
+                    </div>
+                  </div>
+                )}
+                
+                {stats.goals !== undefined && (
+                  <div className="bg-gray-50 p-3 rounded-md">
+                    <div className="flex flex-col">
+                      <p className="text-sm text-gray-500">Goals</p>
+                      <p className="font-medium">{stats.goals}</p>
+                    </div>
+                  </div>
+                )}
+                
+                {stats.assists !== undefined && (
+                  <div className="bg-gray-50 p-3 rounded-md">
+                    <div className="flex flex-col">
+                      <p className="text-sm text-gray-500">Assists</p>
+                      <p className="font-medium">{stats.assists}</p>
+                    </div>
+                  </div>
+                )}
+                
+                {stats.cleanSheets !== undefined && (
+                  <div className="bg-gray-50 p-3 rounded-md">
+                    <div className="flex flex-col">
+                      <p className="text-sm text-gray-500">Clean Sheets</p>
+                      <p className="font-medium">{stats.cleanSheets}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          
           {biography && (
             <div>
               <h3 className="text-lg font-semibold text-[#00105a] mb-2">Biography</h3>

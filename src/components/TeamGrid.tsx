@@ -1,67 +1,80 @@
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Award, ChevronDown, ChevronUp } from 'lucide-react';
+import PlayerCard from './PlayerCard';
 import PositionFilter from './team/PositionFilter';
-import PlayerList from './team/PlayerList';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useTeamStore } from '@/services/teamService';
+import { motion } from 'framer-motion';
+import { PlayerPosition } from '@/components/player/PlayerCardDialog';
+import { Player } from '@/services/teamService';
 
-const positions = ["All", "Goalkeeper", "Defender", "Midfielder", "Forward"];
+// Animation variants for staggered animation
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
 
-const TeamGrid = () => {
-  const [selectedPosition, setSelectedPosition] = useState("All");
-  const [isOpen, setIsOpen] = useState(false);
-  const { getPlayersByPosition } = useTeamStore();
+const item = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 }
+};
+
+interface TeamGridProps {
+  players: Player[];
+  title?: string;
+  showFilter?: boolean;
+}
+
+const TeamGrid = ({ players, title = "First Team", showFilter = true }: TeamGridProps) => {
+  const [selectedPosition, setSelectedPosition] = useState<PlayerPosition | 'all'>('all');
   
-  const filteredPlayers = getPlayersByPosition(selectedPosition);
+  const filteredPlayers = selectedPosition === 'all'
+    ? players
+    : players.filter(player => player.position === selectedPosition);
   
-  // Show only first 12 players initially, then the rest in collapsible content
-  const initialPlayers = filteredPlayers.slice(0, 12);
-  const remainingPlayers = filteredPlayers.slice(12);
+  const positionCounts = {
+    goalkeeper: players.filter(p => p.position === 'goalkeeper').length,
+    defender: players.filter(p => p.position === 'defender').length,
+    midfielder: players.filter(p => p.position === 'midfielder').length,
+    forward: players.filter(p => p.position === 'forward').length
+  };
   
   return (
-    <motion.section 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="bg-white"
-    >
-      <div className="flex items-center justify-center mb-8">
-        <Award className="w-6 h-6 text-[#00105a] mr-3" />
-        <h2 className="text-2xl font-semibold text-[#00105a]">Player Squad</h2>
-      </div>
+    <div className="w-full max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      {title && (
+        <h2 className="text-3xl font-bold text-gray-900 mb-4">{title}</h2>
+      )}
       
-      <PositionFilter 
-        positions={positions}
-        selectedPosition={selectedPosition}
-        onPositionChange={setSelectedPosition}
-      />
+      {showFilter && (
+        <PositionFilter 
+          selectedPosition={selectedPosition}
+          onPositionChange={setSelectedPosition}
+          positionCounts={positionCounts}
+        />
+      )}
       
-      <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
-        <PlayerList players={initialPlayers} />
+      <motion.div 
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8"
+        variants={container}
+        initial="hidden"
+        animate="show"
+      >
+        {filteredPlayers.map((player) => (
+          <motion.div key={player.id} variants={item}>
+            <PlayerCard player={player} />
+          </motion.div>
+        ))}
         
-        {remainingPlayers.length > 0 && (
-          <CollapsibleContent>
-            <div className="mt-8">
-              <PlayerList players={remainingPlayers} />
-            </div>
-          </CollapsibleContent>
-        )}
-        
-        {remainingPlayers.length > 0 && (
-          <div className="flex justify-center mt-6">
-            <CollapsibleTrigger className="bg-white p-3 rounded-full shadow-md hover:bg-gray-100 transition-colors border border-[#00105a]/20 flex items-center justify-center">
-              {isOpen ? (
-                <ChevronUp className="w-5 h-5 text-[#00105a]" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-[#00105a]" />
-              )}
-            </CollapsibleTrigger>
+        {filteredPlayers.length === 0 && (
+          <div className="col-span-full py-12 text-center">
+            <p className="text-gray-500">No players found for the selected position.</p>
           </div>
         )}
-      </Collapsible>
-    </motion.section>
+      </motion.div>
+    </div>
   );
 };
 

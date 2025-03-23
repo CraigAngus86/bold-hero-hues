@@ -1,139 +1,242 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { players as initialPlayers } from '@/data/players';
+import { PlayerPosition } from '@/components/player/PlayerCardDialog';
+
+export interface Player {
+  id: number;
+  name: string;
+  number: number;
+  position: PlayerPosition;
+  height: string;
+  weight: string;
+  age: number;
+  nationality: string;
+  previousClubs: string[];
+  image: string;
+  stats: {
+    appearances: number;
+    goals: number;
+    assists: number;
+    cleanSheets?: number;
+    tackles?: number;
+    yellowCards: number;
+    redCards: number;
+  };
+  bio: string;
+}
+
+export interface StaffMember {
+  id: number;
+  name: string;
+  role: string;
+  image: string;
+  bio: string;
+  experience: string;
+}
+
+export interface ClubOfficial {
+  id: number;
+  name: string;
+  role: string;
+  image: string;
+}
 
 export interface TeamMember {
   id: number;
   name: string;
-  position?: string;
-  role?: string;
-  number?: number;
   image: string;
-  biography?: string;
-  bio?: string;
-  type: 'player' | 'management' | 'official';
+  position?: PlayerPosition;
+  role?: string;
+  type: 'player' | 'staff' | 'official';
+  // Additional fields for players
+  number?: number;
+  height?: string;
+  weight?: string;
+  age?: number;
+  nationality?: string;
+  previousClubs?: string[];
   stats?: {
-    appearances?: number;
-    goals?: number;
-    assists?: number;
+    appearances: number;
+    goals: number;
+    assists: number;
     cleanSheets?: number;
+    tackles?: number;
+    yellowCards: number;
+    redCards: number;
   };
+  bio?: string;
+  // Additional fields for staff
   experience?: string;
 }
 
-// Convert initial players to team members
-const initialTeamMembers: TeamMember[] = initialPlayers.map(player => ({
-  ...player,
-  type: 'player',
-  biography: player.biography || '',
-}));
+// Initial data for players
+const initialPlayers: Player[] = [
+  {
+    id: 1,
+    name: "Daniel Armstrong",
+    number: 1,
+    position: "goalkeeper",
+    height: "6'2\"",
+    weight: "85kg",
+    age: 28,
+    nationality: "Scotland",
+    previousClubs: ["Aberdeen FC Youth", "Inverurie Locos"],
+    image: "/lovable-uploads/b937e144-e94f-4e75-881f-1e560c6b520a.png",
+    stats: {
+      appearances: 34,
+      goals: 0,
+      assists: 2,
+      cleanSheets: 15,
+      yellowCards: 1,
+      redCards: 0
+    },
+    bio: "An experienced shot-stopper who has been with Banks o' Dee since 2019. Known for his exceptional reflexes and commanding presence in the box."
+  },
+  // ... Add more players here
+];
 
-// Add initial management staff
-const initialManagement: TeamMember[] = [
+// Initial data for staff
+const initialStaff: StaffMember[] = [
   {
-    id: 1001,
-    name: "David Wilson",
-    role: "Head Coach",
-    bio: "Former professional player with over 10 years of coaching experience",
-    image: "/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png",
-    type: 'management',
-    experience: "15 years"
+    id: 101,
+    name: "Josh Winton",
+    role: "Manager",
+    image: "/lovable-uploads/73ac703f-7365-4abb-811e-159280ad234b.png",
+    bio: "Former professional player who joined Banks o' Dee as manager in 2020. Has led the team to multiple cup successes and improved league positions each season.",
+    experience: "10+ years in coaching, UEFA Pro License"
   },
   {
-    id: 1002,
-    name: "Sarah Johnson",
-    role: "Assistant Coach",
-    bio: "Specializes in player development and tactical analysis",
-    image: "/lovable-uploads/122628af-86b4-4d7f-bfe3-01d4bf03d053.png",
-    type: 'management',
-    experience: "8 years"
+    id: 102,
+    name: "Emma Robertson",
+    role: "Assistant Manager",
+    image: "/lovable-uploads/73ac703f-7365-4abb-811e-159280ad234b.png",
+    bio: "Former Scottish international who brings vast experience to the coaching team. Focuses on attacking strategy and player development.",
+    experience: "15 years professional playing career, UEFA A License"
   },
   {
-    id: 1003,
-    name: "Michael Thompson",
+    id: 103,
+    name: "Craig Peterson",
     role: "Goalkeeping Coach",
-    bio: "Former professional goalkeeper with expertise in modern goalkeeping techniques",
-    image: "/lovable-uploads/9cecca5c-daf2-4f52-a6ca-06e02ca9ea44.png",
-    type: 'management',
-    experience: "12 years"
-  }
-];
-
-// Add initial club officials
-const initialOfficials: TeamMember[] = [
-  {
-    id: 2001,
-    name: "Robert Anderson",
-    role: "Chairman",
-    bio: "Leading the club since 2015 with a focus on sustainable growth",
-    image: "/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png",
-    type: 'official',
-    experience: "7 years"
+    image: "/lovable-uploads/73ac703f-7365-4abb-811e-159280ad234b.png",
+    bio: "Specialized in goalkeeper development with experience at youth and senior levels. Has improved the team's defensive record significantly.",
+    experience: "Former professional goalkeeper, SFA Advanced Goalkeeping License"
   },
   {
-    id: 2002,
-    name: "Elizabeth Murray",
-    role: "Secretary",
-    bio: "Handles all administrative matters with efficiency and precision",
-    image: "/lovable-uploads/122628af-86b4-4d7f-bfe3-01d4bf03d053.png",
-    type: 'official',
-    experience: "5 years"
+    id: 104,
+    name: "Dr. Sarah Mitchell",
+    role: "Team Physician",
+    image: "/lovable-uploads/73ac703f-7365-4abb-811e-159280ad234b.png",
+    bio: "Sports medicine specialist who ensures players receive the best medical care and rehabilitation support.",
+    experience: "MD with specialization in Sports Medicine, 12 years experience"
   }
 ];
 
+// Initial data for club officials
+const initialOfficials: ClubOfficial[] = [
+  {
+    id: 201,
+    name: "Brian Winton",
+    role: "Club President",
+    image: "/lovable-uploads/73ac703f-7365-4abb-811e-159280ad234b.png"
+  },
+  {
+    id: 202,
+    name: "Margaret Davidson",
+    role: "Club Secretary",
+    image: "/lovable-uploads/73ac703f-7365-4abb-811e-159280ad234b.png"
+  },
+  {
+    id: 203,
+    name: "Robert MacKenzie",
+    role: "Treasurer",
+    image: "/lovable-uploads/73ac703f-7365-4abb-811e-159280ad234b.png"
+  },
+  {
+    id: 204,
+    name: "Ian Stewart",
+    role: "Director of Football",
+    image: "/lovable-uploads/73ac703f-7365-4abb-811e-159280ad234b.png"
+  },
+  {
+    id: 205,
+    name: "Jennifer Thomson",
+    role: "Commercial Director",
+    image: "/lovable-uploads/73ac703f-7365-4abb-811e-159280ad234b.png"
+  },
+  {
+    id: 206,
+    name: "David Anderson",
+    role: "Facilities Manager",
+    image: "/lovable-uploads/73ac703f-7365-4abb-811e-159280ad234b.png"
+  }
+];
+
+// Define the team store
 interface TeamStore {
-  teamMembers: TeamMember[];
-  addTeamMember: (member: TeamMember) => void;
-  updateTeamMember: (member: TeamMember) => void;
-  deleteTeamMember: (id: number) => void;
-  getPlayersByPosition: (position: string) => TeamMember[];
-  getManagementStaff: () => TeamMember[];
-  getClubOfficials: () => TeamMember[];
+  players: Player[];
+  staff: StaffMember[];
+  officials: ClubOfficial[];
+  addPlayer: (player: Omit<Player, 'id'>) => void;
+  updatePlayer: (player: Player) => void;
+  deletePlayer: (id: number) => void;
+  addStaffMember: (staffMember: Omit<StaffMember, 'id'>) => void;
+  updateStaffMember: (staffMember: StaffMember) => void;
+  deleteStaffMember: (id: number) => void;
+  addOfficial: (official: Omit<ClubOfficial, 'id'>) => void;
+  updateOfficial: (official: ClubOfficial) => void;
+  deleteOfficial: (id: number) => void;
 }
 
+// Create Zustand store
 export const useTeamStore = create<TeamStore>()(
   persist(
-    (set, get) => ({
-      teamMembers: [...initialTeamMembers, ...initialManagement, ...initialOfficials],
+    (set) => ({
+      players: initialPlayers,
+      staff: initialStaff,
+      officials: initialOfficials,
       
-      addTeamMember: (member) => {
-        set((state) => ({
-          teamMembers: [...state.teamMembers, member]
-        }));
-      },
+      addPlayer: (player) => set((state) => {
+        const newId = Math.max(0, ...state.players.map(p => p.id)) + 1;
+        return { players: [...state.players, { ...player, id: newId }] };
+      }),
       
-      updateTeamMember: (member) => {
-        set((state) => ({
-          teamMembers: state.teamMembers.map((m) => 
-            m.id === member.id ? member : m
-          )
-        }));
-      },
+      updatePlayer: (player) => set((state) => ({
+        players: state.players.map(p => p.id === player.id ? player : p)
+      })),
       
-      deleteTeamMember: (id) => {
-        set((state) => ({
-          teamMembers: state.teamMembers.filter((m) => m.id !== id)
-        }));
-      },
+      deletePlayer: (id) => set((state) => ({
+        players: state.players.filter(p => p.id !== id)
+      })),
       
-      getPlayersByPosition: (position) => {
-        const players = get().teamMembers.filter(m => m.type === 'player');
-        return position === "All" 
-          ? players 
-          : players.filter(p => p.position === position);
-      },
+      addStaffMember: (staffMember) => set((state) => {
+        const newId = Math.max(0, ...state.staff.map(s => s.id)) + 1;
+        return { staff: [...state.staff, { ...staffMember, id: newId }] };
+      }),
       
-      getManagementStaff: () => {
-        return get().teamMembers.filter(m => m.type === 'management');
-      },
+      updateStaffMember: (staffMember) => set((state) => ({
+        staff: state.staff.map(s => s.id === staffMember.id ? staffMember : s)
+      })),
       
-      getClubOfficials: () => {
-        return get().teamMembers.filter(m => m.type === 'official');
-      }
+      deleteStaffMember: (id) => set((state) => ({
+        staff: state.staff.filter(s => s.id !== id)
+      })),
+      
+      addOfficial: (official) => set((state) => {
+        const newId = Math.max(0, ...state.officials.map(o => o.id)) + 1;
+        return { officials: [...state.officials, { ...official, id: newId }] };
+      }),
+      
+      updateOfficial: (official) => set((state) => ({
+        officials: state.officials.map(o => o.id === official.id ? official : o)
+      })),
+      
+      deleteOfficial: (id) => set((state) => ({
+        officials: state.officials.filter(o => o.id !== id)
+      })),
     }),
     {
-      name: 'team-storage'
+      name: 'banks-o-dee-team-storage'
     }
   )
 );

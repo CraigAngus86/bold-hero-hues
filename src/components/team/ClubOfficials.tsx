@@ -6,7 +6,7 @@ import OfficialCard from './OfficialCard';
 interface ClubOfficial {
   name: string;
   role: string;
-  image?: string;
+  image: string;
   bio?: string;
   experience?: string;
 }
@@ -16,10 +16,9 @@ interface ClubOfficialsProps {
 }
 
 const ClubOfficials = ({ officials }: ClubOfficialsProps) => {
-  // Add default images for officials if they don't have one
-  const officialsWithImages = officials.map((official, index) => ({
+  // Add default bio and experience for officials if they don't have one
+  const officialsWithDefaults = officials.map((official) => ({
     ...official,
-    image: official.image || `https://images.unsplash.com/photo-${1560250097 + index}-0b93528c311a?auto=format&fit=crop&w=800&q=80`,
     bio: official.bio || `${official.name} serves as the ${official.role} at Banks o' Dee FC, contributing to the club's success through dedicated management and leadership.`,
     experience: official.experience || "Long-standing member of the Banks o' Dee FC team with extensive experience in club administration and management."
   }));
@@ -37,7 +36,7 @@ const ClubOfficials = ({ officials }: ClubOfficialsProps) => {
       </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        {officialsWithImages.map((official) => (
+        {officialsWithDefaults.map((official) => (
           <OfficialCard
             key={official.name}
             name={official.name}

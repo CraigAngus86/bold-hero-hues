@@ -14,13 +14,15 @@ export interface Player {
   biography: string;
 }
 
+const profileImageUrl = "/lovable-uploads/9cecca5c-daf2-4f52-a6ca-06e02ca9ea44.png";
+
 export const players: Player[] = [
   {
     id: 1,
     name: "Daniel Hoban",
     position: "Goalkeeper",
     number: 1,
-    image: "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=800&q=80",
+    image: profileImageUrl,
     stats: {
       appearances: 18,
       cleanSheets: 8
@@ -32,7 +34,7 @@ export const players: Player[] = [
     name: "Fraser Hobday",
     position: "Goalkeeper",
     number: 13,
-    image: "https://images.unsplash.com/photo-1598550476439-6847785fcea6?auto=format&fit=crop&w=800&q=80",
+    image: profileImageUrl,
     stats: {
       appearances: 10,
       cleanSheets: 4
@@ -44,7 +46,7 @@ export const players: Player[] = [
     name: "Jevan Anderson",
     position: "Defender",
     number: 2,
-    image: "https://images.unsplash.com/photo-1631757229605-c990f337570f?auto=format&fit=crop&w=800&q=80",
+    image: profileImageUrl,
     stats: {
       appearances: 24,
       goals: 1,
@@ -57,7 +59,7 @@ export const players: Player[] = [
     name: "Darryn Kelly",
     position: "Defender",
     number: 4,
-    image: "https://images.unsplash.com/photo-1627076632318-8b9a16723e81?auto=format&fit=crop&w=800&q=80",
+    image: profileImageUrl,
     stats: {
       appearances: 22,
       goals: 3,
@@ -70,7 +72,7 @@ export const players: Player[] = [
     name: "Ryan Cunningham",
     position: "Defender",
     number: 3,
-    image: "https://images.unsplash.com/photo-1605971658318-d527373e4d5d?auto=format&fit=crop&w=800&q=80",
+    image: profileImageUrl,
     stats: {
       appearances: 20,
       assists: 4
@@ -82,7 +84,7 @@ export const players: Player[] = [
     name: "Dean Lawrie",
     position: "Defender",
     number: 5,
-    image: "https://images.unsplash.com/photo-1590515680467-5417b4e7fedb?auto=format&fit=crop&w=800&q=80",
+    image: profileImageUrl,
     stats: {
       appearances: 19,
       goals: 2
@@ -94,7 +96,7 @@ export const players: Player[] = [
     name: "Kane Winton",
     position: "Midfielder",
     number: 6,
-    image: "https://images.unsplash.com/photo-1506432278326-7878fc8740cc?auto=format&fit=crop&w=800&q=80",
+    image: profileImageUrl,
     stats: {
       appearances: 26,
       goals: 3,
@@ -107,7 +109,7 @@ export const players: Player[] = [
     name: "Michael Philipson",
     position: "Midfielder",
     number: 8,
-    image: "https://images.unsplash.com/photo-1543326727-cf6c39e8f84c?auto=format&fit=crop&w=800&q=80",
+    image: profileImageUrl,
     stats: {
       appearances: 25,
       goals: 7,
@@ -120,7 +122,7 @@ export const players: Player[] = [
     name: "Lachie Macleod",
     position: "Midfielder",
     number: 10,
-    image: "https://images.unsplash.com/photo-1491309055486-24ae511c15c7?auto=format&fit=crop&w=800&q=80",
+    image: profileImageUrl,
     stats: {
       appearances: 23,
       goals: 10,
@@ -133,7 +135,7 @@ export const players: Player[] = [
     name: "Mark Gilmour",
     position: "Forward",
     number: 9,
-    image: "https://images.unsplash.com/photo-1499368919119-2c7332a83f39?auto=format&fit=crop&w=800&q=80",
+    image: profileImageUrl,
     stats: {
       appearances: 28,
       goals: 15,
@@ -146,7 +148,7 @@ export const players: Player[] = [
     name: "Liam Duell",
     position: "Forward",
     number: 11,
-    image: "https://images.unsplash.com/photo-1516292077215-e0e28f992fe4?auto=format&fit=crop&w=800&q=80",
+    image: profileImageUrl,
     stats: {
       appearances: 25,
       goals: 12,
@@ -159,7 +161,7 @@ export const players: Player[] = [
     name: "Jack Henderson",
     position: "Forward",
     number: 17,
-    image: "https://images.unsplash.com/photo-1495360010541-f48722b34f7d?auto=format&fit=crop&w=800&q=80",
+    image: profileImageUrl,
     stats: {
       appearances: 22,
       goals: 9,

@@ -6,12 +6,14 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@
 import { TeamStats } from '../league/types';
 
 interface LeagueTablePreviewProps {
-  leagueData: TeamStats[];
+  leagueData: TeamStats[] | null;
 }
 
 const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
-  // Take the top 8 teams for the preview
-  const previewTeams = leagueData.slice(0, 8);
+  // Handle empty or null data with sensible defaults
+  const previewTeams = leagueData && leagueData.length > 0 
+    ? leagueData.slice(0, 8)
+    : [];
   
   return (
     <Card className="overflow-hidden border-team-gray hover:shadow-md transition-shadow bg-white flex flex-col h-full">
@@ -31,34 +33,42 @@ const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {previewTeams.map((team) => (
-                <TableRow 
-                  key={team.position}
-                  className={team.team === "Banks o' Dee" ? "bg-team-lightBlue/30" : ""}
-                >
-                  <TableCell className="py-2 font-medium text-center">{team.position}</TableCell>
-                  <TableCell className="py-2 font-medium">
-                    <div className="flex items-center space-x-2">
-                      {team.team === "Banks o' Dee" ? (
-                        <img 
-                          src="/lovable-uploads/banks-o-dee-logo.png" 
-                          alt="Banks o' Dee logo"
-                          className="w-6 h-6 object-contain"
-                        />
-                      ) : (
-                        <img 
-                          src={team.logo || "https://placehold.co/40x40/team-white/team-blue?text=Logo"} 
-                          alt={`${team.team} logo`}
-                          className="w-6 h-6 object-contain"
-                        />
-                      )}
-                      <span>{team.team}</span>
-                    </div>
+              {previewTeams.length > 0 ? (
+                previewTeams.map((team) => (
+                  <TableRow 
+                    key={team.position}
+                    className={team.team === "Banks o' Dee" ? "bg-team-lightBlue/30" : ""}
+                  >
+                    <TableCell className="py-2 font-medium text-center">{team.position}</TableCell>
+                    <TableCell className="py-2 font-medium">
+                      <div className="flex items-center space-x-2">
+                        {team.team === "Banks o' Dee" ? (
+                          <img 
+                            src="/lovable-uploads/banks-o-dee-logo.png" 
+                            alt="Banks o' Dee logo"
+                            className="w-6 h-6 object-contain"
+                          />
+                        ) : (
+                          <img 
+                            src={team.logo || "https://placehold.co/40x40/team-white/team-blue?text=Logo"} 
+                            alt={`${team.team} logo`}
+                            className="w-6 h-6 object-contain"
+                          />
+                        )}
+                        <span>{team.team}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-2 text-center">{team.played}</TableCell>
+                    <TableCell className="py-2 text-center font-bold">{team.points}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-4 text-gray-500">
+                    No league data available
                   </TableCell>
-                  <TableCell className="py-2 text-center">{team.played}</TableCell>
-                  <TableCell className="py-2 text-center font-bold">{team.points}</TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </div>

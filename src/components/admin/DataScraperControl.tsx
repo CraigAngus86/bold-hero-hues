@@ -87,7 +87,7 @@ const DataScraperControl = () => {
     setBbcScraperStatus("Starting BBC Sport scraper...");
     
     try {
-      const data = await scrapeLeagueTable(useBbcProxy);
+      const data = await scrapeLeagueTable();
       setLeagueTable(data);
       setSuccess('Successfully fetched league table data!');
       setBbcScraperStatus(`Successfully fetched data for ${data.length} teams from BBC Sport`);

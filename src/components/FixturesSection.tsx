@@ -36,20 +36,24 @@ const FixturesSection = () => {
         fetchResults()
       ]);
       
-      // Update state with the fetched data
-      setLeagueData(tableData);
+      // Update state with the fetched data, with null checks
+      setLeagueData(tableData || []);
       
-      // Get the 3 most recent results
-      const recent = results
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        .slice(0, 3);
-      setRecentMatches(recent);
+      // Get the 3 most recent results, with null checks
+      if (results && Array.isArray(results)) {
+        const recent = [...results]
+          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+          .slice(0, 3);
+        setRecentMatches(recent);
+      }
       
-      // Get the 3 upcoming fixtures
-      const upcoming = fixtures
-        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-        .slice(0, 3);
-      setUpcomingMatches(upcoming);
+      // Get the 3 upcoming fixtures, with null checks
+      if (fixtures && Array.isArray(fixtures)) {
+        const upcoming = [...fixtures]
+          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+          .slice(0, 3);
+        setUpcomingMatches(upcoming);
+      }
       
       if (refresh) {
         toast.success("Fixtures and results refreshed");

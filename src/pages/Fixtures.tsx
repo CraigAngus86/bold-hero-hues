@@ -5,6 +5,7 @@ import Footer from '@/components/Footer';
 import { motion } from 'framer-motion';
 import { Calendar, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface Match {
   id: number;
@@ -183,6 +184,15 @@ const mockMatches: Match[] = [
 
 const competitions = ["All Competitions", "Highland League", "Highland League Cup", "Aberdeenshire Cup", "Aberdeenshire Shield", "Scottish Cup"];
 
+// Get unique months from the match data
+const getAvailableMonths = (matches: Match[]) => {
+  const months = matches.map(match => {
+    const date = new Date(match.date);
+    return date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+  });
+  return ["All Months", ...Array.from(new Set(months))];
+};
+
 const formatDate = (dateString: string) => {
   const options: Intl.DateTimeFormatOptions = { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' };
   return new Date(dateString).toLocaleDateString('en-GB', options);
@@ -209,15 +219,40 @@ const groupMatchesByMonth = (matches: Match[]) => {
   return grouped;
 };
 
+// Generate placeholder logos for teams
+const getTeamLogo = (teamName: string) => {
+  // This would ideally be replaced with actual team logos
+  const initials = teamName
+    .split(' ')
+    .map(word => word.charAt(0))
+    .join('')
+    .substring(0, 2)
+    .toUpperCase();
+  
+  // For Banks o' Dee we have an actual logo
+  if (teamName === "Banks o' Dee") {
+    return "/lovable-uploads/cb95b9fb-0f2d-42ef-9788-10509a80ed6e.png";
+  }
+  
+  return `https://placehold.co/60x60/team-blue/white?text=${initials}`;
+};
+
 const Fixtures = () => {
   const [selectedCompetition, setSelectedCompetition] = useState("All Competitions");
+  const [selectedMonth, setSelectedMonth] = useState("All Months");
   const [showPast, setShowPast] = useState(true);
   const [showUpcoming, setShowUpcoming] = useState(true);
+  
+  const availableMonths = getAvailableMonths(mockMatches);
   
   const filteredMatches = mockMatches.filter(match => {
     const competitionMatch = selectedCompetition === "All Competitions" || match.competition === selectedCompetition;
     const timeframeMatch = (showPast && match.isCompleted) || (showUpcoming && !match.isCompleted);
-    return competitionMatch && timeframeMatch;
+    
+    const matchMonth = new Date(match.date).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+    const monthMatch = selectedMonth === "All Months" || matchMonth === selectedMonth;
+    
+    return competitionMatch && timeframeMatch && monthMatch;
   });
   
   const groupedMatches = groupMatchesByMonth(filteredMatches);
@@ -261,15 +296,33 @@ const Fixtures = () => {
                 </div>
               </div>
               
-              <select
-                value={selectedCompetition}
-                onChange={(e) => setSelectedCompetition(e.target.value)}
-                className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-team-blue focus:border-transparent"
-              >
-                {competitions.map(comp => (
-                  <option key={comp} value={comp}>{comp}</option>
-                ))}
-              </select>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Select Month" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableMonths.map((month) => (
+                      <SelectItem key={month} value={month}>
+                        {month}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                <Select value={selectedCompetition} onValueChange={setSelectedCompetition}>
+                  <SelectTrigger className="w-full sm:w-[200px]">
+                    <SelectValue placeholder="Select Competition" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {competitions.map((comp) => (
+                      <SelectItem key={comp} value={comp}>
+                        {comp}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
           
@@ -301,28 +354,46 @@ const Fixtures = () => {
                           </div>
                           <div className="p-4">
                             <div className="flex items-center justify-between">
-                              <div className="flex-1 text-right pr-3">
-                                <p className={`font-semibold ${match.homeTeam === "Banks o' Dee" ? "text-team-blue" : ""}`}>
-                                  {match.homeTeam}
-                                </p>
+                              <div className="flex items-center flex-1">
+                                <div className="w-12 h-12 flex-shrink-0 mr-3">
+                                  <img 
+                                    src={getTeamLogo(match.homeTeam)} 
+                                    alt={`${match.homeTeam} logo`} 
+                                    className="w-full h-full object-contain"
+                                  />
+                                </div>
+                                <div className="flex-1 text-right">
+                                  <p className={`font-semibold ${match.homeTeam === "Banks o' Dee" ? "text-team-blue" : ""}`}>
+                                    {match.homeTeam}
+                                  </p>
+                                </div>
                               </div>
                               
                               {match.isCompleted ? (
-                                <div className="flex items-center justify-center space-x-2 font-bold">
+                                <div className="flex items-center justify-center space-x-2 font-bold mx-2">
                                   <span className="w-8 h-8 flex items-center justify-center bg-team-gray rounded">{match.homeScore}</span>
                                   <span className="text-xs">-</span>
                                   <span className="w-8 h-8 flex items-center justify-center bg-team-gray rounded">{match.awayScore}</span>
                                 </div>
                               ) : (
-                                <div className="flex items-center justify-center font-bold text-sm">
+                                <div className="flex items-center justify-center font-bold text-sm mx-2">
                                   <span>VS</span>
                                 </div>
                               )}
                               
-                              <div className="flex-1 text-left pl-3">
-                                <p className={`font-semibold ${match.awayTeam === "Banks o' Dee" ? "text-team-blue" : ""}`}>
-                                  {match.awayTeam}
-                                </p>
+                              <div className="flex items-center flex-1">
+                                <div className="flex-1 text-left">
+                                  <p className={`font-semibold ${match.awayTeam === "Banks o' Dee" ? "text-team-blue" : ""}`}>
+                                    {match.awayTeam}
+                                  </p>
+                                </div>
+                                <div className="w-12 h-12 flex-shrink-0 ml-3">
+                                  <img 
+                                    src={getTeamLogo(match.awayTeam)} 
+                                    alt={`${match.awayTeam} logo`} 
+                                    className="w-full h-full object-contain"
+                                  />
+                                </div>
                               </div>
                             </div>
                             <div className="mt-2 text-xs text-gray-500 text-center">
@@ -353,6 +424,7 @@ const Fixtures = () => {
                   className="mt-4 text-team-blue hover:underline"
                   onClick={() => {
                     setSelectedCompetition("All Competitions");
+                    setSelectedMonth("All Months");
                     setShowPast(true);
                     setShowUpcoming(true);
                   }}

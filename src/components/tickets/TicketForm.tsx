@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { ShoppingCart, Plus, Minus } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Match } from './types';
+import { Input } from "@/components/ui/input";
 
 interface TicketQuantity {
   adult: number;
@@ -75,13 +76,13 @@ const TicketForm = ({
             <Minus className="h-4 w-4" />
           </Button>
           <div className="w-12 mx-2 text-center">
-            <input
+            <Input
               type="number"
               min="0"
               max="10"
               value={quantities[type]}
               onChange={(e) => updateQuantity(type, parseInt(e.target.value) || 0)}
-              className="w-full border border-gray-300 rounded-md px-2 py-1 text-center focus:outline-none focus:ring-2 focus:ring-team-blue focus:border-transparent"
+              className="w-full text-center focus:outline-none focus:ring-2 focus:ring-team-blue focus:border-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
           </div>
           <Button

@@ -53,7 +53,7 @@ const Navbar = () => {
             />
             <h1 className={cn(
               "font-display font-bold text-xl md:text-2xl tracking-tight transition-colors duration-300 hidden md:block",
-              scrolled ? "text-team-blue" : "text-white text-shadow"
+              scrolled ? "text-team-blue" : "text-white"
             )}>
               Banks o' Dee FC
             </h1>

@@ -53,8 +53,6 @@ const PlayerCardDialog = ({
             </div>
           </div>
           
-          {stats && <PlayerCardStats stats={stats} position={position} />}
-          
           {biography && (
             <div>
               <h3 className="text-lg font-semibold text-[#00105a] mb-2">Biography</h3>
@@ -64,50 +62,6 @@ const PlayerCardDialog = ({
         </div>
       </div>
     </DialogContent>
-  );
-};
-
-const PlayerCardStats = ({ stats, position }: { 
-  stats: { 
-    appearances?: number; 
-    goals?: number; 
-    assists?: number; 
-    cleanSheets?: number; 
-  },
-  position: string
-}) => {
-  const isGoalkeeper = position === "Goalkeeper";
-  
-  return (
-    <div className="mb-4">
-      <h3 className="text-lg font-semibold text-[#00105a] mb-2">Season Stats</h3>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {stats.appearances !== undefined && (
-          <div className="text-center p-2 bg-gray-50 rounded">
-            <p className="text-2xl font-bold text-[#00105a]">{stats.appearances}</p>
-            <p className="text-sm text-gray-500">Appearances</p>
-          </div>
-        )}
-        {!isGoalkeeper && stats.goals !== undefined && (
-          <div className="text-center p-2 bg-gray-50 rounded">
-            <p className="text-2xl font-bold text-[#00105a]">{stats.goals}</p>
-            <p className="text-sm text-gray-500">Goals</p>
-          </div>
-        )}
-        {stats.assists !== undefined && (
-          <div className="text-center p-2 bg-gray-50 rounded">
-            <p className="text-2xl font-bold text-[#00105a]">{stats.assists}</p>
-            <p className="text-sm text-gray-500">Assists</p>
-          </div>
-        )}
-        {isGoalkeeper && stats.cleanSheets !== undefined && (
-          <div className="text-center p-2 bg-gray-50 rounded">
-            <p className="text-2xl font-bold text-[#00105a]">{stats.cleanSheets}</p>
-            <p className="text-sm text-gray-500">Clean Sheets</p>
-          </div>
-        )}
-      </div>
-    </div>
   );
 };
 

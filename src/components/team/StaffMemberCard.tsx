@@ -27,6 +27,11 @@ const StaffMemberCard = ({
     setIsFlipped(!isFlipped);
   };
   
+  const openDialog = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsDialogOpen(true);
+  };
+  
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <motion.div 
@@ -42,6 +47,7 @@ const StaffMemberCard = ({
             isFlipped ? "rotate-y-180" : ""
           )}
           onClick={toggleFlip}
+          onDoubleClick={openDialog}
         >
           {/* Front Card */}
           <div className="absolute inset-0 backface-hidden">
@@ -54,7 +60,10 @@ const StaffMemberCard = ({
                 />
                 
                 {/* Click for more indicator */}
-                <div className="absolute bottom-4 right-4 bg-white/80 px-3 py-1.5 rounded-full text-xs font-medium text-[#00105a] animate-pulse flex items-center">
+                <div 
+                  className="absolute bottom-4 right-4 bg-white/80 px-3 py-1.5 rounded-full text-xs font-medium text-[#00105a] animate-pulse flex items-center"
+                  onClick={openDialog}
+                >
                   <span>Click for more</span>
                   <ChevronRight className="w-4 h-4 ml-1" />
                 </div>
@@ -84,14 +93,15 @@ const StaffMemberCard = ({
                 </div>
               </div>
               
-              {bio && (
-                <div className="flex-1 overflow-y-auto text-gray-600 text-sm pr-2">
-                  <p>{bio}</p>
-                </div>
-              )}
+              <div className="flex-1 overflow-y-auto text-gray-600 text-sm pr-2">
+                <p>{bio}</p>
+              </div>
               
-              <div className="mt-auto pt-4 text-xs text-center text-gray-400">
-                Tap to view details
+              <div 
+                className="mt-auto pt-4 text-xs text-center text-gray-400 cursor-pointer"
+                onClick={openDialog}
+              >
+                Click for more details
               </div>
             </div>
           </div>

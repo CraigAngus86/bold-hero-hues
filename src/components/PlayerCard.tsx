@@ -34,7 +34,6 @@ const PlayerCard = (props: PlayerCardProps) => {
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.5 }}
       className="w-full perspective"
-      onClick={props.onClick}
     >
       <div 
         className={cn(
@@ -42,8 +41,12 @@ const PlayerCard = (props: PlayerCardProps) => {
           isFlipped ? "rotate-y-180" : ""
         )}
         onClick={(e) => {
-          e.stopPropagation(); // Prevent triggering the parent onClick
-          toggleFlip();
+          e.stopPropagation();
+          if (props.onClick) {
+            props.onClick();
+          } else {
+            toggleFlip();
+          }
         }}
       >
         <PlayerCardFront 
@@ -56,7 +59,6 @@ const PlayerCard = (props: PlayerCardProps) => {
           name={props.name}
           position={props.position}
           image={props.image}
-          stats={props.stats}
           biography={props.biography}
         />
       </div>

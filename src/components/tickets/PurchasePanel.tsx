@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Ticket, ShoppingCart } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -15,6 +16,13 @@ interface PurchasePanelProps {
   ticketPrices: Record<string, number>;
 }
 
+interface TicketQuantity {
+  adult: number;
+  concession: number;
+  under16: number;
+  family: number;
+}
+
 const PurchasePanel = ({ 
   selectedMatch, 
   basket, 
@@ -22,36 +30,33 @@ const PurchasePanel = ({
   getTicketTypeName,
   ticketPrices
 }: PurchasePanelProps) => {
-  const [ticketType, setTicketType] = useState("adult");
-  const [quantity, setQuantity] = useState(1);
-  const [email, setEmail] = useState("");
-  const [fullName, setFullName] = useState("");
   const [isBasketOpen, setIsBasketOpen] = useState(false);
-  
-  const totalPrice = selectedMatch ? ticketPrices[ticketType as keyof typeof ticketPrices] * quantity : 0;
   
   const basketTotalItems = basket.reduce((total, item) => total + item.quantity, 0);
   const basketTotalPrice = basket.reduce((total, item) => total + item.price, 0);
   
-  const addToBasket = () => {
+  const addToBasket = (quantities: TicketQuantity) => {
     if (!selectedMatch) return;
     
-    // Create a unique ID for this basket item
-    const basketItemId = `${selectedMatch.id}-${ticketType}-${Date.now()}`;
+    const newBasketItems: BasketItem[] = [];
     
-    const newBasketItem: BasketItem = {
-      id: basketItemId,
-      matchId: selectedMatch.id,
-      match: selectedMatch,
-      ticketType,
-      quantity,
-      price: ticketPrices[ticketType as keyof typeof ticketPrices] * quantity
-    };
+    // Create a basket item for each ticket type with quantity > 0
+    Object.entries(quantities).forEach(([type, quantity]) => {
+      if (quantity > 0) {
+        const basketItemId = `${selectedMatch.id}-${type}-${Date.now()}`;
+        
+        newBasketItems.push({
+          id: basketItemId,
+          matchId: selectedMatch.id,
+          match: selectedMatch,
+          ticketType: type,
+          quantity,
+          price: ticketPrices[type] * quantity
+        });
+      }
+    });
     
-    setBasket([...basket, newBasketItem]);
-    
-    // Reset quantity but keep the match and ticket type for convenience
-    setQuantity(1);
+    setBasket([...basket, ...newBasketItems]);
   };
   
   const removeFromBasket = (id: string) => {
@@ -106,16 +111,9 @@ const PurchasePanel = ({
         ) : (
           <TicketForm 
             selectedMatch={selectedMatch}
-            ticketType={ticketType}
-            setTicketType={setTicketType}
-            quantity={quantity}
-            setQuantity={setQuantity}
-            email={email}
-            setEmail={setEmail}
-            fullName={fullName}
-            setFullName={setFullName}
-            totalPrice={totalPrice}
+            totalPrice={0} // Not needed anymore as we calculate in the TicketForm
             addToBasket={addToBasket}
+            ticketPrices={ticketPrices}
           />
         )}
       </CardContent>

@@ -1,112 +1,124 @@
 
 import { useState } from 'react';
-import { Users, ShoppingCart, Plus, Minus } from 'lucide-react';
+import { ShoppingCart, Plus, Minus } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Match } from './types';
+
+interface TicketQuantity {
+  adult: number;
+  concession: number;
+  under16: number;
+  family: number;
+}
 
 interface TicketFormProps {
   selectedMatch: Match;
-  ticketType: string;
-  setTicketType: (type: string) => void;
-  quantity: number;
-  setQuantity: (quantity: number) => void;
-  email: string;
-  setEmail: (email: string) => void;
-  fullName: string;
-  setFullName: (name: string) => void;
   totalPrice: number;
-  addToBasket: () => void;
+  addToBasket: (quantities: TicketQuantity) => void;
+  ticketPrices: Record<string, number>;
 }
 
 const TicketForm = ({
   selectedMatch,
-  ticketType,
-  setTicketType,
-  quantity,
-  setQuantity,
-  email,
-  setEmail,
-  fullName,
-  setFullName,
   totalPrice,
-  addToBasket
+  addToBasket,
+  ticketPrices
 }: TicketFormProps) => {
+  const [quantities, setQuantities] = useState<TicketQuantity>({
+    adult: 0,
+    concession: 0,
+    under16: 0,
+    family: 0
+  });
+
+  const updateQuantity = (type: keyof TicketQuantity, value: number) => {
+    setQuantities({
+      ...quantities,
+      [type]: Math.max(0, Math.min(10, value))
+    });
+  };
+
+  const calculateTotal = () => {
+    return Object.entries(quantities).reduce((total, [type, quantity]) => {
+      return total + (ticketPrices[type] * quantity);
+    }, 0);
+  };
+
+  const handleAddToBasket = () => {
+    if (Object.values(quantities).some(q => q > 0)) {
+      addToBasket(quantities);
+      // Reset quantities after adding to basket
+      setQuantities({
+        adult: 0,
+        concession: 0,
+        under16: 0,
+        family: 0
+      });
+    }
+  };
+
+  const renderQuantitySelector = (type: keyof TicketQuantity, label: string, price: number) => {
+    return (
+      <div className="flex items-center justify-between border-b border-gray-100 py-3">
+        <div>
+          <p className="font-medium">{label}</p>
+          <p className="text-sm text-gray-600">£{price.toFixed(2)}</p>
+        </div>
+        <div className="flex items-center">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => updateQuantity(type, quantities[type] - 1)}
+            disabled={quantities[type] <= 0}
+          >
+            <Minus className="h-4 w-4" />
+          </Button>
+          <div className="w-12 mx-2 text-center">
+            <input
+              type="number"
+              min="0"
+              max="10"
+              value={quantities[type]}
+              onChange={(e) => updateQuantity(type, parseInt(e.target.value) || 0)}
+              className="w-full border border-gray-300 rounded-md px-2 py-1 text-center focus:outline-none focus:ring-2 focus:ring-team-blue focus:border-transparent"
+            />
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => updateQuantity(type, quantities[type] + 1)}
+            disabled={quantities[type] >= 10}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
+  const total = calculateTotal();
+  
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            Ticket Type
-          </label>
-          <Select
-            value={ticketType}
-            onValueChange={(value) => setTicketType(value)}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select ticket type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="adult">Adult (£10.00)</SelectItem>
-              <SelectItem value="concession">Concession - Over 65 / Student (£6.00)</SelectItem>
-              <SelectItem value="under16">Under 16 (£3.00)</SelectItem>
-              <SelectItem value="family">Family - 2 Adults + 2 Under 16 (£20.00)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            Quantity
-          </label>
-          <div className="flex items-center">
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              disabled={quantity <= 1}
-            >
-              <Minus className="h-4 w-4" />
-            </Button>
-            <div className="w-full mx-2 text-center">
-              <input
-                type="number"
-                min="1"
-                max="10"
-                value={quantity}
-                onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-center focus:outline-none focus:ring-2 focus:ring-team-blue focus:border-transparent"
-              />
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={() => setQuantity(Math.min(10, quantity + 1))}
-              disabled={quantity >= 10}
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+      <div className="mt-4">
+        {renderQuantitySelector('adult', 'Adult', ticketPrices.adult)}
+        {renderQuantitySelector('concession', 'Concession - Over 65 / Student', ticketPrices.concession)}
+        {renderQuantitySelector('under16', 'Under 16', ticketPrices.under16)}
+        {renderQuantitySelector('family', 'Family - 2 Adults + 2 Under 16', ticketPrices.family)}
       </div>
       
       <div className="mt-6 pt-6 border-t border-gray-200">
         <div className="flex justify-between items-center mb-6">
           <span className="font-bold text-lg">Total:</span>
-          <span className="font-bold text-xl text-team-blue">£{totalPrice.toFixed(2)}</span>
+          <span className="font-bold text-xl text-team-blue">£{total.toFixed(2)}</span>
         </div>
         
         <Button
           className="w-full bg-team-blue text-white font-medium py-6 rounded-md hover:bg-team-lightBlue hover:text-team-blue transition-colors flex items-center justify-center"
-          onClick={addToBasket}
+          onClick={handleAddToBasket}
+          disabled={total === 0}
         >
           <ShoppingCart className="w-5 h-5 mr-2" />
           Add to Basket

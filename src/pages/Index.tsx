@@ -58,32 +58,16 @@ const Index = () => {
                 );
               }
               
-              // Items 2-3 are medium (spans 3x3)
-              if (index >= 1 && index <= 2) {
-                return (
-                  <div key={newsItem.id} className="col-span-12 sm:col-span-6 md:col-span-3">
-                    <NewsCard
-                      title={newsItem.title}
-                      excerpt={newsItem.excerpt}
-                      image={newsItem.image}
-                      date={formatDate(newsItem.date)}
-                      category={newsItem.category}
-                      size="medium"
-                    />
-                  </div>
-                );
-              }
-              
-              // Items 4-6 are small (spans 2x2)
+              // All other items are medium (3x3)
               return (
-                <div key={newsItem.id} className="col-span-12 sm:col-span-4 md:col-span-2">
+                <div key={newsItem.id} className="col-span-12 sm:col-span-6 md:col-span-3">
                   <NewsCard
                     title={newsItem.title}
                     excerpt={newsItem.excerpt}
                     image={newsItem.image}
                     date={formatDate(newsItem.date)}
                     category={newsItem.category}
-                    size="small"
+                    size="medium"
                   />
                 </div>
               );

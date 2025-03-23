@@ -1,7 +1,7 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { PlayerPosition } from '@/components/player/PlayerCardDialog';
+
+export type PlayerPosition = 'goalkeeper' | 'defender' | 'midfielder' | 'forward';
 
 export interface Player {
   id: number;
@@ -48,8 +48,7 @@ export interface TeamMember {
   image: string;
   position?: PlayerPosition;
   role?: string;
-  type: 'player' | 'staff' | 'official';
-  // Additional fields for players
+  type: 'player' | 'management' | 'official';
   number?: number;
   height?: string;
   weight?: string;
@@ -62,15 +61,14 @@ export interface TeamMember {
     assists: number;
     cleanSheets?: number;
     tackles?: number;
-    yellowCards: number;
-    redCards: number;
+    yellowCards?: number;
+    redCards?: number;
   };
   bio?: string;
-  // Additional fields for staff
+  biography?: string;
   experience?: string;
 }
 
-// Initial data for players
 const initialPlayers: Player[] = [
   {
     id: 1,
@@ -93,10 +91,8 @@ const initialPlayers: Player[] = [
     },
     bio: "An experienced shot-stopper who has been with Banks o' Dee since 2019. Known for his exceptional reflexes and commanding presence in the box."
   },
-  // ... Add more players here
 ];
 
-// Initial data for staff
 const initialStaff: StaffMember[] = [
   {
     id: 101,
@@ -132,7 +128,6 @@ const initialStaff: StaffMember[] = [
   }
 ];
 
-// Initial data for club officials
 const initialOfficials: ClubOfficial[] = [
   {
     id: 201,
@@ -172,11 +167,11 @@ const initialOfficials: ClubOfficial[] = [
   }
 ];
 
-// Define the team store
 interface TeamStore {
   players: Player[];
   staff: StaffMember[];
   officials: ClubOfficial[];
+  teamMembers: TeamMember[];
   addPlayer: (player: Omit<Player, 'id'>) => void;
   updatePlayer: (player: Player) => void;
   deletePlayer: (id: number) => void;
@@ -186,15 +181,20 @@ interface TeamStore {
   addOfficial: (official: Omit<ClubOfficial, 'id'>) => void;
   updateOfficial: (official: ClubOfficial) => void;
   deleteOfficial: (id: number) => void;
+  addTeamMember: (member: Omit<TeamMember, 'id'>) => void;
+  updateTeamMember: (member: TeamMember) => void;
+  deleteTeamMember: (id: number) => void;
+  getManagementStaff: () => TeamMember[];
+  getClubOfficials: () => TeamMember[];
 }
 
-// Create Zustand store
 export const useTeamStore = create<TeamStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       players: initialPlayers,
       staff: initialStaff,
       officials: initialOfficials,
+      teamMembers: [],
       
       addPlayer: (player) => set((state) => {
         const newId = Math.max(0, ...state.players.map(p => p.id)) + 1;
@@ -234,6 +234,29 @@ export const useTeamStore = create<TeamStore>()(
       deleteOfficial: (id) => set((state) => ({
         officials: state.officials.filter(o => o.id !== id)
       })),
+      
+      addTeamMember: (member) => set((state) => {
+        const newId = Math.max(0, ...state.teamMembers.map(m => m.id)) + 1;
+        return { teamMembers: [...state.teamMembers, { ...member, id: newId }] };
+      }),
+      
+      updateTeamMember: (member) => set((state) => ({
+        teamMembers: state.teamMembers.map(m => m.id === member.id ? member : m)
+      })),
+      
+      deleteTeamMember: (id) => set((state) => ({
+        teamMembers: state.teamMembers.filter(m => m.id !== id)
+      })),
+      
+      getManagementStaff: () => {
+        const { teamMembers } = get();
+        return teamMembers.filter(m => m.type === 'management');
+      },
+      
+      getClubOfficials: () => {
+        const { teamMembers } = get();
+        return teamMembers.filter(m => m.type === 'official');
+      }
     }),
     {
       name: 'banks-o-dee-team-storage'

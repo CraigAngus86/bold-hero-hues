@@ -1,17 +1,20 @@
 
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { PlayerPosition } from '@/services/teamService';
 
-interface PositionFilterProps {
-  positions: string[];
+export interface PositionFilterProps {
   selectedPosition: string;
   onPositionChange: (position: string) => void;
+  positions?: string[];
+  positionCounts?: Record<string, number>;
 }
 
 const PositionFilter = ({ 
-  positions, 
+  positions = ['all', 'goalkeeper', 'defender', 'midfielder', 'forward'], 
   selectedPosition, 
-  onPositionChange 
+  onPositionChange,
+  positionCounts
 }: PositionFilterProps) => {
   return (
     <div className="mb-10 flex justify-center">
@@ -28,6 +31,11 @@ const PositionFilter = ({
             )}
           >
             {position}
+            {positionCounts && positionCounts[position] !== undefined && (
+              <span className="ml-1 text-xs opacity-80">
+                ({positionCounts[position]})
+              </span>
+            )}
           </button>
         ))}
       </div>

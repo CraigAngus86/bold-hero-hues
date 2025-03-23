@@ -18,7 +18,7 @@ const TeamRow = ({ team }: TeamRowProps) => {
         <div className="flex items-center space-x-3">
           {team.team === "Banks o' Dee" ? (
             <img 
-              src="/lovable-uploads/0c8edeaf-c67c-403f-90f0-61b390e5e89a.png" 
+              src="/lovable-uploads/ba4e2b09-12ed-48ad-a4ba-1162ab87ad70.png" 
               alt="Banks o' Dee logo"
               className="w-8 h-8 object-contain"
             />

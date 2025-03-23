@@ -5,6 +5,7 @@ import Hero from '@/components/Hero';
 import NewsCard from '@/components/NewsCard';
 import SponsorsCarousel from '@/components/SponsorsCarousel';
 import FixturesSection from '@/components/FixturesSection';
+import SocialMediaFeed from '@/components/SocialMediaFeed';
 import Footer from '@/components/Footer';
 import { ArrowRight } from 'lucide-react';
 
@@ -64,9 +65,6 @@ const Index = () => {
       {/* Hero Section */}
       <Hero />
       
-      {/* Fixtures, Results & Table Section */}
-      <FixturesSection />
-      
       {/* Latest News - with mixed card sizes */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
@@ -99,6 +97,12 @@ const Index = () => {
           </div>
         </div>
       </section>
+      
+      {/* Fixtures, Results & Table Section */}
+      <FixturesSection />
+      
+      {/* Social Media Feed Section */}
+      <SocialMediaFeed />
       
       {/* Sponsors Carousel */}
       <SponsorsCarousel />

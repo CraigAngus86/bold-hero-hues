@@ -236,42 +236,42 @@ const FixturesSection = () => {
   return (
     <section className="py-10 bg-team-gray">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-team-blue mb-8 text-center">Fixtures, Results & Table</h2>
+        <h2 className="text-3xl font-bold text-[#00105a] mb-8 text-center">Fixtures, Results & Table</h2>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Recent Results Card */}
-          <Card className="overflow-hidden border-team-gray hover:shadow-md transition-shadow bg-white">
-            <div className="bg-team-blue text-white font-medium p-3 flex items-center justify-center">
+          <Card className="overflow-hidden border-team-gray hover:shadow-md transition-shadow bg-white flex flex-col h-full">
+            <div className="bg-[#00105a] text-white font-medium p-3 flex items-center justify-center">
               <Clock className="w-5 h-5 mr-2" />
               <h3 className="text-lg font-semibold">Recent Results</h3>
             </div>
-            <CardContent className="p-4">
-              <div className="space-y-3">
+            <CardContent className="p-4 flex-1 flex flex-col">
+              <div className="space-y-3 flex-1">
                 {recentMatches.map((match) => (
                   <div key={match.id} className="p-2 border-b border-gray-100 last:border-0">
-                    <div className="text-xs text-team-blue font-medium mb-1">
+                    <div className="text-xs text-[#00105a] font-medium mb-1">
                       {match.competition} • {formatDate(match.date)}
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className={`font-medium ${match.homeTeam === "Banks o' Dee" ? "text-team-blue" : ""}`}>
+                      <span className={`font-medium w-[40%] text-right ${match.homeTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
                         {match.homeTeam}
                       </span>
-                      <div className="flex items-center justify-center space-x-1 font-bold">
+                      <div className="flex items-center justify-center space-x-1 font-bold w-[20%]">
                         <span className="w-6 h-6 flex items-center justify-center bg-team-lightBlue rounded-sm">{match.homeScore}</span>
                         <span className="text-xs">-</span>
                         <span className="w-6 h-6 flex items-center justify-center bg-team-lightBlue rounded-sm">{match.awayScore}</span>
                       </div>
-                      <span className={`font-medium ${match.awayTeam === "Banks o' Dee" ? "text-team-blue" : ""}`}>
+                      <span className={`font-medium w-[40%] text-left ${match.awayTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
                         {match.awayTeam}
                       </span>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="mt-3 text-center">
+              <div className="mt-4 text-center">
                 <a 
                   href="/fixtures" 
-                  className="inline-block px-4 py-2 bg-team-lightBlue text-team-blue text-sm font-medium rounded hover:bg-team-blue hover:text-white transition-colors"
+                  className="inline-block px-4 py-2 bg-team-lightBlue text-[#00105a] text-sm font-medium rounded hover:bg-[#00105a] hover:text-white transition-colors w-full"
                 >
                   All Results
                 </a>
@@ -280,24 +280,24 @@ const FixturesSection = () => {
           </Card>
           
           {/* Upcoming Fixtures Card */}
-          <Card className="overflow-hidden border-team-gray hover:shadow-md transition-shadow bg-white">
-            <div className="bg-team-blue text-white font-medium p-3 flex items-center justify-center">
+          <Card className="overflow-hidden border-team-gray hover:shadow-md transition-shadow bg-white flex flex-col h-full">
+            <div className="bg-[#00105a] text-white font-medium p-3 flex items-center justify-center">
               <CalendarDays className="w-5 h-5 mr-2" />
               <h3 className="text-lg font-semibold">Upcoming Fixtures</h3>
             </div>
-            <CardContent className="p-4">
-              <div className="space-y-3">
+            <CardContent className="p-4 flex-1 flex flex-col">
+              <div className="space-y-3 flex-1">
                 {upcomingMatches.map((match) => (
                   <div key={match.id} className="p-2 border-b border-gray-100 last:border-0">
-                    <div className="text-xs text-team-blue font-medium mb-1">
+                    <div className="text-xs text-[#00105a] font-medium mb-1">
                       {match.competition} • {formatDate(match.date)} • {match.time}
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className={`font-medium ${match.homeTeam === "Banks o' Dee" ? "text-team-blue" : ""}`}>
+                      <span className={`font-medium w-[40%] text-right ${match.homeTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
                         {match.homeTeam}
                       </span>
-                      <span className="font-bold text-xs">VS</span>
-                      <span className={`font-medium ${match.awayTeam === "Banks o' Dee" ? "text-team-blue" : ""}`}>
+                      <span className="font-bold text-xs w-[20%] text-center">VS</span>
+                      <span className={`font-medium w-[40%] text-left ${match.awayTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
                         {match.awayTeam}
                       </span>
                     </div>
@@ -307,10 +307,10 @@ const FixturesSection = () => {
                   </div>
                 ))}
               </div>
-              <div className="mt-3 text-center">
+              <div className="mt-4 text-center">
                 <a 
                   href="/fixtures" 
-                  className="inline-block px-4 py-2 bg-team-lightBlue text-team-blue text-sm font-medium rounded hover:bg-team-blue hover:text-white transition-colors"
+                  className="inline-block px-4 py-2 bg-team-lightBlue text-[#00105a] text-sm font-medium rounded hover:bg-[#00105a] hover:text-white transition-colors w-full"
                 >
                   All Fixtures
                 </a>
@@ -319,20 +319,20 @@ const FixturesSection = () => {
           </Card>
           
           {/* League Table Card */}
-          <Card className="overflow-hidden border-team-gray hover:shadow-md transition-shadow bg-white">
-            <div className="bg-team-blue text-white font-medium p-3 flex items-center justify-center">
+          <Card className="overflow-hidden border-team-gray hover:shadow-md transition-shadow bg-white flex flex-col h-full">
+            <div className="bg-[#00105a] text-white font-medium p-3 flex items-center justify-center">
               <Trophy className="w-5 h-5 mr-2" />
               <h3 className="text-lg font-semibold">Highland League</h3>
             </div>
-            <CardContent className="p-4">
-              <div className="text-xs">
+            <CardContent className="p-4 flex-1 flex flex-col">
+              <div className="text-xs flex-1">
                 <Table>
                   <TableHeader className="bg-team-lightBlue">
                     <TableRow>
-                      <TableHead className="py-2 text-team-blue">Pos</TableHead>
-                      <TableHead className="text-team-blue text-left">Team</TableHead>
-                      <TableHead className="text-team-blue text-center">P</TableHead>
-                      <TableHead className="text-team-blue text-center">Pts</TableHead>
+                      <TableHead className="py-2 text-[#00105a]">Pos</TableHead>
+                      <TableHead className="text-[#00105a] text-left">Team</TableHead>
+                      <TableHead className="text-[#00105a] text-center">P</TableHead>
+                      <TableHead className="text-[#00105a] text-center">Pts</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -350,10 +350,10 @@ const FixturesSection = () => {
                   </TableBody>
                 </Table>
               </div>
-              <div className="mt-3 text-center">
+              <div className="mt-4 text-center">
                 <a 
                   href="/table" 
-                  className="inline-block px-4 py-2 bg-team-lightBlue text-team-blue text-sm font-medium rounded hover:bg-team-blue hover:text-white transition-colors"
+                  className="inline-block px-4 py-2 bg-team-lightBlue text-[#00105a] text-sm font-medium rounded hover:bg-[#00105a] hover:text-white transition-colors w-full"
                 >
                   Full Table
                 </a>

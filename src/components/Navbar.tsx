@@ -1,9 +1,8 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Menu, X, Instagram, Facebook } from 'lucide-react';
-import { Twitter } from 'lucide-react';
+import { Menu, X, Instagram, Facebook, Twitter } from 'lucide-react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);

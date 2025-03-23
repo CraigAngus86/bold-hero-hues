@@ -56,7 +56,7 @@ const PlayerCard = ({
               <div className="h-full flex flex-col">
                 <div className="relative h-80 overflow-hidden bg-gradient-to-b from-[#00105a] to-[#00105a]/80">
                   <div className="absolute left-4 top-4 z-10">
-                    {/* Square headshot in place of number */}
+                    {/* Square headshot */}
                     <div className="w-16 h-16 overflow-hidden rounded-md border-2 border-white">
                       <img 
                         src={image} 
@@ -150,11 +150,11 @@ const PlayerCard = ({
         </DialogHeader>
         <div className="flex flex-col md:flex-row gap-6 mt-4">
           <div className="md:w-1/3">
-            <div className="aspect-square overflow-hidden rounded-lg">
+            <div className="rounded-lg overflow-hidden">
               <img 
                 src={image} 
                 alt={name} 
-                className="w-full h-full object-cover"
+                className="w-full h-auto aspect-square object-cover object-top"
               />
             </div>
           </div>

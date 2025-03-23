@@ -35,6 +35,24 @@ const mockNews = [
     date: "February 28, 2023",
     category: "Stadium News",
     size: "small"
+  },
+  {
+    id: 4,
+    title: "Youth Academy expansion announced",
+    excerpt: "Club reveals plans to expand youth development program with new coaching staff and improved training facilities for young talents.",
+    image: "/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png",
+    date: "February 15, 2023",
+    category: "Youth News",
+    size: "small"
+  },
+  {
+    id: 5,
+    title: "Community outreach program receives award",
+    excerpt: "Banks o' Dee FC recognized for outstanding community service through various outreach initiatives throughout Aberdeen.",
+    image: "/lovable-uploads/122628af-86b4-4d7f-bfe3-01d4bf03d053.png",
+    date: "January 30, 2023",
+    category: "Community",
+    size: "small"
   }
 ];
 
@@ -65,8 +83,8 @@ const Index = () => {
             </a>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {mockNews.map((news) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {mockNews.map((news, index) => (
               <NewsCard
                 key={news.id}
                 title={news.title}
@@ -75,7 +93,7 @@ const Index = () => {
                 date={news.date}
                 category={news.category}
                 size={news.size as 'small' | 'medium' | 'large'}
-                className={news.size === 'large' ? 'lg:col-span-2' : news.size === 'small' ? 'lg:col-span-1' : ''}
+                className={index === 0 ? 'lg:col-span-2 lg:row-span-2' : ''}
               />
             ))}
           </div>

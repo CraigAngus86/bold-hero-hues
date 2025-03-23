@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { CalendarDays, Clock, Trophy } from 'lucide-react';
@@ -243,22 +244,22 @@ const FixturesSection = () => {
               <h3 className="text-lg font-semibold">Recent Results</h3>
             </div>
             <CardContent className="p-4 flex-1 flex flex-col">
-              <div className="space-y-4 flex-1">
+              <div className="space-y-3 flex-1">
                 {recentMatches.map((match) => (
                   <div key={match.id} className="p-3 border-b border-gray-100 last:border-0">
                     <div className="text-xs text-[#00105a] font-medium mb-2">
                       {match.competition} • {formatDate(match.date)}
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className={`font-medium w-[38%] text-right ${match.homeTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
+                      <span className={`font-medium w-[35%] text-right ${match.homeTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
                         {match.homeTeam}
                       </span>
-                      <div className="flex items-center justify-center space-x-2 font-bold w-[24%]">
+                      <div className="flex items-center justify-center space-x-3 font-bold w-[30%]">
                         <span className="w-8 h-8 flex items-center justify-center bg-team-lightBlue rounded-sm">{match.homeScore}</span>
                         <span className="text-xs">-</span>
                         <span className="w-8 h-8 flex items-center justify-center bg-team-lightBlue rounded-sm">{match.awayScore}</span>
                       </div>
-                      <span className={`font-medium w-[38%] text-left ${match.awayTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
+                      <span className={`font-medium w-[35%] text-left ${match.awayTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
                         {match.awayTeam}
                       </span>
                     </div>
@@ -285,7 +286,7 @@ const FixturesSection = () => {
               <h3 className="text-lg font-semibold">Upcoming Fixtures</h3>
             </div>
             <CardContent className="p-4 flex-1 flex flex-col">
-              <div className="space-y-4 flex-1">
+              <div className="space-y-3 flex-1">
                 {upcomingMatches.map((match) => (
                   <div key={match.id} className="p-3 border-b border-gray-100 last:border-0">
                     <div className="text-xs text-[#00105a] font-medium mb-2">
@@ -342,11 +343,19 @@ const FixturesSection = () => {
                         <TableCell className="py-2 font-medium text-center">{team.position}</TableCell>
                         <TableCell className="py-2 font-medium">
                           <div className="flex items-center space-x-2">
-                            <img 
-                              src={team.logo} 
-                              alt={`${team.team} logo`}
-                              className={`w-6 h-6 object-contain ${team.team === "Banks o' Dee" ? "text-team-lightBlue" : ""}`}
-                            />
+                            {team.team === "Banks o' Dee" ? (
+                              <img 
+                                src="/lovable-uploads/banks-o-dee-logo.png" 
+                                alt="Banks o' Dee logo"
+                                className="w-6 h-6 object-contain"
+                              />
+                            ) : (
+                              <img 
+                                src={team.logo} 
+                                alt={`${team.team} logo`}
+                                className="w-6 h-6 object-contain"
+                              />
+                            )}
                             <span>{team.team}</span>
                           </div>
                         </TableCell>

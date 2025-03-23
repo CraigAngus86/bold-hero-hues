@@ -34,14 +34,14 @@ const NewsCard = ({
       className={cn(
         "group rounded-lg overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl bg-white h-full flex flex-col",
         featured ? "md:col-span-2" : "",
-        size === 'large' ? "md:col-span-2" : "",
-        size === 'small' ? "md:col-span-1" : "",
+        size === 'large' ? "lg:col-span-2" : "",
+        size === 'small' ? "lg:col-span-1" : "",
         className
       )}
     >
       <div className={cn(
         "overflow-hidden relative",
-        size === 'small' ? "h-48" : "h-64",
+        size === 'small' ? "h-44" : "h-64",
         size === 'large' ? "h-80" : ""
       )}>
         <div className="absolute top-0 left-0 z-10 m-4">

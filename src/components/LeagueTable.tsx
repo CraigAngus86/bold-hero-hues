@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
@@ -18,7 +17,6 @@ interface TeamStats {
   logo?: string;
 }
 
-// Mock data for the league table
 const mockLeagueData: TeamStats[] = [
   {
     position: 1,
@@ -106,7 +104,6 @@ const mockLeagueData: TeamStats[] = [
   }
 ];
 
-// Form indicator component
 const FormIndicator = ({ result }: { result: string }) => {
   const getColor = (result: string) => {
     switch (result) {
@@ -127,7 +124,6 @@ const FormIndicator = ({ result }: { result: string }) => {
 const LeagueTable = () => {
   const [leagueData, setLeagueData] = useState<TeamStats[]>([]);
   
-  // In a real app, this would fetch from an API
   useEffect(() => {
     setLeagueData(mockLeagueData);
   }, []);
@@ -179,10 +175,9 @@ const LeagueTable = () => {
                       <div className="flex items-center space-x-3">
                         {team.team === "Banks o' Dee" ? (
                           <img 
-                            src="/lovable-uploads/cb95b9fb-0f2d-42ef-9788-10509a80ed6e.png" 
+                            src="/lovable-uploads/banks-o-dee-logo.png" 
                             alt="Banks o' Dee logo"
-                            className="w-8 h-8 object-contain filter brightness-95 saturate-150"
-                            style={{ filter: "brightness(0.95) saturate(1.5) hue-rotate(185deg)" }}
+                            className="w-8 h-8 object-contain"
                           />
                         ) : (
                           <img 

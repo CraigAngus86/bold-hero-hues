@@ -18,10 +18,10 @@ const getTeamLogo = (teamName: string) => {
   
   // For Banks o' Dee we have an actual logo
   if (teamName === "Banks o' Dee") {
-    return "/lovable-uploads/cb95b9fb-0f2d-42ef-9788-10509a80ed6e.png";
+    return "/lovable-uploads/73ac703f-7365-4abb-811e-159280ad234b.png";
   }
   
-  return `https://placehold.co/60x60/team-blue/white?text=${initials}`;
+  return `https://placehold.co/80x80/team-blue/white?text=${initials}`;
 };
 
 const MatchCard = ({ match }: MatchCardProps) => {
@@ -38,7 +38,7 @@ const MatchCard = ({ match }: MatchCardProps) => {
         <div className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center flex-1">
-              <div className="w-12 h-12 flex-shrink-0 mr-3">
+              <div className="w-16 h-16 flex-shrink-0 mr-3">
                 <img 
                   src={getTeamLogo(match.homeTeam)} 
                   alt={`${match.homeTeam} logo`} 
@@ -70,7 +70,7 @@ const MatchCard = ({ match }: MatchCardProps) => {
                   {match.awayTeam}
                 </p>
               </div>
-              <div className="w-12 h-12 flex-shrink-0 ml-3">
+              <div className="w-16 h-16 flex-shrink-0 ml-3">
                 <img 
                   src={getTeamLogo(match.awayTeam)} 
                   alt={`${match.awayTeam} logo`} 

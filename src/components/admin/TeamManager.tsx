@@ -48,7 +48,7 @@ const TeamManager = () => {
     localStorage.setItem(TEAM_STORAGE_KEY, JSON.stringify(data));
   };
   
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     setFormData(prev => ({
       ...prev,

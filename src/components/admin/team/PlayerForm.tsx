@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { PlusCircle, Save, X } from 'lucide-react';
 
 export interface Player {
@@ -23,7 +24,7 @@ const POSITIONS = ["Goalkeeper", "Defender", "Midfielder", "Forward"];
 interface PlayerFormProps {
   isEditing: boolean;
   formData: Omit<Player, 'id'>;
-  onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onSelectChange: (value: string) => void;
   onSave: () => void;
   onCancel: () => void;
@@ -120,11 +121,13 @@ const PlayerForm = ({
           
           <div>
             <Label htmlFor="bio">Biography</Label>
-            <Input 
+            <Textarea 
               id="bio" 
               name="bio" 
               value={formData.bio} 
-              onChange={onInputChange} 
+              onChange={onInputChange}
+              className="min-h-[120px]"
+              placeholder="Player biography and career highlights..."
             />
           </div>
           

@@ -46,13 +46,13 @@ const UpcomingFixtures = ({ matches }: UpcomingFixturesProps) => {
         <div className="mt-3 grid grid-cols-2 gap-2">
           <Link 
             to="/fixtures" 
-            className="inline-flex items-center justify-center px-4 py-2 bg-[#00105a] text-white text-sm font-medium rounded hover:bg-[#000c40] hover:text-white transition-colors text-center"
+            className="inline-flex items-center justify-center px-4 py-2 bg-[#00105a] text-white text-sm font-medium rounded hover:bg-[#c5e7ff] hover:text-[#00105a] transition-colors text-center"
           >
             All Fixtures
           </Link>
           <Link 
             to="/tickets" 
-            className="inline-flex items-center justify-center px-4 py-2 bg-white text-[#00105a] border border-[#00105a] text-sm font-medium rounded hover:bg-[#00105a] hover:text-white transition-colors"
+            className="inline-flex items-center justify-center px-4 py-2 bg-[#00105a] text-white border border-[#00105a] text-sm font-medium rounded hover:bg-[#c5e7ff] hover:text-[#00105a] transition-colors"
           >
             <Ticket className="w-4 h-4 mr-2" /> Buy Tickets
           </Link>

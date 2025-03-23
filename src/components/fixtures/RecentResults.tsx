@@ -48,7 +48,7 @@ const RecentResults = ({ matches }: RecentResultsProps) => {
         <div className="mt-3 text-center">
           <Link 
             to="/fixtures" 
-            className="inline-block px-4 py-2 bg-[#00105a] text-white text-sm font-medium rounded hover:bg-[#000c40] hover:text-white transition-colors w-full text-center"
+            className="inline-block px-4 py-2 bg-[#00105a] text-white text-sm font-medium rounded hover:bg-[#c5e7ff] hover:text-[#00105a] transition-colors w-full text-center"
           >
             All Results
           </Link>

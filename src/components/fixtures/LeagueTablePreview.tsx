@@ -62,7 +62,7 @@ const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
         <div className="mt-4 text-center">
           <Link 
             to="/table" 
-            className="inline-block px-4 py-2 bg-team-lightBlue text-[#00105a] text-sm font-medium rounded hover:bg-[#00105a] hover:text-white transition-colors w-full"
+            className="inline-block px-4 py-2 bg-[#00105a] text-white text-sm font-medium rounded hover:bg-[#c5e7ff] hover:text-[#00105a] transition-colors w-full"
           >
             Full Table
           </Link>

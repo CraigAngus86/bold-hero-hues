@@ -3,7 +3,8 @@ import { useState } from 'react';
 import PlayerCard from './PlayerCard';
 import PositionFilter from './team/PositionFilter';
 import { motion } from 'framer-motion';
-import { Player, PlayerPosition } from '@/services/teamService';
+import { PlayerPosition } from '@/components/player/PlayerCardDialog';
+import { Player } from '@/services/teamService';
 
 // Animation variants for staggered animation
 const container = {
@@ -35,14 +36,11 @@ const TeamGrid = ({ players, title = "First Team", showFilter = true }: TeamGrid
     : players.filter(player => player.position === selectedPosition);
   
   const positionCounts = {
-    all: players.length,
     goalkeeper: players.filter(p => p.position === 'goalkeeper').length,
     defender: players.filter(p => p.position === 'defender').length,
     midfielder: players.filter(p => p.position === 'midfielder').length,
     forward: players.filter(p => p.position === 'forward').length
   };
-  
-  const positions = ['all', 'goalkeeper', 'defender', 'midfielder', 'forward'];
   
   return (
     <div className="w-full max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
@@ -53,8 +51,7 @@ const TeamGrid = ({ players, title = "First Team", showFilter = true }: TeamGrid
       {showFilter && (
         <PositionFilter 
           selectedPosition={selectedPosition}
-          onPositionChange={(position) => setSelectedPosition(position as PlayerPosition | 'all')}
-          positions={positions}
+          onPositionChange={setSelectedPosition}
           positionCounts={positionCounts}
         />
       )}
@@ -67,14 +64,7 @@ const TeamGrid = ({ players, title = "First Team", showFilter = true }: TeamGrid
       >
         {filteredPlayers.map((player) => (
           <motion.div key={player.id} variants={item}>
-            <PlayerCard 
-              key={player.id}
-              name={player.name}
-              position={player.position}
-              number={player.number}
-              image={player.image}
-              stats={player.stats}
-            />
+            <PlayerCard player={player} />
           </motion.div>
         ))}
         

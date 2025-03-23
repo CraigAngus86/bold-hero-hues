@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PlusCircle, Edit, Trash, Filter } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { TeamMember, useTeamStore, PlayerPosition } from '@/services/teamService';
+import { TeamMember, useTeamStore } from '@/services/teamService';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const positions = ["Goalkeeper", "Defender", "Midfielder", "Forward"];
@@ -26,20 +27,14 @@ const TeamManager = () => {
     setCurrentMember({
       id: teamMembers.length > 0 ? Math.max(...teamMembers.map(item => item.id)) + 1 : 1,
       name: '',
-      position: activeTab === 'player' ? 'midfielder' as PlayerPosition : undefined,
+      position: activeTab === 'player' ? 'Midfielder' : undefined,
       role: activeTab !== 'player' ? '' : undefined,
       number: activeTab === 'player' ? 0 : undefined,
       image: '',
-      bio: activeTab !== 'player' ? '' : undefined,
       biography: activeTab === 'player' ? '' : undefined,
+      bio: activeTab !== 'player' ? '' : undefined,
       type: activeTab,
-      stats: activeTab === 'player' ? { 
-        appearances: 0, 
-        goals: 0, 
-        assists: 0,
-        yellowCards: 0,
-        redCards: 0
-      } : undefined,
+      stats: activeTab === 'player' ? { appearances: 0, goals: 0, assists: 0 } : undefined,
       experience: activeTab !== 'player' ? '' : undefined
     });
     setDialogOpen(true);
@@ -321,4 +316,3 @@ const TeamManager = () => {
 };
 
 export default TeamManager;
-

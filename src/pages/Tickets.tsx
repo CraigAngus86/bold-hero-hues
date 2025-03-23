@@ -99,20 +99,20 @@ const Tickets = () => {
                 selectedMatch={selectedMatch}
                 onMatchSelect={handleMatchSelect}
               />
-              
-              {/* Season Tickets Callout */}
-              <div className="mt-6">
-                <SeasonTicketsCard />
-              </div>
             </motion.div>
             
-            {/* Right Column - Ticket Purchase Form */}
+            {/* Right Column - Season Tickets and Purchase Form */}
             <motion.div 
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
               className="md:col-span-2"
             >
+              {/* Season Tickets Callout */}
+              <div className="mb-6">
+                <SeasonTicketsCard />
+              </div>
+              
               <PurchasePanel 
                 selectedMatch={selectedMatch}
                 basket={basket}

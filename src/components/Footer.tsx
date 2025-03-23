@@ -112,10 +112,10 @@ const Footer = () => {
                 </button>
               </div>
             </form>
-            {/* Logo moved here */}
+            {/* Logo updated with new path */}
             <div className="flex justify-center md:justify-start">
               <img 
-                src="/lovable-uploads/banks-o-dee-dark-logo.png" 
+                src="/lovable-uploads/4651b18c-bc2e-4e02-96ab-8993f8dfc145.png" 
                 alt="Banks o' Dee FC Logo" 
                 className="h-20"
               />

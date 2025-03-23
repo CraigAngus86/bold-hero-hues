@@ -1,14 +1,44 @@
 
+import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { motion } from 'framer-motion';
 import FixturesFilter from '@/components/fixtures/FixturesFilter';
 import MonthFixtures from '@/components/fixtures/MonthFixtures';
 import NoFixturesFound from '@/components/fixtures/NoFixturesFound';
-import { mockMatches, competitions } from '@/components/fixtures/fixturesMockData';
+import { competitions } from '@/components/fixtures/fixturesMockData';
 import { useFixturesFilter } from '@/hooks/useFixturesFilter';
+import { Match } from '@/components/fixtures/types';
+import { fetchFixtures, fetchResults } from '@/services/leagueDataService';
+import { toast } from "sonner";
 
 const Fixtures = () => {
+  const [allMatches, setAllMatches] = useState<Match[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch both fixtures and results
+        const [fixtures, results] = await Promise.all([
+          fetchFixtures(),
+          fetchResults()
+        ]);
+        
+        // Combine them into a single array
+        setAllMatches([...fixtures, ...results]);
+      } catch (error) {
+        console.error('Error loading fixtures data:', error);
+        toast.error('Failed to load fixtures and results');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadData();
+  }, []);
+
   const {
     filteredMatches,
     selectedCompetition,
@@ -21,7 +51,7 @@ const Fixtures = () => {
     setShowUpcoming,
     availableMonths,
     clearFilters
-  } = useFixturesFilter({ matches: mockMatches, competitions });
+  } = useFixturesFilter({ matches: allMatches, competitions });
   
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -41,33 +71,42 @@ const Fixtures = () => {
             </p>
           </motion.div>
           
-          <FixturesFilter
-            selectedCompetition={selectedCompetition}
-            setSelectedCompetition={setSelectedCompetition}
-            selectedMonth={selectedMonth}
-            setSelectedMonth={setSelectedMonth}
-            showPast={showPast}
-            setShowPast={setShowPast}
-            showUpcoming={showUpcoming}
-            setShowUpcoming={setShowUpcoming}
-            competitions={competitions}
-            availableMonths={availableMonths}
-            onClearFilters={clearFilters}
-          />
-          
-          <div className="space-y-10">
-            {Object.keys(filteredMatches).length > 0 ? (
-              Object.entries(filteredMatches).map(([month, matches]) => (
-                <MonthFixtures
-                  key={month}
-                  month={month}
-                  matches={matches}
-                />
-              ))
-            ) : (
-              <NoFixturesFound onClearFilters={clearFilters} />
-            )}
-          </div>
+          {isLoading ? (
+            <div className="h-48 flex items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-team-blue"></div>
+              <p className="ml-4 text-gray-600">Loading fixtures and results...</p>
+            </div>
+          ) : (
+            <>
+              <FixturesFilter
+                selectedCompetition={selectedCompetition}
+                setSelectedCompetition={setSelectedCompetition}
+                selectedMonth={selectedMonth}
+                setSelectedMonth={setSelectedMonth}
+                showPast={showPast}
+                setShowPast={setShowPast}
+                showUpcoming={showUpcoming}
+                setShowUpcoming={setShowUpcoming}
+                competitions={competitions}
+                availableMonths={availableMonths}
+                onClearFilters={clearFilters}
+              />
+              
+              <div className="space-y-10">
+                {Object.keys(filteredMatches).length > 0 ? (
+                  Object.entries(filteredMatches).map(([month, matches]) => (
+                    <MonthFixtures
+                      key={month}
+                      month={month}
+                      matches={matches}
+                    />
+                  ))
+                ) : (
+                  <NoFixturesFound onClearFilters={clearFilters} />
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
       

@@ -1,28 +1,38 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import LeagueTableContent from './league/LeagueTableContent';
 import { TeamStats } from './league/types';
 import { fetchLeagueTable } from '@/services/leagueDataService';
+import { RefreshCw } from 'lucide-react';
 
 const LeagueTable = () => {
   const [leagueData, setLeagueData] = useState<TeamStats[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  
+  const loadLeagueData = async (refresh = false) => {
+    try {
+      if (refresh) {
+        setIsRefreshing(true);
+      } else {
+        setIsLoading(true);
+      }
+      
+      const data = await fetchLeagueTable();
+      const sortedData = [...data].sort((a, b) => a.position - b.position);
+      setLeagueData(sortedData);
+    } catch (error) {
+      console.error('Error loading league data:', error);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
   
   useEffect(() => {
-    const getLeagueData = async () => {
-      try {
-        setIsLoading(true);
-        const data = await fetchLeagueTable();
-        setLeagueData(data);
-      } catch (error) {
-        console.error('Error loading league data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    getLeagueData();
+    loadLeagueData();
   }, []);
   
   return (
@@ -31,12 +41,12 @@ const LeagueTable = () => {
         <h2 className="text-2xl font-semibold text-team-blue mb-6 text-center">Highland League Table</h2>
         
         <div className="flex justify-end mb-4">
-          <a 
-            href="/table" 
+          <Link 
+            to="/table" 
             className="px-5 py-2 bg-team-blue text-white rounded-md hover:bg-team-navy transition-colors text-sm font-medium"
           >
             View Full Table
-          </a>
+          </Link>
         </div>
         
         <motion.div

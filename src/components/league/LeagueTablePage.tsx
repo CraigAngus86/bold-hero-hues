@@ -1,36 +1,58 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { toast } from "sonner";
 import LeagueTableContent from './LeagueTableContent';
 import TableLegend from './TableLegend';
 import LeagueStatsPanel from './LeagueStatsPanel';
 import LeagueInfoPanel from './LeagueInfoPanel';
 import { TeamStats } from './types';
 import { fetchLeagueTable } from '@/services/leagueDataService';
+import { RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { clearLeagueDataCache } from '@/services/leagueDataService';
 
 const LeagueTablePage = () => {
   const [leagueData, setLeagueData] = useState<TeamStats[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  
+  const loadLeagueData = async (refresh = false) => {
+    try {
+      if (refresh) {
+        setIsRefreshing(true);
+        // Clear the cache if refreshing
+        clearLeagueDataCache();
+      } else {
+        setIsLoading(true);
+      }
+      
+      // Fetch the full league table data
+      const data = await fetchLeagueTable();
+      
+      // Sort by position
+      const sortedData = [...data].sort((a, b) => a.position - b.position);
+      setLeagueData(sortedData);
+      
+      if (refresh) {
+        toast.success("League table refreshed successfully");
+      }
+    } catch (error) {
+      console.error('Error loading league data:', error);
+      toast.error('Failed to load league table data');
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
   
   useEffect(() => {
-    const getLeagueData = async () => {
-      try {
-        setIsLoading(true);
-        // Fetch the full league table data
-        const data = await fetchLeagueTable();
-        
-        // Sort by position
-        const sortedData = [...data].sort((a, b) => a.position - b.position);
-        setLeagueData(sortedData);
-      } catch (error) {
-        console.error('Error loading league data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    getLeagueData();
+    loadLeagueData();
   }, []);
+  
+  const handleRefresh = () => {
+    loadLeagueData(true);
+  };
   
   return (
     <div className="container mx-auto px-4">
@@ -48,6 +70,28 @@ const LeagueTablePage = () => {
       
       {/* Table Key/Legend */}
       <TableLegend />
+      
+      {/* Refresh Button */}
+      <div className="flex justify-end mb-4">
+        <Button 
+          onClick={handleRefresh} 
+          disabled={isRefreshing || isLoading}
+          size="sm"
+          className="bg-team-blue hover:bg-team-navy text-white"
+        >
+          {isRefreshing ? (
+            <>
+              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+              Refreshing...
+            </>
+          ) : (
+            <>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh Table
+            </>
+          )}
+        </Button>
+      </div>
       
       {/* League Stats Summary */}
       <LeagueStatsPanel leagueData={leagueData} />

@@ -21,10 +21,10 @@ const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
           <Table>
             <TableHeader className="bg-team-lightBlue">
               <TableRow>
-                <TableHead className="py-1 text-[#00105a]">Pos</TableHead>
-                <TableHead className="py-1 text-[#00105a] text-left">Team</TableHead>
-                <TableHead className="py-1 text-[#00105a] text-center">P</TableHead>
-                <TableHead className="py-1 text-[#00105a] text-center">Pts</TableHead>
+                <TableHead className="h-10 py-2 text-[#00105a]">Pos</TableHead>
+                <TableHead className="h-10 py-2 text-[#00105a] text-left">Team</TableHead>
+                <TableHead className="h-10 py-2 text-[#00105a] text-center">P</TableHead>
+                <TableHead className="h-10 py-2 text-[#00105a] text-center">Pts</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

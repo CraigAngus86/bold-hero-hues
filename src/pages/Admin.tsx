@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { clearLeagueDataCache } from '@/services/leagueDataService';
 import { toast } from 'sonner';
 import { PenSquare, Users, Trophy, Calendar, Newspaper, RotateCcw } from 'lucide-react';
-import AdminNewsSection from '@/components/admin/AdminNewsSection';
+import AdminNewsSection from '@/components/admin/news/AdminNewsSection';
 import AdminTeamSection from '@/components/admin/AdminTeamSection';
 import AdminLeagueSection from '@/components/admin/AdminLeagueSection';
 import AdminFixturesSection from '@/components/admin/AdminFixturesSection';

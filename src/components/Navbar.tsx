@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Menu, X, Instagram, Facebook, Twitter } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -32,54 +32,21 @@ const Navbar = () => {
             </h1>
           </Link>
 
-          <div className="hidden md:flex items-center space-x-4">
-            {/* Social Media Icons */}
-            <div className="flex space-x-2 mr-6">
-              <a 
-                href="https://instagram.com" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-white hover:text-team-lightBlue transition-colors p-1"
-                aria-label="Instagram"
-              >
-                <Instagram size={20} />
-              </a>
-              <a 
-                href="https://twitter.com" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-white hover:text-team-lightBlue transition-colors p-1"
-                aria-label="X"
-              >
-                <Twitter size={20} />
-              </a>
-              <a 
-                href="https://facebook.com" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-white hover:text-team-lightBlue transition-colors p-1"
-                aria-label="Facebook"
-              >
-                <Facebook size={20} />
-              </a>
-            </div>
-
-            {/* Desktop Navigation */}
-            <nav>
-              <ul className="flex space-x-8">
-                {navLinks.map((link) => (
-                  <li key={link.name}>
-                    <Link 
-                      to={link.href} 
-                      className="font-medium text-sm text-white hover:text-team-lightBlue transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-team-lightBlue after:transition-all after:duration-300 hover:after:w-full"
-                    >
-                      {link.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          </div>
+          {/* Desktop Navigation */}
+          <nav className="hidden md:block">
+            <ul className="flex space-x-8">
+              {navLinks.map((link) => (
+                <li key={link.name}>
+                  <Link 
+                    to={link.href} 
+                    className="font-medium text-sm text-white hover:text-team-lightBlue transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-team-lightBlue after:transition-all after:duration-300 hover:after:w-full"
+                  >
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
 
           {/* Mobile Menu Button */}
           <button 
@@ -120,37 +87,6 @@ const Navbar = () => {
                   ))}
                 </ul>
               </nav>
-              
-              {/* Mobile Social Media Icons */}
-              <div className="flex space-x-4 mt-8">
-                <a 
-                  href="https://instagram.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors"
-                  aria-label="Instagram"
-                >
-                  <Instagram className="w-5 h-5 text-white" />
-                </a>
-                <a 
-                  href="https://twitter.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors"
-                  aria-label="X"
-                >
-                  <Twitter className="w-5 h-5 text-white" />
-                </a>
-                <a 
-                  href="https://facebook.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors"
-                  aria-label="Facebook"
-                >
-                  <Facebook className="w-5 h-5 text-white" />
-                </a>
-              </div>
             </div>
           </div>
         </div>

@@ -177,11 +177,20 @@ const LeagueTable = () => {
                     <TableCell className="font-medium text-center">{team.position}</TableCell>
                     <TableCell className="font-medium">
                       <div className="flex items-center space-x-3">
-                        <img 
-                          src={team.logo || "https://placehold.co/40x40/gray/white?text=Logo"} 
-                          alt={`${team.team} logo`}
-                          className="w-8 h-8 object-contain"
-                        />
+                        {team.team === "Banks o' Dee" ? (
+                          <img 
+                            src="/lovable-uploads/cb95b9fb-0f2d-42ef-9788-10509a80ed6e.png" 
+                            alt="Banks o' Dee logo"
+                            className="w-8 h-8 object-contain filter brightness-95 saturate-150"
+                            style={{ filter: "brightness(0.95) saturate(1.5) hue-rotate(185deg)" }}
+                          />
+                        ) : (
+                          <img 
+                            src={team.logo || "https://placehold.co/40x40/gray/white?text=Logo"} 
+                            alt={`${team.team} logo`}
+                            className="w-8 h-8 object-contain"
+                          />
+                        )}
                         <span>{team.team}</span>
                       </div>
                     </TableCell>

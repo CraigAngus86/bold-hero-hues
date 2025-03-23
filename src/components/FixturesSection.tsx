@@ -250,15 +250,15 @@ const FixturesSection = () => {
                       {match.competition} • {formatDate(match.date)}
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className={`font-medium w-[40%] text-right ${match.homeTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
+                      <span className={`font-medium w-[38%] text-right ${match.homeTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
                         {match.homeTeam}
                       </span>
-                      <div className="flex items-center justify-center space-x-2 font-bold w-[20%]">
+                      <div className="flex items-center justify-center space-x-2 font-bold w-[24%]">
                         <span className="w-8 h-8 flex items-center justify-center bg-team-lightBlue rounded-sm">{match.homeScore}</span>
                         <span className="text-xs">-</span>
                         <span className="w-8 h-8 flex items-center justify-center bg-team-lightBlue rounded-sm">{match.awayScore}</span>
                       </div>
-                      <span className={`font-medium w-[40%] text-left ${match.awayTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
+                      <span className={`font-medium w-[38%] text-left ${match.awayTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
                         {match.awayTeam}
                       </span>
                     </div>
@@ -292,11 +292,11 @@ const FixturesSection = () => {
                       {match.competition} • {formatDate(match.date)} • {match.time}
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className={`font-medium w-[40%] text-right ${match.homeTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
+                      <span className={`font-medium w-[42%] text-right ${match.homeTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
                         {match.homeTeam}
                       </span>
-                      <span className="font-bold text-xs w-[20%] text-center">VS</span>
-                      <span className={`font-medium w-[40%] text-left ${match.awayTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
+                      <span className="font-bold text-xs w-[16%] text-center">VS</span>
+                      <span className={`font-medium w-[42%] text-left ${match.awayTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
                         {match.awayTeam}
                       </span>
                     </div>
@@ -345,7 +345,7 @@ const FixturesSection = () => {
                             <img 
                               src={team.logo} 
                               alt={`${team.team} logo`}
-                              className="w-6 h-6 object-contain"
+                              className={`w-6 h-6 object-contain ${team.team === "Banks o' Dee" ? "text-team-lightBlue" : ""}`}
                             />
                             <span>{team.team}</span>
                           </div>
@@ -374,4 +374,3 @@ const FixturesSection = () => {
 };
 
 export default FixturesSection;
-

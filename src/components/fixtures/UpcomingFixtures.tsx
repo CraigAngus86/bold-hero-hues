@@ -19,9 +19,9 @@ const UpcomingFixtures = ({ matches }: UpcomingFixturesProps) => {
       .substring(0, 2)
       .toUpperCase();
     
-    // For Banks o' Dee we have an updated logo
+    // For Banks o' Dee we use the official logo
     if (teamName === "Banks o' Dee") {
-      return "/lovable-uploads/122628af-86b4-4d7f-bfe3-01d4bf03d053.png";
+      return "/lovable-uploads/8f2cd33f-1e08-494a-9aaa-65792ee9418a.png";
     }
     
     return `https://placehold.co/60x60/team-blue/white?text=${initials}`;
@@ -34,19 +34,19 @@ const UpcomingFixtures = ({ matches }: UpcomingFixturesProps) => {
         <h3 className="text-2xl font-semibold">Upcoming Fixtures</h3>
       </div>
       <CardContent className="p-4 flex-1 flex flex-col">
-        <div className="space-y-2 flex-1">
+        <div className="space-y-1 flex-1">
           {matches.map((match) => (
-            <div key={match.id} className="p-2 border-b border-gray-100 last:border-0">
-              <div className="text-xs text-[#00105a] font-medium mb-0.5">
+            <div key={match.id} className="p-1.5 border-b border-gray-100 last:border-0">
+              <div className="text-xs text-[#00105a] font-medium">
                 {match.competition} • {formatDate(match.date)} • {match.time}
               </div>
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center w-[42%] justify-end space-x-1">
-                  <div className="w-5 h-5 flex-shrink-0 mr-1">
+                  <div className="w-8 h-8 flex-shrink-0 mr-1 flex items-center justify-center">
                     <img 
                       src={getTeamLogo(match.homeTeam)} 
                       alt={`${match.homeTeam} logo`} 
-                      className="w-full h-full object-contain"
+                      className={`object-contain ${match.homeTeam === "Banks o' Dee" ? "w-8" : "max-h-7 max-w-7"}`}
                     />
                   </div>
                   <span className={`font-medium ${match.homeTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
@@ -58,22 +58,22 @@ const UpcomingFixtures = ({ matches }: UpcomingFixturesProps) => {
                   <span className={`font-medium ${match.awayTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
                     {match.awayTeam}
                   </span>
-                  <div className="w-5 h-5 flex-shrink-0 ml-1">
+                  <div className="w-8 h-8 flex-shrink-0 ml-1 flex items-center justify-center">
                     <img 
                       src={getTeamLogo(match.awayTeam)} 
                       alt={`${match.awayTeam} logo`} 
-                      className="w-full h-full object-contain"
+                      className={`object-contain ${match.awayTeam === "Banks o' Dee" ? "w-8" : "max-h-7 max-w-7"}`}
                     />
                   </div>
                 </div>
               </div>
-              <div className="text-xs text-gray-500 text-center mt-0">
+              <div className="text-xs text-gray-500 text-center -mt-0.5">
                 {match.venue}
               </div>
             </div>
           ))}
         </div>
-        <div className="mt-4 grid grid-cols-2 gap-2">
+        <div className="mt-3 grid grid-cols-2 gap-2">
           <Link 
             to="/fixtures" 
             className="inline-flex items-center justify-center px-4 py-2 bg-team-lightBlue text-[#00105a] text-sm font-medium rounded hover:bg-[#00105a] hover:text-white transition-colors text-center"

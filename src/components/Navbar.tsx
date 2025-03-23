@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Menu, X, ChevronDown } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -42,9 +42,17 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="relative z-10">
+          <Link to="/" className="relative z-10 flex items-center">
+            <img 
+              src="/lovable-uploads/b937e144-e94f-4e75-881f-1e560c6b520a.png" 
+              alt="Banks o' Dee FC Logo" 
+              className={cn(
+                "h-12 md:h-16 transition-all duration-300 mr-3",
+                scrolled ? "brightness-100" : "brightness-100"
+              )}
+            />
             <h1 className={cn(
-              "font-display font-bold text-xl md:text-2xl tracking-tight transition-colors duration-300",
+              "font-display font-bold text-xl md:text-2xl tracking-tight transition-colors duration-300 hidden md:block",
               scrolled ? "text-team-blue" : "text-white text-shadow"
             )}>
               Banks o' Dee FC
@@ -95,6 +103,11 @@ const Navbar = () => {
             isOpen ? "translate-x-0" : "translate-x-full"
           )}>
             <div className="flex flex-col items-center justify-center h-full">
+              <img 
+                src="/lovable-uploads/b937e144-e94f-4e75-881f-1e560c6b520a.png" 
+                alt="Banks o' Dee FC Logo" 
+                className="h-24 mb-8"
+              />
               <nav>
                 <ul className="flex flex-col space-y-8 items-center">
                   {navLinks.map((link) => (

@@ -11,7 +11,14 @@ const Footer = () => {
         <div className="py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Club Info */}
           <div className="md:col-span-1">
-            <h3 className="text-xl font-bold mb-4">Banks o' Dee FC</h3>
+            <div className="flex flex-col items-center md:items-start">
+              <img 
+                src="/lovable-uploads/b937e144-e94f-4e75-881f-1e560c6b520a.png" 
+                alt="Banks o' Dee FC Logo" 
+                className="h-20 mb-4"
+              />
+              <h3 className="text-xl font-bold mb-4">Banks o' Dee FC</h3>
+            </div>
             <p className="text-white/80 mb-4">
               Highland League football club based in Aberdeen, Scotland. 
               Established 1902.

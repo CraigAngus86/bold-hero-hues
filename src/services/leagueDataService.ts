@@ -1,5 +1,6 @@
 
-import { Match, TeamStats } from '@/components/fixtures/types';
+import { Match } from '@/components/fixtures/types';
+import { TeamStats } from '@/components/league/types';
 
 // Interfaces for the API responses
 interface LeagueDataResponse {

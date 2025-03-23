@@ -4,7 +4,8 @@ import { motion } from 'framer-motion';
 import RecentResults from './fixtures/RecentResults';
 import UpcomingFixtures from './fixtures/UpcomingFixtures';
 import LeagueTablePreview from './fixtures/LeagueTablePreview';
-import { Match, TeamStats } from './fixtures/types';
+import { Match } from './fixtures/types';
+import { TeamStats } from './league/types';
 import { fetchLeagueTable, fetchFixtures, fetchResults } from '@/services/leagueDataService';
 
 const FixturesSection = () => {

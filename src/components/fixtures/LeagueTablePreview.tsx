@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Trophy } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
-import { TeamStats } from './types';
+import { TeamStats } from '../league/types';
 
 interface LeagueTablePreviewProps {
   leagueData: TeamStats[];
@@ -44,7 +44,7 @@ const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
                         />
                       ) : (
                         <img 
-                          src={team.logo} 
+                          src={team.logo || "https://placehold.co/40x40/team-white/team-blue?text=Logo"} 
                           alt={`${team.team} logo`}
                           className="w-6 h-6 object-contain"
                         />

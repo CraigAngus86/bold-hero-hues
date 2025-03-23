@@ -22,24 +22,24 @@ const RecentResults = ({ matches }: RecentResultsProps) => {
               <div className="text-xs text-[#00105a] font-medium">
                 {match.competition} • {formatDate(match.date)}
               </div>
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center w-[40%] justify-end">
+              <div className="flex items-center justify-between text-sm my-1">
+                <div className="flex items-center w-[40%] justify-end pr-3">
                   <span className={`font-medium text-right ${match.homeTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
                     {match.homeTeam}
                   </span>
                 </div>
-                <div className="flex items-center justify-center space-x-3 font-bold w-[20%]">
-                  <span className="w-7 h-7 flex items-center justify-center bg-[#c5e7ff] rounded-sm">{match.homeScore}</span>
+                <div className="flex items-center justify-center space-x-4 font-bold w-[20%]">
+                  <span className="w-8 h-8 flex items-center justify-center bg-team-lightBlue rounded-sm">{match.homeScore}</span>
                   <span className="text-xs">-</span>
-                  <span className="w-7 h-7 flex items-center justify-center bg-[#c5e7ff] rounded-sm">{match.awayScore}</span>
+                  <span className="w-8 h-8 flex items-center justify-center bg-team-lightBlue rounded-sm">{match.awayScore}</span>
                 </div>
-                <div className="flex items-center w-[40%] justify-start">
+                <div className="flex items-center w-[40%] justify-start pl-3">
                   <span className={`font-medium text-left ${match.awayTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
                     {match.awayTeam}
                   </span>
                 </div>
               </div>
-              <div className="text-xs text-gray-500 text-center -mt-0.5">
+              <div className="text-xs text-gray-500 text-center">
                 {match.venue}
               </div>
             </div>

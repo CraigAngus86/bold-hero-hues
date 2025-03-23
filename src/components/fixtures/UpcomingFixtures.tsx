@@ -22,20 +22,22 @@ const UpcomingFixtures = ({ matches }: UpcomingFixturesProps) => {
               <div className="text-xs text-[#00105a] font-medium">
                 {match.competition} • {formatDate(match.date)} • {match.time}
               </div>
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center w-[42%] justify-end">
+              <div className="flex items-center justify-between text-sm my-1">
+                <div className="flex items-center w-[40%] justify-end pr-3">
                   <span className={`font-medium ${match.homeTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
                     {match.homeTeam}
                   </span>
                 </div>
-                <span className="font-bold text-xs w-[16%] text-center bg-[#c5e7ff] px-3 py-1 rounded">VS</span>
-                <div className="flex items-center w-[42%] justify-start">
+                <div className="flex items-center justify-center w-[20%]">
+                  <span className="font-bold text-xs w-8 h-8 flex items-center justify-center bg-team-lightBlue rounded-sm">VS</span>
+                </div>
+                <div className="flex items-center w-[40%] justify-start pl-3">
                   <span className={`font-medium ${match.awayTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
                     {match.awayTeam}
                   </span>
                 </div>
               </div>
-              <div className="text-xs text-gray-500 text-center -mt-0.5">
+              <div className="text-xs text-gray-500 text-center">
                 {match.venue}
               </div>
             </div>

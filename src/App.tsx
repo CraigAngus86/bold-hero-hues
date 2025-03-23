@@ -15,31 +15,34 @@ import Tickets from "./pages/Tickets";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
+// Create a new QueryClient instance outside the component
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AnimatePresence mode="wait">
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/news" element={<News />} />
-            <Route path="/team" element={<Team />} />
-            <Route path="/fixtures" element={<Fixtures />} />
-            <Route path="/table" element={<LeagueTable />} />
-            <Route path="/stadium" element={<Stadium />} />
-            <Route path="/tickets" element={<Tickets />} />
-            <Route path="/admin" element={<Admin />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AnimatePresence>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AnimatePresence mode="wait">
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/news" element={<News />} />
+              <Route path="/team" element={<Team />} />
+              <Route path="/fixtures" element={<Fixtures />} />
+              <Route path="/table" element={<LeagueTable />} />
+              <Route path="/stadium" element={<Stadium />} />
+              <Route path="/tickets" element={<Tickets />} />
+              <Route path="/admin" element={<Admin />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AnimatePresence>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

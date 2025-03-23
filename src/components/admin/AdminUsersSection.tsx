@@ -1,41 +1,21 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger, 
-  DialogClose 
-} from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { PlusCircle, Trash2, Edit, Shield, ShieldAlert, UserPlus } from 'lucide-react';
+import { Search, UserPlus, Edit, Trash2 } from 'lucide-react';
 
-// Mock user data
-const mockUsers = [
-  { id: 1, name: 'Admin User', email: 'admin@banksofdee.com', role: 'admin', lastLogin: '2023-10-15 10:23' },
-  { id: 2, name: 'Content Editor', email: 'editor@banksofdee.com', role: 'editor', lastLogin: '2023-10-14 16:45' },
-  { id: 3, name: 'Social Media Manager', email: 'social@banksofdee.com', role: 'editor', lastLogin: '2023-10-12 09:17' },
-  { id: 4, name: 'Team Manager', email: 'manager@banksofdee.com', role: 'editor', lastLogin: '2023-10-10 11:32' },
-];
+// Define the user role type to fix the TypeScript error
+export type UserRole = 'admin' | 'editor' | 'viewer';
 
-type UserRole = 'admin' | 'editor' | 'viewer';
-
-interface UserData {
+// Define user data type
+export interface UserData {
   id: number;
   name: string;
   email: string;
@@ -44,50 +24,61 @@ interface UserData {
 }
 
 const AdminUsersSection = () => {
-  const [users, setUsers] = useState<UserData[]>(mockUsers);
+  const [searchTerm, setSearchTerm] = useState('');
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
-  const [newUser, setNewUser] = useState({
+  const [isEditUserOpen, setIsEditUserOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<UserData | null>(null);
+  const [newUser, setNewUser] = useState<Partial<UserData>>({
     name: '',
     email: '',
-    role: 'editor' as UserRole,
-    password: '',
-    confirmPassword: '',
+    role: 'viewer',
   });
   
+  // Mock user data with the correct UserRole type
+  const [users, setUsers] = useState<UserData[]>([
+    { id: 1, name: 'Admin User', email: 'admin@banksofdee.com', role: 'admin', lastLogin: '2023-10-15 14:30' },
+    { id: 2, name: 'Content Editor', email: 'editor@banksofdee.com', role: 'editor', lastLogin: '2023-10-14 09:45' },
+    { id: 3, name: 'Staff Member', email: 'staff@banksofdee.com', role: 'viewer', lastLogin: '2023-10-10 16:20' },
+  ]);
+  
+  const filteredUsers = users.filter(user => 
+    user.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  
   const handleAddUser = () => {
-    // Validation
-    if (!newUser.name || !newUser.email || !newUser.password) {
-      toast.error('Please fill in all required fields');
+    if (!newUser.name || !newUser.email || !newUser.role) {
+      toast.error('Please fill in all fields');
       return;
     }
     
-    if (newUser.password !== newUser.confirmPassword) {
-      toast.error('Passwords do not match');
-      return;
-    }
-    
-    // Add new user
-    const newId = Math.max(...users.map(u => u.id)) + 1;
+    const id = users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1;
     const userToAdd = {
-      id: newId,
+      id,
       name: newUser.name,
       email: newUser.email,
-      role: newUser.role,
+      role: newUser.role as UserRole,
       lastLogin: 'Never'
     };
     
     setUsers([...users, userToAdd]);
+    setNewUser({ name: '', email: '', role: 'viewer' });
     setIsAddUserOpen(false);
-    toast.success(`User ${newUser.name} added successfully`);
+    toast.success('User added successfully');
+  };
+  
+  const handleEditUser = () => {
+    if (!currentUser || !currentUser.name || !currentUser.email) {
+      toast.error('Please fill in all fields');
+      return;
+    }
     
-    // Reset form
-    setNewUser({
-      name: '',
-      email: '',
-      role: 'editor',
-      password: '',
-      confirmPassword: '',
-    });
+    setUsers(users.map(user => 
+      user.id === currentUser.id ? currentUser : user
+    ));
+    
+    setIsEditUserOpen(false);
+    toast.success('User updated successfully');
   };
   
   const handleDeleteUser = (id: number) => {
@@ -95,185 +86,186 @@ const AdminUsersSection = () => {
     toast.success('User deleted successfully');
   };
   
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setNewUser(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  const getRoleBadgeColor = (role: UserRole) => {
+    switch (role) {
+      case 'admin':
+        return 'bg-red-100 text-red-800 hover:bg-red-200';
+      case 'editor':
+        return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
+      case 'viewer':
+        return 'bg-green-100 text-green-800 hover:bg-green-200';
+      default:
+        return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
+    }
   };
   
   return (
-    <Card className="p-6">
-      <CardHeader className="px-0 pt-0">
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-xl">User Management</CardTitle>
-          <Button onClick={() => setIsAddUserOpen(true)}>
-            <UserPlus className="h-4 w-4 mr-2" />
-            Add User
-          </Button>
-        </div>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>User Management</CardTitle>
+        <Button onClick={() => setIsAddUserOpen(true)} className="bg-team-blue hover:bg-team-navy">
+          <UserPlus className="mr-2 h-4 w-4" />
+          Add User
+        </Button>
       </CardHeader>
       
-      <CardContent className="px-0 pb-0">
-        <div className="rounded-md border overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Last Login</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.map(user => (
+      <CardContent>
+        <div className="flex items-center mb-4 relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+          <Input
+            placeholder="Search users..."
+            className="pl-10"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        
+        <Table>
+          <TableCaption>List of users with access to the admin panel</TableCaption>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Last Login</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredUsers.length > 0 ? (
+              filteredUsers.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell className="font-medium">{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>
-                    <div className="flex items-center">
-                      {user.role === 'admin' ? (
-                        <ShieldAlert className="h-4 w-4 mr-1 text-red-500" />
-                      ) : (
-                        <Shield className="h-4 w-4 mr-1 text-blue-500" />
-                      )}
-                      <span className="capitalize">{user.role}</span>
-                    </div>
+                    <Badge className={`${getRoleBadgeColor(user.role)} font-normal`}>
+                      {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                    </Badge>
                   </TableCell>
                   <TableCell>{user.lastLogin}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end space-x-2">
-                      <Button variant="ghost" size="icon">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        className="text-red-500 hover:text-red-700"
-                        onClick={() => handleDeleteUser(user.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                  <TableCell className="text-right space-x-2">
+                    <Button variant="ghost" size="icon" onClick={() => {
+                      setCurrentUser(user);
+                      setIsEditUserOpen(true);
+                    }}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => handleDeleteUser(user.id)}>
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center text-muted-foreground">
+                  No users found
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
         
-        <div className="mt-6 bg-gray-50 p-4 rounded-md border border-gray-200">
-          <h3 className="text-sm font-medium mb-2">Access Levels</h3>
-          <div className="space-y-2 text-sm">
-            <div className="flex items-start">
-              <ShieldAlert className="h-4 w-4 mr-2 text-red-500 mt-0.5" />
-              <div>
-                <span className="font-medium">Admin:</span> 
-                <span className="text-gray-600 ml-1">Full access to all website areas, user management, database, and configuration.</span>
+        {/* Add User Dialog */}
+        <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New User</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input 
+                  id="name" 
+                  value={newUser.name || ''} 
+                  onChange={(e) => setNewUser({...newUser, name: e.target.value})}
+                  placeholder="User Name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input 
+                  id="email" 
+                  type="email" 
+                  value={newUser.email || ''} 
+                  onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+                  placeholder="user@example.com"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="role">Role</Label>
+                <Select 
+                  value={newUser.role || 'viewer'} 
+                  onValueChange={(value: UserRole) => setNewUser({...newUser, role: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="editor">Editor</SelectItem>
+                    <SelectItem value="viewer">Viewer</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-            <div className="flex items-start">
-              <Shield className="h-4 w-4 mr-2 text-blue-500 mt-0.5" />
-              <div>
-                <span className="font-medium">Editor:</span> 
-                <span className="text-gray-600 ml-1">Can edit content, manage news, players, fixtures, and results. Cannot manage users or settings.</span>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsAddUserOpen(false)}>Cancel</Button>
+              <Button onClick={handleAddUser}>Add User</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        
+        {/* Edit User Dialog */}
+        <Dialog open={isEditUserOpen} onOpenChange={setIsEditUserOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit User</DialogTitle>
+            </DialogHeader>
+            {currentUser && (
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-name">Name</Label>
+                  <Input 
+                    id="edit-name" 
+                    value={currentUser.name} 
+                    onChange={(e) => setCurrentUser({...currentUser, name: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-email">Email</Label>
+                  <Input 
+                    id="edit-email" 
+                    type="email" 
+                    value={currentUser.email} 
+                    onChange={(e) => setCurrentUser({...currentUser, email: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-role">Role</Label>
+                  <Select 
+                    value={currentUser.role} 
+                    onValueChange={(value: UserRole) => setCurrentUser({...currentUser, role: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="editor">Editor</SelectItem>
+                      <SelectItem value="viewer">Viewer</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            </div>
-            <div className="flex items-start">
-              <Shield className="h-4 w-4 mr-2 text-gray-500 mt-0.5" />
-              <div>
-                <span className="font-medium">Viewer:</span> 
-                <span className="text-gray-600 ml-1">Read-only access to admin panel. Cannot make changes to any content.</span>
-              </div>
-            </div>
-          </div>
-        </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsEditUserOpen(false)}>Cancel</Button>
+              <Button onClick={handleEditUser}>Save Changes</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardContent>
-      
-      <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add New User</DialogTitle>
-            <DialogDescription>
-              Create a new user account with appropriate permissions.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Full Name*</label>
-              <Input 
-                name="name"
-                value={newUser.name}
-                onChange={handleInputChange}
-                placeholder="Enter full name"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Email*</label>
-              <Input 
-                name="email"
-                type="email"
-                value={newUser.email}
-                onChange={handleInputChange}
-                placeholder="Enter email address"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Role</label>
-              <Select 
-                value={newUser.role} 
-                onValueChange={(value: UserRole) => setNewUser({...newUser, role: value})}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="editor">Editor</SelectItem>
-                  <SelectItem value="viewer">Viewer</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Password*</label>
-              <Input 
-                name="password"
-                type="password"
-                value={newUser.password}
-                onChange={handleInputChange}
-                placeholder="Create password"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Confirm Password*</label>
-              <Input 
-                name="confirmPassword"
-                type="password"
-                value={newUser.confirmPassword}
-                onChange={handleInputChange}
-                placeholder="Confirm password"
-              />
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-            <Button onClick={handleAddUser}>
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Add User
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </Card>
   );
 };

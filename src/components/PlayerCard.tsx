@@ -34,6 +34,9 @@ const PlayerCard = ({
   const toggleFlip = () => {
     setIsFlipped(!isFlipped);
   };
+
+  // Determine which stats to show based on position
+  const showCleanSheets = position === "Goalkeeper";
   
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -47,7 +50,7 @@ const PlayerCard = ({
         >
           <div 
             className={cn(
-              "relative w-full rounded-lg overflow-hidden transition-all duration-700 preserve-3d cursor-pointer shadow-lg hover:shadow-xl h-[420px]",
+              "relative w-full rounded-lg overflow-hidden transition-all duration-700 preserve-3d cursor-pointer shadow-lg hover:shadow-xl h-[400px]",
               isFlipped ? "rotate-y-180" : ""
             )}
             onClick={toggleFlip}
@@ -55,7 +58,7 @@ const PlayerCard = ({
             {/* Front Card */}
             <div className="absolute inset-0 backface-hidden">
               <div className="h-full flex flex-col">
-                <div className="relative h-80 overflow-hidden bg-gradient-to-b from-[#00105a] to-[#00105a]/80">
+                <div className="relative h-72 overflow-hidden bg-gradient-to-b from-[#00105a] to-[#00105a]/80">
                   <img 
                     src={image} 
                     alt={name} 
@@ -82,7 +85,7 @@ const PlayerCard = ({
                 <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
                   <div>
                     <h3 className="text-xl font-bold text-[#00105a]">{name}</h3>
-                    <p className="text-gray-500">{position} <span className="font-medium">#{number}</span></p>
+                    <p className="text-gray-500">{position}</p>
                   </div>
                   <div className="w-14 h-14 overflow-hidden rounded-md">
                     <img 
@@ -101,22 +104,16 @@ const PlayerCard = ({
                         <p className="text-sm text-gray-500">Appearances</p>
                       </div>
                     )}
-                    {stats.goals !== undefined && (
-                      <div className="text-center p-2 bg-gray-50 rounded">
-                        <p className="text-2xl font-bold text-[#00105a]">{stats.goals}</p>
-                        <p className="text-sm text-gray-500">Goals</p>
-                      </div>
-                    )}
-                    {stats.assists !== undefined && (
-                      <div className="text-center p-2 bg-gray-50 rounded">
-                        <p className="text-2xl font-bold text-[#00105a]">{stats.assists}</p>
-                        <p className="text-sm text-gray-500">Assists</p>
-                      </div>
-                    )}
-                    {stats.cleanSheets !== undefined && (
+                    {showCleanSheets && stats.cleanSheets !== undefined && (
                       <div className="text-center p-2 bg-gray-50 rounded">
                         <p className="text-2xl font-bold text-[#00105a]">{stats.cleanSheets}</p>
                         <p className="text-sm text-gray-500">Clean Sheets</p>
+                      </div>
+                    )}
+                    {!showCleanSheets && stats.goals !== undefined && (
+                      <div className="text-center p-2 bg-gray-50 rounded">
+                        <p className="text-2xl font-bold text-[#00105a]">{stats.goals}</p>
+                        <p className="text-sm text-gray-500">Goals</p>
                       </div>
                     )}
                   </div>

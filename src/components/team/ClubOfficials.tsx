@@ -5,6 +5,9 @@ import { motion } from 'framer-motion';
 interface ClubOfficial {
   name: string;
   role: string;
+  image?: string;
+  bio?: string;
+  experience?: string;
 }
 
 interface ClubOfficialsProps {
@@ -12,6 +15,14 @@ interface ClubOfficialsProps {
 }
 
 const ClubOfficials = ({ officials }: ClubOfficialsProps) => {
+  // Add default images for officials if they don't have one
+  const officialsWithImages = officials.map((official, index) => ({
+    ...official,
+    image: official.image || `https://images.unsplash.com/photo-${1560250097 + index}-0b93528c311a?auto=format&fit=crop&w=800&q=80`,
+    bio: official.bio || `${official.name} serves as the ${official.role} at Banks o' Dee FC, contributing to the club's success through dedicated management and leadership.`,
+    experience: official.experience || "Long-standing member of the Banks o' Dee FC team with extensive experience in club administration and management."
+  }));
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
@@ -24,18 +35,36 @@ const ClubOfficials = ({ officials }: ClubOfficialsProps) => {
         <h2 className="text-3xl font-bold text-[#00105a]">Club Officials</h2>
       </div>
       
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-          {officials.map((official) => (
-            <div key={official.name} className="flex items-center p-3 bg-gray-50 rounded-md">
-              <div className="w-2 h-2 bg-[#00105a] rounded-full mr-3"></div>
-              <div>
-                <h4 className="font-medium text-gray-900">{official.name}</h4>
-                <p className="text-sm text-gray-500">{official.role}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        {officialsWithImages.map((official) => (
+          <motion.div
+            key={official.name}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+          >
+            <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
+              <div className="flex items-center p-4">
+                <div className="w-16 h-16 overflow-hidden rounded-md mr-4 bg-gray-100">
+                  {official.image && (
+                    <img 
+                      src={official.image} 
+                      alt={official.name} 
+                      className="w-full h-full object-cover object-top"
+                    />
+                  )}
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg">{official.name}</h3>
+                  <p className="text-[#00105a] font-medium text-sm">{official.role}</p>
+                </div>
+              </div>
+              <div className="px-4 pb-4">
+                <p className="text-gray-600 text-sm line-clamp-2">{official.bio}</p>
               </div>
             </div>
-          ))}
-        </div>
+          </motion.div>
+        ))}
       </div>
     </motion.div>
   );

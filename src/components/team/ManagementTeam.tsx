@@ -1,7 +1,7 @@
 
 import { Users } from 'lucide-react';
 import { motion } from 'framer-motion';
-import StaffCard from './StaffCard';
+import StaffMemberCard from './StaffMemberCard';
 
 interface StaffMember {
   name: string;
@@ -28,9 +28,16 @@ const ManagementTeam = ({ staff }: ManagementTeamProps) => {
         <h2 className="text-3xl font-bold text-[#00105a]">Management Team</h2>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         {staff.map((member) => (
-          <StaffCard key={member.name} staff={member} />
+          <StaffMemberCard
+            key={member.name}
+            name={member.name}
+            role={member.role}
+            image={member.image}
+            bio={member.bio}
+            experience={member.experience}
+          />
         ))}
       </div>
     </motion.div>

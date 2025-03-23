@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -84,6 +85,97 @@ const initialNews: NewsItem[] = [
     date: "November 28, 2022",
     category: "Spain Park",
     size: "medium"
+  },
+  // Add 10 more dummy news items
+  {
+    id: 9,
+    title: "Banks o' Dee signs promising young goalkeeper",
+    excerpt: "The club has secured the signature of a highly-rated young goalkeeper from the local youth academy to bolster the squad depth.",
+    image: "/lovable-uploads/e2efc1b0-1c8a-4e98-9826-3030a5f5d247.png",
+    date: "November 15, 2022",
+    category: "Transfer News",
+    size: "medium"
+  },
+  {
+    id: 10,
+    title: "New partnership with local business announced",
+    excerpt: "Banks o' Dee FC is proud to announce a new sponsorship deal with a prominent local business to support community initiatives.",
+    image: "/lovable-uploads/7f997ef4-9019-4660-9e9e-4e230d7b1eb3.png",
+    date: "October 30, 2022",
+    category: "Sponsorship",
+    size: "small"
+  },
+  {
+    id: 11,
+    title: "Women's team records impressive victory",
+    excerpt: "Banks o' Dee Women's team continues their strong form with another convincing win in the regional league.",
+    image: "/lovable-uploads/122628af-86b4-4d7f-bfe3-01d4bf03d053.png",
+    date: "October 18, 2022",
+    category: "Women's Team",
+    size: "medium"
+  },
+  {
+    id: 12,
+    title: "Charity fundraising match raises over £5,000",
+    excerpt: "The recent charity match at Spain Park has raised significant funds for local children's hospital, showing the club's commitment to giving back.",
+    image: "/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png",
+    date: "October 5, 2022",
+    category: "Community",
+    size: "large"
+  },
+  {
+    id: 13,
+    title: "Club legend returns as youth coach",
+    excerpt: "A former Banks o' Dee star player has returned to the club to take up a coaching position with the academy teams.",
+    image: "/lovable-uploads/e2efc1b0-1c8a-4e98-9826-3030a5f5d247.png",
+    date: "September 25, 2022",
+    category: "Club News",
+    size: "small"
+  },
+  {
+    id: 14,
+    title: "Season ticket sales reach record high",
+    excerpt: "Banks o' Dee FC is delighted to announce that season ticket sales have reached an all-time high ahead of the new campaign.",
+    image: "/lovable-uploads/7f997ef4-9019-4660-9e9e-4e230d7b1eb3.png",
+    date: "September 10, 2022",
+    category: "Club News",
+    size: "medium"
+  },
+  {
+    id: 15,
+    title: "New club merchandise now available in club shop",
+    excerpt: "The latest range of official club merchandise is now available for purchase in the club shop and online store.",
+    image: "/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png",
+    date: "August 28, 2022",
+    category: "Club Shop",
+    size: "small"
+  },
+  {
+    id: 16,
+    title: "Highland League fixture list announced",
+    excerpt: "The Highland League has released the full fixture list for the upcoming season, with Banks o' Dee starting with a home match.",
+    image: "/lovable-uploads/122628af-86b4-4d7f-bfe3-01d4bf03d053.png",
+    date: "August 15, 2022",
+    category: "Fixtures",
+    size: "medium"
+  },
+  {
+    id: 17,
+    title: "Pre-season training camp begins in preparation for new season",
+    excerpt: "The Banks o' Dee squad has traveled to a specialized training facility to prepare for the challenges of the upcoming campaign.",
+    image: "/lovable-uploads/e2efc1b0-1c8a-4e98-9826-3030a5f5d247.png",
+    date: "July 30, 2022",
+    category: "Pre-season",
+    size: "large"
+  },
+  {
+    id: 18,
+    title: "Banks o' Dee to host summer football camps for local children",
+    excerpt: "The club will be running weekly football camps throughout the summer holidays to engage with the local community and develop young talent.",
+    image: "/lovable-uploads/7f997ef4-9019-4660-9e9e-4e230d7b1eb3.png",
+    date: "July 15, 2022",
+    category: "Youth News",
+    size: "small"
   }
 ];
 

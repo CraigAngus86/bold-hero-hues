@@ -13,9 +13,16 @@ import { useNewsStore, formatDate } from '@/services/newsService';
 const Index = () => {
   const { news } = useNewsStore();
   
-  // Get the latest 5 news items for the homepage
-  const latestNews = [...news]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  // Sort all news by date
+  const sortedNews = [...news].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  
+  // Get the top 3 for hero
+  const heroNews = sortedNews.slice(0, 3);
+  
+  // Get news items for the Latest News section, excluding those in the hero
+  const heroNewsIds = heroNews.map(item => item.id);
+  const latestNews = sortedNews
+    .filter(item => !heroNewsIds.includes(item.id))
     .slice(0, 5);
   
   return (

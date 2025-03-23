@@ -2,51 +2,22 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-
-interface NewsItem {
-  id: number;
-  title: string;
-  excerpt: string;
-  date: string;
-  image: string;
-  category: string;
-}
-
-const mockNews: NewsItem[] = [
-  {
-    id: 1,
-    title: "Banks o' Dee crowned Highland League Cup Champions",
-    excerpt: "The team celebrates after defeating Formartine United to claim the prestigious Highland League Cup.",
-    date: "April 18, 2023",
-    image: "/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png",
-    category: "Cup Success"
-  },
-  {
-    id: 2,
-    title: "Goalkeeper makes crucial save in tense derby match",
-    excerpt: "Our keeper pulls off a spectacular save to maintain our clean sheet against local rivals.",
-    date: "March 12, 2023",
-    image: "/lovable-uploads/e2efc1b0-1c8a-4e98-9826-3030a5f5d247.png",
-    category: "Match Highlights"
-  },
-  {
-    id: 3,
-    title: "Spain Park Stadium - Our home by the River Dee",
-    excerpt: "Aerial view of our recently upgraded facilities at Spain Park, the home of Banks o' Dee FC since 1924.",
-    date: "February 28, 2023",
-    image: "/lovable-uploads/7f997ef4-9019-4660-9e9e-4e230d7b1eb3.png",
-    category: "Stadium News"
-  }
-];
+import { useNewsStore, formatDate } from '@/services/newsService';
 
 const Hero = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoplay, setIsAutoplay] = useState(true);
   const autoplayRef = useRef<NodeJS.Timeout | null>(null);
   
+  // Get top 3 news items from the store
+  const { news } = useNewsStore();
+  const heroNews = [...news]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 3);
+  
   const goToNext = () => {
     setCurrentIndex((prevIndex) => 
-      prevIndex === mockNews.length - 1 ? 0 : prevIndex + 1
+      prevIndex === heroNews.length - 1 ? 0 : prevIndex + 1
     );
     resetAutoplay();
   };
@@ -80,6 +51,11 @@ const Hero = () => {
   const handleMouseEnter = () => setIsAutoplay(false);
   const handleMouseLeave = () => setIsAutoplay(true);
   
+  // Make sure we have news before rendering
+  if (heroNews.length === 0) {
+    return null;
+  }
+  
   return (
     <section 
       className="relative w-full h-screen overflow-hidden bg-[#00105a]"
@@ -89,7 +65,7 @@ const Hero = () => {
       {/* Background Image with Overlay */}
       <AnimatePresence initial={false}>
         <motion.div
-          key={mockNews[currentIndex].id}
+          key={heroNews[currentIndex].id}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -98,8 +74,8 @@ const Hero = () => {
         >
           <div className="absolute inset-0 bg-gradient-to-t from-[#00105a]/90 to-[#00105a]/30 z-10" />
           <img 
-            src={mockNews[currentIndex].image} 
-            alt={mockNews[currentIndex].title}
+            src={heroNews[currentIndex].image} 
+            alt={heroNews[currentIndex].title}
             className="object-cover w-full h-full"
           />
         </motion.div>
@@ -109,7 +85,7 @@ const Hero = () => {
       <div className="container mx-auto px-4 relative z-20 h-full flex flex-col justify-end pb-32">
         <AnimatePresence mode="wait">
           <motion.div
-            key={mockNews[currentIndex].id}
+            key={heroNews[currentIndex].id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -120,20 +96,20 @@ const Hero = () => {
             className="max-w-4xl"
           >
             <span className="inline-block px-3 py-1 mb-4 bg-[#c5e7ff] text-[#00105a] text-xs font-semibold rounded">
-              {mockNews[currentIndex].category}
+              {heroNews[currentIndex].category}
             </span>
             <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight">
-              {mockNews[currentIndex].title}
+              {heroNews[currentIndex].title}
             </h2>
             <p className="text-lg md:text-xl text-white/80 mb-6 max-w-2xl">
-              {mockNews[currentIndex].excerpt}
+              {heroNews[currentIndex].excerpt}
             </p>
             <div className="flex items-center space-x-6">
-              <button className="bg-white text-[#00105a] font-medium px-6 py-3 rounded hover:bg-gray-100 transition-colors">
+              <a href={`/news/${heroNews[currentIndex].id}`} className="bg-white text-[#00105a] font-medium px-6 py-3 rounded hover:bg-gray-100 transition-colors">
                 Read More
-              </button>
+              </a>
               <span className="text-white/70 text-sm">
-                {mockNews[currentIndex].date}
+                {formatDate(heroNews[currentIndex].date)}
               </span>
             </div>
           </motion.div>
@@ -141,7 +117,7 @@ const Hero = () => {
         
         {/* Navigation Controls - Dots only */}
         <div className="absolute bottom-16 left-0 right-0 flex justify-center space-x-2 z-30">
-          {mockNews.map((_, index) => (
+          {heroNews.map((_, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}

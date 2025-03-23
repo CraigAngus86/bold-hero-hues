@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,9 +31,10 @@ const DataScraperControl = () => {
   const [results, setResults] = useState<Match[]>([]);
   const [activeTab, setActiveTab] = useState('all');
   const [apiConfig, setApiConfig] = useState<ApiConfig>(getApiConfig());
+  const [useBbcProxy, setUseBbcProxy] = useState<boolean>(false);
+  const [bbcScraperStatus, setBbcScraperStatus] = useState<string | null>(null);
 
   useEffect(() => {
-    // Load API config on component mount
     setApiConfig(getApiConfig());
   }, []);
 
@@ -43,7 +43,6 @@ const DataScraperControl = () => {
     toast.success('API configuration saved');
     setSuccess('Configuration saved successfully');
     
-    // Clear success message after 3 seconds
     setTimeout(() => {
       setSuccess(null);
     }, 3000);
@@ -55,8 +54,7 @@ const DataScraperControl = () => {
     setSuccess(null);
     
     try {
-      const data = await fetchLeagueData(true); // Force refresh
-      
+      const data = await fetchLeagueData(true);
       setLeagueTable(data.leagueTable);
       setFixtures(data.fixtures);
       setResults(data.results);
@@ -77,7 +75,6 @@ const DataScraperControl = () => {
     setSuccess('Cache cleared successfully!');
     toast.success('Cache cleared successfully');
     
-    // Clear the success message after 3 seconds
     setTimeout(() => {
       setSuccess(null);
     }, 3000);
@@ -87,15 +84,18 @@ const DataScraperControl = () => {
     setIsLoading(true);
     setError(null);
     setSuccess(null);
+    setBbcScraperStatus("Starting BBC Sport scraper...");
     
     try {
-      const data = await scrapeLeagueTable();
+      const data = await scrapeLeagueTable(useBbcProxy);
       setLeagueTable(data);
       setSuccess('Successfully fetched league table data!');
+      setBbcScraperStatus(`Successfully fetched data for ${data.length} teams from BBC Sport`);
       toast.success('League table data updated');
     } catch (error) {
       console.error('Error scraping league table:', error);
       setError('Failed to scrape league table. Check console for details.');
+      setBbcScraperStatus(`Failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       toast.error('Failed to scrape league table');
     } finally {
       setIsLoading(false);
@@ -172,7 +172,6 @@ const DataScraperControl = () => {
           toast.success('Data imported successfully');
           setSuccess('Data imported successfully! Refreshing...');
           
-          // Refresh the displayed data
           setTimeout(() => {
             handleScrapeAll();
           }, 1000);
@@ -327,16 +326,34 @@ const DataScraperControl = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card>
                   <CardHeader className="py-3">
-                    <CardTitle className="text-sm">League Table</CardTitle>
+                    <CardTitle className="text-sm">BBC Sport League Table</CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <p className="text-xs text-gray-500 mb-4">Scrape the current Highland League table data</p>
+                    <p className="text-xs text-gray-500 mb-4">Scrape the current Highland League table from BBC Sport</p>
+                    
+                    {bbcScraperStatus && (
+                      <div className={`text-xs mb-3 p-2 rounded ${bbcScraperStatus.includes('Failed') ? 'bg-red-50 text-red-800' : 'bg-blue-50 text-blue-800'}`}>
+                        {bbcScraperStatus}
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center space-x-2 mb-4">
+                      <Switch 
+                        id="use-bbc-proxy"
+                        checked={useBbcProxy}
+                        onCheckedChange={setUseBbcProxy}
+                      />
+                      <Label htmlFor="use-bbc-proxy" className="text-xs">
+                        Use proxy for BBC Sport
+                      </Label>
+                    </div>
+                    
                     <Button 
                       onClick={handleScrapeLeagueTable}
                       disabled={isLoading}
                       className="w-full"
                     >
-                      Scrape League Table
+                      Scrape BBC League Table
                     </Button>
                   </CardContent>
                 </Card>

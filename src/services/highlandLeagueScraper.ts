@@ -28,28 +28,76 @@ export const scrapeHighlandLeagueData = async (): Promise<{
 };
 
 // Function to scrape the league table from BBC Sport
-export const scrapeLeagueTable = async (): Promise<TeamStats[]> => {
+export const scrapeLeagueTable = async (useProxy = false): Promise<TeamStats[]> => {
   try {
     // BBC Sport Highland League table URL
-    const response = await fetch('https://www.bbc.com/sport/football/scottish-highland-league/table', {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36'
-      }
-    });
+    const bbcUrl = 'https://www.bbc.com/sport/football/scottish-highland-league/table';
+    let response;
+    
+    if (useProxy && import.meta.env.VITE_PROXY_ENDPOINT) {
+      // Use proxy if configured and available
+      const proxyUrl = import.meta.env.VITE_PROXY_ENDPOINT;
+      console.log(`Using proxy to access BBC table: ${proxyUrl}`);
+      response = await fetch(`${proxyUrl}?url=${encodeURIComponent(bbcUrl)}`);
+    } else {
+      // Direct fetch with proper headers to mimic a browser
+      console.log('Directly accessing BBC table...');
+      response = await fetch(bbcUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Referer': 'https://www.bbc.com/sport/football/scottish-highland-league'
+        }
+      });
+    }
     
     if (!response.ok) {
+      console.error(`Failed to fetch league table: ${response.status} ${response.statusText}`);
       throw new Error(`Failed to fetch league table: ${response.status}`);
     }
     
     const html = await response.text();
+    console.log('BBC HTML content length:', html.length);
+    
+    // For debugging - log a small portion of the HTML to verify content
+    if (html.length > 0) {
+      console.log('BBC HTML content sample:', html.substring(0, 200) + '...');
+    }
+    
     const $ = cheerio.load(html);
     
     const leagueTable: TeamStats[] = [];
     
-    // BBC Sport table structure
-    const tableRows = $('table.gs-o-table tbody tr');
+    // Look for table with the league standings
+    // BBC Sport changes their DOM structure occasionally, so we try multiple selectors
+    const possibleTableSelectors = [
+      'table.gs-o-table',
+      'table.gel-paged-grid',
+      '.qa-tables-table',
+      '.gs-o-table--sport',
+      '.table-container table'
+    ];
     
-    console.log('Found BBC table rows:', tableRows.length);
+    let tableSelector = '';
+    let tableRows: cheerio.Cheerio = $();
+    
+    // Try each possible selector until we find a table
+    for (const selector of possibleTableSelectors) {
+      tableRows = $(selector).find('tbody tr');
+      if (tableRows.length > 0) {
+        tableSelector = selector;
+        console.log(`Found BBC table using selector: ${selector}, rows: ${tableRows.length}`);
+        break;
+      }
+    }
+    
+    if (tableRows.length === 0) {
+      console.error('Could not find league table in BBC page');
+      // Log the first 1000 characters of HTML for debugging
+      console.log('HTML preview for debugging:', html.substring(0, 1000));
+      throw new Error('No league table data found on BBC page');
+    }
     
     tableRows.each((index, element) => {
       const cells = $(element).find('td');
@@ -125,6 +173,7 @@ export const scrapeLeagueTable = async (): Promise<TeamStats[]> => {
       throw new Error('No league table data found');
     }
     
+    console.log(`Successfully parsed BBC table: ${leagueTable.length} teams`);
     return leagueTable;
   } catch (error) {
     console.error('Error scraping BBC league table:', error);

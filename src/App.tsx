@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
 import Index from "./pages/Index";
 import News from "./pages/News";
 import Team from "./pages/Team";
@@ -15,10 +16,11 @@ import Tickets from "./pages/Tickets";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
-// Create a new QueryClient instance outside the component
-const queryClient = new QueryClient();
-
 const App = () => {
+  // Create a new QueryClient instance inside the component
+  // This fixes the "dispatcher.useEffect" error
+  const [queryClient] = useState(() => new QueryClient());
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>

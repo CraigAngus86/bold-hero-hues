@@ -19,9 +19,9 @@ const RecentResults = ({ matches }: RecentResultsProps) => {
       .substring(0, 2)
       .toUpperCase();
     
-    // For Banks o' Dee we have an actual logo
+    // For Banks o' Dee we have an updated logo
     if (teamName === "Banks o' Dee") {
-      return "/lovable-uploads/02654c64-77bc-4a05-ae93-7c8173d0dc3c.png";
+      return "/lovable-uploads/0617ed5b-43b8-449c-870e-5bba374f7cb4.png";
     }
     
     return `https://placehold.co/60x60/team-blue/white?text=${initials}`;
@@ -34,10 +34,10 @@ const RecentResults = ({ matches }: RecentResultsProps) => {
         <h3 className="text-2xl font-semibold">Recent Results</h3>
       </div>
       <CardContent className="p-4 flex-1 flex flex-col">
-        <div className="space-y-3 flex-1">
+        <div className="space-y-2 flex-1">
           {matches.map((match) => (
-            <div key={match.id} className="p-3 border-b border-gray-100 last:border-0">
-              <div className="text-xs text-[#00105a] font-medium mb-1">
+            <div key={match.id} className="p-2 border-b border-gray-100 last:border-0">
+              <div className="text-xs text-[#00105a] font-medium mb-0.5">
                 {match.competition} • {formatDate(match.date)}
               </div>
               <div className="flex items-center justify-between text-sm">
@@ -54,9 +54,9 @@ const RecentResults = ({ matches }: RecentResultsProps) => {
                   </span>
                 </div>
                 <div className="flex items-center justify-center space-x-3 font-bold w-[40%]">
-                  <span className="w-8 h-8 flex items-center justify-center bg-team-lightBlue rounded-sm">{match.homeScore}</span>
+                  <span className="w-7 h-7 flex items-center justify-center bg-team-lightBlue rounded-sm">{match.homeScore}</span>
                   <span className="text-xs">-</span>
-                  <span className="w-8 h-8 flex items-center justify-center bg-team-lightBlue rounded-sm">{match.awayScore}</span>
+                  <span className="w-7 h-7 flex items-center justify-center bg-team-lightBlue rounded-sm">{match.awayScore}</span>
                 </div>
                 <div className="flex items-center w-[30%] justify-start space-x-1">
                   <span className={`font-medium text-left ${match.awayTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
@@ -71,7 +71,7 @@ const RecentResults = ({ matches }: RecentResultsProps) => {
                   </div>
                 </div>
               </div>
-              <div className="mt-1 text-xs text-gray-500 text-center">
+              <div className="text-xs text-gray-500 text-center mt-0.5">
                 {match.venue}
               </div>
             </div>

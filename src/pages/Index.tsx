@@ -46,9 +46,6 @@ const Index = () => {
       {/* Hero Section */}
       <Hero />
       
-      {/* Sponsors Carousel */}
-      <SponsorsCarousel />
-      
       {/* Fixtures, Results & Table Section */}
       <FixturesSection />
       
@@ -62,7 +59,7 @@ const Index = () => {
             </div>
             <a 
               href="/news" 
-              className="mt-4 md:mt-0 inline-flex items-center bg-team-blue hover:bg-team-navy text-white px-4 py-2 rounded-md transition-colors"
+              className="mt-4 md:mt-0 inline-flex items-center bg-team-lightBlue hover:bg-team-blue hover:text-white text-team-blue px-4 py-2 rounded-md transition-colors"
             >
               View All News <ArrowRight className="w-4 h-4 ml-2" />
             </a>
@@ -84,6 +81,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+      
+      {/* Sponsors Carousel */}
+      <SponsorsCarousel />
       
       <Footer />
     </div>

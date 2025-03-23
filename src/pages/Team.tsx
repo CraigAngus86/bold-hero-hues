@@ -3,7 +3,8 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import TeamGrid from '@/components/TeamGrid';
 import { motion } from 'framer-motion';
-import { Users, Trophy } from 'lucide-react';
+import { Users, Trophy, Award, Briefcase } from 'lucide-react';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 
 const Team = () => {
   return (
@@ -34,7 +35,7 @@ const Team = () => {
             <div className="bg-team-blue text-white rounded-lg overflow-hidden shadow-lg">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
                 <div className="p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-white/20">
-                  <h3 className="text-3xl font-bold mb-1">1962</h3>
+                  <h3 className="text-3xl font-bold mb-1">1902</h3>
                   <p className="text-white/70">Year Founded</p>
                 </div>
                 <div className="p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-white/20">
@@ -71,37 +72,43 @@ const Team = () => {
                   name: "Josh Winton", 
                   role: "Manager", 
                   image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80",
-                  bio: "Josh took charge in 2020 and has led the team to multiple cup successes and improved league positions."
+                  bio: "Josh took charge in 2020 and has led the team to multiple cup successes and improved league positions. Previously managed at junior level with great success. Holds a UEFA B License.",
+                  experience: "Previous clubs: Deveronvale FC (Assistant), Culter FC"
                 },
                 { 
                   name: "Paul Livingstone", 
                   role: "Assistant Manager", 
                   image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=800&q=80",
-                  bio: "Paul brings extensive tactical knowledge and provides vital support to the manager and players."
+                  bio: "Paul brings extensive tactical knowledge and provides vital support to the manager and players. Joined the club in 2021 after a successful playing career in the Highland League.",
+                  experience: "Playing career: Formartine United, Inverurie Locos"
                 },
                 { 
                   name: "Andrew Douglas", 
                   role: "Coach", 
                   image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80",
-                  bio: "Andrew focuses on player development and implementing training regimes to improve performance."
+                  bio: "Andrew focuses on player development and implementing training regimes to improve performance. Specializes in attacking play and set pieces.",
+                  experience: "UEFA A License holder with 15 years coaching experience"
                 },
                 { 
                   name: "Mark Wilson", 
                   role: "Goalkeeping Coach", 
                   image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=800&q=80",
-                  bio: "Mark works specifically with our goalkeepers, drawing on his own professional playing experience."
+                  bio: "Mark works specifically with our goalkeepers, drawing on his own professional playing experience. Former professional who made over 200 appearances in Scottish football.",
+                  experience: "Playing career: Aberdeen FC, Ross County FC"
                 },
                 { 
                   name: "Brian Stewart", 
                   role: "Physio", 
                   image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=800&q=80",
-                  bio: "Brian ensures players stay fit and healthy, managing their rehabilitation from injuries."
+                  bio: "Brian ensures players stay fit and healthy, managing their rehabilitation from injuries. Has a degree in Sports Therapy and over a decade of experience in sports medicine.",
+                  experience: "Previously worked with Aberdeen FC youth academy"
                 },
                 { 
                   name: "Chris Thomson", 
-                  role: "Club Secretary", 
+                  role: "First Team Analyst", 
                   image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=800&q=80",
-                  bio: "Chris handles the administrative side of the club, ensuring everything runs smoothly off the pitch."
+                  bio: "Chris provides in-depth analysis of opposition teams and our own performances to help the coaching staff make tactical decisions. Uses cutting-edge technology to track player performance metrics.",
+                  experience: "MSc in Performance Analysis from University of Stirling"
                 }
               ].map((staff, index) => (
                 <motion.div
@@ -109,24 +116,86 @@ const Team = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0.1 * index }}
-                  className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow"
                 >
-                  <div className="flex items-center p-4">
-                    <img 
-                      src={staff.image} 
-                      alt={staff.name} 
-                      className="w-16 h-16 rounded-full object-cover mr-4"
-                    />
-                    <div>
-                      <h3 className="font-bold text-lg">{staff.name}</h3>
-                      <p className="text-team-blue font-medium text-sm">{staff.role}</p>
-                    </div>
-                  </div>
-                  <div className="px-4 pb-4">
-                    <p className="text-gray-600 text-sm">{staff.bio}</p>
-                  </div>
+                  <HoverCard>
+                    <HoverCardTrigger asChild>
+                      <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow cursor-pointer">
+                        <div className="flex items-center p-4">
+                          <img 
+                            src={staff.image} 
+                            alt={staff.name} 
+                            className="w-16 h-16 rounded-full object-cover mr-4"
+                          />
+                          <div>
+                            <h3 className="font-bold text-lg">{staff.name}</h3>
+                            <p className="text-team-blue font-medium text-sm">{staff.role}</p>
+                          </div>
+                        </div>
+                        <div className="px-4 pb-4">
+                          <p className="text-gray-600 text-sm line-clamp-2">{staff.bio}</p>
+                        </div>
+                      </div>
+                    </HoverCardTrigger>
+                    <HoverCardContent className="w-80 p-4">
+                      <div className="flex justify-between space-x-4">
+                        <div className="flex-shrink-0">
+                          <img 
+                            src={staff.image} 
+                            alt={staff.name} 
+                            className="h-16 w-16 rounded-full object-cover"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <h4 className="text-lg font-semibold">{staff.name}</h4>
+                          <p className="text-team-blue font-medium text-sm">{staff.role}</p>
+                          <p className="text-sm text-gray-700">{staff.bio}</p>
+                          <div className="pt-2">
+                            <p className="text-xs font-medium text-gray-500">EXPERIENCE</p>
+                            <p className="text-sm text-gray-700">{staff.experience}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </HoverCardContent>
+                  </HoverCard>
                 </motion.div>
               ))}
+            </div>
+          </motion.div>
+          
+          {/* Player Squad Section */}
+          <TeamGrid />
+          
+          {/* Club Officials */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="mb-16 mt-16"
+          >
+            <div className="flex items-center mb-8">
+              <Briefcase className="w-6 h-6 text-team-blue mr-3" />
+              <h2 className="text-3xl font-bold text-team-blue">Club Officials</h2>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+                {[
+                  { name: "Thomas Stewart", role: "Club Chairman" },
+                  { name: "Margaret Wilson", role: "Vice Chairman" },
+                  { name: "Craig Stevenson", role: "Club Secretary" },
+                  { name: "Alan McRae", role: "Treasurer" },
+                  { name: "Gordon Smith", role: "Commercial Director" },
+                  { name: "Eleanor Grant", role: "Community Relations" }
+                ].map((official) => (
+                  <div key={official.name} className="flex items-center p-3 bg-gray-50 rounded-md">
+                    <div className="w-2 h-2 bg-team-blue rounded-full mr-3"></div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">{official.name}</h4>
+                      <p className="text-sm text-gray-500">{official.role}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </motion.div>
           
@@ -134,7 +203,7 @@ const Team = () => {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
             className="mb-16"
           >
             <div className="flex items-center mb-8">
@@ -177,9 +246,6 @@ const Team = () => {
               </div>
             </div>
           </motion.div>
-          
-          {/* Player Squad Section */}
-          <TeamGrid />
         </div>
       </div>
       

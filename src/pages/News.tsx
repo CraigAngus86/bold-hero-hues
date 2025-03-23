@@ -13,7 +13,7 @@ const allNews = [
     excerpt: "The team celebrates with fans after a hard-fought victory in the final, adding another prestigious trophy to the club's growing collection.",
     image: "/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png",
     date: "April 18, 2023",
-    category: "Cup Success",
+    category: "Match Report",
     size: "large"
   },
   {
@@ -31,7 +31,7 @@ const allNews = [
     excerpt: "Stunning aerial view of our recently upgraded stadium and facilities, situated in a picturesque location alongside the River Dee.",
     image: "/lovable-uploads/7f997ef4-9019-4660-9e9e-4e230d7b1eb3.png",
     date: "February 28, 2023",
-    category: "Stadium News",
+    category: "Spain Park",
     size: "medium"
   },
   {
@@ -40,7 +40,7 @@ const allNews = [
     excerpt: "Our academy continues to produce promising young players, with several making their first team debuts this season.",
     image: "/lovable-uploads/e2efc1b0-1c8a-4e98-9826-3030a5f5d247.png",
     date: "February 15, 2023",
-    category: "Youth",
+    category: "Club News",
     size: "small"
   },
   {
@@ -58,7 +58,7 @@ const allNews = [
     excerpt: "Our forward's excellent form has been recognized with the Highland League Player of the Month award.",
     image: "/lovable-uploads/122628af-86b4-4d7f-bfe3-01d4bf03d053.png",
     date: "January 15, 2023",
-    category: "Awards",
+    category: "Club News",
     size: "small"
   },
   {
@@ -72,16 +72,16 @@ const allNews = [
   },
   {
     id: 8,
-    title: "Injury update: Key midfielder returns to training",
-    excerpt: "Good news as our influential midfielder returns to full training following a six-week injury absence.",
+    title: "Spain Park renovation update",
+    excerpt: "Progress continues on our stadium enhancements, with new facilities set to be unveiled next month.",
     image: "/lovable-uploads/e2efc1b0-1c8a-4e98-9826-3030a5f5d247.png",
     date: "November 28, 2022",
-    category: "Injury News",
+    category: "Spain Park",
     size: "medium"
   }
 ];
 
-const categories = ["All", "Cup Success", "Match Report", "Stadium News", "Youth", "Club News", "Awards", "Community", "Injury News"];
+const categories = ["All", "Match Report", "Spain Park", "Club News", "Community"];
 
 const News = () => {
   const [searchTerm, setSearchTerm] = useState('');

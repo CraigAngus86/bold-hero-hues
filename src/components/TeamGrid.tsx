@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import PlayerCard from './PlayerCard';
@@ -182,54 +183,49 @@ const TeamGrid = () => {
     : players.filter(player => player.position === selectedPosition);
   
   return (
-    <section className="py-20 px-4 bg-white">
-      <div className="container mx-auto">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl font-bold text-team-blue mb-4">Team & Management</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Meet the players and staff who represent Banks o' Dee FC. Click on a player card to learn more about them.
-          </p>
-        </motion.div>
-        
-        <div className="mb-10 flex justify-center">
-          <div className="inline-flex flex-wrap gap-2 bg-team-gray p-1 rounded-lg">
-            {positions.map((position) => (
-              <button
-                key={position}
-                onClick={() => setSelectedPosition(position)}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                  selectedPosition === position
-                    ? "bg-team-blue text-white"
-                    : "text-gray-700 hover:bg-team-lightBlue/50"
-                }`}
-              >
-                {position}
-              </button>
-            ))}
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {filteredPlayers.map((player) => (
-            <PlayerCard
-              key={player.id}
-              name={player.name}
-              position={player.position}
-              number={player.number}
-              image={player.image}
-              stats={player.stats}
-              biography={player.biography}
-            />
+    <motion.section 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="bg-white"
+    >
+      <div className="flex items-center mb-8">
+        <Award className="w-6 h-6 text-team-blue mr-3" />
+        <h2 className="text-3xl font-bold text-team-blue">Player Squad</h2>
+      </div>
+      
+      <div className="mb-10 flex justify-center">
+        <div className="inline-flex flex-wrap gap-2 bg-team-gray p-1 rounded-lg">
+          {positions.map((position) => (
+            <button
+              key={position}
+              onClick={() => setSelectedPosition(position)}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                selectedPosition === position
+                  ? "bg-team-blue text-white"
+                  : "text-gray-700 hover:bg-team-lightBlue/50"
+              }`}
+            >
+              {position}
+            </button>
           ))}
         </div>
       </div>
-    </section>
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        {filteredPlayers.map((player) => (
+          <PlayerCard
+            key={player.id}
+            name={player.name}
+            position={player.position}
+            number={player.number}
+            image={player.image}
+            stats={player.stats}
+            biography={player.biography}
+          />
+        ))}
+      </div>
+    </motion.section>
   );
 };
 

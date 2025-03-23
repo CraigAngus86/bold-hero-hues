@@ -13,7 +13,7 @@ const Footer = () => {
           <div className="md:col-span-1">
             <div className="flex flex-col items-center md:items-start">
               <img 
-                src="/lovable-uploads/b937e144-e94f-4e75-881f-1e560c6b520a.png" 
+                src="/lovable-uploads/940ac3a1-b89d-40c9-957e-217a64371120.png" 
                 alt="Banks o' Dee FC Logo" 
                 className="h-20 mb-4"
               />
@@ -59,7 +59,7 @@ const Footer = () => {
             <h3 className="text-lg font-bold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/about" className="text-white/80 hover:text-white transition-colors">About Us</Link>
+                <Link to="/news" className="text-white/80 hover:text-white transition-colors">News</Link>
               </li>
               <li>
                 <Link to="/team" className="text-white/80 hover:text-white transition-colors">Team & Management</Link>
@@ -71,7 +71,10 @@ const Footer = () => {
                 <Link to="/table" className="text-white/80 hover:text-white transition-colors">League Table</Link>
               </li>
               <li>
-                <Link to="/news" className="text-white/80 hover:text-white transition-colors">Latest News</Link>
+                <Link to="/stadium" className="text-white/80 hover:text-white transition-colors">Spain Park</Link>
+              </li>
+              <li>
+                <Link to="/tickets" className="text-white/80 hover:text-white transition-colors">Tickets</Link>
               </li>
             </ul>
           </div>

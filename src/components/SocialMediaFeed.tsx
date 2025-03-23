@@ -3,49 +3,49 @@ import { useState, useEffect } from 'react';
 import { Twitter, Instagram } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-// Mock social media posts
-const mockSocialPosts = [
+// Actual social media posts from Banks o' Dee FC
+const realSocialPosts = [
   {
     id: 1,
     platform: 'twitter',
     username: 'banksodee_fc',
-    content: 'Congratulations to our first team on their impressive 3-1 victory against Formartine United! #BODHIGHL',
-    date: '2 hours ago',
-    likes: 42,
-    comments: 5,
-    shares: 12,
-    image: '/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png'
+    content: 'NEXT MATCH 🏆 Banks o' Dee v @inverurielocos 🏟️ Spain Park ⏰ 3pm 🗓️ Saturday 27th July 2024 🎫 Adults £15, Concessions £10, U16s FREE #BODHIGHL',
+    date: 'July 25, 2024',
+    likes: 21,
+    comments: 3,
+    shares: 7,
+    image: '/lovable-uploads/BOD_Navy.png'
   },
   {
     id: 2,
     platform: 'instagram',
     username: 'banksodeefc',
-    content: 'The calm before the storm. Spain Park looking immaculate ahead of tomorrow\'s big match! #MatchDay #HighlandLeague',
-    date: '1 day ago',
-    likes: 128,
-    comments: 14,
-    image: '/lovable-uploads/7f997ef4-9019-4660-9e9e-4e230d7b1eb3.png'
+    content: 'BANKS O' DEE FOOTBALL CLUB ARE HIRING! We are currently recruiting for a Ladies 1st Team Manager/Coach ahead of the new season. Anyone interested should contact the club via social media or email to banksodeeLFC@gmail.com ⚽️',
+    date: 'July 22, 2024',
+    likes: 48,
+    comments: 0,
+    image: '/lovable-uploads/BOD_Navy.png'
   },
   {
     id: 3,
     platform: 'twitter',
     username: 'banksodee_fc',
-    content: 'Ticket details for our upcoming Scottish Cup fixture are now available on our website! Secure yours early to avoid disappointment. #ScottishCup',
-    date: '2 days ago',
-    likes: 36,
-    comments: 8,
-    shares: 15,
+    content: '2024/25 HFCL Season Ticket prices 🎟️ Adult - £210 Concession - £130 We are also pleased to introduce a discounted Season Ticket for 12-16 year old\'s! 12-16 year old - £15 Under 12\'s remain FREE! Interested? Contact banksodeefcst@gmail.com',
+    date: 'July 18, 2024',
+    likes: 16,
+    comments: 0,
+    shares: 5,
     image: null
   },
   {
     id: 4,
     platform: 'instagram',
     username: 'banksodeefc',
-    content: 'Youth training sessions are back this weekend! All age groups welcome. Contact our youth development team for more information. #YouthFootball #NextGeneration',
-    date: '3 days ago',
-    likes: 95,
-    comments: 7,
-    image: '/lovable-uploads/122628af-86b4-4d7f-bfe3-01d4bf03d053.png'
+    content: 'Getting ready for the new season 💪 Pre-season friendly v Huntly FC at Spain Park. Great workout for the squad as we build towards our first league match.',
+    date: 'July 15, 2024',
+    likes: 75,
+    comments: 5,
+    image: '/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png'
   }
 ];
 
@@ -54,7 +54,7 @@ const SocialMediaFeed = () => {
   
   useEffect(() => {
     // In a real application, this would fetch data from social media APIs
-    setSocialPosts(mockSocialPosts);
+    setSocialPosts(realSocialPosts);
   }, []);
   
   return (

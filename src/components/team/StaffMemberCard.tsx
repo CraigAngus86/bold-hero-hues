@@ -56,7 +56,7 @@ const StaffMemberCard = ({
                 <img 
                   src={image} 
                   alt={name} 
-                  className="h-full w-full object-cover object-top"
+                  className="h-full w-full object-cover object-center"
                 />
               </div>
               
@@ -67,7 +67,7 @@ const StaffMemberCard = ({
                     <p className="text-gray-500 font-medium text-xs line-clamp-1">{role}</p>
                   </div>
                   <button 
-                    className="text-[#00105a] p-1 rounded-full hover:bg-gray-100 transition-colors"
+                    className="text-[#00105a] p-1 rounded-full hover:bg-gray-100 transition-colors border border-[#00105a]/20"
                     onClick={openDialog}
                     aria-label="View details"
                   >
@@ -85,7 +85,7 @@ const StaffMemberCard = ({
                 <img 
                   src={image} 
                   alt={name} 
-                  className="w-full h-full object-cover object-top"
+                  className="w-full h-full object-cover object-center"
                 />
               </div>
               <div className="flex-1 flex flex-col justify-center">
@@ -95,7 +95,7 @@ const StaffMemberCard = ({
                     <p className="text-gray-500 text-xs">{role}</p>
                   </div>
                   <button 
-                    className="text-[#00105a] p-1 rounded-full hover:bg-gray-100 transition-colors"
+                    className="text-[#00105a] p-1 rounded-full hover:bg-gray-100 transition-colors border border-[#00105a]/20"
                     onClick={openDialog}
                     aria-label="View details"
                   >
@@ -118,7 +118,7 @@ const StaffMemberCard = ({
               <img 
                 src={image} 
                 alt={name} 
-                className="w-full h-auto aspect-square object-cover object-top"
+                className="w-full h-auto aspect-square object-cover object-center"
               />
             </div>
           </div>

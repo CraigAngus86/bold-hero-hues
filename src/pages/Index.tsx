@@ -72,6 +72,24 @@ const mockNews = [
     date: "January 10, 2023",
     category: "Stadium News",
     size: "small"
+  },
+  {
+    id: 8,
+    title: "Banks o' Dee supporters club launches new initiative",
+    excerpt: "Local fans organize fundraising campaign to support club's community projects and youth development programs.",
+    image: "/lovable-uploads/122628af-86b4-4d7f-bfe3-01d4bf03d053.png",
+    date: "January 5, 2023",
+    category: "Supporters",
+    size: "small"
+  },
+  {
+    id: 9,
+    title: "New team captain announced ahead of crucial fixtures",
+    excerpt: "Management names veteran defender as new club captain following leadership changes in the squad.",
+    image: "/lovable-uploads/7f997ef4-9019-4660-9e9e-4e230d7b1eb3.png",
+    date: "December 28, 2022",
+    category: "Team News",
+    size: "small"
   }
 ];
 
@@ -99,8 +117,8 @@ const Index = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-            {/* Feature news item - 6x6 */}
-            <div className="md:col-span-6">
+            {/* Feature news item - 6x4 (reduced height) */}
+            <div className="md:col-span-6 md:row-span-4">
               <NewsCard
                 key={mockNews[0].id}
                 title={mockNews[0].title}
@@ -109,6 +127,7 @@ const Index = () => {
                 date={mockNews[0].date}
                 category={mockNews[0].category}
                 size="large"
+                reduced={true}
               />
             </div>
             
@@ -128,8 +147,8 @@ const Index = () => {
               ))}
             </div>
             
-            {/* Additional news items - each 3x6 */}
-            {mockNews.slice(5, 7).map((news) => (
+            {/* Additional news items below - each 3x2 */}
+            {mockNews.slice(5, 9).map((news) => (
               <div key={news.id} className="md:col-span-3">
                 <NewsCard
                   title={news.title}

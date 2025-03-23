@@ -1,5 +1,5 @@
 
-import cheerio from 'cheerio';
+import * as cheerio from 'cheerio';
 import { Match } from '@/components/fixtures/types';
 import { TeamStats } from '@/components/league/types';
 

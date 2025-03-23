@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { CalendarDays, Clock, Trophy, Ticket } from 'lucide-react';
@@ -252,15 +253,15 @@ const FixturesSection = () => {
                       {match.competition} • {formatDate(match.date)}
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className={`font-medium w-[35%] text-right ${match.homeTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
+                      <span className={`font-medium w-[30%] text-right ${match.homeTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
                         {match.homeTeam}
                       </span>
-                      <div className="flex items-center justify-center space-x-3 font-bold w-[30%]">
+                      <div className="flex items-center justify-center space-x-3 font-bold w-[40%]">
                         <span className="w-8 h-8 flex items-center justify-center bg-team-lightBlue rounded-sm">{match.homeScore}</span>
                         <span className="text-xs">-</span>
                         <span className="w-8 h-8 flex items-center justify-center bg-team-lightBlue rounded-sm">{match.awayScore}</span>
                       </div>
-                      <span className={`font-medium w-[35%] text-left ${match.awayTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
+                      <span className={`font-medium w-[30%] text-left ${match.awayTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
                         {match.awayTeam}
                       </span>
                     </div>
@@ -308,16 +309,16 @@ const FixturesSection = () => {
                   </div>
                 ))}
               </div>
-              <div className="mt-4 space-y-2">
+              <div className="mt-4 grid grid-cols-2 gap-2">
                 <Link 
                   to="/fixtures" 
-                  className="inline-block px-4 py-2 bg-team-lightBlue text-[#00105a] text-sm font-medium rounded hover:bg-[#00105a] hover:text-white transition-colors w-full"
+                  className="inline-block px-4 py-2 bg-team-lightBlue text-[#00105a] text-sm font-medium rounded hover:bg-[#00105a] hover:text-white transition-colors"
                 >
                   All Fixtures
                 </Link>
                 <Link 
                   to="/tickets" 
-                  className="inline-flex items-center justify-center px-4 py-2 bg-[#00105a] text-white text-sm font-medium rounded hover:bg-[#001b9a] transition-colors w-full"
+                  className="inline-flex items-center justify-center px-4 py-2 bg-[#00105a] text-white text-sm font-medium rounded hover:bg-[#001b9a] transition-colors"
                 >
                   <Ticket className="w-4 h-4 mr-2" /> Buy Tickets
                 </Link>

@@ -58,16 +58,16 @@ const SocialMediaFeed = () => {
   }, []);
   
   return (
-    <section className="py-16 bg-team-gray">
+    <section className="py-10 bg-team-gray">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-team-blue mb-4">Social Media</h2>
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-team-blue mb-2">Social Media</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
             Follow us on social media to stay updated with everything happening at Banks o' Dee FC.
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {socialPosts.map((post) => (
             <motion.div
               key={post.id}
@@ -78,8 +78,8 @@ const SocialMediaFeed = () => {
               className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
             >
               {/* Header */}
-              <div className="flex items-center p-4 border-b border-gray-100">
-                <div className={`p-2 rounded-full mr-3 ${post.platform === 'twitter' ? 'bg-[#1DA1F2]/10 text-[#1DA1F2]' : 'bg-[#C13584]/10 text-[#C13584]'}`}>
+              <div className="flex items-center p-3 border-b border-gray-100">
+                <div className={`p-2 rounded-full mr-2 ${post.platform === 'twitter' ? 'bg-[#1DA1F2]/10 text-[#1DA1F2]' : 'bg-[#C13584]/10 text-[#C13584]'}`}>
                   {post.platform === 'twitter' ? <Twitter className="w-4 h-4" /> : <Instagram className="w-4 h-4" />}
                 </div>
                 <div>
@@ -89,15 +89,15 @@ const SocialMediaFeed = () => {
               </div>
               
               {/* Content */}
-              <div className="p-4">
-                <p className="text-sm text-gray-700 mb-4">{post.content}</p>
+              <div className="p-3">
+                <p className="text-sm text-gray-700 mb-3">{post.content}</p>
                 
                 {post.image && (
-                  <div className="rounded-md overflow-hidden mb-4">
+                  <div className="rounded-md overflow-hidden mb-3">
                     <img 
                       src={post.image} 
                       alt="Social media post" 
-                      className="w-full h-48 object-cover"
+                      className="w-full h-40 object-cover"
                     />
                   </div>
                 )}
@@ -113,7 +113,7 @@ const SocialMediaFeed = () => {
           ))}
         </div>
         
-        <div className="text-center mt-10">
+        <div className="text-center mt-8">
           <div className="flex justify-center space-x-4">
             <a 
               href="https://x.com/banksodee_fc" 

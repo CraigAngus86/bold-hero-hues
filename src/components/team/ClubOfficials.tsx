@@ -27,7 +27,9 @@ const ClubOfficials = ({ officials }: ClubOfficialsProps) => {
     experience: official.experience || "Long-standing member of the Banks o' Dee FC team with extensive experience in club administration and management."
   }));
 
-  const visibleOfficials = isOpen ? officialsWithDefaults : officialsWithDefaults.slice(0, 4);
+  // Show only first 4 officials initially, then the rest in collapsible content
+  const initialOfficials = officialsWithDefaults.slice(0, 4);
+  const remainingOfficials = officialsWithDefaults.slice(4);
 
   return (
     <motion.div 
@@ -43,7 +45,7 @@ const ClubOfficials = ({ officials }: ClubOfficialsProps) => {
       
       <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {visibleOfficials.map((official) => (
+          {initialOfficials.map((official) => (
             <OfficialCard
               key={official.name}
               name={official.name}
@@ -70,7 +72,7 @@ const ClubOfficials = ({ officials }: ClubOfficialsProps) => {
         {officialsWithDefaults.length > 4 && (
           <CollapsibleContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mt-8">
-              {officialsWithDefaults.slice(4).map((official) => (
+              {remainingOfficials.map((official) => (
                 <OfficialCard
                   key={official.name}
                   name={official.name}

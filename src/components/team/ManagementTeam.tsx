@@ -19,7 +19,10 @@ interface ManagementTeamProps {
 
 const ManagementTeam = ({ staff }: ManagementTeamProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const visibleStaff = isOpen ? staff : staff.slice(0, 4);
+  
+  // Show only first 4 staff members initially, then the rest in collapsible content
+  const initialStaff = staff.slice(0, 4);
+  const remainingStaff = staff.slice(4);
 
   return (
     <motion.div 
@@ -35,7 +38,7 @@ const ManagementTeam = ({ staff }: ManagementTeamProps) => {
       
       <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {visibleStaff.map((member) => (
+          {initialStaff.map((member) => (
             <StaffMemberCard
               key={member.name}
               name={member.name}
@@ -62,7 +65,7 @@ const ManagementTeam = ({ staff }: ManagementTeamProps) => {
         {staff.length > 4 && (
           <CollapsibleContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mt-8">
-              {staff.slice(4).map((member) => (
+              {remainingStaff.map((member) => (
                 <StaffMemberCard
                   key={member.name}
                   name={member.name}

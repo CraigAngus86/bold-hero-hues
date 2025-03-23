@@ -1,9 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CalendarDays, Clock, Trophy } from 'lucide-react';
+import { CalendarDays, Clock, Trophy, Ticket } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 interface Match {
   id: number;
@@ -270,12 +271,12 @@ const FixturesSection = () => {
                 ))}
               </div>
               <div className="mt-4 text-center">
-                <a 
-                  href="/fixtures" 
+                <Link 
+                  to="/fixtures" 
                   className="inline-block px-4 py-2 bg-team-lightBlue text-[#00105a] text-sm font-medium rounded hover:bg-[#00105a] hover:text-white transition-colors w-full"
                 >
                   All Results
-                </a>
+                </Link>
               </div>
             </CardContent>
           </Card>
@@ -307,13 +308,19 @@ const FixturesSection = () => {
                   </div>
                 ))}
               </div>
-              <div className="mt-4 text-center">
-                <a 
-                  href="/fixtures" 
+              <div className="mt-4 space-y-2">
+                <Link 
+                  to="/fixtures" 
                   className="inline-block px-4 py-2 bg-team-lightBlue text-[#00105a] text-sm font-medium rounded hover:bg-[#00105a] hover:text-white transition-colors w-full"
                 >
                   All Fixtures
-                </a>
+                </Link>
+                <Link 
+                  to="/tickets" 
+                  className="inline-flex items-center justify-center px-4 py-2 bg-[#00105a] text-white text-sm font-medium rounded hover:bg-[#001b9a] transition-colors w-full"
+                >
+                  <Ticket className="w-4 h-4 mr-2" /> Buy Tickets
+                </Link>
               </div>
             </CardContent>
           </Card>
@@ -367,12 +374,12 @@ const FixturesSection = () => {
                 </Table>
               </div>
               <div className="mt-4 text-center">
-                <a 
-                  href="/table" 
+                <Link 
+                  to="/table" 
                   className="inline-block px-4 py-2 bg-team-lightBlue text-[#00105a] text-sm font-medium rounded hover:bg-[#00105a] hover:text-white transition-colors w-full"
                 >
                   Full Table
-                </a>
+                </Link>
               </div>
             </CardContent>
           </Card>

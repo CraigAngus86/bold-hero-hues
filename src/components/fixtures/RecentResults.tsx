@@ -29,9 +29,9 @@ const RecentResults = ({ matches }: RecentResultsProps) => {
                   </span>
                 </div>
                 <div className="flex items-center justify-center space-x-4 font-bold w-[20%]">
-                  <span className="w-8 h-8 flex items-center justify-center bg-team-lightBlue rounded-sm">{match.homeScore}</span>
+                  <span className="w-8 h-8 flex items-center justify-center bg-[#c5e7ff] rounded-sm">{match.homeScore}</span>
                   <span className="text-xs">-</span>
-                  <span className="w-8 h-8 flex items-center justify-center bg-team-lightBlue rounded-sm">{match.awayScore}</span>
+                  <span className="w-8 h-8 flex items-center justify-center bg-[#c5e7ff] rounded-sm">{match.awayScore}</span>
                 </div>
                 <div className="flex items-center w-[40%] justify-start pl-3">
                   <span className={`font-medium text-left ${match.awayTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
@@ -48,7 +48,7 @@ const RecentResults = ({ matches }: RecentResultsProps) => {
         <div className="mt-3 text-center">
           <Link 
             to="/fixtures" 
-            className="inline-block px-4 py-2 bg-team-lightBlue text-[#00105a] text-sm font-medium rounded hover:bg-[#00105a] hover:text-white transition-colors w-full text-center"
+            className="inline-block px-4 py-2 bg-[#00105a] text-white text-sm font-medium rounded hover:bg-[#000c40] hover:text-white transition-colors w-full text-center"
           >
             All Results
           </Link>

@@ -54,13 +54,13 @@ const MatchCard = ({ match }: MatchCardProps) => {
             
             {match.isCompleted ? (
               <div className="flex items-center justify-center space-x-2 font-bold mx-1 z-10">
-                <span className="w-7 h-7 flex items-center justify-center bg-[#c5e7ff] rounded">{match.homeScore}</span>
+                <span className="w-8 h-8 flex items-center justify-center bg-[#c5e7ff] rounded-sm">{match.homeScore}</span>
                 <span className="text-xs">-</span>
-                <span className="w-7 h-7 flex items-center justify-center bg-[#c5e7ff] rounded">{match.awayScore}</span>
+                <span className="w-8 h-8 flex items-center justify-center bg-[#c5e7ff] rounded-sm">{match.awayScore}</span>
               </div>
             ) : (
               <div className="flex items-center justify-center font-bold text-sm mx-1 z-10">
-                <span className="bg-[#c5e7ff] px-3 py-1 rounded">VS</span>
+                <span className="bg-[#c5e7ff] w-8 h-8 flex items-center justify-center rounded-sm text-xs">VS</span>
               </div>
             )}
             

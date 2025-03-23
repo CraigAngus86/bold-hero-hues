@@ -29,7 +29,7 @@ const UpcomingFixtures = ({ matches }: UpcomingFixturesProps) => {
                   </span>
                 </div>
                 <div className="flex items-center justify-center w-[20%]">
-                  <span className="font-bold text-xs w-8 h-8 flex items-center justify-center bg-team-lightBlue rounded-sm">VS</span>
+                  <span className="font-bold text-xs w-8 h-8 flex items-center justify-center bg-[#c5e7ff] rounded-sm">VS</span>
                 </div>
                 <div className="flex items-center w-[40%] justify-start pl-3">
                   <span className={`font-medium ${match.awayTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
@@ -46,7 +46,7 @@ const UpcomingFixtures = ({ matches }: UpcomingFixturesProps) => {
         <div className="mt-3 grid grid-cols-2 gap-2">
           <Link 
             to="/fixtures" 
-            className="inline-flex items-center justify-center px-4 py-2 bg-team-lightBlue text-[#00105a] text-sm font-medium rounded hover:bg-[#00105a] hover:text-white transition-colors text-center"
+            className="inline-flex items-center justify-center px-4 py-2 bg-[#00105a] text-white text-sm font-medium rounded hover:bg-[#000c40] hover:text-white transition-colors text-center"
           >
             All Fixtures
           </Link>

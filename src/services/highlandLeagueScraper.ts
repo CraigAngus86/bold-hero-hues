@@ -1,4 +1,3 @@
-
 import * as cheerio from 'cheerio';
 import { Match } from '@/components/fixtures/types';
 import { TeamStats } from '@/components/league/types';
@@ -28,13 +27,13 @@ export const scrapeHighlandLeagueData = async (): Promise<{
   }
 };
 
-// Function to scrape the league table
+// Function to scrape the league table from BBC Sport
 export const scrapeLeagueTable = async (): Promise<TeamStats[]> => {
   try {
-    // Updated URL to the correct endpoint
-    const response = await fetch('http://www.highlandfootballleague.com/LeagueTable/', {
+    // BBC Sport Highland League table URL
+    const response = await fetch('https://www.bbc.com/sport/football/scottish-highland-league/table', {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; BanksODeeFC/1.0)'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36'
       }
     });
     
@@ -46,27 +45,11 @@ export const scrapeLeagueTable = async (): Promise<TeamStats[]> => {
     const $ = cheerio.load(html);
     
     const leagueTable: TeamStats[] = [];
-    // Select the current league table - looking for the main table element
-    const tableRows = $('table.leaguetable tbody tr, .league-table tbody tr');
     
-    // If no rows found with the original selector, try alternative selectors
-    if (tableRows.length === 0) {
-      console.log('No rows found with primary selector, trying alternatives');
-      const alternativeTables = $('table tbody tr');
-      if (alternativeTables.length > 0) {
-        console.log('Found table with alternative selector, rows:', alternativeTables.length);
-      }
-    }
+    // BBC Sport table structure
+    const tableRows = $('table.gs-o-table tbody tr');
     
-    console.log('Found table rows:', tableRows.length);
-    
-    let currentSeason = "2024-2025";
-    // Try to extract the current season from the page
-    const seasonText = $('h1, h2, h3').text();
-    if (seasonText.includes("2024") || seasonText.includes("24-25") || seasonText.includes("2024-25")) {
-      currentSeason = "2024-2025";
-    }
-    console.log('Identified season:', currentSeason);
+    console.log('Found BBC table rows:', tableRows.length);
     
     tableRows.each((index, element) => {
       const cells = $(element).find('td');
@@ -76,25 +59,47 @@ export const scrapeLeagueTable = async (): Promise<TeamStats[]> => {
         return; // skip rows that don't have enough cells
       }
       
-      // Extract the data from each cell
-      const position = parseInt($(cells[0]).text().trim(), 10) || index + 1;
-      const team = $(cells[1]).text().trim();
+      // Extract position (1st column)
+      const position = parseInt($(cells[0]).text().trim(), 10);
+      
+      // Extract team name (2nd column)
+      const teamElement = $(cells[1]);
+      const team = teamElement.find('abbr').attr('title') || teamElement.text().trim();
+      
+      // Extract the rest of the stats
       const played = parseInt($(cells[2]).text().trim(), 10) || 0;
       const won = parseInt($(cells[3]).text().trim(), 10) || 0;
       const drawn = parseInt($(cells[4]).text().trim(), 10) || 0;
       const lost = parseInt($(cells[5]).text().trim(), 10) || 0;
       const goalsFor = parseInt($(cells[6]).text().trim(), 10) || 0;
       const goalsAgainst = parseInt($(cells[7]).text().trim(), 10) || 0;
+      const goalDifference = parseInt($(cells[8]).text().trim(), 10) || 0;
       const points = parseInt($(cells[9]).text().trim(), 10) || 0;
-      const goalDifference = goalsFor - goalsAgainst;
       
-      // Extract form if available
-      const formStr = $(cells[10]).text().trim();
-      const form = formStr.split('').filter(char => ['W', 'D', 'L'].includes(char));
+      // Extract form if available (11th column)
+      let form: string[] = [];
+      if (cells.length > 10) {
+        const formCell = $(cells[10]);
+        const formElements = formCell.find('span');
+        
+        formElements.each((i, el) => {
+          const className = $(el).attr('class') || '';
+          if (className.includes('win')) form.push('W');
+          else if (className.includes('draw')) form.push('D');
+          else if (className.includes('loss')) form.push('L');
+          else form.push('U'); // Unknown
+        });
+      }
       
-      // Look for team logo if available
-      const logoElement = $(cells[1]).find('img');
-      const logo = logoElement.length > 0 ? logoElement.attr('src') : undefined;
+      // If form is empty, create default form (5 most recent matches)
+      if (form.length === 0) {
+        form = ['U', 'U', 'U', 'U', 'U'];
+      }
+      
+      // Truncate form to 5 matches if longer
+      if (form.length > 5) {
+        form = form.slice(0, 5);
+      }
       
       // Create the team stats object
       leagueTable.push({
@@ -108,21 +113,21 @@ export const scrapeLeagueTable = async (): Promise<TeamStats[]> => {
         goalsAgainst,
         goalDifference,
         points,
-        form: form.length ? form : ['U', 'U', 'U', 'U', 'U'],
+        form,
         logo: team === "Banks o' Dee" 
           ? "/lovable-uploads/banks-o-dee-logo.png"
-          : logo || `https://placehold.co/40x40/team-white/team-blue?text=${team.substring(0, 2)}`
+          : `https://placehold.co/40x40/team-white/team-blue?text=${team.substring(0, 2)}`
       });
     });
     
     if (leagueTable.length === 0) {
-      console.error('Failed to extract league table data');
+      console.error('Failed to extract league table data from BBC Sport');
       throw new Error('No league table data found');
     }
     
     return leagueTable;
   } catch (error) {
-    console.error('Error scraping league table:', error);
+    console.error('Error scraping BBC league table:', error);
     throw error;
   }
 };

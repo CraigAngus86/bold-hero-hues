@@ -3,26 +3,20 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from "sonner";
 import LeagueTableContent from './LeagueTableContent';
-import TableLegend from './TableLegend';
 import LeagueStatsPanel from './LeagueStatsPanel';
 import LeagueInfoPanel from './LeagueInfoPanel';
 import { TeamStats } from './types';
-import { fetchLeagueTable } from '@/services/leagueDataService';
-import { RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { clearLeagueDataCache } from '@/services/leagueDataService';
+import { fetchLeagueTable, clearLeagueDataCache } from '@/services/leagueDataService';
 
 const LeagueTablePage = () => {
   const [leagueData, setLeagueData] = useState<TeamStats[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [dataSeason, setDataSeason] = useState<string>("2024-2025");
   const [lastUpdated, setLastUpdated] = useState<string>("");
   
   const loadLeagueData = async (refresh = false) => {
     try {
       if (refresh) {
-        setIsRefreshing(true);
         // Clear the cache if refreshing
         clearLeagueDataCache();
       } else {
@@ -40,14 +34,13 @@ const LeagueTablePage = () => {
       setLastUpdated(new Date().toLocaleString());
       
       if (refresh) {
-        toast.success("League table refreshed successfully");
+        toast.success("League table refreshed automatically");
       }
     } catch (error) {
       console.error('Error loading league data:', error);
       toast.error('Failed to load league table data');
     } finally {
       setIsLoading(false);
-      setIsRefreshing(false);
     }
   };
   
@@ -63,11 +56,16 @@ const LeagueTablePage = () => {
     } catch (e) {
       console.error('Error getting cache timestamp:', e);
     }
+    
+    // Set up auto-refresh every 30 minutes (1800000 ms)
+    const autoRefreshInterval = setInterval(() => {
+      console.log('Auto-refreshing league table data');
+      loadLeagueData(true);
+    }, 1800000);
+    
+    // Clean up interval on component unmount
+    return () => clearInterval(autoRefreshInterval);
   }, []);
-  
-  const handleRefresh = () => {
-    loadLeagueData(true);
-  };
   
   return (
     <div className="container mx-auto px-4">
@@ -87,31 +85,6 @@ const LeagueTablePage = () => {
           </p>
         )}
       </motion.div>
-      
-      {/* Table Key/Legend */}
-      <TableLegend />
-      
-      {/* Refresh Button */}
-      <div className="flex justify-end mb-4">
-        <Button 
-          onClick={handleRefresh} 
-          disabled={isRefreshing || isLoading}
-          size="sm"
-          className="bg-team-blue hover:bg-team-navy text-white"
-        >
-          {isRefreshing ? (
-            <>
-              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-              Refreshing...
-            </>
-          ) : (
-            <>
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh Table
-            </>
-          )}
-        </Button>
-      </div>
       
       {/* League Stats Summary */}
       <LeagueStatsPanel leagueData={leagueData} season={dataSeason} />

@@ -4,22 +4,17 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import LeagueTableContent from './league/LeagueTableContent';
 import { TeamStats } from './league/types';
-import { fetchLeagueTable } from '@/services/leagueDataService';
-import { RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { clearLeagueDataCache } from '@/services/leagueDataService';
+import { fetchLeagueTable, clearLeagueDataCache } from '@/services/leagueDataService';
 import { toast } from "sonner";
 
 const LeagueTable = () => {
   const [leagueData, setLeagueData] = useState<TeamStats[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [currentSeason, setCurrentSeason] = useState<string>("2024-2025");
   
   const loadLeagueData = async (refresh = false) => {
     try {
       if (refresh) {
-        setIsRefreshing(true);
         // Clear the cache if refreshing
         clearLeagueDataCache();
       } else {
@@ -31,7 +26,7 @@ const LeagueTable = () => {
       setLeagueData(sortedData);
       
       if (refresh) {
-        toast.success("League table refreshed");
+        toast.success("League table refreshed automatically");
       }
     } catch (error) {
       console.error('Error loading league data:', error);
@@ -40,42 +35,27 @@ const LeagueTable = () => {
       }
     } finally {
       setIsLoading(false);
-      setIsRefreshing(false);
     }
   };
   
   useEffect(() => {
     loadLeagueData();
+    
+    // Set up auto-refresh every 30 minutes (1800000 ms)
+    const autoRefreshInterval = setInterval(() => {
+      console.log('Auto-refreshing homepage league table data');
+      loadLeagueData(true);
+    }, 1800000);
+    
+    // Clean up interval on component unmount
+    return () => clearInterval(autoRefreshInterval);
   }, []);
-  
-  const handleRefresh = () => {
-    loadLeagueData(true);
-  };
   
   return (
     <section className="py-12 bg-team-gray">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-semibold text-team-blue">Highland League Table {currentSeason}</h2>
-          <Button 
-            onClick={handleRefresh} 
-            size="sm" 
-            variant="outline" 
-            disabled={isRefreshing}
-            className="text-team-blue border-team-blue hover:bg-team-lightBlue"
-          >
-            {isRefreshing ? (
-              <>
-                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                Refreshing...
-              </>
-            ) : (
-              <>
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Refresh
-              </>
-            )}
-          </Button>
         </div>
         
         <div className="flex justify-end mb-4">

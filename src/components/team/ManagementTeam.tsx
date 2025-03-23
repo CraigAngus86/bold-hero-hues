@@ -23,9 +23,9 @@ const ManagementTeam = ({ staff }: ManagementTeamProps) => {
       transition={{ duration: 0.5, delay: 0.3 }}
       className="mb-16"
     >
-      <div className="flex items-center mb-8">
+      <div className="flex items-center justify-center mb-8">
         <Users className="w-6 h-6 text-[#00105a] mr-3" />
-        <h2 className="text-3xl font-bold text-[#00105a]">Management Team</h2>
+        <h2 className="text-xl font-semibold text-[#00105a]">Management Team</h2>
       </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">

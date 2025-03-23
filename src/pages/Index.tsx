@@ -1,4 +1,3 @@
-
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
@@ -68,13 +67,12 @@ const Index = () => {
       {/* Latest News - with mixed card sizes - moved above fixtures section */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
-            <div>
-              <h2 className="text-3xl font-bold text-team-blue mb-2">Latest News</h2>
-            </div>
+          <h2 className="text-xl font-semibold text-team-blue mb-6 text-center">Latest News</h2>
+          
+          <div className="flex justify-end mb-4">
             <a 
               href="/news" 
-              className="mt-4 md:mt-0 inline-flex items-center bg-team-lightBlue hover:bg-team-blue hover:text-white text-team-blue px-4 py-2 rounded-md transition-colors"
+              className="inline-flex items-center bg-team-lightBlue hover:bg-team-blue hover:text-white text-team-blue px-4 py-2 rounded-md transition-colors"
             >
               View All News <ArrowRight className="w-4 h-4 ml-2" />
             </a>

@@ -14,8 +14,9 @@ const LeagueTable = () => {
   return (
     <section className="py-12 bg-team-gray">
       <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row justify-between items-center mb-8">
-          <h2 className="text-3xl font-bold text-team-blue mb-4 md:mb-0">Highland League Table</h2>
+        <h2 className="text-xl font-semibold text-team-blue mb-6 text-center">Highland League Table</h2>
+        
+        <div className="flex justify-end mb-4">
           <a 
             href="/table" 
             className="px-5 py-2 bg-team-blue text-white rounded-md hover:bg-team-navy transition-colors text-sm font-medium"

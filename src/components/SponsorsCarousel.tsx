@@ -27,7 +27,7 @@ const SponsorsCarousel = () => {
   return (
     <section className="py-10 bg-team-gray">
       <div className="container mx-auto px-4">
-        <h3 className="text-xl font-semibold text-team-blue mb-6 text-center">Our Sponsors</h3>
+        <h2 className="text-xl font-semibold text-team-blue mb-6 text-center">Our Sponsors</h2>
         
         <Carousel 
           opts={{

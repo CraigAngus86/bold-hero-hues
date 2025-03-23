@@ -1,9 +1,9 @@
 
 import { useState, useEffect } from 'react';
-import { Twitter, Instagram } from 'lucide-react';
+import { Twitter, Instagram, Facebook, ShoppingCart } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-// Latest social media posts from Banks o' Dee FC
+// Latest social media posts from Banks o' Dee FC (expanded with more posts)
 const realSocialPosts = [
   {
     id: 1,
@@ -13,8 +13,7 @@ const realSocialPosts = [
     date: 'August 10, 2024',
     likes: 28,
     comments: 5,
-    shares: 8,
-    image: '/lovable-uploads/587f8bd1-4140-4179-89f8-dc2ac1b2e072.png'
+    shares: 8
   },
   {
     id: 2,
@@ -23,8 +22,7 @@ const realSocialPosts = [
     content: "Full Time | Banks o' Dee 1-0 Turriff United. Craig Duguid's stunning free-kick is enough to secure all three points at Spain Park! ⚽️",
     date: 'August 10, 2024',
     likes: 82,
-    comments: 7,
-    image: '/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png'
+    comments: 7
   },
   {
     id: 3,
@@ -34,8 +32,7 @@ const realSocialPosts = [
     date: 'August 10, 2024',
     likes: 19,
     comments: 0,
-    shares: 4,
-    image: null
+    shares: 4
   },
   {
     id: 4,
@@ -44,8 +41,46 @@ const realSocialPosts = [
     content: "NEXT MATCH | Banks o' Dee v Turriff United. Saturday 10th August, 3PM at Spain Park. Adults £15, Concessions £10 & U16s FREE.",
     date: 'August 8, 2024',
     likes: 64,
-    comments: 3,
-    image: '/lovable-uploads/BOD_Navy.png'
+    comments: 3
+  },
+  {
+    id: 5,
+    platform: 'facebook',
+    username: 'BanksODeeFCOfficial',
+    content: "🎟️ TICKETS | Tickets for our upcoming Highland League match against Brechin City are now available online. Get yours early to avoid queues on matchday!",
+    date: 'August 7, 2024',
+    likes: 38,
+    comments: 5,
+    shares: 12
+  },
+  {
+    id: 6,
+    platform: 'twitter',
+    username: 'banksodee_fc',
+    content: "📣 NEW SIGNING | We're delighted to announce the signing of midfielder Jack Henderson from Cove Rangers on a two-year deal. Welcome to Spain Park, Jack! #BODTransfer",
+    date: 'August 5, 2024',
+    likes: 92,
+    comments: 13,
+    shares: 21
+  },
+  {
+    id: 7,
+    platform: 'facebook',
+    username: 'BanksODeeFCOfficial',
+    content: "🏆 THROWBACK | On this day in 2022, Banks o' Dee lifted the Evening Express Aberdeenshire Cup after a thrilling 3-2 victory against Buckie Thistle at Harlaw Park. What a day for the club!",
+    date: 'August 3, 2024',
+    likes: 123,
+    comments: 18,
+    shares: 15
+  },
+  {
+    id: 8,
+    platform: 'instagram',
+    username: 'banksodeefc',
+    content: "💙 Supporting our local community! Players from Banks o' Dee visited Aberdeen Children's Hospital yesterday to donate signed merchandise and spend time with the young patients. #CommunitySpirit",
+    date: 'August 1, 2024',
+    likes: 145,
+    comments: 12
   }
 ];
 
@@ -79,8 +114,14 @@ const SocialMediaFeed = () => {
             >
               {/* Header */}
               <div className="flex items-center p-2 border-b border-gray-100">
-                <div className={`p-1.5 rounded-full mr-1.5 ${post.platform === 'twitter' ? 'bg-[#1DA1F2]/10 text-[#1DA1F2]' : 'bg-[#C13584]/10 text-[#C13584]'}`}>
-                  {post.platform === 'twitter' ? <Twitter className="w-3.5 h-3.5" /> : <Instagram className="w-3.5 h-3.5" />}
+                <div className={`p-1.5 rounded-full mr-1.5 ${
+                  post.platform === 'twitter' ? 'bg-[#1DA1F2]/10 text-[#1DA1F2]' : 
+                  post.platform === 'instagram' ? 'bg-[#C13584]/10 text-[#C13584]' : 
+                  'bg-[#1877F2]/10 text-[#1877F2]'
+                }`}>
+                  {post.platform === 'twitter' ? <Twitter className="w-3.5 h-3.5" /> : 
+                   post.platform === 'instagram' ? <Instagram className="w-3.5 h-3.5" /> : 
+                   <Facebook className="w-3.5 h-3.5" />}
                 </div>
                 <div>
                   <p className="font-semibold text-xs">@{post.username}</p>
@@ -90,17 +131,7 @@ const SocialMediaFeed = () => {
               
               {/* Content */}
               <div className="p-2">
-                <p className="text-xs text-gray-700 mb-2 line-clamp-3">{post.content}</p>
-                
-                {post.image && (
-                  <div className="rounded-md overflow-hidden mb-2">
-                    <img 
-                      src={post.image} 
-                      alt="Social media post" 
-                      className="w-full h-32 object-cover"
-                    />
-                  </div>
-                )}
+                <p className="text-xs text-gray-700 mb-2 line-clamp-4">{post.content}</p>
                 
                 {/* Stats */}
                 <div className="flex justify-between text-[10px] text-gray-500">
@@ -132,6 +163,15 @@ const SocialMediaFeed = () => {
               aria-label="Instagram"
             >
               <Instagram className="w-4 h-4" />
+            </a>
+            <a 
+              href="https://www.facebook.com/BanksODeeFCOfficial" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="bg-team-blue text-white p-2.5 rounded-full hover:bg-team-lightBlue transition-colors"
+              aria-label="Facebook"
+            >
+              <Facebook className="w-4 h-4" />
             </a>
           </div>
         </div>

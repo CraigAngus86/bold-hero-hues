@@ -1,8 +1,9 @@
+
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from '@/lib/utils';
-import { ChevronRight } from 'lucide-react';
+import { CircleArrowRight } from 'lucide-react';
 
 interface OfficialProps {
   name: string;
@@ -42,7 +43,7 @@ const OfficialCard = ({
       >
         <div 
           className={cn(
-            "relative w-full rounded-lg overflow-hidden transition-all duration-700 preserve-3d cursor-pointer shadow-lg hover:shadow-xl h-64",
+            "relative w-full rounded-lg overflow-hidden transition-all duration-700 preserve-3d cursor-pointer shadow-lg hover:shadow-xl h-24",
             isFlipped ? "rotate-y-180" : ""
           )}
           onClick={toggleFlip}
@@ -50,52 +51,57 @@ const OfficialCard = ({
         >
           {/* Front Card */}
           <div className="absolute inset-0 backface-hidden">
-            <div className="h-full flex flex-col">
-              <div className="relative h-4/5 overflow-hidden bg-gradient-to-b from-[#00105a] to-[#00105a]/80">
+            <div className="h-full flex">
+              <div className="relative h-full w-1/2 overflow-hidden bg-[#00105a]">
                 <img 
                   src={image} 
                   alt={name} 
-                  className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-full object-cover object-top"
+                  className="h-full w-full object-cover object-center"
                 />
               </div>
               
-              <div className="bg-white p-3 flex-1 flex flex-col justify-center">
-                <h3 className="text-lg font-bold text-center text-[#00105a]">{name}</h3>
-                <p className="text-center text-gray-500 font-medium text-sm">{role}</p>
+              <div className="bg-white px-3 py-2 flex-1 flex flex-col justify-center">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-[#00105a] line-clamp-1">{name}</h3>
+                    <p className="text-gray-500 font-medium text-xs line-clamp-1">{role}</p>
+                  </div>
+                  <button 
+                    className="text-[#00105a] p-1.5 rounded-full hover:bg-gray-100 transition-colors border border-[#00105a]/20"
+                    onClick={openDialog}
+                    aria-label="View details"
+                  >
+                    <CircleArrowRight className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
-            </div>
-            
-            <div className="absolute bottom-12 right-4 bg-white/80 px-3 py-1.5 rounded-full text-xs font-medium text-[#00105a] animate-pulse flex items-center">
-              <span>View Official</span>
-              <ChevronRight className="w-4 h-4 ml-1" />
             </div>
           </div>
           
           {/* Back Card */}
           <div className="absolute inset-0 backface-hidden rotate-y-180 bg-white">
-            <div className="flex flex-col h-full p-4">
-              <div className="flex items-center justify-between mb-3 pb-3 border-b border-gray-200">
-                <div>
-                  <h3 className="text-lg font-bold text-[#00105a]">{name}</h3>
-                  <p className="text-gray-500 text-sm">{role}</p>
-                </div>
-                <div className="w-12 h-12 overflow-hidden rounded-md">
-                  <img 
-                    src={image} 
-                    alt={name} 
-                    className="w-full h-full object-cover object-top"
-                  />
-                </div>
+            <div className="flex h-full p-2">
+              <div className="w-16 h-16 overflow-hidden rounded-md self-center mr-3">
+                <img 
+                  src={image} 
+                  alt={name} 
+                  className="w-full h-full object-cover object-center"
+                />
               </div>
-              
-              <div className="mt-auto pt-2 text-center">
-                <button 
-                  className="bg-[#00105a] text-white px-4 py-2 rounded-md text-sm inline-flex items-center"
-                  onClick={openDialog}
-                >
-                  View Official
-                  <ChevronRight className="w-4 h-4 ml-1" />
-                </button>
+              <div className="flex-1 flex flex-col justify-center">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-[#00105a]">{name}</h3>
+                    <p className="text-gray-500 text-xs">{role}</p>
+                  </div>
+                  <button 
+                    className="text-[#00105a] p-1.5 rounded-full hover:bg-gray-100 transition-colors border border-[#00105a]/20"
+                    onClick={openDialog}
+                    aria-label="View details"
+                  >
+                    <CircleArrowRight className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -112,7 +118,7 @@ const OfficialCard = ({
               <img 
                 src={image} 
                 alt={name} 
-                className="w-full h-auto aspect-square object-cover object-top"
+                className="w-full h-auto aspect-square object-cover object-center"
               />
             </div>
           </div>

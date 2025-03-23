@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PlusCircle, Edit, Trash } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { useNewsStore, NewsItem, formatDate, getDbDateFormat } from '@/services/newsService';
+import { useNewsStore, NewsItem, formatDate, getDbDateFormat } from '@/services/news';
 
 const NewsManager = () => {
   const { toast } = useToast();

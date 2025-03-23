@@ -1,4 +1,3 @@
-
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
@@ -8,7 +7,7 @@ import FixturesSection from '@/components/FixturesSection';
 import SocialMediaFeed from '@/components/SocialMediaFeed';
 import Footer from '@/components/Footer';
 import { ArrowRight } from 'lucide-react';
-import { useNewsStore, formatDate } from '@/services/newsService';
+import { useNewsStore, formatDate } from '@/services/news';
 
 const Index = () => {
   const { news } = useNewsStore();

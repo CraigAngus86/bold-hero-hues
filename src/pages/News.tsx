@@ -1,18 +1,16 @@
-
 import { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import NewsCard from '@/components/NewsCard';
 import { motion } from 'framer-motion';
 import { Search } from 'lucide-react';
-import { useNewsStore, formatDate } from '@/services/newsService';
+import { useNewsStore, formatDate } from '@/services/news';
 
 const News = () => {
   const { news } = useNewsStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   
-  // Extract unique categories from news items
   const categories = ['All', ...Array.from(new Set(news.map(item => item.category)))];
   
   const filteredNews = news.filter(newsItem => {
@@ -42,7 +40,6 @@ const News = () => {
             </p>
           </motion.div>
           
-          {/* Search and Filter */}
           <div className="mb-12">
             <div className="flex flex-col md:flex-row gap-4 justify-between">
               <div className="relative max-w-md w-full">
@@ -76,7 +73,6 @@ const News = () => {
             </div>
           </div>
           
-          {/* News Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredNews.length > 0 ? (
               filteredNews.map((newsItem) => (

@@ -1,15 +1,13 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { useNewsStore, formatDate } from '@/services/newsService';
+import { useNewsStore, formatDate } from '@/services/news';
 
 const Hero = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoplay, setIsAutoplay] = useState(true);
   const autoplayRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Get top 3 news items from the store
   const { news } = useNewsStore();
   const heroNews = [...news]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
@@ -51,7 +49,6 @@ const Hero = () => {
   const handleMouseEnter = () => setIsAutoplay(false);
   const handleMouseLeave = () => setIsAutoplay(true);
   
-  // Make sure we have news before rendering
   if (heroNews.length === 0) {
     return null;
   }
@@ -62,7 +59,6 @@ const Hero = () => {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Background Image with Overlay */}
       <AnimatePresence initial={false}>
         <motion.div
           key={heroNews[currentIndex].id}
@@ -81,7 +77,6 @@ const Hero = () => {
         </motion.div>
       </AnimatePresence>
       
-      {/* Content Container */}
       <div className="container mx-auto px-4 relative z-20 h-full flex flex-col justify-end pb-32">
         <AnimatePresence mode="wait">
           <motion.div
@@ -115,7 +110,6 @@ const Hero = () => {
           </motion.div>
         </AnimatePresence>
         
-        {/* Navigation Controls - Dots only */}
         <div className="absolute bottom-16 left-0 right-0 flex justify-center space-x-2 z-30">
           {heroNews.map((_, index) => (
             <button

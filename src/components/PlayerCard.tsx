@@ -132,13 +132,17 @@ const PlayerCard = (props: PlayerCardProps) => {
               <div className="mb-4">
                 <h3 className="text-lg font-semibold text-[#00105a]">Player Details</h3>
                 <div className="bg-gray-50 p-3 rounded-md mt-2">
-                  <p className="text-sm text-gray-500">Position</p>
-                  <p className="font-medium">{props.position}</p>
+                  <div className="flex flex-col">
+                    <p className="text-sm text-gray-500">Position</p>
+                    <p className="font-medium">{props.position}</p>
+                  </div>
                 </div>
                 {props.number && (
                   <div className="bg-gray-50 p-3 rounded-md mt-2">
-                    <p className="text-sm text-gray-500">Jersey Number</p>
-                    <p className="font-medium">{props.number}</p>
+                    <div className="flex flex-col">
+                      <p className="text-sm text-gray-500">Jersey Number</p>
+                      <p className="font-medium">{props.number}</p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -149,26 +153,34 @@ const PlayerCard = (props: PlayerCardProps) => {
                   <div className="grid grid-cols-2 gap-2">
                     {props.stats.appearances !== undefined && (
                       <div className="bg-gray-50 p-3 rounded-md">
-                        <p className="text-sm text-gray-500">Appearances</p>
-                        <p className="font-medium">{props.stats.appearances}</p>
+                        <div className="flex flex-col">
+                          <p className="text-sm text-gray-500">Appearances</p>
+                          <p className="font-medium">{props.stats.appearances}</p>
+                        </div>
                       </div>
                     )}
                     {props.stats.goals !== undefined && (
                       <div className="bg-gray-50 p-3 rounded-md">
-                        <p className="text-sm text-gray-500">Goals</p>
-                        <p className="font-medium">{props.stats.goals}</p>
+                        <div className="flex flex-col">
+                          <p className="text-sm text-gray-500">Goals</p>
+                          <p className="font-medium">{props.stats.goals}</p>
+                        </div>
                       </div>
                     )}
                     {props.stats.assists !== undefined && (
                       <div className="bg-gray-50 p-3 rounded-md">
-                        <p className="text-sm text-gray-500">Assists</p>
-                        <p className="font-medium">{props.stats.assists}</p>
+                        <div className="flex flex-col">
+                          <p className="text-sm text-gray-500">Assists</p>
+                          <p className="font-medium">{props.stats.assists}</p>
+                        </div>
                       </div>
                     )}
                     {props.stats.cleanSheets !== undefined && (
                       <div className="bg-gray-50 p-3 rounded-md">
-                        <p className="text-sm text-gray-500">Clean Sheets</p>
-                        <p className="font-medium">{props.stats.cleanSheets}</p>
+                        <div className="flex flex-col">
+                          <p className="text-sm text-gray-500">Clean Sheets</p>
+                          <p className="font-medium">{props.stats.cleanSheets}</p>
+                        </div>
                       </div>
                     )}
                   </div>

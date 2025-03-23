@@ -126,8 +126,10 @@ const StaffMemberCard = ({
             <div className="mb-4">
               <h3 className="text-lg font-semibold text-[#00105a]">Staff Details</h3>
               <div className="bg-gray-50 p-3 rounded-md mt-2">
-                <p className="text-sm text-gray-500">Role</p>
-                <p className="font-medium">{role}</p>
+                <div className="flex flex-col">
+                  <p className="text-sm text-gray-500">Role</p>
+                  <p className="font-medium">{role}</p>
+                </div>
               </div>
             </div>
             

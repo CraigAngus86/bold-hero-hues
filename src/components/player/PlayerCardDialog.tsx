@@ -43,12 +43,16 @@ const PlayerCardDialog = ({
             <h3 className="text-lg font-semibold text-[#00105a]">Player Details</h3>
             <div className="grid grid-cols-2 gap-4 mt-2">
               <div className="bg-gray-50 p-3 rounded-md">
-                <p className="text-sm text-gray-500">Position</p>
-                <p className="font-medium">{position}</p>
+                <div className="flex flex-col">
+                  <p className="text-sm text-gray-500">Position</p>
+                  <p className="font-medium">{position}</p>
+                </div>
               </div>
               <div className="bg-gray-50 p-3 rounded-md">
-                <p className="text-sm text-gray-500">Squad Number</p>
-                <p className="font-medium">#{number}</p>
+                <div className="flex flex-col">
+                  <p className="text-sm text-gray-500">Squad Number</p>
+                  <p className="font-medium">#{number}</p>
+                </div>
               </div>
             </div>
           </div>

@@ -12,6 +12,7 @@ import Fixtures from "./pages/Fixtures";
 import LeagueTable from "./pages/LeagueTable";
 import Stadium from "./pages/Stadium";
 import Tickets from "./pages/Tickets";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/table" element={<LeagueTable />} />
             <Route path="/stadium" element={<Stadium />} />
             <Route path="/tickets" element={<Tickets />} />
+            <Route path="/admin" element={<Admin />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

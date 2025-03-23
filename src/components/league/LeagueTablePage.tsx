@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import LeagueTableContent from './LeagueTableContent';
 import LeagueStatsPanel from './LeagueStatsPanel';
 import LeagueInfoPanel from './LeagueInfoPanel';
-import { TeamStats } from './types';
+import { TeamStats, fullMockLeagueData } from './types';
 import { fetchLeagueTable, clearLeagueDataCache } from '@/services/leagueDataService';
 
 const LeagueTablePage = () => {

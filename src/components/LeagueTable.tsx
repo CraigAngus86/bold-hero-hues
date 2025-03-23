@@ -23,7 +23,10 @@ const LeagueTable = () => {
       
       const data = await fetchLeagueTable();
       const sortedData = [...data].sort((a, b) => a.position - b.position);
-      setLeagueData(sortedData);
+      
+      // For the homepage, only show the top 10 teams
+      const topTeams = sortedData.slice(0, 10);
+      setLeagueData(topTeams);
       
       if (refresh) {
         toast.success("League table refreshed automatically");

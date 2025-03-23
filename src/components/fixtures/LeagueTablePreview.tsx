@@ -10,6 +10,9 @@ interface LeagueTablePreviewProps {
 }
 
 const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
+  // Take the top 8 teams for the preview
+  const previewTeams = leagueData.slice(0, 8);
+  
   return (
     <Card className="overflow-hidden border-team-gray hover:shadow-md transition-shadow bg-white flex flex-col h-full">
       <div className="bg-[#00105a] text-white font-medium p-3 flex items-center justify-center">
@@ -28,7 +31,7 @@ const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {leagueData.map((team) => (
+              {previewTeams.map((team) => (
                 <TableRow 
                   key={team.position}
                   className={team.team === "Banks o' Dee" ? "bg-team-lightBlue/30" : ""}

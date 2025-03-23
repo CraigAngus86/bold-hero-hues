@@ -1,6 +1,6 @@
 
 import { Match } from '@/components/fixtures/types';
-import { TeamStats } from '@/components/league/types';
+import { TeamStats, fullMockLeagueData } from '@/components/league/types';
 import { 
   scrapeHighlandLeagueData, 
   scrapeLeagueTable, 
@@ -113,9 +113,8 @@ export const fetchLeagueTable = async (): Promise<TeamStats[]> => {
     } catch (error) {
       console.error('Error scraping league table:', error);
       console.log('Falling back to mock league table data...');
-      // Fallback to mock data
-      const { mockLeagueData } = await import('@/components/league/types');
-      return mockLeagueData;
+      // Fallback to full mock data
+      return fullMockLeagueData;
     }
   } catch (error) {
     console.error('Error fetching league table:', error);

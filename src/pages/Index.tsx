@@ -54,42 +54,6 @@ const mockNews = [
     date: "January 30, 2023",
     category: "Community",
     size: "small"
-  },
-  {
-    id: 6,
-    title: "Club announces new partnership with local business",
-    excerpt: "Exciting new sponsorship deal set to boost club finances and provide new opportunities for community engagement.",
-    image: "/lovable-uploads/7f997ef4-9019-4660-9e9e-4e230d7b1eb3.png",
-    date: "January 15, 2023",
-    category: "Sponsorship",
-    size: "small"
-  },
-  {
-    id: 7,
-    title: "Fan zone upgrades planned for next season",
-    excerpt: "New amenities and improved facilities coming to enhance matchday experience for supporters of all ages.",
-    image: "/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png",
-    date: "January 10, 2023",
-    category: "Stadium News",
-    size: "small"
-  },
-  {
-    id: 8,
-    title: "Banks o' Dee supporters club launches new initiative",
-    excerpt: "Local fans organize fundraising campaign to support club's community projects and youth development programs.",
-    image: "/lovable-uploads/122628af-86b4-4d7f-bfe3-01d4bf03d053.png",
-    date: "January 5, 2023",
-    category: "Supporters",
-    size: "small"
-  },
-  {
-    id: 9,
-    title: "New team captain announced ahead of crucial fixtures",
-    excerpt: "Management names veteran defender as new club captain following leadership changes in the squad.",
-    image: "/lovable-uploads/7f997ef4-9019-4660-9e9e-4e230d7b1eb3.png",
-    date: "December 28, 2022",
-    category: "Team News",
-    size: "small"
   }
 ];
 
@@ -101,7 +65,7 @@ const Index = () => {
       {/* Hero Section */}
       <Hero />
       
-      {/* Latest News - with updated grid layout */}
+      {/* Latest News - with mixed card sizes - moved above fixtures section */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
@@ -116,49 +80,18 @@ const Index = () => {
             </a>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-            {/* Feature news item - 6x4 (reduced height) */}
-            <div className="md:col-span-6 md:row-span-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {mockNews.map((news, index) => (
               <NewsCard
-                key={mockNews[0].id}
-                title={mockNews[0].title}
-                excerpt={mockNews[0].excerpt}
-                image={mockNews[0].image}
-                date={mockNews[0].date}
-                category={mockNews[0].category}
-                size="large"
-                reduced={true}
+                key={news.id}
+                title={news.title}
+                excerpt={news.excerpt}
+                image={news.image}
+                date={news.date}
+                category={news.category}
+                size={news.size as 'small' | 'medium' | 'large'}
+                className={index === 0 ? 'lg:col-span-2 lg:row-span-2' : ''}
               />
-            </div>
-            
-            {/* Right side grid - 3x3 cards */}
-            <div className="md:col-span-6 grid grid-cols-2 gap-6">
-              {mockNews.slice(1, 5).map((news) => (
-                <div key={news.id} className="col-span-1">
-                  <NewsCard
-                    title={news.title}
-                    excerpt={news.excerpt}
-                    image={news.image}
-                    date={news.date}
-                    category={news.category}
-                    size="small"
-                  />
-                </div>
-              ))}
-            </div>
-            
-            {/* Additional news items below - each 3x2 */}
-            {mockNews.slice(5, 9).map((news) => (
-              <div key={news.id} className="md:col-span-3">
-                <NewsCard
-                  title={news.title}
-                  excerpt={news.excerpt}
-                  image={news.image}
-                  date={news.date}
-                  category={news.category}
-                  size="small"
-                />
-              </div>
             ))}
           </div>
         </div>
@@ -167,7 +100,7 @@ const Index = () => {
       {/* Fixtures, Results & Table Section */}
       <FixturesSection />
       
-      {/* Social Media Feed Section */}
+      {/* Social Media Feed Section - moved below fixtures */}
       <SocialMediaFeed />
       
       {/* Sponsors Carousel */}

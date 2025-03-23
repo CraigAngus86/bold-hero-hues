@@ -1,106 +1,103 @@
-
-import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import TeamGrid from '@/components/TeamGrid';
+import { motion } from 'framer-motion';
+import TeamStats from '@/components/team/TeamStats';
 import ManagementTeam from '@/components/team/ManagementTeam';
 import ClubOfficials from '@/components/team/ClubOfficials';
 import ClubHonors from '@/components/team/ClubHonors';
-import TeamStats from '@/components/team/TeamStats';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { motion } from 'framer-motion';
-import { useTeamStore } from '@/services/teamService';
 
 const Team = () => {
-  const { players, staff, officials } = useTeamStore();
-  const [activeTab, setActiveTab] = useState('players');
+  const profileImageUrl = "/lovable-uploads/9cecca5c-daf2-4f52-a6ca-06e02ca9ea44.png";
   
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
+  const managementTeam = [
+    { 
+      name: "Josh Winton", 
+      role: "Manager", 
+      image: profileImageUrl,
+      bio: "Josh took charge in 2020 and has led the team to multiple cup successes and improved league positions. Previously managed at junior level with great success. Holds a UEFA B License.",
+      experience: "Previous clubs: Deveronvale FC (Assistant), Culter FC"
+    },
+    { 
+      name: "Paul Livingstone", 
+      role: "Assistant Manager", 
+      image: profileImageUrl,
+      bio: "Paul brings extensive tactical knowledge and provides vital support to the manager and players. Joined the club in 2021 after a successful playing career in the Highland League.",
+      experience: "Playing career: Formartine United, Inverurie Locos"
+    },
+    { 
+      name: "Andrew Douglas", 
+      role: "Coach", 
+      image: profileImageUrl,
+      bio: "Andrew focuses on player development and implementing training regimes to improve performance. Specializes in attacking play and set pieces.",
+      experience: "UEFA A License holder with 15 years coaching experience"
+    },
+    { 
+      name: "Mark Wilson", 
+      role: "Goalkeeping Coach", 
+      image: profileImageUrl,
+      bio: "Mark works specifically with our goalkeepers, drawing on his own professional playing experience. Former professional who made over 200 appearances in Scottish football.",
+      experience: "Playing career: Aberdeen FC, Ross County FC"
+    },
+    { 
+      name: "Brian Stewart", 
+      role: "Physio", 
+      image: profileImageUrl,
+      bio: "Brian ensures players stay fit and healthy, managing their rehabilitation from injuries. Has a degree in Sports Therapy and over a decade of experience in sports medicine.",
+      experience: "Previously worked with Aberdeen FC youth academy"
+    },
+    { 
+      name: "Chris Thomson", 
+      role: "First Team Analyst", 
+      image: profileImageUrl,
+      bio: "Chris provides in-depth analysis of opposition teams and our own performances to help the coaching staff make tactical decisions. Uses cutting-edge technology to track player performance metrics.",
+      experience: "MSc in Performance Analysis from University of Stirling"
     }
-  };
-  
+  ];
+
+  const clubOfficials = [
+    { name: "Thomas Stewart", role: "Club Chairman", image: profileImageUrl },
+    { name: "Margaret Wilson", role: "Vice Chairman", image: profileImageUrl },
+    { name: "Craig Stevenson", role: "Club Secretary", image: profileImageUrl },
+    { name: "Alan McRae", role: "Treasurer", image: profileImageUrl },
+    { name: "Gordon Smith", role: "Commercial Director", image: profileImageUrl },
+    { name: "Eleanor Grant", role: "Community Relations", image: profileImageUrl }
+  ];
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
       
-      {/* Hero Section */}
-      <section className="bg-gradient-to-r from-[#00105a] to-[#00349a] py-16 md:py-24">
-        <div className="container mx-auto px-4 text-center">
-          <motion.div
+      <div className="pt-32 pb-20">
+        <div className="container mx-auto px-4">
+          <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.5 }}
+            className="mb-12 text-center"
           >
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Meet Our Team</h1>
-            <p className="text-xl text-white/80 max-w-3xl mx-auto">
-              The players, coaches and staff that make Banks o' Dee FC a club we can all be proud of.
+            <h1 className="text-4xl md:text-5xl font-bold text-[#00105a] mb-4">Team & Management</h1>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Meet the players and staff who represent Banks o' Dee FC on and off the pitch.
             </p>
           </motion.div>
+          
+          {/* Team Stats Section */}
+          <TeamStats />
+          
+          {/* Management Section */}
+          <ManagementTeam staff={managementTeam} />
+          
+          {/* Player Squad Section */}
+          <TeamGrid />
+          
+          {/* Club Officials */}
+          <ClubOfficials officials={clubOfficials} />
+          
+          {/* Club Honors */}
+          <ClubHonors />
         </div>
-      </section>
-      
-      {/* Team Section */}
-      <section className="py-12">
-        <div className="container mx-auto px-4">
-          <Tabs 
-            value={activeTab} 
-            onValueChange={setActiveTab}
-            className="w-full"
-          >
-            <TabsList className="mb-8 w-full max-w-lg mx-auto grid grid-cols-3 h-auto p-1">
-              <TabsTrigger value="players" className="py-3">
-                Players
-              </TabsTrigger>
-              <TabsTrigger value="management" className="py-3">
-                Management
-              </TabsTrigger>
-              <TabsTrigger value="club" className="py-3">
-                Club
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="players">
-              <motion.div
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-              >
-                <TeamGrid players={players} />
-                <TeamStats />
-              </motion.div>
-            </TabsContent>
-            
-            <TabsContent value="management">
-              <motion.div
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-              >
-                <ManagementTeam staff={staff} />
-              </motion.div>
-            </TabsContent>
-            
-            <TabsContent value="club">
-              <motion.div
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                className="space-y-16"
-              >
-                <ClubOfficials officials={officials} />
-                <ClubHonors />
-              </motion.div>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </section>
+      </div>
       
       <Footer />
     </div>

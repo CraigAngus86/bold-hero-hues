@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { PlusCircle, Edit, Trash } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useNewsStore, NewsItem, formatDate, getDbDateFormat } from '@/services/newsService';
-import ImageUploader from './ImageUploader';
 
 const NewsManager = () => {
   const { toast } = useToast();
@@ -76,15 +75,6 @@ const NewsManager = () => {
     }
     
     closeDialog();
-  };
-  
-  const handleImageChange = (imagePath: string) => {
-    if (currentNews) {
-      setCurrentNews({
-        ...currentNews,
-        image: imagePath
-      });
-    }
   };
   
   return (
@@ -181,14 +171,15 @@ const NewsManager = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid grid-cols-4 items-start gap-4">
-                <label className="text-right text-sm font-medium">Image</label>
-                <div className="col-span-3">
-                  <ImageUploader 
-                    currentImage={currentNews?.image || ''}
-                    onImageChange={handleImageChange}
-                  />
-                </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <label htmlFor="image" className="text-right text-sm font-medium">Image URL</label>
+                <Input
+                  id="image"
+                  value={currentNews?.image || ''}
+                  onChange={(e) => setCurrentNews(prev => prev ? {...prev, image: e.target.value} : null)}
+                  className="col-span-3"
+                  required
+                />
               </div>
               <div className="grid grid-cols-4 items-start gap-4">
                 <label htmlFor="excerpt" className="text-right text-sm font-medium">Excerpt</label>

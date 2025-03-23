@@ -4,12 +4,11 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { NewspaperIcon, Users, Cog, HeartHandshake, Image } from 'lucide-react';
+import { NewspaperIcon, Users, Cog, HeartHandshake } from 'lucide-react';
 import NewsManager from '@/components/admin/NewsManager';
 import TeamManager from '@/components/admin/TeamManager';
 import ManagementEditor from '@/components/admin/ManagementEditor';
 import SponsorsManager from '@/components/admin/SponsorsManager';
-import ImageGallery from '@/components/admin/ImageGallery';
 
 const Admin = () => {
   return (
@@ -34,10 +33,6 @@ const Admin = () => {
               <TabsTrigger value="sponsors" className="flex items-center">
                 <HeartHandshake className="h-4 w-4 mr-2" />
                 Sponsors
-              </TabsTrigger>
-              <TabsTrigger value="images" className="flex items-center">
-                <Image className="h-4 w-4 mr-2" />
-                Images
               </TabsTrigger>
             </TabsList>
             
@@ -70,17 +65,6 @@ const Admin = () => {
                 </CardHeader>
                 <CardContent>
                   <SponsorsManager />
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="images">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Image Gallery</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ImageGallery />
                 </CardContent>
               </Card>
             </TabsContent>

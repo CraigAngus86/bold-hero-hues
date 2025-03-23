@@ -76,6 +76,12 @@ const Footer = () => {
               <li>
                 <Link to="/tickets" className="text-white/80 hover:text-white transition-colors">Tickets</Link>
               </li>
+              <li>
+                <Link to="/admin" className="text-white/80 hover:text-white transition-colors flex items-center">
+                  <Lock className="w-4 h-4 mr-1" />
+                  Admin
+                </Link>
+              </li>
             </ul>
           </div>
           
@@ -128,10 +134,6 @@ const Footer = () => {
             <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
             <Link to="/terms" className="hover:text-white transition-colors">Terms of Use</Link>
             <Link to="/contact" className="hover:text-white transition-colors">Contact</Link>
-            <Link to="/admin" className="hover:text-white transition-colors flex items-center">
-              <Lock className="w-3 h-3 mr-1" />
-              Admin
-            </Link>
           </div>
         </div>
       </div>

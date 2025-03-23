@@ -1,7 +1,7 @@
-
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import PlayerCard from './PlayerCard';
+import { Award } from 'lucide-react';
 
 interface Player {
   id: number;

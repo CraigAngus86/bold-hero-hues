@@ -4,6 +4,7 @@ import PlayerCard from '../PlayerCard';
 import PlayerCardDialog from '../player/PlayerCardDialog';
 import { Player } from '@/data/players';
 import { useState } from 'react';
+import { Dialog } from '@/components/ui/dialog';
 
 interface PlayerListProps {
   players: Player[];
@@ -27,7 +28,6 @@ const PlayerList = ({ players }: PlayerListProps) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.05 * (player.id % 8) }}
-            onClick={() => handlePlayerClick(player)}
           >
             <PlayerCard
               name={player.name}
@@ -36,22 +36,23 @@ const PlayerList = ({ players }: PlayerListProps) => {
               image={player.image}
               stats={player.stats}
               biography={player.biography}
+              onClick={() => handlePlayerClick(player)}
             />
           </motion.div>
         ))}
       </div>
 
       {selectedPlayer && (
-        <PlayerCardDialog
-          isOpen={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
-          name={selectedPlayer.name}
-          position={selectedPlayer.position}
-          number={selectedPlayer.number}
-          image={selectedPlayer.image}
-          stats={selectedPlayer.stats}
-          biography={selectedPlayer.biography}
-        />
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <PlayerCardDialog
+            name={selectedPlayer.name}
+            position={selectedPlayer.position}
+            number={selectedPlayer.number}
+            image={selectedPlayer.image}
+            stats={selectedPlayer.stats}
+            biography={selectedPlayer.biography}
+          />
+        </Dialog>
       )}
     </>
   );

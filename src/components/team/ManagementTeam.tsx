@@ -4,21 +4,13 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import StaffMemberCard from './StaffMemberCard';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useTeamStore } from '@/services/teamService';
 
-interface StaffMember {
-  name: string;
-  role: string;
-  image: string;
-  bio: string;
-  experience: string;
-}
-
-interface ManagementTeamProps {
-  staff: StaffMember[];
-}
-
-const ManagementTeam = ({ staff }: ManagementTeamProps) => {
+const ManagementTeam = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { getManagementStaff } = useTeamStore();
+  
+  const staff = getManagementStaff();
   
   // Show only first 12 staff members initially, then the rest in collapsible content
   const initialStaff = staff.slice(0, 12);
@@ -42,10 +34,10 @@ const ManagementTeam = ({ staff }: ManagementTeamProps) => {
             <StaffMemberCard
               key={member.name}
               name={member.name}
-              role={member.role}
+              role={member.role || ''}
               image={member.image}
-              bio={member.bio}
-              experience={member.experience}
+              bio={member.bio || ''}
+              experience={member.experience || ''}
             />
           ))}
         </div>
@@ -57,10 +49,10 @@ const ManagementTeam = ({ staff }: ManagementTeamProps) => {
                 <StaffMemberCard
                   key={member.name}
                   name={member.name}
-                  role={member.role}
+                  role={member.role || ''}
                   image={member.image}
-                  bio={member.bio}
-                  experience={member.experience}
+                  bio={member.bio || ''}
+                  experience={member.experience || ''}
                 />
               ))}
             </div>

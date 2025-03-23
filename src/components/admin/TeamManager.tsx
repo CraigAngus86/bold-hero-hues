@@ -6,95 +6,76 @@ import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PlusCircle, Edit, Trash } from 'lucide-react';
+import { PlusCircle, Edit, Trash, Filter } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-
-// Mock team data for demonstration
-const initialPlayers = [
-  {
-    id: 1,
-    name: "John Smith",
-    position: "Goalkeeper",
-    number: 1,
-    bio: "Experienced goalkeeper with excellent reflexes",
-    image: "/lovable-uploads/122628af-86b4-4d7f-bfe3-01d4bf03d053.png"
-  },
-  {
-    id: 2,
-    name: "Alex Johnson",
-    position: "Defender",
-    number: 5,
-    bio: "Strong central defender, good at aerial battles",
-    image: "/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png"
-  }
-];
-
-interface Player {
-  id: number;
-  name: string;
-  position: string;
-  number: number;
-  bio: string;
-  image: string;
-}
+import { TeamMember, useTeamStore } from '@/services/teamService';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const positions = ["Goalkeeper", "Defender", "Midfielder", "Forward"];
+const memberTypes = ["player", "management", "official"];
 
 const TeamManager = () => {
   const { toast } = useToast();
-  const [players, setPlayers] = useState<Player[]>(initialPlayers);
+  const { teamMembers, addTeamMember, updateTeamMember, deleteTeamMember } = useTeamStore();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
+  const [currentMember, setCurrentMember] = useState<TeamMember | null>(null);
+  const [activeTab, setActiveTab] = useState<"player" | "management" | "official">("player");
+  
+  const filteredMembers = teamMembers.filter(m => m.type === activeTab);
   
   const openNewDialog = () => {
-    setCurrentPlayer({
-      id: players.length > 0 ? Math.max(...players.map(item => item.id)) + 1 : 1,
+    setCurrentMember({
+      id: teamMembers.length > 0 ? Math.max(...teamMembers.map(item => item.id)) + 1 : 1,
       name: '',
-      position: 'Midfielder',
-      number: 0,
-      bio: '',
-      image: ''
+      position: activeTab === 'player' ? 'Midfielder' : undefined,
+      role: activeTab !== 'player' ? '' : undefined,
+      number: activeTab === 'player' ? 0 : undefined,
+      image: '',
+      biography: activeTab === 'player' ? '' : undefined,
+      bio: activeTab !== 'player' ? '' : undefined,
+      type: activeTab,
+      stats: activeTab === 'player' ? { appearances: 0, goals: 0, assists: 0 } : undefined,
+      experience: activeTab !== 'player' ? '' : undefined
     });
     setDialogOpen(true);
   };
   
-  const openEditDialog = (player: Player) => {
-    setCurrentPlayer(player);
+  const openEditDialog = (member: TeamMember) => {
+    setCurrentMember(member);
     setDialogOpen(true);
   };
   
   const closeDialog = () => {
     setDialogOpen(false);
-    setCurrentPlayer(null);
+    setCurrentMember(null);
   };
   
   const handleDelete = (id: number) => {
-    const updatedPlayers = players.filter(item => item.id !== id);
-    setPlayers(updatedPlayers);
+    deleteTeamMember(id);
     toast({
-      title: "Player deleted",
-      description: "The player has been successfully removed from the team.",
+      title: "Member deleted",
+      description: "The team member has been successfully removed.",
     });
   };
   
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!currentPlayer) return;
+    if (!currentMember) return;
     
-    if (players.some(item => item.id === currentPlayer.id)) {
+    if (teamMembers.some(item => item.id === currentMember.id)) {
       // Update existing
-      setPlayers(players.map(item => item.id === currentPlayer.id ? currentPlayer : item));
+      updateTeamMember(currentMember);
       toast({
-        title: "Player updated",
-        description: "The player information has been successfully updated."
+        title: "Member updated",
+        description: "The team member information has been successfully updated."
       });
     } else {
       // Add new
-      setPlayers([...players, currentPlayer]);
+      addTeamMember(currentMember);
       toast({
-        title: "Player added",
-        description: "A new player has been successfully added to the team."
+        title: "Member added",
+        description: "A new team member has been successfully added."
       });
     }
     
@@ -103,48 +84,120 @@ const TeamManager = () => {
   
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-medium">Team Players</h3>
-        <Button onClick={openNewDialog} className="flex items-center">
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Add Player
-        </Button>
-      </div>
-      
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Position</TableHead>
-            <TableHead>Number</TableHead>
-            <TableHead className="w-[100px]">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {players.map((player) => (
-            <TableRow key={player.id}>
-              <TableCell className="font-medium">{player.name}</TableCell>
-              <TableCell>{player.position}</TableCell>
-              <TableCell>{player.number}</TableCell>
-              <TableCell>
-                <div className="flex space-x-2">
-                  <Button variant="ghost" size="sm" onClick={() => openEditDialog(player)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleDelete(player.id)}>
-                    <Trash className="h-4 w-4" />
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <Tabs defaultValue="player" onValueChange={(value) => setActiveTab(value as "player" | "management" | "official")}>
+        <div className="flex justify-between items-center mb-6">
+          <TabsList>
+            <TabsTrigger value="player">Players</TabsTrigger>
+            <TabsTrigger value="management">Management</TabsTrigger>
+            <TabsTrigger value="official">Club Officials</TabsTrigger>
+          </TabsList>
+          <Button onClick={openNewDialog} className="flex items-center">
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add {activeTab === 'player' ? 'Player' : activeTab === 'management' ? 'Staff' : 'Official'}
+          </Button>
+        </div>
+        
+        <TabsContent value="player">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Position</TableHead>
+                <TableHead>Number</TableHead>
+                <TableHead className="w-[100px]">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredMembers.map((member) => (
+                <TableRow key={member.id}>
+                  <TableCell className="font-medium">{member.name}</TableCell>
+                  <TableCell>{member.position}</TableCell>
+                  <TableCell>{member.number}</TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button variant="ghost" size="sm" onClick={() => openEditDialog(member)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDelete(member.id)}>
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TabsContent>
+        
+        <TabsContent value="management">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead className="w-[100px]">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredMembers.map((member) => (
+                <TableRow key={member.id}>
+                  <TableCell className="font-medium">{member.name}</TableCell>
+                  <TableCell>{member.role}</TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button variant="ghost" size="sm" onClick={() => openEditDialog(member)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDelete(member.id)}>
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TabsContent>
+        
+        <TabsContent value="official">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead className="w-[100px]">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredMembers.map((member) => (
+                <TableRow key={member.id}>
+                  <TableCell className="font-medium">{member.name}</TableCell>
+                  <TableCell>{member.role}</TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button variant="ghost" size="sm" onClick={() => openEditDialog(member)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDelete(member.id)}>
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TabsContent>
+      </Tabs>
       
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-[550px]">
           <DialogHeader>
-            <DialogTitle>{currentPlayer?.id && players.some(item => item.id === currentPlayer.id) ? 'Edit Player' : 'Add Player'}</DialogTitle>
+            <DialogTitle>
+              {currentMember?.id && teamMembers.some(item => item.id === currentMember.id) 
+                ? `Edit ${activeTab === 'player' ? 'Player' : activeTab === 'management' ? 'Staff Member' : 'Club Official'}` 
+                : `Add ${activeTab === 'player' ? 'Player' : activeTab === 'management' ? 'Staff Member' : 'Club Official'}`}
+            </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSave}>
             <div className="grid gap-4 py-4">
@@ -152,60 +205,104 @@ const TeamManager = () => {
                 <label htmlFor="name" className="text-right text-sm font-medium">Name</label>
                 <Input
                   id="name"
-                  value={currentPlayer?.name || ''}
-                  onChange={(e) => setCurrentPlayer(prev => prev ? {...prev, name: e.target.value} : null)}
+                  value={currentMember?.name || ''}
+                  onChange={(e) => setCurrentMember(prev => prev ? {...prev, name: e.target.value} : null)}
                   className="col-span-3"
                   required
                 />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="position" className="text-right text-sm font-medium">Position</label>
-                <Select 
-                  value={currentPlayer?.position}
-                  onValueChange={(value) => setCurrentPlayer(prev => prev ? {...prev, position: value} : null)}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select position" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {positions.map(pos => (
-                      <SelectItem key={pos} value={pos}>{pos}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="number" className="text-right text-sm font-medium">Number</label>
-                <Input
-                  id="number"
-                  type="number"
-                  value={currentPlayer?.number || ''}
-                  onChange={(e) => setCurrentPlayer(prev => prev ? {...prev, number: parseInt(e.target.value)} : null)}
-                  className="col-span-3"
-                  required
-                />
-              </div>
+              
+              {activeTab === 'player' ? (
+                <>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <label htmlFor="position" className="text-right text-sm font-medium">Position</label>
+                    <Select 
+                      value={currentMember?.position}
+                      onValueChange={(value) => setCurrentMember(prev => prev ? {...prev, position: value} : null)}
+                    >
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Select position" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {positions.map(pos => (
+                          <SelectItem key={pos} value={pos}>{pos}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <label htmlFor="number" className="text-right text-sm font-medium">Number</label>
+                    <Input
+                      id="number"
+                      type="number"
+                      value={currentMember?.number || ''}
+                      onChange={(e) => setCurrentMember(prev => prev ? {...prev, number: parseInt(e.target.value)} : null)}
+                      className="col-span-3"
+                      required
+                    />
+                  </div>
+                </>
+              ) : (
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <label htmlFor="role" className="text-right text-sm font-medium">Role</label>
+                  <Input
+                    id="role"
+                    value={currentMember?.role || ''}
+                    onChange={(e) => setCurrentMember(prev => prev ? {...prev, role: e.target.value} : null)}
+                    className="col-span-3"
+                    required
+                  />
+                </div>
+              )}
+              
               <div className="grid grid-cols-4 items-center gap-4">
                 <label htmlFor="image" className="text-right text-sm font-medium">Image URL</label>
                 <Input
                   id="image"
-                  value={currentPlayer?.image || ''}
-                  onChange={(e) => setCurrentPlayer(prev => prev ? {...prev, image: e.target.value} : null)}
+                  value={currentMember?.image || ''}
+                  onChange={(e) => setCurrentMember(prev => prev ? {...prev, image: e.target.value} : null)}
                   className="col-span-3"
                   required
                 />
               </div>
-              <div className="grid grid-cols-4 items-start gap-4">
-                <label htmlFor="bio" className="text-right text-sm font-medium">Biography</label>
-                <Textarea
-                  id="bio"
-                  value={currentPlayer?.bio || ''}
-                  onChange={(e) => setCurrentPlayer(prev => prev ? {...prev, bio: e.target.value} : null)}
-                  className="col-span-3"
-                  rows={3}
-                  required
-                />
-              </div>
+              
+              {activeTab === 'player' ? (
+                <div className="grid grid-cols-4 items-start gap-4">
+                  <label htmlFor="biography" className="text-right text-sm font-medium">Biography</label>
+                  <Textarea
+                    id="biography"
+                    value={currentMember?.biography || ''}
+                    onChange={(e) => setCurrentMember(prev => prev ? {...prev, biography: e.target.value} : null)}
+                    className="col-span-3"
+                    rows={3}
+                    required
+                  />
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-4 items-start gap-4">
+                    <label htmlFor="bio" className="text-right text-sm font-medium">Biography</label>
+                    <Textarea
+                      id="bio"
+                      value={currentMember?.bio || ''}
+                      onChange={(e) => setCurrentMember(prev => prev ? {...prev, bio: e.target.value} : null)}
+                      className="col-span-3"
+                      rows={3}
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <label htmlFor="experience" className="text-right text-sm font-medium">Experience</label>
+                    <Input
+                      id="experience"
+                      value={currentMember?.experience || ''}
+                      onChange={(e) => setCurrentMember(prev => prev ? {...prev, experience: e.target.value} : null)}
+                      className="col-span-3"
+                      required
+                    />
+                  </div>
+                </>
+              )}
             </div>
             <DialogFooter>
               <Button variant="outline" type="button" onClick={closeDialog}>Cancel</Button>

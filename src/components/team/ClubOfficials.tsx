@@ -4,32 +4,17 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import OfficialCard from './OfficialCard';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useTeamStore } from '@/services/teamService';
 
-interface ClubOfficial {
-  name: string;
-  role: string;
-  image: string;
-  bio?: string;
-  experience?: string;
-}
-
-interface ClubOfficialsProps {
-  officials: ClubOfficial[];
-}
-
-const ClubOfficials = ({ officials }: ClubOfficialsProps) => {
+const ClubOfficials = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { getClubOfficials } = useTeamStore();
   
-  // Add default bio and experience for officials if they don't have one
-  const officialsWithDefaults = officials.map((official) => ({
-    ...official,
-    bio: official.bio || `${official.name} serves as the ${official.role} at Banks o' Dee FC, contributing to the club's success through dedicated management and leadership.`,
-    experience: official.experience || "Long-standing member of the Banks o' Dee FC team with extensive experience in club administration and management."
-  }));
-
+  const officials = getClubOfficials();
+  
   // Show only first 12 officials initially, then the rest in collapsible content
-  const initialOfficials = officialsWithDefaults.slice(0, 12);
-  const remainingOfficials = officialsWithDefaults.slice(12);
+  const initialOfficials = officials.slice(0, 12);
+  const remainingOfficials = officials.slice(12);
 
   return (
     <motion.div 
@@ -49,10 +34,10 @@ const ClubOfficials = ({ officials }: ClubOfficialsProps) => {
             <OfficialCard
               key={official.name}
               name={official.name}
-              role={official.role}
+              role={official.role || ''}
               image={official.image}
-              bio={official.bio}
-              experience={official.experience}
+              bio={official.bio || ''}
+              experience={official.experience || ''}
             />
           ))}
         </div>
@@ -64,10 +49,10 @@ const ClubOfficials = ({ officials }: ClubOfficialsProps) => {
                 <OfficialCard
                   key={official.name}
                   name={official.name}
-                  role={official.role}
+                  role={official.role || ''}
                   image={official.image}
-                  bio={official.bio}
-                  experience={official.experience}
+                  bio={official.bio || ''}
+                  experience={official.experience || ''}
                 />
               ))}
             </div>

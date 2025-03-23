@@ -2,24 +2,11 @@
 import { useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
-import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
-
-// Expanded sponsors data with dummy logos
-const sponsors = [
-  { id: 1, name: "Cala Group", logoUrl: "https://placehold.co/300x100/team-lightBlue/white?text=Cala+Group" },
-  { id: 2, name: "Aberdeen Drilling School", logoUrl: "https://placehold.co/300x100/team-white/team-blue?text=Aberdeen+Drilling+School" },
-  { id: 3, name: "EnerMech", logoUrl: "https://placehold.co/300x100/team-lightBlue/white?text=EnerMech" },
-  { id: 4, name: "Scott Electrical", logoUrl: "https://placehold.co/300x100/team-white/team-blue?text=Scott+Electrical" },
-  { id: 5, name: "ADS Energy", logoUrl: "https://placehold.co/300x100/team-lightBlue/white?text=ADS+Energy" },
-  { id: 6, name: "SureVoIP", logoUrl: "https://placehold.co/300x100/team-white/team-blue?text=SureVoIP" },
-  { id: 7, name: "TechSolutions", logoUrl: "https://placehold.co/300x100/team-lightBlue/white?text=TechSolutions" },
-  { id: 8, name: "North Sea Services", logoUrl: "https://placehold.co/300x100/team-white/team-blue?text=North+Sea+Services" },
-  { id: 9, name: "Aberdeen Digital", logoUrl: "https://placehold.co/300x100/team-lightBlue/white?text=Aberdeen+Digital" },
-  { id: 10, name: "Highland Engineering", logoUrl: "https://placehold.co/300x100/team-white/team-blue?text=Highland+Engineering" },
-];
+import { useSponsorsStore } from '@/services/sponsorsService';
 
 const SponsorsCarousel = () => {
+  const { sponsors } = useSponsorsStore();
   const autoplayPlugin = useRef(
     Autoplay({ delay: 3000, stopOnInteraction: false })
   );

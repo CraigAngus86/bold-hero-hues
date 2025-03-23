@@ -4,19 +4,13 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { NewspaperIcon, Users, Cog, LockIcon } from 'lucide-react';
-import AdminLogin from '@/components/admin/AdminLogin';
+import { NewspaperIcon, Users, Cog, HeartHandshake } from 'lucide-react';
 import NewsManager from '@/components/admin/NewsManager';
 import TeamManager from '@/components/admin/TeamManager';
 import ManagementEditor from '@/components/admin/ManagementEditor';
+import SponsorsManager from '@/components/admin/SponsorsManager';
 
 const Admin = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  const handleLogin = (success: boolean) => {
-    setIsAuthenticated(success);
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
@@ -26,59 +20,55 @@ const Admin = () => {
           <h1 className="text-3xl font-bold text-team-blue mb-2">Admin Dashboard</h1>
           <p className="text-gray-600 mb-8">Manage website content and settings</p>
           
-          {!isAuthenticated ? (
-            <AdminLogin onLogin={handleLogin} />
-          ) : (
-            <Tabs defaultValue="news" className="w-full">
-              <TabsList className="mb-6 flex justify-start overflow-x-auto">
-                <TabsTrigger value="news" className="flex items-center">
-                  <NewspaperIcon className="h-4 w-4 mr-2" />
-                  News
-                </TabsTrigger>
-                <TabsTrigger value="team" className="flex items-center">
-                  <Users className="h-4 w-4 mr-2" />
-                  Team
-                </TabsTrigger>
-                <TabsTrigger value="management" className="flex items-center">
-                  <Cog className="h-4 w-4 mr-2" />
-                  Management
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="news">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>News Management</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <NewsManager />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="team">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Team Management</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <TeamManager />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="management">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Management Data</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ManagementEditor />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          )}
+          <Tabs defaultValue="news" className="w-full">
+            <TabsList className="mb-6 flex justify-start overflow-x-auto">
+              <TabsTrigger value="news" className="flex items-center">
+                <NewspaperIcon className="h-4 w-4 mr-2" />
+                News
+              </TabsTrigger>
+              <TabsTrigger value="team" className="flex items-center">
+                <Users className="h-4 w-4 mr-2" />
+                Team & Staff
+              </TabsTrigger>
+              <TabsTrigger value="sponsors" className="flex items-center">
+                <HeartHandshake className="h-4 w-4 mr-2" />
+                Sponsors
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="news">
+              <Card>
+                <CardHeader>
+                  <CardTitle>News Management</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <NewsManager />
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="team">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Team & Staff Management</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <TeamManager />
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="sponsors">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Sponsors Management</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <SponsorsManager />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
       

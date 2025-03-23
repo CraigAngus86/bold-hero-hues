@@ -2,20 +2,19 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Award, ChevronDown, ChevronUp } from 'lucide-react';
-import { players } from '@/data/players';
 import PositionFilter from './team/PositionFilter';
 import PlayerList from './team/PlayerList';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useTeamStore } from '@/services/teamService';
 
 const positions = ["All", "Goalkeeper", "Defender", "Midfielder", "Forward"];
 
 const TeamGrid = () => {
   const [selectedPosition, setSelectedPosition] = useState("All");
   const [isOpen, setIsOpen] = useState(false);
+  const { getPlayersByPosition } = useTeamStore();
   
-  const filteredPlayers = selectedPosition === "All" 
-    ? players 
-    : players.filter(player => player.position === selectedPosition);
+  const filteredPlayers = getPlayersByPosition(selectedPosition);
   
   // Show only first 12 players initially, then the rest in collapsible content
   const initialPlayers = filteredPlayers.slice(0, 12);

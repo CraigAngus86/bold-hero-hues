@@ -82,7 +82,7 @@ const Hero = () => {
   
   return (
     <section 
-      className="relative w-full h-screen overflow-hidden bg-team-blue"
+      className="relative w-full h-screen overflow-hidden bg-[#00105a]"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
@@ -96,7 +96,7 @@ const Hero = () => {
           transition={{ duration: 1 }}
           className="absolute inset-0 w-full h-full"
         >
-          <div className="absolute inset-0 bg-gradient-to-t from-team-blue/90 to-team-blue/30 z-10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#00105a]/90 to-[#00105a]/30 z-10" />
           <img 
             src={mockNews[currentIndex].image} 
             alt={mockNews[currentIndex].title}
@@ -119,7 +119,7 @@ const Hero = () => {
             }}
             className="max-w-4xl"
           >
-            <span className="inline-block px-3 py-1 mb-4 bg-team-red text-white text-xs font-semibold rounded">
+            <span className="inline-block px-3 py-1 mb-4 bg-[#c5e7ff] text-[#00105a] text-xs font-semibold rounded">
               {mockNews[currentIndex].category}
             </span>
             <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight">
@@ -129,7 +129,7 @@ const Hero = () => {
               {mockNews[currentIndex].excerpt}
             </p>
             <div className="flex items-center space-x-6">
-              <button className="bg-white text-team-blue font-medium px-6 py-3 rounded hover:bg-gray-100 transition-colors">
+              <button className="bg-white text-[#00105a] font-medium px-6 py-3 rounded hover:bg-gray-100 transition-colors">
                 Read More
               </button>
               <span className="text-white/70 text-sm">

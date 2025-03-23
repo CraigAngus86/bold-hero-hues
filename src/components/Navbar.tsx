@@ -18,13 +18,13 @@ const Navbar = () => {
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-team-blue shadow-md py-3">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-[#00105a] shadow-md py-3">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="relative z-10 flex items-center">
             <img 
-              src="/lovable-uploads/940ac3a1-b89d-40c9-957e-217a64371120.png" 
+              src="/lovable-uploads/banks-o-dee-logo.png" 
               alt="Banks o' Dee FC Logo" 
               className="h-16 md:h-20 transition-all duration-300 mr-3"
             />
@@ -97,12 +97,12 @@ const Navbar = () => {
 
           {/* Mobile Navigation */}
           <div className={cn(
-            "fixed inset-0 bg-team-blue z-[49] transition-transform duration-300 ease-in-out md:hidden",
+            "fixed inset-0 bg-[#00105a] z-[49] transition-transform duration-300 ease-in-out md:hidden",
             isOpen ? "translate-x-0" : "translate-x-full"
           )}>
             <div className="flex flex-col items-center justify-center h-full">
               <img 
-                src="/lovable-uploads/940ac3a1-b89d-40c9-957e-217a64371120.png" 
+                src="/lovable-uploads/banks-o-dee-logo.png" 
                 alt="Banks o' Dee FC Logo" 
                 className="h-24 mb-8"
               />

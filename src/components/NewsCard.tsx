@@ -45,7 +45,7 @@ const NewsCard = ({
         size === 'large' ? "h-80" : ""
       )}>
         <div className="absolute top-0 left-0 z-10 m-4">
-          <Badge className="bg-team-red hover:bg-team-red/90 text-white text-xs font-semibold">
+          <Badge className="bg-[#c5e7ff] hover:bg-[#c5e7ff]/90 text-[#00105a] text-xs font-semibold">
             {category}
           </Badge>
         </div>
@@ -67,7 +67,7 @@ const NewsCard = ({
         </div>
         
         <h3 className={cn(
-          "font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-team-blue transition-colors",
+          "font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-[#00105a] transition-colors",
           size === 'large' ? "text-2xl" : "text-xl",
           size === 'small' ? "text-lg" : ""
         )}>
@@ -83,7 +83,7 @@ const NewsCard = ({
         </p>
         
         <div className="mt-auto">
-          <button className="text-team-blue font-medium inline-flex items-center transition-colors hover:text-team-red">
+          <button className="text-[#00105a] font-medium inline-flex items-center transition-colors hover:text-[#00105a]/70">
             Read Full Story
             <svg className="w-4 h-4 ml-1 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />

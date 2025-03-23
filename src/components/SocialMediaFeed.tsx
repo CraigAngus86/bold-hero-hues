@@ -61,7 +61,7 @@ const SocialMediaFeed = () => {
     <section className="py-6 bg-team-gray">
       <div className="container mx-auto px-3">
         <div className="text-center mb-4">
-          <h2 className="text-xl font-semibold text-team-blue mb-1">Social Media</h2>
+          <h2 className="text-2xl font-semibold text-team-blue mb-1">Social Media</h2>
           <p className="text-gray-600 max-w-2xl mx-auto text-sm">
             Follow us on social media to stay updated with everything happening at Banks o' Dee FC.
           </p>

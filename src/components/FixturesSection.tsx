@@ -31,7 +31,7 @@ const FixturesSection = () => {
   return (
     <section className="py-10 bg-team-gray">
       <div className="container mx-auto px-4">
-        <h2 className="text-xl font-semibold text-team-blue mb-6 text-center">Fixtures, Results & Table</h2>
+        <h2 className="text-2xl font-semibold text-team-blue mb-6 text-center">Fixtures, Results & Table</h2>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <RecentResults matches={recentMatches} />

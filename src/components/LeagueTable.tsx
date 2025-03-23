@@ -14,7 +14,7 @@ const LeagueTable = () => {
   return (
     <section className="py-12 bg-team-gray">
       <div className="container mx-auto px-4">
-        <h2 className="text-xl font-semibold text-team-blue mb-6 text-center">Highland League Table</h2>
+        <h2 className="text-2xl font-semibold text-team-blue mb-6 text-center">Highland League Table</h2>
         
         <div className="flex justify-end mb-4">
           <a 

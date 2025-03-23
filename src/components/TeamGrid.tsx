@@ -24,7 +24,7 @@ const TeamGrid = () => {
     >
       <div className="flex items-center justify-center mb-8">
         <Award className="w-6 h-6 text-[#00105a] mr-3" />
-        <h2 className="text-xl font-semibold text-[#00105a]">Player Squad</h2>
+        <h2 className="text-2xl font-semibold text-[#00105a]">Player Squad</h2>
       </div>
       
       <PositionFilter 

@@ -13,7 +13,7 @@ const UpcomingFixtures = ({ matches }: UpcomingFixturesProps) => {
     <Card className="overflow-hidden border-team-gray hover:shadow-md transition-shadow bg-white flex flex-col h-full">
       <div className="bg-[#00105a] text-white font-medium p-3 flex items-center justify-center">
         <CalendarDays className="w-5 h-5 mr-2" />
-        <h3 className="text-lg font-semibold">Upcoming Fixtures</h3>
+        <h3 className="text-2xl font-semibold">Upcoming Fixtures</h3>
       </div>
       <CardContent className="p-4 flex-1 flex flex-col">
         <div className="space-y-3 flex-1">
@@ -40,7 +40,7 @@ const UpcomingFixtures = ({ matches }: UpcomingFixturesProps) => {
         <div className="mt-4 grid grid-cols-2 gap-2">
           <Link 
             to="/fixtures" 
-            className="inline-block px-4 py-2 bg-team-lightBlue text-[#00105a] text-sm font-medium rounded hover:bg-[#00105a] hover:text-white transition-colors"
+            className="inline-flex items-center justify-center px-4 py-2 bg-team-lightBlue text-[#00105a] text-sm font-medium rounded hover:bg-[#00105a] hover:text-white transition-colors text-center"
           >
             All Fixtures
           </Link>

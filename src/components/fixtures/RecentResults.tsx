@@ -13,7 +13,7 @@ const RecentResults = ({ matches }: RecentResultsProps) => {
     <Card className="overflow-hidden border-team-gray hover:shadow-md transition-shadow bg-white flex flex-col h-full">
       <div className="bg-[#00105a] text-white font-medium p-3 flex items-center justify-center">
         <Clock className="w-5 h-5 mr-2" />
-        <h3 className="text-lg font-semibold">Recent Results</h3>
+        <h3 className="text-2xl font-semibold">Recent Results</h3>
       </div>
       <CardContent className="p-4 flex-1 flex flex-col">
         <div className="space-y-3 flex-1">
@@ -44,7 +44,7 @@ const RecentResults = ({ matches }: RecentResultsProps) => {
         <div className="mt-4 text-center">
           <Link 
             to="/fixtures" 
-            className="inline-block px-4 py-2 bg-team-lightBlue text-[#00105a] text-sm font-medium rounded hover:bg-[#00105a] hover:text-white transition-colors w-full"
+            className="inline-block px-4 py-2 bg-team-lightBlue text-[#00105a] text-sm font-medium rounded hover:bg-[#00105a] hover:text-white transition-colors w-full text-center"
           >
             All Results
           </Link>

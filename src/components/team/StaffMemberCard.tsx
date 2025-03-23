@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -43,7 +42,7 @@ const StaffMemberCard = ({
       >
         <div 
           className={cn(
-            "relative w-full rounded-lg overflow-hidden transition-all duration-700 preserve-3d cursor-pointer shadow-lg hover:shadow-xl aspect-square",
+            "relative w-full rounded-lg overflow-hidden transition-all duration-700 preserve-3d cursor-pointer shadow-lg hover:shadow-xl h-64",
             isFlipped ? "rotate-y-180" : ""
           )}
           onClick={toggleFlip}
@@ -58,33 +57,29 @@ const StaffMemberCard = ({
                   alt={name} 
                   className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-full object-cover object-top"
                 />
-                
-                {/* Click for more indicator */}
-                <div 
-                  className="absolute bottom-4 right-4 bg-white/80 px-3 py-1.5 rounded-full text-xs font-medium text-[#00105a] animate-pulse flex items-center"
-                  onClick={openDialog}
-                >
-                  <span>Click for more</span>
-                  <ChevronRight className="w-4 h-4 ml-1" />
-                </div>
               </div>
               
-              <div className="bg-white p-4 flex-1 flex flex-col justify-center">
-                <h3 className="text-xl font-bold text-center text-[#00105a]">{name}</h3>
-                <p className="text-center text-gray-500 font-medium">{role}</p>
+              <div className="bg-white p-3 flex-1 flex flex-col justify-center">
+                <h3 className="text-lg font-bold text-center text-[#00105a]">{name}</h3>
+                <p className="text-center text-gray-500 font-medium text-sm">{role}</p>
               </div>
+            </div>
+            
+            <div className="absolute bottom-12 right-4 bg-white/80 px-3 py-1.5 rounded-full text-xs font-medium text-[#00105a] animate-pulse flex items-center">
+              <span>View Staff</span>
+              <ChevronRight className="w-4 h-4 ml-1" />
             </div>
           </div>
           
           {/* Back Card */}
           <div className="absolute inset-0 backface-hidden rotate-y-180 bg-white">
-            <div className="flex flex-col h-full p-6">
-              <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
+            <div className="flex flex-col h-full p-4">
+              <div className="flex items-center justify-between mb-3 pb-3 border-b border-gray-200">
                 <div>
-                  <h3 className="text-xl font-bold text-[#00105a]">{name}</h3>
-                  <p className="text-gray-500">{role}</p>
+                  <h3 className="text-lg font-bold text-[#00105a]">{name}</h3>
+                  <p className="text-gray-500 text-sm">{role}</p>
                 </div>
-                <div className="w-14 h-14 overflow-hidden rounded-md">
+                <div className="w-12 h-12 overflow-hidden rounded-md">
                   <img 
                     src={image} 
                     alt={name} 
@@ -93,14 +88,12 @@ const StaffMemberCard = ({
                 </div>
               </div>
               
-              <div 
-                className="mt-auto pt-4 text-center cursor-pointer"
-              >
+              <div className="mt-auto pt-2 text-center">
                 <button 
-                  className="bg-[#00105a] text-white px-4 py-2 rounded-md inline-flex items-center"
+                  className="bg-[#00105a] text-white px-4 py-2 rounded-md text-sm inline-flex items-center"
                   onClick={openDialog}
                 >
-                  View Details
+                  View Staff
                   <ChevronRight className="w-4 h-4 ml-1" />
                 </button>
               </div>

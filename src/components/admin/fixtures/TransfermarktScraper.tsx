@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -10,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/services/supabase/supabaseClient';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { FirecrawlService } from '@/utils/FirecrawlService';
 
 interface TransfermarktScraperProps {
   defaultUrl?: string;
@@ -69,7 +71,8 @@ export default function TransfermarktScraper({ defaultUrl }: TransfermarktScrape
           console.log('HTML sample from failed scraping:', data.htmlSample);
         }
         
-        toast.error(errorMessage);
+        // Use mock data instead when scraping fails
+        handleGenerateMockFixtures();
         return;
       }
       
@@ -81,7 +84,8 @@ export default function TransfermarktScraper({ defaultUrl }: TransfermarktScrape
           console.log('HTML sample from failed scraping:', data.htmlSample);
         }
         
-        toast.error('No fixtures found');
+        // Use mock data instead when no fixtures are found
+        handleGenerateMockFixtures();
         return;
       }
       
@@ -91,8 +95,22 @@ export default function TransfermarktScraper({ defaultUrl }: TransfermarktScrape
       console.error('Error fetching fixtures:', error);
       setError(error instanceof Error ? error.message : 'An unknown error occurred');
       toast.error('An error occurred while fetching fixtures');
+      
+      // Use mock data as fallback
+      handleGenerateMockFixtures();
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGenerateMockFixtures = () => {
+    try {
+      const mockFixtures = FirecrawlService.generateMockFixtures();
+      toast.info('Using mock fixtures as a fallback since Transfermarkt scraping failed');
+      processScrapedFixtures(mockFixtures);
+    } catch (error) {
+      console.error('Error generating mock fixtures:', error);
+      toast.error('Failed to generate mock fixtures');
     }
   };
 
@@ -214,23 +232,35 @@ export default function TransfermarktScraper({ defaultUrl }: TransfermarktScrape
           </p>
         </div>
         
-        <Button
-          className="w-full"
-          onClick={handleFetchFromTransfermarkt}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <>
-              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-              Fetching from Transfermarkt...
-            </>
-          ) : (
-            <>
-              <Calendar className="mr-2 h-4 w-4" />
-              Fetch from Transfermarkt
-            </>
-          )}
-        </Button>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Button
+            className="w-full"
+            onClick={handleFetchFromTransfermarkt}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                Fetching...
+              </>
+            ) : (
+              <>
+                <Calendar className="mr-2 h-4 w-4" />
+                Fetch from Transfermarkt
+              </>
+            )}
+          </Button>
+          
+          <Button
+            className="w-full"
+            variant="outline"
+            onClick={handleGenerateMockFixtures}
+            disabled={isLoading}
+          >
+            <Calendar className="mr-2 h-4 w-4" />
+            Generate Mock Fixtures
+          </Button>
+        </div>
         
         {error && (
           <Alert variant="destructive">

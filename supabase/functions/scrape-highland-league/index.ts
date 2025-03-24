@@ -3,6 +3,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import * as cheerio from 'https://esm.sh/cheerio@1.0.0-rc.12'
 
+// CORS headers to ensure the function can be called from any origin
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -20,15 +21,22 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     const supabase = createClient(supabaseUrl, supabaseKey)
 
+    console.log('Edge Function: Starting scrape operation')
+
     // Parse request to get force refresh parameter
     const { forceRefresh } = await req.json().catch(() => ({ forceRefresh: false }))
+    console.log(`Edge Function: Force refresh requested: ${forceRefresh}`)
 
     // Check last scrape time from Supabase
-    const { data: settingsData } = await supabase
+    const { data: settingsData, error: settingsError } = await supabase
       .from('settings')
       .select('value')
       .eq('key', 'last_scrape_time')
       .single()
+
+    if (settingsError && settingsError.code !== 'PGRST116') {
+      console.error('Edge Function: Error fetching settings:', settingsError)
+    }
 
     const lastScrapeTime = settingsData?.value ? new Date(settingsData.value) : null
     const currentTime = new Date()
@@ -38,7 +46,10 @@ serve(async (req) => {
       !lastScrapeTime || 
       (currentTime.getTime() - lastScrapeTime.getTime() > 6 * 60 * 60 * 1000)
 
+    console.log(`Edge Function: Should scrape: ${shouldScrape}, Last scrape: ${lastScrapeTime?.toISOString() || 'never'}`)
+
     if (!shouldScrape) {
+      console.log('Edge Function: Using cached data')
       // Return the cached data from Supabase
       const { data: cachedData, error: fetchError } = await supabase
         .from('highland_league_table')
@@ -46,6 +57,7 @@ serve(async (req) => {
         .order('position', { ascending: true })
 
       if (fetchError) {
+        console.error('Edge Function: Failed to fetch cached data:', fetchError)
         throw new Error(`Failed to fetch cached data: ${fetchError.message}`)
       }
 
@@ -62,7 +74,7 @@ serve(async (req) => {
 
     // Scrape the BBC Sport Highland League table
     const url = 'https://www.bbc.com/sport/football/scottish-highland-league/table'
-    console.log(`Scraping data from ${url}`)
+    console.log(`Edge Function: Scraping data from ${url}`)
 
     // Configure proper headers to avoid being blocked
     const response = await fetch(url, {
@@ -87,6 +99,8 @@ serve(async (req) => {
     }
 
     const html = await response.text()
+    console.log('Edge Function: Successfully fetched BBC Sport page, extracting data')
+    
     const $ = cheerio.load(html)
     
     // Target the correct table selector - BBC Sport specific
@@ -163,7 +177,7 @@ serve(async (req) => {
         })
         
       } catch (error) {
-        console.error('Error parsing row:', error)
+        console.error('Edge Function: Error parsing row:', error)
       }
     })
     
@@ -171,7 +185,7 @@ serve(async (req) => {
       throw new Error('Failed to extract any team data from BBC Sport page')
     }
     
-    console.log(`Successfully extracted data for ${leagueData.length} teams`)
+    console.log(`Edge Function: Successfully extracted data for ${leagueData.length} teams`)
 
     // Store the scraped data in Supabase
     // First, clear existing data
@@ -181,7 +195,7 @@ serve(async (req) => {
       .neq('id', 0) // Delete all rows
 
     if (deleteError) {
-      console.error('Error clearing existing data:', deleteError)
+      console.error('Edge Function: Error clearing existing data:', deleteError)
     }
 
     // Insert new data
@@ -190,6 +204,7 @@ serve(async (req) => {
       .insert(leagueData)
 
     if (insertError) {
+      console.error('Edge Function: Error inserting data:', insertError)
       throw new Error(`Failed to store scraped data: ${insertError.message}`)
     }
 
@@ -197,6 +212,8 @@ serve(async (req) => {
     await supabase
       .from('settings')
       .upsert({ key: 'last_scrape_time', value: currentTime.toISOString() })
+
+    console.log('Edge Function: Successfully stored data in Supabase')
 
     return new Response(
       JSON.stringify({
@@ -209,7 +226,7 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
-    console.error('Error in Highland League scraper:', error)
+    console.error('Edge Function Error:', error)
     return new Response(
       JSON.stringify({
         success: false,

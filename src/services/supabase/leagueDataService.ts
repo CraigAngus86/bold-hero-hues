@@ -66,21 +66,37 @@ export async function triggerLeagueDataScrape(forceRefresh = false): Promise<Tea
     // First try the Edge Function
     try {
       console.log('Triggering league data scrape via Edge Function');
-      const { data: response, error } = await supabase.functions.invoke('scrape-highland-league', {
+      
+      // Add a timeout for the Edge Function call
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Edge Function timeout')), 10000);
+      });
+      
+      // Create the actual Edge Function call
+      const edgeFunctionPromise = supabase.functions.invoke('scrape-highland-league', {
         body: { forceRefresh }
       });
+      
+      // Race between the timeout and the Edge Function call
+      const result = await Promise.race([
+        edgeFunctionPromise,
+        timeoutPromise
+      ]) as { data: any, error: any };
+      
+      const { data: response, error } = result;
       
       if (error) {
         console.error('Error invoking Edge Function:', error);
         throw error;
       }
       
-      if (!response.success) {
-        console.error('Scraper returned error:', response.message);
-        throw new Error(`Scraper failed: ${response.message}`);
+      if (!response || !response.success) {
+        console.error('Scraper returned error:', response?.message || 'Unknown error');
+        throw new Error(`Scraper failed: ${response?.message || 'Unknown error'}`);
       }
       
       console.log('Successfully scraped league data via Edge Function');
+      toast.success("Highland League data refreshed successfully!");
       return response.data as TeamStats[];
     } catch (edgeFunctionError) {
       console.error('Edge Function error, trying local server:', edgeFunctionError);
@@ -89,10 +105,18 @@ export async function triggerLeagueDataScrape(forceRefresh = false): Promise<Tea
       // Try the local server as a fallback
       try {
         const apiUrl = `http://localhost:3001/api/league-table?refresh=true`;
+        
+        // Add a timeout for the local server call
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        
         const response = await fetch(apiUrl, {
           headers: { 'Content-Type': 'application/json' },
-          mode: 'cors'
+          mode: 'cors',
+          signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
         
         if (!response.ok) {
           throw new Error(`Server responded with ${response.status}`);
@@ -104,6 +128,7 @@ export async function triggerLeagueDataScrape(forceRefresh = false): Promise<Tea
         return data.leagueTable;
       } catch (localServerError) {
         console.error('Local server error:', localServerError);
+        toast.error("Local server failed. Using mock data instead.");
         throw new Error('Both Edge Function and local server failed');
       }
     }

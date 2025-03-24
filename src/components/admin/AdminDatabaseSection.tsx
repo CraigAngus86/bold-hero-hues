@@ -5,7 +5,7 @@ import ScrapedDataTable from './data/ScrapedDataTable';
 import { Separator } from "@/components/ui/separator";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Database } from "lucide-react";
+import { Database, Cloud } from "lucide-react";
 
 const AdminDatabaseSection = () => {
   return (
@@ -18,14 +18,14 @@ const AdminDatabaseSection = () => {
       </div>
       
       <Alert className="bg-green-50 border-green-200">
-        <Database className="h-4 w-4 text-green-800" />
-        <AlertTitle className="text-green-800">Supabase Database Integration</AlertTitle>
+        <Cloud className="h-4 w-4 text-green-800" />
+        <AlertTitle className="text-green-800">Supabase Cloud Integration</AlertTitle>
         <AlertDescription className="text-green-700">
-          Your application is connected to Supabase for data storage. The system automatically:
+          Your application is connected to Supabase for data storage and processing. The system:
           <ul className="list-disc list-inside mt-2">
-            <li>Scrapes Highland League data from BBC Sport</li>
-            <li>Stores the data in your Supabase database</li>
-            <li>Displays real-time data in your application</li>
+            <li>Uses Supabase Edge Functions to scrape Highland League data</li>
+            <li>Stores the data securely in your Supabase database</li>
+            <li>Provides automatic fallbacks if the primary data source is unavailable</li>
           </ul>
         </AlertDescription>
       </Alert>

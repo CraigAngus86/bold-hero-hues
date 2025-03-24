@@ -1,4 +1,3 @@
-
 import { toast } from 'sonner';
 
 // Define the response structure from the Firecrawl API
@@ -25,13 +24,14 @@ export interface ScrapedFixture {
 /**
  * FirecrawlService
  * 
- * This service helps with fetching RSS feed data from the Highland Football League website.
- * It provides multiple methods to fetch data including direct HTTP requests and Firecrawl API.
+ * This service helps with fetching football fixture data from various sources.
+ * It provides multiple methods including direct HTTP requests, CORS proxies, and Firecrawl API.
  */
 export class FirecrawlService {
   private static API_KEY_STORAGE_KEY = 'firecrawl_api_key';
   private static DEFAULT_API_KEY = 'fc-83bcbd73547640f0a7b2be29068dadad';
   private static RSS_URL = 'http://www.highlandfootballleague.com/rss/';
+  private static BBC_FIXTURES_URL = 'https://www.bbc.com/sport/football/scottish-highland-league/scores-fixtures';
 
   // Save API key to local storage
   static saveApiKey(apiKey: string): void {
@@ -45,7 +45,161 @@ export class FirecrawlService {
     return localStorage.getItem(this.API_KEY_STORAGE_KEY) || this.DEFAULT_API_KEY;
   }
 
-  // Direct fetch method - doesn't require Firecrawl
+  // New method: Fetch fixtures directly from BBC Sport
+  static async fetchBBCSportFixtures(): Promise<{ success: boolean; data?: ScrapedFixture[]; error?: string }> {
+    try {
+      console.log('Fetching fixtures from BBC Sport');
+      
+      // Create a CORS proxy URL to bypass CORS restrictions
+      const corsProxy = 'https://corsproxy.io/?';
+      const url = `${corsProxy}${encodeURIComponent(this.BBC_FIXTURES_URL)}`;
+      
+      console.log(`Attempting to fetch from: ${url}`);
+      
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        }
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`HTTP error ${response.status} fetching BBC Sport fixtures: ${errorText}`);
+        return { 
+          success: false, 
+          error: `Failed to fetch fixtures from BBC Sport: ${response.status} ${response.statusText}` 
+        };
+      }
+      
+      const htmlContent = await response.text();
+      
+      if (!htmlContent || htmlContent.trim() === '') {
+        console.error('Received empty response from BBC Sport');
+        return { success: false, error: 'Received empty response from BBC Sport' };
+      }
+      
+      console.log(`Successfully fetched HTML data from BBC Sport, length: ${htmlContent.length} characters`);
+      
+      // Parse the BBC Sport HTML content to extract fixtures
+      const fixtures = this.parseBBCSportFixtures(htmlContent);
+      
+      console.log(`Extracted ${fixtures.length} fixtures from BBC Sport`);
+      
+      return { success: true, data: fixtures };
+    } catch (error) {
+      console.error('Error in fetchBBCSportFixtures:', error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Failed to fetch fixtures from BBC Sport' 
+      };
+    }
+  }
+
+  // Parse BBC Sport fixtures from HTML content
+  private static parseBBCSportFixtures(html: string): ScrapedFixture[] {
+    try {
+      console.log('Parsing BBC Sport fixtures...');
+      
+      const fixtures: ScrapedFixture[] = [];
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      
+      // Find fixture containers - BBC Sport uses specific classes for fixtures
+      const fixtureContainers = doc.querySelectorAll('.sp-c-fixture, .gs-o-list-ui__item');
+      
+      console.log(`Found ${fixtureContainers.length} potential fixture containers`);
+      
+      fixtureContainers.forEach((container, index) => {
+        try {
+          // Extract date information
+          const dateElem = container.querySelector('.sp-c-fixture__date, .gel-pica-bold') || 
+                          container.closest('[data-fixture-date]');
+          
+          let dateStr = '';
+          if (dateElem) {
+            dateStr = dateElem.textContent?.trim() || 
+                      dateElem.getAttribute('data-fixture-date') || '';
+          }
+          
+          // Format date as YYYY-MM-DD
+          let date = new Date().toISOString().split('T')[0]; // Default to today
+          if (dateStr) {
+            try {
+              const parsedDate = new Date(dateStr);
+              if (!isNaN(parsedDate.getTime())) {
+                date = parsedDate.toISOString().split('T')[0];
+              }
+            } catch (e) {
+              console.warn(`Could not parse date: ${dateStr}`);
+            }
+          }
+          
+          // Extract time
+          const timeElem = container.querySelector('.sp-c-fixture__time, .sp-c-fixture__number--time');
+          const time = timeElem ? timeElem.textContent?.trim() || '15:00' : '15:00';
+          
+          // Extract team names
+          const homeTeamElem = container.querySelector('.sp-c-fixture__team--home .sp-c-fixture__team-name');
+          const awayTeamElem = container.querySelector('.sp-c-fixture__team--away .sp-c-fixture__team-name');
+          
+          let homeTeam = '';
+          let awayTeam = '';
+          
+          if (homeTeamElem && awayTeamElem) {
+            homeTeam = homeTeamElem.textContent?.trim() || '';
+            awayTeam = awayTeamElem.textContent?.trim() || '';
+          } else {
+            // Alternative selectors
+            const teamElems = container.querySelectorAll('.qa-team-link, .sp-c-fixture__team-name');
+            if (teamElems.length >= 2) {
+              homeTeam = teamElems[0].textContent?.trim() || '';
+              awayTeam = teamElems[1].textContent?.trim() || '';
+            }
+          }
+          
+          // Check if the match is completed and extract scores
+          const scoreElem = container.querySelector('.sp-c-fixture__score, .sp-c-fixture__number--score');
+          let isCompleted = false;
+          let homeScore: number | null = null;
+          let awayScore: number | null = null;
+          
+          if (scoreElem) {
+            isCompleted = true;
+            const scoreText = scoreElem.textContent?.trim() || '';
+            const scores = scoreText.split('-').map(s => parseInt(s.trim(), 10));
+            if (scores.length === 2 && !isNaN(scores[0]) && !isNaN(scores[1])) {
+              homeScore = scores[0];
+              awayScore = scores[1];
+            }
+          }
+          
+          // Only add if we have both team names
+          if (homeTeam && awayTeam) {
+            fixtures.push({
+              homeTeam,
+              awayTeam,
+              date,
+              time,
+              competition: 'Highland League',
+              venue: 'TBD',
+              isCompleted,
+              homeScore,
+              awayScore
+            });
+          }
+        } catch (err) {
+          console.warn(`Error parsing fixture container ${index}:`, err);
+        }
+      });
+      
+      return fixtures;
+    } catch (error) {
+      console.error('Error parsing BBC Sport fixtures:', error);
+      return [];
+    }
+  }
+
+  // Direct fetch method for RSS - doesn't require Firecrawl
   static async fetchRSSDirectly(): Promise<{ success: boolean; data?: ScrapedFixture[]; error?: string }> {
     try {
       console.log('Directly fetching Highland League RSS feed');
@@ -94,11 +248,26 @@ export class FirecrawlService {
     }
   }
 
-  // Fetch RSS feed from the Highland Football League website using Firecrawl
-  static async fetchHighlandLeagueRSS(): Promise<{ success: boolean; data?: ScrapedFixture[]; error?: string }> {
-    // First try direct method
+  // Primary method to fetch fixtures from any available source
+  static async fetchHighlandLeagueFixtures(): Promise<{ success: boolean; data?: ScrapedFixture[]; error?: string }> {
+    // First try BBC Sport (most reliable)
     try {
-      console.log('Attempting direct RSS fetch first');
+      console.log('Attempting BBC Sport fixtures fetch first');
+      const bbcResult = await this.fetchBBCSportFixtures();
+      
+      if (bbcResult.success && bbcResult.data && bbcResult.data.length > 0) {
+        console.log('BBC Sport fixtures fetch successful');
+        return bbcResult;
+      } else {
+        console.log('BBC Sport fixtures fetch failed, trying RSS feed');
+      }
+    } catch (error) {
+      console.error('Error in BBC fetch, continuing to RSS:', error);
+    }
+    
+    // Then try direct RSS
+    try {
+      console.log('Attempting direct RSS fetch');
       const directResult = await this.fetchRSSDirectly();
       
       if (directResult.success && directResult.data && directResult.data.length > 0) {
@@ -111,7 +280,7 @@ export class FirecrawlService {
       console.error('Error in direct fetch, continuing to Firecrawl:', error);
     }
     
-    // If direct method fails, try Firecrawl
+    // Finally, try Firecrawl
     try {
       const apiKey = this.getApiKey();
       if (!apiKey) {
@@ -145,18 +314,14 @@ export class FirecrawlService {
         console.error('Response status:', response.status);
         console.error('Response headers:', [...response.headers.entries()]);
         
-        // If Firecrawl fails, try direct method again with different settings
-        console.log('Firecrawl failed, trying alternative direct method');
-        return await this.fetchRSSDirectly();
+        return { success: false, error: `Firecrawl API error: ${response.status} ${response.statusText}` };
       }
 
       const result = await response.json();
       
       if (!result.success) {
         console.error('Error in Firecrawl API response:', result.error);
-        // If Firecrawl fails, try direct method again
-        console.log('Firecrawl error response, trying alternative direct method');
-        return await this.fetchRSSDirectly();
+        return { success: false, error: result.error || 'Unknown error from Firecrawl API' };
       }
 
       console.log('Firecrawl API response:', result);
@@ -164,8 +329,7 @@ export class FirecrawlService {
       // Parse the HTML content from the response
       const htmlContent = result.html || '';
       if (!htmlContent) {
-        console.log('No HTML content returned from Firecrawl, trying alternative direct method');
-        return await this.fetchRSSDirectly();
+        return { success: false, error: 'No HTML content returned from Firecrawl' };
       }
       
       // Parse the RSS content
@@ -176,19 +340,11 @@ export class FirecrawlService {
       
       return { success: true, data: rssItems };
     } catch (error) {
-      console.error('Error in fetchHighlandLeagueRSS:', error);
-      
-      // Try direct method as a final fallback
-      console.log('Caught error in Firecrawl, trying alternative direct method as final fallback');
-      try {
-        return await this.fetchRSSDirectly();
-      } catch (directError) {
-        console.error('Final direct fetch attempt also failed:', directError);
-        return { 
-          success: false, 
-          error: error instanceof Error ? error.message : 'Failed to fetch RSS feed via any method'
-        };
-      }
+      console.error('Error in Firecrawl fetch:', error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Failed to fetch fixtures from any source'
+      };
     }
   }
 
@@ -197,7 +353,6 @@ export class FirecrawlService {
     try {
       console.log('Parsing RSS content...');
       
-      // Create a DOM parser
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
       const fixtures: ScrapedFixture[] = [];
@@ -345,6 +500,6 @@ export class FirecrawlService {
   // Keep the scrapeHighlandLeagueFixtures method for backward compatibility
   static async scrapeHighlandLeagueFixtures(): Promise<{ success: boolean; data?: ScrapedFixture[]; error?: string }> {
     // Just call our new RSS method since it's more reliable
-    return this.fetchHighlandLeagueRSS();
+    return this.fetchHighlandLeagueFixtures();
   }
 }

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, RefreshCw, Check, Rss, ExternalLink, Database, Globe } from "lucide-react";
+import { AlertCircle, RefreshCw, Check, Rss, ExternalLink, Database, Globe, Newspaper } from "lucide-react";
 import { FirecrawlService, ScrapedFixture } from '@/utils/FirecrawlService';
 import { scrapeAndStoreFixtures } from '@/services/supabase/fixtures/importExport'; 
 import { toast } from 'sonner';
@@ -21,6 +21,7 @@ export default function FixturesScraper() {
   const [success, setSuccess] = useState(false);
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [showDebug, setShowDebug] = useState(false);
+  const [activeMethod, setActiveMethod] = useState<'bbc' | 'rss' | 'firecrawl'>('bbc');
   
   // Load the API key when the component mounts
   useEffect(() => {
@@ -38,7 +39,7 @@ export default function FixturesScraper() {
     toast.success('API key saved successfully');
   };
   
-  // Test the API connection first without storage
+  // Test the connection with the selected method
   const handleTestFetch = async () => {
     try {
       setTestLoading(true);
@@ -47,13 +48,22 @@ export default function FixturesScraper() {
       setResults([]);
       setDebugInfo(null);
       
-      console.log('Testing connection by fetching RSS without storing...');
-      toast.info('Testing connection to Highland League RSS feed...');
+      console.log(`Testing connection using ${activeMethod} method...`);
+      toast.info(`Testing connection to Highland League data source...`);
       
-      const result = await FirecrawlService.fetchHighlandLeagueRSS();
+      let result;
+      
+      // Use the appropriate fetch method based on the active tab
+      if (activeMethod === 'bbc') {
+        result = await FirecrawlService.fetchBBCSportFixtures();
+      } else if (activeMethod === 'rss') {
+        result = await FirecrawlService.fetchRSSDirectly();
+      } else {
+        result = await FirecrawlService.fetchHighlandLeagueFixtures();
+      }
       
       if (!result.success || !result.data) {
-        const errorMsg = result.error || 'Failed to fetch fixtures from RSS feed';
+        const errorMsg = result.error || 'Failed to fetch fixtures';
         console.error('Test fetch failed:', errorMsg);
         setError(errorMsg);
         toast.error(errorMsg);
@@ -85,20 +95,20 @@ export default function FixturesScraper() {
       console.log('Starting fixture scraping and storage process...');
       toast.info('Scraping fixtures... This may take a moment.');
       
-      // First, test the connection by fetching RSS without storing
-      const testResult = await FirecrawlService.fetchHighlandLeagueRSS();
+      // Get fixtures using the best available method
+      const testResult = await FirecrawlService.fetchHighlandLeagueFixtures();
       
       if (!testResult.success || !testResult.data) {
-        const errorMsg = testResult.error || 'Failed to fetch fixtures from RSS feed';
-        console.error('Test fetch failed:', errorMsg);
+        const errorMsg = testResult.error || 'Failed to fetch fixtures';
+        console.error('Fetch failed:', errorMsg);
         setError(errorMsg);
         toast.error(errorMsg);
         return;
       }
       
-      console.log('Test fetch successful, proceeding with import...');
+      console.log('Fixtures fetch successful, proceeding with import...');
       
-      // If test successful, proceed with storage
+      // Store fixtures
       const success = await scrapeAndStoreFixtures();
       
       if (!success) {
@@ -130,16 +140,20 @@ export default function FixturesScraper() {
       <CardHeader>
         <CardTitle>Highland League Fixtures Importer</CardTitle>
         <CardDescription>
-          Fetch fixtures from the Highland Football League RSS feed
+          Fetch fixtures from multiple Highland League data sources
         </CardDescription>
       </CardHeader>
       
       <CardContent className="space-y-4">
-        <Tabs defaultValue="direct">
+        <Tabs defaultValue="bbc" onValueChange={(v) => setActiveMethod(v as 'bbc' | 'rss' | 'firecrawl')}>
           <TabsList>
-            <TabsTrigger value="direct">
+            <TabsTrigger value="bbc">
+              <Newspaper className="mr-2 h-4 w-4" />
+              BBC Sport
+            </TabsTrigger>
+            <TabsTrigger value="rss">
               <Globe className="mr-2 h-4 w-4" />
-              Direct RSS Fetch
+              RSS Feed
             </TabsTrigger>
             <TabsTrigger value="firecrawl">
               <Database className="mr-2 h-4 w-4" />
@@ -147,7 +161,18 @@ export default function FixturesScraper() {
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="direct" className="space-y-4 pt-4">
+          <TabsContent value="bbc" className="space-y-4 pt-4">
+            <Alert>
+              <Newspaper className="h-4 w-4" />
+              <AlertTitle>BBC Sport Data</AlertTitle>
+              <AlertDescription>
+                This method fetches fixtures from the BBC Sport Highland League page. No API key required.
+                It's the most reliable source for current fixtures and results.
+              </AlertDescription>
+            </Alert>
+          </TabsContent>
+          
+          <TabsContent value="rss" className="space-y-4 pt-4">
             <Alert>
               <Globe className="h-4 w-4" />
               <AlertTitle>Direct RSS Feed Access</AlertTitle>
@@ -159,7 +184,7 @@ export default function FixturesScraper() {
           
           <TabsContent value="firecrawl" className="space-y-4 pt-4">
             <div className="space-y-2">
-              <Label htmlFor="apiKey">Firecrawl API Key (Optional)</Label>
+              <Label htmlFor="apiKey">Firecrawl API Key</Label>
               <div className="flex space-x-2">
                 <Input
                   id="apiKey"
@@ -239,20 +264,22 @@ export default function FixturesScraper() {
               <div className="space-y-3 text-sm">
                 <div className="font-medium">Data Fetching Information</div>
                 <p className="text-gray-600">
-                  This tool now uses two different methods to fetch Highland League data:
+                  This tool now uses three different methods to fetch Highland League data:
                 </p>
                 <ol className="list-decimal list-inside space-y-1">
-                  <li><strong>Direct Method:</strong> Fetches directly from the RSS feed using a CORS proxy</li>
-                  <li><strong>Firecrawl API:</strong> Uses Firecrawl as a backup if direct method fails</li>
+                  <li><strong>BBC Sport:</strong> Fetches fixtures from the BBC Sport website (most reliable)</li>
+                  <li><strong>RSS Feed:</strong> Fetches directly from the Highland League RSS feed using a CORS proxy</li>
+                  <li><strong>Firecrawl API:</strong> Uses Firecrawl as a backup if other methods fail</li>
                 </ol>
                 <p className="text-gray-600 mt-2">
                   If you're experiencing issues, try the following:
                 </p>
                 <ol className="list-decimal list-inside space-y-1">
-                  <li>Check that the Highland League RSS feed is online at <a href="http://www.highlandfootballleague.com/rss/" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">this URL</a></li>
-                  <li>Try using the "Test Connection" button before attempting to store data</li>
+                  <li>Try each data source using the tabs above</li>
+                  <li>Use the "Test Connection" button before attempting to store data</li>
                   <li>Check the browser console for detailed error messages</li>
                   <li>If using Firecrawl, verify that your API key is correct</li>
+                  <li>Some methods may be affected by CORS policies or site changes</li>
                 </ol>
               </div>
             </AccordionContent>

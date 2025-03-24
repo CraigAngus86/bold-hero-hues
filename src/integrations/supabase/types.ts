@@ -9,7 +9,75 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      highland_league_table: {
+        Row: {
+          created_at: string | null
+          drawn: number
+          form: string[] | null
+          goalDifference: number
+          goalsAgainst: number
+          goalsFor: number
+          id: number
+          logo: string | null
+          lost: number
+          played: number
+          points: number
+          position: number
+          team: string
+          won: number
+        }
+        Insert: {
+          created_at?: string | null
+          drawn: number
+          form?: string[] | null
+          goalDifference: number
+          goalsAgainst: number
+          goalsFor: number
+          id?: number
+          logo?: string | null
+          lost: number
+          played: number
+          points: number
+          position: number
+          team: string
+          won: number
+        }
+        Update: {
+          created_at?: string | null
+          drawn?: number
+          form?: string[] | null
+          goalDifference?: number
+          goalsAgainst?: number
+          goalsFor?: number
+          id?: number
+          logo?: string | null
+          lost?: number
+          played?: number
+          points?: number
+          position?: number
+          team?: string
+          won?: number
+        }
+        Relationships: []
+      }
+      settings: {
+        Row: {
+          key: string
+          updated_at: string | null
+          value: string
+        }
+        Insert: {
+          key: string
+          updated_at?: string | null
+          value: string
+        }
+        Update: {
+          key?: string
+          updated_at?: string | null
+          value?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -7,11 +7,15 @@ import RecentResults from './fixtures/RecentResults';
 import LeagueTablePreview from './fixtures/LeagueTablePreview';
 import { TeamStats } from './league/types';
 import { fetchLeagueTableFromSupabase } from '@/services/supabase/leagueDataService';
+import { mockMatches } from './fixtures/fixturesMockData';
+import { Match } from './fixtures/types';
 
 const FixturesSection = () => {
   const [activeTab, setActiveTab] = useState('fixtures');
   const [leagueData, setLeagueData] = useState<TeamStats[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [upcomingMatches, setUpcomingMatches] = useState<Match[]>([]);
+  const [recentResults, setRecentResults] = useState<Match[]>([]);
 
   useEffect(() => {
     const fetchLeagueData = async () => {
@@ -27,6 +31,27 @@ const FixturesSection = () => {
     };
 
     fetchLeagueData();
+    
+    // Filter and prepare match data
+    const today = new Date();
+    
+    // Get upcoming matches (not completed and in the future)
+    const upcoming = mockMatches
+      .filter(match => !match.isCompleted && new Date(match.date) >= today)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(0, 5); // Show only next 5 matches
+    
+    // Get recent results (completed)
+    const recent = mockMatches
+      .filter(match => match.isCompleted)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 5); // Show only last 5 matches
+    
+    setUpcomingMatches(upcoming);
+    setRecentResults(recent);
+    
+    console.info('Using mock fixtures data for now');
+    console.info('Using mock results data for now');
   }, []);
 
   return (
@@ -50,11 +75,11 @@ const FixturesSection = () => {
               </TabsList>
               
               <TabsContent value="fixtures" className="mt-0">
-                <UpcomingFixtures />
+                <UpcomingFixtures matches={upcomingMatches} />
               </TabsContent>
               
               <TabsContent value="results" className="mt-0">
-                <RecentResults />
+                <RecentResults matches={recentResults} />
               </TabsContent>
             </Tabs>
           </div>

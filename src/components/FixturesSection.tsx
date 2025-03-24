@@ -59,11 +59,21 @@ const FixturesSection = () => {
           setUpcomingMatches(upcoming);
           setRecentResults(recent);
         } else {
-          // Get upcoming matches (next 3)
-          setUpcomingMatches(fixtures.slice(0, 3));
+          // Get upcoming matches (not completed and in the future)
+          const today = new Date();
+          const upcoming = fixtures
+            .filter(match => !match.isCompleted && new Date(match.date) >= today)
+            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+            .slice(0, 3); // Show only next 3 matches
           
-          // Get recent results (last 3)
-          setRecentResults(results.slice(0, 3));
+          // Get recent results (completed)
+          const recent = results
+            .filter(match => match.isCompleted)
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+            .slice(0, 3); // Show only last 3 matches
+          
+          setUpcomingMatches(upcoming);
+          setRecentResults(recent);
           
           console.log('Data loaded successfully');
         }

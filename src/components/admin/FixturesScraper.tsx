@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,12 +11,18 @@ import { scrapeAndStoreFixtures } from '@/services/supabase/fixtures/importExpor
 import { toast } from 'sonner';
 
 export default function FixturesScraper() {
-  const [apiKey, setApiKey] = useState(FirecrawlService.getApiKey() || '');
+  const [apiKey, setApiKey] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<ScrapedFixture[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   
+  // Load the API key when the component mounts
+  useEffect(() => {
+    const savedApiKey = FirecrawlService.getApiKey() || '';
+    setApiKey(savedApiKey);
+  }, []);
+
   const handleSaveApiKey = () => {
     if (!apiKey.trim()) {
       toast.error('Please enter a valid API key');
@@ -84,6 +90,9 @@ export default function FixturesScraper() {
             />
             <Button onClick={handleSaveApiKey}>Save Key</Button>
           </div>
+          <p className="text-xs text-gray-500">
+            The API key has been pre-filled for you.
+          </p>
         </div>
         
         {error && (
@@ -127,7 +136,7 @@ export default function FixturesScraper() {
         <Button
           className="w-full"
           onClick={handleFetchFixtures}
-          disabled={isLoading || !apiKey}
+          disabled={isLoading}
         >
           {isLoading ? (
             <>

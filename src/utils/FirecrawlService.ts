@@ -34,6 +34,7 @@ export interface ScrapedFixture {
  */
 export class FirecrawlService {
   private static API_KEY_STORAGE_KEY = 'firecrawl_api_key';
+  private static DEFAULT_API_KEY = 'fc-83bcbd73547640f0a7b2be29068dadad';
 
   // Save API key to local storage
   static saveApiKey(apiKey: string): void {
@@ -41,9 +42,9 @@ export class FirecrawlService {
     console.log('Firecrawl API key saved successfully');
   }
 
-  // Get API key from local storage
+  // Get API key from local storage or use the default one
   static getApiKey(): string | null {
-    return localStorage.getItem(this.API_KEY_STORAGE_KEY);
+    return localStorage.getItem(this.API_KEY_STORAGE_KEY) || this.DEFAULT_API_KEY;
   }
 
   // Fetch RSS feed from the Highland Football League website

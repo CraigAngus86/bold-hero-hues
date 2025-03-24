@@ -7,12 +7,13 @@ import { Rss, Database, Server } from "lucide-react";
 import DataScraperControl from '@/components/admin/DataScraperControl';
 import ScrapedDataTable from '@/components/admin/data/ScrapedDataTable';
 import ServerMonitor from '@/components/admin/data/ServerMonitor';
-import { ApiConfig } from '@/services/config/apiConfig';
+import { ApiConfig, DEFAULT_API_CONFIG } from '@/services/config/apiConfig';
 import FixturesScraper from '@/components/admin/FixturesScraper';
 
 const DataDashboard = () => {
-  // Basic API config for the ServerMonitor component
+  // Create a complete ApiConfig object for the ServerMonitor component
   const apiConfig: ApiConfig = {
+    ...DEFAULT_API_CONFIG,
     apiServerUrl: localStorage.getItem('apiServerUrl') || 'http://localhost:3001',
     apiKey: localStorage.getItem('apiKey') || ''
   };

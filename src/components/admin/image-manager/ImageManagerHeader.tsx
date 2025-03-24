@@ -13,6 +13,16 @@ const ImageManagerHeader = () => {
     handleFileUpload 
   } = useImageManager();
 
+  // Create a reference to the file input element
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Handle the button click to trigger the file input click
+  const handleUploadClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -28,24 +38,26 @@ const ImageManagerHeader = () => {
           </Button>
           
           {currentFolder && (
-            <div className="relative">
-              <Input
+            <>
+              <input
+                ref={fileInputRef}
                 type="file"
                 multiple
                 onChange={handleFileUpload}
-                className="absolute inset-0 opacity-0 cursor-pointer"
+                className="hidden"
                 accept="image/*"
                 disabled={isUploading}
               />
               <Button 
                 variant="default" 
-                className="flex items-center relative"
+                className="flex items-center"
                 disabled={isUploading}
+                onClick={handleUploadClick}
               >
                 <Upload className="mr-2 h-4 w-4" />
                 {isUploading ? 'Uploading...' : 'Upload Images'}
               </Button>
-            </div>
+            </>
           )}
         </div>
       </div>

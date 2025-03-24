@@ -41,14 +41,15 @@ export const importMockDataToSupabase = async (mockMatches: Match[]): Promise<bo
     }));
     
     console.log(`Importing ${supabaseMatches.length} matches to Supabase...`);
+    console.log('Sample match data:', supabaseMatches[0]);
     
     const { error } = await supabase
       .from('matches')
       .insert(supabaseMatches);
 
     if (error) {
-      console.error('Error importing mock data to Supabase:', error);
-      toast.error(`Failed to import mock data: ${error.message}`);
+      console.error('Error importing match data to Supabase:', error);
+      toast.error(`Failed to import match data: ${error.message}`);
       return false;
     }
 
@@ -71,8 +72,10 @@ export const scrapeAndStoreFixtures = async (): Promise<boolean> => {
     const { FirecrawlService } = await import('@/utils/FirecrawlService');
     const result = await FirecrawlService.fetchHighlandLeagueRSS();
     
-    if (!result.success || !result.data) {
-      toast.error(result.error || 'Failed to fetch fixtures');
+    if (!result.success || !result.data || result.data.length === 0) {
+      const errorMsg = result.error || 'No fixtures found in the RSS feed';
+      console.error(errorMsg);
+      toast.error(errorMsg);
       return false;
     }
     
@@ -85,8 +88,8 @@ export const scrapeAndStoreFixtures = async (): Promise<boolean> => {
       awayTeam: fixture.awayTeam,
       date: fixture.date,
       time: fixture.time,
-      competition: fixture.competition,
-      venue: fixture.venue,
+      competition: fixture.competition || 'Highland League',
+      venue: fixture.venue || 'TBD',
       isCompleted: fixture.isCompleted || false, // Default to false if not provided
       homeScore: fixture.homeScore || null,
       awayScore: fixture.awayScore || null
@@ -98,7 +101,7 @@ export const scrapeAndStoreFixtures = async (): Promise<boolean> => {
     const { error: deleteError } = await supabase
       .from('matches')
       .delete()
-      .neq('id', '00000000-0000-0000-0000-000000000000');
+      .neq('id', '00000000-0000-0000-0000-000000000000'); // Avoid deleting any special records
       
     if (deleteError) {
       console.error('Error clearing existing matches:', deleteError);

@@ -60,21 +60,22 @@ export class FirecrawlService {
 
       console.log('Fetching Highland League RSS with API key:', apiKey.substring(0, 5) + '...');
 
-      // Call our Supabase Edge Function to handle the RSS feed fetch
-      const response = await fetch('/api/fetch-rss', {
+      // Use direct API call to Firecrawl instead of going through our edge function
+      const response = await fetch('https://api.firecrawl.dev/scrape', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          url: 'http://www.highlandfootballleague.com/rss/'
+          url: 'http://www.highlandfootballleague.com/rss/',
+          wait_for_selector: 'item'
         })
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Error response from fetch-rss function:', errorText);
+        console.error('Error response from Firecrawl API:', errorText);
         return { 
           success: false, 
           error: `HTTP error ${response.status}: ${errorText}` 
@@ -84,20 +85,137 @@ export class FirecrawlService {
       const result = await response.json();
       
       if (!result.success) {
-        console.error('Error in fetch-rss function:', result.error);
+        console.error('Error in Firecrawl API:', result.error);
         return { success: false, error: result.error };
       }
 
-      // Log the successful result
-      console.log('Successfully fetched RSS data:', result.data.length, 'fixtures');
+      // Parse the HTML content from the RSS feed
+      const rssItems = this.parseRSSContent(result.html);
       
-      return { success: true, data: result.data };
+      // Log the successful result
+      console.log('Successfully fetched RSS data:', rssItems.length, 'fixtures');
+      
+      return { success: true, data: rssItems };
     } catch (error) {
       console.error('Error in fetchHighlandLeagueRSS:', error);
       return { 
         success: false, 
         error: error instanceof Error ? error.message : 'Failed to fetch RSS feed'
       };
+    }
+  }
+
+  // Parse RSS content from HTML
+  private static parseRSSContent(html: string): ScrapedFixture[] {
+    try {
+      console.log('Parsing RSS content...');
+      
+      // Create a DOM parser
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const fixtures: ScrapedFixture[] = [];
+      
+      // Find all item elements in the RSS feed
+      const items = doc.querySelectorAll('item');
+      
+      console.log(`Found ${items.length} items in RSS feed`);
+      
+      items.forEach((item, index) => {
+        try {
+          // Extract title and description from item
+          const title = item.querySelector('title')?.textContent || '';
+          const description = item.querySelector('description')?.textContent || '';
+          const pubDate = item.querySelector('pubDate')?.textContent || '';
+          
+          console.log(`Processing item ${index + 1}: ${title}`);
+          
+          // Parse the title to extract team names and scores
+          let homeTeam = '', awayTeam = '', homeScore = null, awayScore = null, isCompleted = false;
+          
+          // Typical format: "Team A v Team B" or "Team A (2) v Team B (1)"
+          if (title.includes(' v ')) {
+            const parts = title.split(' v ');
+            
+            // Parse home team and possible score
+            if (parts[0].includes('(') && parts[0].includes(')')) {
+              const homeMatch = parts[0].match(/(.*)\s*\((\d+)\)/);
+              if (homeMatch) {
+                homeTeam = homeMatch[1].trim();
+                homeScore = parseInt(homeMatch[2], 10);
+                isCompleted = true;
+              } else {
+                homeTeam = parts[0].trim();
+              }
+            } else {
+              homeTeam = parts[0].trim();
+            }
+            
+            // Parse away team and possible score
+            if (parts[1].includes('(') && parts[1].includes(')')) {
+              const awayMatch = parts[1].match(/(.*)\s*\((\d+)\)/);
+              if (awayMatch) {
+                awayTeam = awayMatch[1].trim();
+                awayScore = parseInt(awayMatch[2], 10);
+                isCompleted = true;
+              } else {
+                awayTeam = parts[1].trim();
+              }
+            } else {
+              awayTeam = parts[1].trim();
+            }
+          } else if (title.includes(' vs ')) {
+            // Alternative format
+            const parts = title.split(' vs ');
+            homeTeam = parts[0].trim();
+            awayTeam = parts[1].trim();
+          }
+          
+          // Parse date from pubDate
+          const dateObj = new Date(pubDate);
+          const date = dateObj.toISOString().split('T')[0]; // YYYY-MM-DD
+          const time = `${dateObj.getHours().toString().padStart(2, '0')}:${dateObj.getMinutes().toString().padStart(2, '0')}`;
+          
+          // Extract competition and venue information from description
+          let competition = "Highland League";
+          let venue = "TBD";
+          
+          if (description) {
+            // Look for competition info
+            const competitionMatch = description.match(/Competition:\s*([^,\n]+)/i);
+            if (competitionMatch) {
+              competition = competitionMatch[1].trim();
+            }
+            
+            // Look for venue info
+            const venueMatch = description.match(/Venue:\s*([^,\n]+)/i);
+            if (venueMatch) {
+              venue = venueMatch[1].trim();
+            }
+          }
+          
+          // Only add the fixture if we have both team names
+          if (homeTeam && awayTeam) {
+            fixtures.push({
+              homeTeam,
+              awayTeam,
+              date,
+              time,
+              competition,
+              venue,
+              isCompleted,
+              homeScore,
+              awayScore
+            });
+          }
+        } catch (err) {
+          console.error('Error parsing RSS item:', err);
+        }
+      });
+      
+      return fixtures;
+    } catch (error) {
+      console.error('Error parsing RSS content:', error);
+      return [];
     }
   }
 

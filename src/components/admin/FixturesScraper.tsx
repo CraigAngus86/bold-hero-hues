@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 export default function FixturesScraper() {
   const [apiKey, setApiKey] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [testLoading, setTestLoading] = useState(false);
   const [results, setResults] = useState<ScrapedFixture[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -31,6 +32,41 @@ export default function FixturesScraper() {
     
     FirecrawlService.saveApiKey(apiKey.trim());
     toast.success('API key saved successfully');
+  };
+  
+  // Test the API connection first without storage
+  const handleTestFetch = async () => {
+    try {
+      setTestLoading(true);
+      setError(null);
+      setSuccess(false);
+      setResults([]);
+      
+      console.log('Testing connection by fetching RSS without storing...');
+      toast.info('Testing connection to Highland League RSS feed...');
+      
+      const result = await FirecrawlService.fetchHighlandLeagueRSS();
+      
+      if (!result.success || !result.data) {
+        const errorMsg = result.error || 'Failed to fetch fixtures from RSS feed';
+        console.error('Test fetch failed:', errorMsg);
+        setError(errorMsg);
+        toast.error(errorMsg);
+        return;
+      }
+      
+      console.log('Test fetch successful, found', result.data.length, 'fixtures');
+      setResults(result.data);
+      setSuccess(true);
+      toast.success(`Successfully fetched ${result.data.length} fixtures`);
+      
+    } catch (error) {
+      console.error('Error testing fetch:', error);
+      setError(error instanceof Error ? error.message : 'An unknown error occurred');
+      toast.error('An error occurred while testing the connection');
+    } finally {
+      setTestLoading(false);
+    }
   };
   
   const handleFetchFixtures = async () => {
@@ -66,17 +102,9 @@ export default function FixturesScraper() {
       }
       
       // Get the data to display
-      const result = await FirecrawlService.fetchHighlandLeagueRSS();
-      
-      if (!result.success || !result.data) {
-        setError(result.error || 'Failed to fetch fixtures from RSS feed');
-        toast.error(result.error || 'Failed to fetch fixtures from RSS feed');
-        return;
-      }
-      
-      setResults(result.data);
+      setResults(testResult.data);
       setSuccess(true);
-      toast.success(`Successfully imported ${result.data.length} fixtures`);
+      toast.success(`Successfully imported ${testResult.data.length} fixtures`);
       
     } catch (error) {
       console.error('Error fetching fixtures:', error);
@@ -92,7 +120,7 @@ export default function FixturesScraper() {
       <CardHeader>
         <CardTitle>Highland League Fixtures Importer</CardTitle>
         <CardDescription>
-          Fetch fixtures from the Highland Football League RSS feed
+          Fetch fixtures from the Highland Football League RSS feed using Firecrawl API
         </CardDescription>
       </CardHeader>
       
@@ -110,6 +138,7 @@ export default function FixturesScraper() {
             <Button onClick={handleSaveApiKey}>Save Key</Button>
           </div>
           <p className="text-xs text-gray-500">
+            Visit <a href="https://app.firecrawl.dev" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Firecrawl.dev</a> to get an API key.
             The API key has been pre-filled for you.
           </p>
         </div>
@@ -151,21 +180,40 @@ export default function FixturesScraper() {
         )}
       </CardContent>
       
-      <CardFooter>
+      <CardFooter className="flex flex-col gap-3 sm:flex-row">
         <Button
           className="w-full"
-          onClick={handleFetchFixtures}
-          disabled={isLoading}
+          onClick={handleTestFetch}
+          disabled={testLoading}
+          variant="outline"
         >
-          {isLoading ? (
+          {testLoading ? (
             <>
               <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-              Fetching...
+              Testing...
             </>
           ) : (
             <>
               <Rss className="mr-2 h-4 w-4" />
-              Fetch Fixtures from RSS
+              Test Connection
+            </>
+          )}
+        </Button>
+        
+        <Button
+          className="w-full"
+          onClick={handleFetchFixtures}
+          disabled={isLoading || testLoading}
+        >
+          {isLoading ? (
+            <>
+              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+              Fetching & Storing...
+            </>
+          ) : (
+            <>
+              <Rss className="mr-2 h-4 w-4" />
+              Fetch & Store Fixtures
             </>
           )}
         </Button>

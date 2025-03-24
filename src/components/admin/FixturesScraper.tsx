@@ -7,10 +7,9 @@ import { RefreshCw, Check, Download, AlertCircle, Info, Link2 } from "lucide-rea
 import { scrapeAndStoreFixtures } from '@/services/supabase/fixtures/importExport'; 
 import { toast } from 'sonner';
 import { ScrapedFixture } from '@/types/fixtures';
-import { supabase } from '@/services/supabase/supabaseClient';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { FirecrawlService } from '@/utils/FirecrawlService';
 
 export default function FixturesScraper() {
   const [isLoading, setIsLoading] = useState(false);
@@ -19,9 +18,11 @@ export default function FixturesScraper() {
   const [success, setSuccess] = useState(false);
   const [htmlSample, setHtmlSample] = useState<string | null>(null);
   const [dataFormatting, setDataFormatting] = useState<string | null>(null);
-  const [bbcUrl, setBbcUrl] = useState<string>('https://www.bbc.com/sport/football/scottish-highland-league/scores-fixtures');
+  const [transfermarktUrl, setTransfermarktUrl] = useState<string>(
+    'https://www.transfermarkt.com/banks-o-dee-fc/spielplandatum/verein/25442/saison_id/2024'
+  );
   
-  const handleFetchFromHFL = async () => {
+  const handleFetchFromTransfermarkt = async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -30,108 +31,39 @@ export default function FixturesScraper() {
       setHtmlSample(null);
       setDataFormatting(null);
       
-      console.log('Starting fixture scraping from Highland Football League website...');
-      toast.info('Scraping fixtures from Highland Football League website... This may take a moment.');
+      console.log('Starting fixture scraping from Transfermarkt website...');
+      toast.info('Scraping fixtures from Transfermarkt... This may take a moment.');
       
-      // Call the Supabase Edge function to scrape fixtures
-      const { data, error } = await supabase.functions.invoke('scrape-fixtures', {
-        body: { url: 'http://www.highlandfootballleague.com/Fixtures/' }
-      });
+      // Call the FirecrawlService to fetch and parse Transfermarkt fixtures
+      const { success, data, error, htmlSample } = await FirecrawlService.fetchTransfermarktFixtures(transfermarktUrl);
       
-      if (error) {
-        console.error('Edge function error:', error);
-        setError(error.message || 'Failed to fetch fixtures');
-        toast.error('Failed to fetch fixtures from Highland Football League website');
-        return;
-      }
-      
-      if (!data || !data.success) {
-        const errorMessage = data?.error || 'Invalid data received from scraper';
-        console.error('Scraper error:', errorMessage);
+      if (!success || !data) {
+        const errorMessage = error || 'Failed to fetch fixtures from Transfermarkt';
+        console.error('Transfermarkt scraper error:', errorMessage);
         setError(errorMessage);
         
         // If we have an HTML sample for debugging, show it
-        if (data?.htmlSample) {
-          setHtmlSample(data.htmlSample);
-          console.log('HTML sample from failed scraping:', data.htmlSample);
+        if (htmlSample) {
+          setHtmlSample(htmlSample);
+          console.log('HTML sample from failed scraping:', htmlSample);
         }
         
         toast.error(errorMessage);
         return;
       }
       
-      const fixtures = data.data;
-      
-      if (!fixtures || !Array.isArray(fixtures) || fixtures.length === 0) {
-        setError('No fixtures found on the Highland Football League website');
+      if (data.length === 0) {
+        setError('No fixtures found on the Transfermarkt website');
         toast.error('No fixtures found');
         return;
       }
       
-      processScrapedFixtures(fixtures, 'Highland Football League');
+      processScrapedFixtures(data, 'Transfermarkt');
       
     } catch (error) {
       console.error('Error fetching fixtures:', error);
       setError(error instanceof Error ? error.message : 'An unknown error occurred');
       toast.error('An error occurred while fetching fixtures');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleFetchFromBBC = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      setSuccess(false);
-      setResults([]);
-      setHtmlSample(null);
-      setDataFormatting(null);
-      
-      console.log('Starting fixture scraping from BBC Sport website...');
-      toast.info('Scraping fixtures from BBC Sport... This may take a moment.');
-      
-      // Call the new Supabase Edge function to scrape fixtures from BBC Sport
-      const { data, error } = await supabase.functions.invoke('scrape-bbc-fixtures', {
-        body: { url: bbcUrl }
-      });
-      
-      if (error) {
-        console.error('Edge function error:', error);
-        setError(error.message || 'Failed to fetch fixtures from BBC Sport');
-        toast.error('Failed to fetch fixtures from BBC Sport');
-        return;
-      }
-      
-      if (!data || !data.success) {
-        const errorMessage = data?.error || 'Invalid data received from BBC Sport scraper';
-        console.error('BBC Scraper error:', errorMessage);
-        setError(errorMessage);
-        
-        // If we have an HTML sample for debugging, show it
-        if (data?.htmlSample) {
-          setHtmlSample(data.htmlSample);
-          console.log('HTML sample from failed BBC scraping:', data.htmlSample);
-        }
-        
-        toast.error(errorMessage);
-        return;
-      }
-      
-      const fixtures = data.data;
-      
-      if (!fixtures || !Array.isArray(fixtures) || fixtures.length === 0) {
-        setError('No fixtures found on the BBC Sport website');
-        toast.error('No fixtures found on BBC Sport');
-        return;
-      }
-      
-      processScrapedFixtures(fixtures, 'BBC Sport');
-      
-    } catch (error) {
-      console.error('Error fetching fixtures from BBC:', error);
-      setError(error instanceof Error ? error.message : 'An unknown error occurred');
-      toast.error('An error occurred while fetching fixtures from BBC Sport');
     } finally {
       setIsLoading(false);
     }
@@ -174,6 +106,8 @@ ${sample.awayScore !== undefined ? `- Away Score: "${sample.awayScore}"` : ''}
     
     // Show a preview of the data before storing
     setResults(formattedFixtures);
+    setSuccess(true);
+    toast.success(`Found ${formattedFixtures.length} fixtures from Transfermarkt`);
   };
 
   const handleStoreFixtures = async () => {
@@ -214,7 +148,7 @@ ${sample.awayScore !== undefined ? `- Away Score: "${sample.awayScore}"` : ''}
 
     const dataStr = JSON.stringify(results, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    const exportFileDefaultName = `highland-league-fixtures-${new Date().toISOString().split('T')[0]}.json`;
+    const exportFileDefaultName = `banks-o-dee-fixtures-${new Date().toISOString().split('T')[0]}.json`;
 
     const linkElement = document.createElement('a');
     linkElement.setAttribute('href', dataUri);
@@ -227,86 +161,54 @@ ${sample.awayScore !== undefined ? `- Away Score: "${sample.awayScore}"` : ''}
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Highland League Fixtures Importer</CardTitle>
+        <CardTitle>Fixtures Importer</CardTitle>
         <CardDescription>
-          Fetch fixtures from the Highland Football League website or BBC Sport
+          Fetch and import fixtures from Transfermarkt
         </CardDescription>
       </CardHeader>
       
       <CardContent className="space-y-4">
-        <Tabs defaultValue="bbc" className="w-full">
-          <TabsList className="w-full">
-            <TabsTrigger value="bbc" className="flex-1">BBC Sport</TabsTrigger>
-            <TabsTrigger value="hfl" className="flex-1">Highland Football League</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="bbc" className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <Label htmlFor="bbcUrl">BBC Sport URL</Label>
-              <div className="flex gap-2">
-                <Input 
-                  id="bbcUrl" 
-                  value={bbcUrl} 
-                  onChange={(e) => setBbcUrl(e.target.value)}
-                  placeholder="Enter BBC Sport URL"
-                  className="flex-1"
-                />
-                <Button 
-                  variant="outline" 
-                  size="icon"
-                  onClick={() => window.open(bbcUrl, '_blank')}
-                  title="Open URL in new tab"
-                >
-                  <Link2 className="h-4 w-4" />
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                You can customize the URL to get fixtures for specific months, e.g., https://www.bbc.com/sport/football/scottish-highland-league/scores-fixtures/2025-04
-              </p>
-            </div>
-            
-            <Button
-              className="w-full"
-              onClick={handleFetchFromBBC}
-              disabled={isLoading}
+        <div className="space-y-2">
+          <Label htmlFor="transfermarktUrl">Transfermarkt URL</Label>
+          <div className="flex gap-2">
+            <Input 
+              id="transfermarktUrl" 
+              value={transfermarktUrl} 
+              onChange={(e) => setTransfermarktUrl(e.target.value)}
+              placeholder="Enter Transfermarkt URL"
+              className="flex-1"
+            />
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={() => window.open(transfermarktUrl, '_blank')}
+              title="Open URL in new tab"
             >
-              {isLoading ? (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                  Fetching from BBC Sport...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Fetch from BBC Sport
-                </>
-              )}
+              <Link2 className="h-4 w-4" />
             </Button>
-          </TabsContent>
-          
-          <TabsContent value="hfl" className="space-y-4 mt-4">
-            <p className="text-muted-foreground">
-              This will fetch fixtures directly from the Highland Football League website.
-            </p>
-            <Button
-              className="w-full"
-              onClick={handleFetchFromHFL}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                  Fetching from HFL...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Fetch from Highland League
-                </>
-              )}
-            </Button>
-          </TabsContent>
-        </Tabs>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            The default URL fetches fixtures for Banks O' Dee FC from the current season on Transfermarkt.
+          </p>
+        </div>
+        
+        <Button
+          className="w-full"
+          onClick={handleFetchFromTransfermarkt}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+              Fetching from Transfermarkt...
+            </>
+          ) : (
+            <>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Fetch from Transfermarkt
+            </>
+          )}
+        </Button>
         
         {error && (
           <Alert variant="destructive">

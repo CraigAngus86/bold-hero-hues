@@ -3,6 +3,7 @@ import { TeamStats } from '@/components/league/types';
 import { mockLeagueData } from '@/components/league/types';
 import { mockMatches } from '@/components/fixtures/fixturesMockData';
 import { getApiConfig } from './config/apiConfig';
+import { FirecrawlService } from '@/utils/FirecrawlService';
 
 // This file provides both real API calls and fallback mock data for Highland League information
 console.log('Highland League scraper initialized');
@@ -64,7 +65,19 @@ export const scrapeHighlandLeagueData = async () => {
     console.log('Fetching Highland League data');
     const leagueTable = await scrapeLeagueTable();
     
-    // For now, we'll use mock data for fixtures and results
+    // Try to use real fixture data from Transfermarkt
+    try {
+      const { success, data } = await FirecrawlService.fetchTransfermarktFixtures();
+      if (success && data && data.length > 0) {
+        const fixtures = data.filter(match => !match.isCompleted);
+        const results = data.filter(match => match.isCompleted);
+        return { leagueTable, fixtures, results };
+      }
+    } catch (error) {
+      console.error('Error getting fixtures from Transfermarkt:', error);
+    }
+    
+    // Fall back to mock data if Transfermarkt scraping fails
     return {
       leagueTable,
       fixtures: mockMatches.filter(match => !match.isCompleted),
@@ -90,11 +103,35 @@ export const scrapeLeagueTable = async () => {
 };
 
 export const scrapeFixtures = async () => {
-  console.log('Using mock fixtures data for now');
-  return mockMatches.filter(match => !match.isCompleted);
+  try {
+    // Try to get real fixture data from Transfermarkt
+    const { success, data } = await FirecrawlService.fetchTransfermarktFixtures();
+    if (success && data && data.length > 0) {
+      return data.filter(match => !match.isCompleted);
+    }
+    // Fall back to mock data
+    console.log('Using mock fixtures data - Transfermarkt scraping failed');
+    return mockMatches.filter(match => !match.isCompleted);
+  } catch (error) {
+    console.error('Error scraping fixtures:', error);
+    console.log('Using mock fixtures data due to error');
+    return mockMatches.filter(match => !match.isCompleted);
+  }
 };
 
 export const scrapeResults = async () => {
-  console.log('Using mock results data for now');
-  return mockMatches.filter(match => match.isCompleted);
+  try {
+    // Try to get real results data from Transfermarkt
+    const { success, data } = await FirecrawlService.fetchTransfermarktFixtures();
+    if (success && data && data.length > 0) {
+      return data.filter(match => match.isCompleted);
+    }
+    // Fall back to mock data
+    console.log('Using mock results data - Transfermarkt scraping failed');
+    return mockMatches.filter(match => match.isCompleted);
+  } catch (error) {
+    console.error('Error scraping results:', error);
+    console.log('Using mock results data due to error');
+    return mockMatches.filter(match => match.isCompleted);
+  }
 };

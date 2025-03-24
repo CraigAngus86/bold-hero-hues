@@ -17,83 +17,11 @@ export const scrapeAndStoreFixtures = async (fixtures?: ScrapedFixture[]): Promi
     const formattedFixtures = fixtures.map(fixture => {
       const isCompleted = !!fixture.isCompleted;
       
-      // Check for data format issues - if the date field contains team names
-      // This is a workaround for the scraper returning mixed up data
-      let homeTeam = fixture.homeTeam;
-      let awayTeam = fixture.awayTeam;
-      let date = fixture.date;
-      
-      // If date contains a team name and homeTeam contains a score-like string, 
-      // we need to rearrange the data
-      if (date.includes('FC') || date.includes('City') || date.includes('United') || date.includes('Rangers')) {
-        // The date field likely contains the home team name
-        homeTeam = date;
-        
-        // Attempt to extract a proper date from somewhere else or use a placeholder
-        date = new Date().toISOString().split('T')[0]; // Today's date as fallback
-        
-        console.log(`Fixed inverted data for fixture: Original date="${fixture.date}", Using="${date}", HomeTeam="${homeTeam}"`);
-      }
-      
-      // Clean up the team names if they contain score information
-      if (homeTeam.includes('v')) {
-        const parts = homeTeam.split('v').map(p => p.trim());
-        if (parts.length === 2) {
-          try {
-            // If it looks like "3 v 2", the home team is from date field
-            const scorePattern = /^\d+$/;
-            if (scorePattern.test(parts[0]) && scorePattern.test(parts[1])) {
-              homeTeam = date;
-              // We already set date to today's date above
-            }
-          } catch (e) {
-            console.error('Error parsing score from team name:', e);
-          }
-        }
-      }
-      
-      if (awayTeam.includes('v')) {
-        const parts = awayTeam.split('v').map(p => p.trim());
-        if (parts.length === 2) {
-          try {
-            // If it looks like "3 v 2", use the away team name from somewhere else
-            const scorePattern = /^\d+$/;
-            if (scorePattern.test(parts[0]) && scorePattern.test(parts[1])) {
-              // Try to find away team name in the original date field
-              if (date.includes('FC')) {
-                awayTeam = date;
-              }
-            }
-          } catch (e) {
-            console.error('Error parsing score from team name:', e);
-          }
-        }
-      }
-      
-      // Final data cleanup
-      homeTeam = homeTeam.replace(/\d+\s*v\s*\d+/g, '').trim();
-      awayTeam = awayTeam.replace(/\d+\s*v\s*\d+/g, '').trim();
-      
-      // Make sure date is in YYYY-MM-DD format
-      if (!date.match(/^\d{4}-\d{2}-\d{2}$/)) {
-        // Try to parse the date or use a fallback
-        try {
-          const parsedDate = new Date(date);
-          if (!isNaN(parsedDate.getTime())) {
-            date = parsedDate.toISOString().split('T')[0];
-          } else {
-            date = new Date().toISOString().split('T')[0]; // Today's date as fallback
-          }
-        } catch (e) {
-          date = new Date().toISOString().split('T')[0]; // Today's date as fallback
-        }
-      }
-      
       // Format the final fixture object
       return {
-        home_team: homeTeam,
-        away_team: awayTeam,
-        date: date,
+        home_team: fixture.homeTeam,
+        away_team: fixture.awayTeam,
+        date: fixture.date,
         time: fixture.time || '15:00',
         competition: fixture.competition || 'Highland League',
         venue: fixture.venue || 'TBD',

@@ -1,13 +1,17 @@
 
 import React from 'react';
+import { useApiConfig } from './data/useApiConfig';
 import DataScraperControl from './DataScraperControl';
 import ScrapedDataTable from './data/ScrapedDataTable';
+import ServerMonitor from './data/ServerMonitor';
 import { Separator } from "@/components/ui/separator";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
 
 const AdminDatabaseSection = () => {
+  const { config } = useApiConfig();
+
   return (
     <div className="space-y-6">
       <div>
@@ -25,6 +29,12 @@ const AdminDatabaseSection = () => {
           Navigate to the server directory, run 'npm install' followed by 'npm start'.
         </AlertDescription>
       </Alert>
+      
+      <Separator />
+      
+      <TooltipProvider>
+        <ServerMonitor config={config} />
+      </TooltipProvider>
       
       <Separator />
       

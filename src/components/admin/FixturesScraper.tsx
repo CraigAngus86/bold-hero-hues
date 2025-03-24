@@ -40,11 +40,15 @@ export default function FixturesScraper() {
       setSuccess(false);
       setResults([]);
       
+      console.log('Starting fixture scraping and storage process...');
+      toast.info('Scraping fixtures... This may take a moment.');
+      
       // Use scrapeAndStoreFixtures function which already handles everything
       const success = await scrapeAndStoreFixtures();
       
       if (!success) {
         setError('Failed to fetch and store fixtures. Check the console for details.');
+        toast.error('Failed to fetch and store fixtures');
         return;
       }
       
@@ -53,6 +57,7 @@ export default function FixturesScraper() {
       
       if (!result.success || !result.data) {
         setError(result.error || 'Failed to fetch fixtures from RSS feed');
+        toast.error(result.error || 'Failed to fetch fixtures from RSS feed');
         return;
       }
       
@@ -63,6 +68,7 @@ export default function FixturesScraper() {
     } catch (error) {
       console.error('Error fetching fixtures:', error);
       setError(error instanceof Error ? error.message : 'An unknown error occurred');
+      toast.error('An error occurred while fetching fixtures');
     } finally {
       setIsLoading(false);
     }

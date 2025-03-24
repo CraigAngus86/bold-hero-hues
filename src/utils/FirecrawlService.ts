@@ -56,7 +56,7 @@ export class FirecrawlService {
       }
 
       // Call our Supabase Edge Function to handle the RSS feed fetch
-      const { data, error } = await fetch('/api/fetch-rss', {
+      const response = await fetch('/api/fetch-rss', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -65,14 +65,25 @@ export class FirecrawlService {
         body: JSON.stringify({
           url: 'http://www.highlandfootballleague.com/rss/'
         })
-      }).then(res => res.json());
+      });
 
-      if (error) {
-        console.error('Error fetching RSS feed:', error);
-        return { success: false, error: error };
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response from fetch-rss function:', errorText);
+        return { 
+          success: false, 
+          error: `HTTP error ${response.status}: ${errorText}` 
+        };
       }
 
-      return { success: true, data: data };
+      const result = await response.json();
+      
+      if (!result.success) {
+        console.error('Error in fetch-rss function:', result.error);
+        return { success: false, error: result.error };
+      }
+
+      return { success: true, data: result.data };
     } catch (error) {
       console.error('Error in fetchHighlandLeagueRSS:', error);
       return { 

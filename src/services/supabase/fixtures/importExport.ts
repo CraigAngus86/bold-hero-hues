@@ -71,6 +71,8 @@ export const scrapeAndStoreFixtures = async (): Promise<boolean> => {
       return false;
     }
     
+    console.log('Fixtures fetched:', result.data.length);
+    
     // Add a temporary ID to each fixture and ensure required fields are present
     const fixturesWithRequiredFields: Match[] = result.data.map((fixture, index) => ({
       id: `temp-${index}`, // Temporary ID, will be replaced by UUID in Supabase
@@ -85,6 +87,8 @@ export const scrapeAndStoreFixtures = async (): Promise<boolean> => {
       awayScore: fixture.awayScore || null
     }));
     
+    console.log('Clearing existing matches from database...');
+    
     // Clear existing data first
     const { error: deleteError } = await supabase
       .from('matches')
@@ -97,6 +101,7 @@ export const scrapeAndStoreFixtures = async (): Promise<boolean> => {
       return false;
     }
     
+    console.log('Storing new fixtures in database...');
     return await importMockDataToSupabase(fixturesWithRequiredFields);
   } catch (error) {
     console.error('Error in scrapeAndStoreFixtures:', error);

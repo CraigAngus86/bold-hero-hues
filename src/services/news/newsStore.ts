@@ -2,9 +2,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { NewsItem } from './types';
-
-// Initial news data (empty array)
-const initialNews: NewsItem[] = [];
+import { initialNews } from './mockData';
 
 interface NewsStore {
   news: NewsItem[];

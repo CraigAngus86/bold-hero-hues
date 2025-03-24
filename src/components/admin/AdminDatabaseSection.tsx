@@ -7,7 +7,7 @@ import ServerMonitor from './data/ServerMonitor';
 import { Separator } from "@/components/ui/separator";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Terminal } from "lucide-react";
+import { Terminal, Info } from "lucide-react";
 
 const AdminDatabaseSection = () => {
   const { config } = useApiConfig();
@@ -21,12 +21,15 @@ const AdminDatabaseSection = () => {
         </p>
       </div>
       
-      <Alert>
-        <Terminal className="h-4 w-4" />
-        <AlertTitle>Server Required for Live Data</AlertTitle>
-        <AlertDescription>
-          To use live data instead of mock data, you need to run the included Node.js server.
-          Navigate to the server directory, run 'npm install' followed by 'npm start'.
+      <Alert className="bg-amber-50 border-amber-200">
+        <Info className="h-4 w-4 text-amber-800" />
+        <AlertTitle className="text-amber-800">About Highland League Data</AlertTitle>
+        <AlertDescription className="text-amber-700">
+          This application can display Highland League data in two ways:
+          <ul className="list-disc list-inside mt-2">
+            <li>Mock data (built-in, always available)</li>
+            <li>Real-time data (by connecting to a football API service)</li>
+          </ul>
         </AlertDescription>
       </Alert>
       

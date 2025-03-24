@@ -10,7 +10,7 @@ interface FirecrawlResponse {
 
 // Define the structure for scraped fixtures
 export interface ScrapedFixture {
-  id?: string | number;  // Add id field to match the Match interface
+  id: string | number;  // Make id required to match Match interface
   homeTeam: string;
   awayTeam: string;
   date: string;
@@ -32,11 +32,15 @@ export class FirecrawlService {
   private static DEFAULT_API_KEY = 'fc-83bcbd73547640f0a7b2be29068dadad';
   private static TRANSFERMARKT_URL = 'https://www.transfermarkt.com/banks-o-dee-fc/spielplandatum/verein/25442/saison_id/2024';
 
-  // Available CORS proxies to try in order
+  // Expanded list of CORS proxies to try in order
   private static CORS_PROXIES = [
     'https://corsproxy.io/?',
     'https://cors-anywhere.herokuapp.com/',
     'https://api.allorigins.win/raw?url=',
+    'https://cors-proxy.fringe.zone/',
+    'https://proxy.cors.sh/',
+    'https://cors.eu.org/',
+    'https://thingproxy.freeboard.io/fetch/',
   ];
 
   // Save API key to local storage
@@ -63,19 +67,33 @@ export class FirecrawlService {
       for (const proxyBase of this.CORS_PROXIES) {
         try {
           const proxyUrl = `${proxyBase}${encodeURIComponent(targetUrl)}`;
-          console.log(`Attempting to fetch through CORS proxy: ${proxyUrl}`);
+          console.log(`Attempting to fetch through CORS proxy: ${proxyBase}${targetUrl.substring(0, 30)}...`);
+          
+          // Use AbortController to set timeout
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => {
+            controller.abort();
+            console.warn(`Request to ${proxyBase} timed out after 15 seconds`);
+          }, 15000);
           
           const response = await fetch(proxyUrl, {
             headers: {
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+              'Accept-Language': 'en-US,en;q=0.5',
+              'Referer': 'https://www.google.com/',
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache'
             },
-            // Add a timeout to prevent hanging requests
-            signal: AbortSignal.timeout(10000) // 10 second timeout
+            signal: controller.signal
           });
+
+          // Clear the timeout
+          clearTimeout(timeoutId);
 
           if (!response.ok) {
             const errorText = await response.text();
-            console.warn(`HTTP error ${response.status} with proxy ${proxyBase}: ${errorText}`);
+            console.warn(`HTTP error ${response.status} with proxy ${proxyBase}: ${errorText.substring(0, 100)}`);
             continue; // Try the next proxy
           }
           
@@ -96,6 +114,8 @@ export class FirecrawlService {
           
           if (fixtures.length === 0) {
             console.warn(`No fixtures found in HTML from proxy ${proxyBase}`);
+            // Store the sample for debugging
+            localStorage.setItem('lastTransfermarktHtml', htmlContent.substring(0, 10000));
             continue; // Try the next proxy
           }
           
@@ -113,7 +133,8 @@ export class FirecrawlService {
         }
       }
       
-      // If we get here, all proxies failed
+      // If we get here, all proxies failed, try direct server-side fetching if available
+      console.log('All browser-side CORS proxies failed, returning error');
       return { 
         success: false, 
         error: 'All CORS proxies failed to fetch Transfermarkt data. Try using the mock data instead.',
@@ -128,7 +149,7 @@ export class FirecrawlService {
     }
   }
 
-  // Generate mock fixtures as a fallback
+  // Generate mock fixtures as a fallback - ensuring each fixture has a unique ID
   static generateMockFixtures(): ScrapedFixture[] {
     const teams = [
       'Banks O\' Dee FC', 'Brechin City FC', 'Buckie Thistle FC', 'Clachnacuddin FC',
@@ -185,8 +206,11 @@ export class FirecrawlService {
       // Pick a random venue or use Spain Park for home games
       const venue = isBanksHome ? 'Spain Park' : venues[Math.floor(Math.random() * venues.length)];
       
+      // Generate a truly unique ID by combining match details
+      const uniqueId = `mock-${dateStr}-${teams[homeTeamIndex].substring(0, 3)}-${teams[awayTeamIndex].substring(0, 3)}-${Date.now()}-${i}`;
+      
       fixtures.push({
-        id: `mock-${dateStr}-${homeTeamIndex}-${awayTeamIndex}`,
+        id: uniqueId,
         homeTeam: teams[homeTeamIndex],
         awayTeam: teams[awayTeamIndex],
         date: dateStr,
@@ -325,8 +349,8 @@ export class FirecrawlService {
           
           // Only add if we have valid teams
           if (homeTeam !== 'Unknown' && awayTeam !== 'Unknown') {
-            // Generate a unique ID for each fixture
-            const fixtureId = `${homeTeam}-${awayTeam}-${date}-${Math.random().toString(36).substring(2, 9)}`;
+            // Generate a truly unique ID for each fixture
+            const fixtureId = `${date}-${homeTeam.substring(0, 3)}-${awayTeam.substring(0, 3)}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
             
             fixtures.push({
               id: fixtureId,
@@ -349,6 +373,8 @@ export class FirecrawlService {
       // If no fixtures were parsed but HTML was received, there may be an issue with the HTML structure
       if (fixtures.length === 0 && html.length > 0) {
         console.warn('HTML was received but no fixtures could be parsed. The website structure may have changed.');
+        // Save sample HTML for debugging
+        localStorage.setItem('lastTransfermarktHtml', html.substring(0, 10000));
       }
       
       return fixtures;

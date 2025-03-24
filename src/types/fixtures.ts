@@ -3,7 +3,7 @@
  * Represents a fixture scraped from external sources
  */
 export interface ScrapedFixture {
-  id?: string | number;
+  id: string | number; // Required field to match Match interface
   homeTeam: string;
   awayTeam: string;
   date: string;
@@ -17,8 +17,11 @@ export interface ScrapedFixture {
 
 // Function to convert ScrapedFixture to Match type
 export function convertToMatch(fixture: ScrapedFixture): import('@/components/fixtures/types').Match {
+  // Generate a unique ID if one doesn't exist
+  const id = fixture.id || `fixture-${fixture.homeTeam}-${fixture.awayTeam}-${fixture.date}-${Math.random().toString(36).substring(2, 9)}`;
+  
   return {
-    id: fixture.id || `${fixture.homeTeam}-${fixture.awayTeam}-${fixture.date}-${Math.random().toString(36).substring(2, 9)}`,
+    id: id,
     homeTeam: fixture.homeTeam,
     awayTeam: fixture.awayTeam,
     date: fixture.date,

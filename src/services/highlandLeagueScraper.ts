@@ -76,9 +76,9 @@ export const scrapeHighlandLeagueData = async () => {
       if (success && data && data.length > 0) {
         console.log(`Successfully fetched ${data.length} fixtures from Transfermarkt`);
         // Convert ScrapedFixture[] to Match[]
-        const fixtures = convertToMatches(data.filter(match => !match.isCompleted));
-        const results = convertToMatches(data.filter(match => match.isCompleted));
-        return { leagueTable, fixtures, results };
+        const fixturesData = convertToMatches(data.filter(match => !match.isCompleted));
+        const resultsData = convertToMatches(data.filter(match => match.isCompleted));
+        return { leagueTable, fixtures: fixturesData, results: resultsData };
       } else {
         console.log('No fixtures found from Transfermarkt, trying mock data');
         throw new Error('No fixtures found from Transfermarkt');
@@ -91,9 +91,9 @@ export const scrapeHighlandLeagueData = async () => {
       const mockData = FirecrawlService.generateMockFixtures();
       if (mockData && mockData.length > 0) {
         console.log(`Generated ${mockData.length} mock fixtures`);
-        const fixtures = convertToMatches(mockData.filter(match => !match.isCompleted));
-        const results = convertToMatches(mockData.filter(match => match.isCompleted));
-        return { leagueTable, fixtures, results };
+        const fixturesData = convertToMatches(mockData.filter(match => !match.isCompleted));
+        const resultsData = convertToMatches(mockData.filter(match => match.isCompleted));
+        return { leagueTable, fixtures: fixturesData, results: resultsData };
       }
     }
     

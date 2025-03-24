@@ -5,11 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, RefreshCw, Check, Rss, ExternalLink } from "lucide-react";
+import { AlertCircle, RefreshCw, Check, Rss, ExternalLink, Database, Globe } from "lucide-react";
 import { FirecrawlService, ScrapedFixture } from '@/utils/FirecrawlService';
 import { scrapeAndStoreFixtures } from '@/services/supabase/fixtures/importExport'; 
 import { toast } from 'sonner';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function FixturesScraper() {
   const [apiKey, setApiKey] = useState('');
@@ -129,30 +130,55 @@ export default function FixturesScraper() {
       <CardHeader>
         <CardTitle>Highland League Fixtures Importer</CardTitle>
         <CardDescription>
-          Fetch fixtures from the Highland Football League RSS feed using Firecrawl API
+          Fetch fixtures from the Highland Football League RSS feed
         </CardDescription>
       </CardHeader>
       
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="apiKey">Firecrawl API Key</Label>
-          <div className="flex space-x-2">
-            <Input
-              id="apiKey"
-              type="password"
-              placeholder="Enter your Firecrawl API key"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-            />
-            <Button onClick={handleSaveApiKey}>Save Key</Button>
-          </div>
-          <p className="text-xs text-gray-500 flex items-center gap-1">
-            Visit <a href="https://app.firecrawl.dev" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Firecrawl.dev</a> to get an API key.
-            <Button variant="ghost" size="sm" className="h-5 px-1" onClick={handleShowFirecrawlDocs}>
-              <ExternalLink className="h-3 w-3" />
-            </Button>
-          </p>
-        </div>
+        <Tabs defaultValue="direct">
+          <TabsList>
+            <TabsTrigger value="direct">
+              <Globe className="mr-2 h-4 w-4" />
+              Direct RSS Fetch
+            </TabsTrigger>
+            <TabsTrigger value="firecrawl">
+              <Database className="mr-2 h-4 w-4" />
+              Firecrawl API
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="direct" className="space-y-4 pt-4">
+            <Alert>
+              <Globe className="h-4 w-4" />
+              <AlertTitle>Direct RSS Feed Access</AlertTitle>
+              <AlertDescription>
+                This method fetches directly from the Highland League RSS feed using a CORS proxy. No API key required.
+              </AlertDescription>
+            </Alert>
+          </TabsContent>
+          
+          <TabsContent value="firecrawl" className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label htmlFor="apiKey">Firecrawl API Key (Optional)</Label>
+              <div className="flex space-x-2">
+                <Input
+                  id="apiKey"
+                  type="password"
+                  placeholder="Enter your Firecrawl API key"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                />
+                <Button onClick={handleSaveApiKey}>Save Key</Button>
+              </div>
+              <p className="text-xs text-gray-500 flex items-center gap-1">
+                Visit <a href="https://app.firecrawl.dev" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Firecrawl.dev</a> to get an API key.
+                <Button variant="ghost" size="sm" className="h-5 px-1" onClick={handleShowFirecrawlDocs}>
+                  <ExternalLink className="h-3 w-3" />
+                </Button>
+              </p>
+            </div>
+          </TabsContent>
+        </Tabs>
         
         {error && (
           <Alert variant="destructive">
@@ -208,19 +234,25 @@ export default function FixturesScraper() {
 
         <Accordion type="single" collapsible className="mt-2">
           <AccordionItem value="api-info">
-            <AccordionTrigger className="text-sm">API Troubleshooting</AccordionTrigger>
+            <AccordionTrigger className="text-sm">Troubleshooting</AccordionTrigger>
             <AccordionContent>
               <div className="space-y-3 text-sm">
-                <div className="font-medium">Firecrawl API Information</div>
+                <div className="font-medium">Data Fetching Information</div>
                 <p className="text-gray-600">
-                  The Firecrawl API is being used to extract data from the Highland League RSS feed.
+                  This tool now uses two different methods to fetch Highland League data:
+                </p>
+                <ol className="list-decimal list-inside space-y-1">
+                  <li><strong>Direct Method:</strong> Fetches directly from the RSS feed using a CORS proxy</li>
+                  <li><strong>Firecrawl API:</strong> Uses Firecrawl as a backup if direct method fails</li>
+                </ol>
+                <p className="text-gray-600 mt-2">
                   If you're experiencing issues, try the following:
                 </p>
                 <ol className="list-decimal list-inside space-y-1">
-                  <li>Verify that your API key is correct</li>
                   <li>Check that the Highland League RSS feed is online at <a href="http://www.highlandfootballleague.com/rss/" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">this URL</a></li>
                   <li>Try using the "Test Connection" button before attempting to store data</li>
                   <li>Check the browser console for detailed error messages</li>
+                  <li>If using Firecrawl, verify that your API key is correct</li>
                 </ol>
               </div>
             </AccordionContent>

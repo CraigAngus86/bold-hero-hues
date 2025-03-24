@@ -1,23 +1,20 @@
 
-import { FirecrawlService } from '@/utils/FirecrawlService';
 import { supabase } from '@/services/supabase/supabaseClient';
 import { toast } from 'sonner';
+import { ScrapedFixture } from '@/utils/FirecrawlService';
 
-export const scrapeAndStoreFixtures = async (): Promise<boolean> => {
+export const scrapeAndStoreFixtures = async (fixtures?: ScrapedFixture[]): Promise<boolean> => {
   try {
-    // First fetch the fixtures from the best available source
-    console.log('Fetching fixtures from all available sources...');
-    const result = await FirecrawlService.fetchHighlandLeagueFixtures();
-    
-    if (!result.success || !result.data || result.data.length === 0) {
-      console.error('Failed to fetch fixtures:', result.error);
+    // If fixtures are not provided, return false
+    if (!fixtures || fixtures.length === 0) {
+      console.error('No fixtures provided to store');
       return false;
     }
     
-    console.log(`Successfully fetched ${result.data.length} fixtures, storing in Supabase...`);
+    console.log(`Storing ${fixtures.length} fixtures in Supabase...`);
     
     // Format the fixtures for the database
-    const fixtures = result.data.map(fixture => {
+    const formattedFixtures = fixtures.map(fixture => {
       const isCompleted = !!fixture.isCompleted;
       
       return {
@@ -38,7 +35,7 @@ export const scrapeAndStoreFixtures = async (): Promise<boolean> => {
     // Insert the fixtures into Supabase
     const { error } = await supabase
       .from('matches')
-      .upsert(fixtures, {
+      .upsert(formattedFixtures, {
         onConflict: 'home_team,away_team,date', // Prevents duplicate fixtures
         ignoreDuplicates: false,
       });
@@ -49,7 +46,7 @@ export const scrapeAndStoreFixtures = async (): Promise<boolean> => {
       return false;
     }
     
-    console.log(`Successfully stored ${fixtures.length} fixtures in Supabase`);
+    console.log(`Successfully stored ${formattedFixtures.length} fixtures in Supabase`);
     return true;
   } catch (error) {
     console.error('Error in scrapeAndStoreFixtures:', error);

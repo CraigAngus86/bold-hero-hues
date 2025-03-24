@@ -5,7 +5,7 @@ import {
   BreadcrumbLink, 
   BreadcrumbSeparator 
 } from '@/components/ui/breadcrumb';
-import { ImageFolder } from './ImageManager';
+import { ImageFolder } from './ImageManagerContext';
 
 interface BreadcrumbNavigationProps {
   breadcrumbs: ImageFolder[];

@@ -1,7 +1,7 @@
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Folder } from 'lucide-react';
-import { ImageFolder } from './ImageManager';
+import { ImageFolder } from './ImageManagerContext';
 
 interface FolderGridProps {
   folders: ImageFolder[];

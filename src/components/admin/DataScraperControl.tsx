@@ -3,12 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Database, RefreshCw, AlertTriangle, Server, Info, ExternalLink } from "lucide-react";
+import { Database, RefreshCw, AlertTriangle, Server, Info, ExternalLink, Bug } from "lucide-react";
 import { toast } from "sonner";
 import { triggerLeagueDataScrape, getLastUpdateTime } from '@/services/supabase/leagueDataService';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from '@/integrations/supabase/client';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const DataScraperControl = () => {
   const [isScrapingData, setIsScrapingData] = useState(false);
@@ -16,6 +17,8 @@ const DataScraperControl = () => {
   const [hasError, setHasError] = useState(false);
   const [errorDetails, setErrorDetails] = useState<string | null>(null);
   const [edgeFunctionStatus, setEdgeFunctionStatus] = useState<'checking' | 'deployed' | 'not-deployed' | 'unknown'>('checking');
+  const [scrapeError, setScrapeError] = useState<string | null>(null);
+  const [showDebugInfo, setShowDebugInfo] = useState(false);
 
   // Load last update time on component mount and check Edge Function status
   useEffect(() => {
@@ -80,6 +83,7 @@ const DataScraperControl = () => {
     try {
       setIsScrapingData(true);
       setHasError(false);
+      setScrapeError(null);
       toast.info("Refreshing Highland League data...");
       
       try {
@@ -96,7 +100,17 @@ const DataScraperControl = () => {
       } catch (error: any) {
         console.error('Failed to refresh data:', error);
         setHasError(true);
-        setErrorDetails(error?.message || "Unknown error occurred");
+        
+        // Extract detailed error message if available
+        let errorMessage = error?.message || "Unknown error occurred";
+        if (error?.response?.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (typeof error === 'object' && error.value && error.value.message) {
+          errorMessage = error.value.message;
+        }
+        
+        setErrorDetails(errorMessage);
+        setScrapeError(errorMessage);
         toast.error("Failed to refresh Highland League data");
       }
     } finally {
@@ -168,7 +182,7 @@ const DataScraperControl = () => {
             <AlertTitle>Scraper Connection Issue</AlertTitle>
             <AlertDescription>
               <p className="mb-2">
-                There was an error connecting to the Supabase Edge Function for data scraping. 
+                There was an error while scraping the Highland League data. 
                 {errorDetails && <span className="font-mono text-xs block mt-1">{errorDetails}</span>}
               </p>
               <p className="mb-2">The system will automatically fall back to:</p>
@@ -206,6 +220,50 @@ const DataScraperControl = () => {
           {renderEdgeFunctionStatus()}
         </div>
         
+        {scrapeError && (
+          <Alert variant="destructive" className="mt-4">
+            <Bug className="h-4 w-4" />
+            <AlertTitle>Scraping Error</AlertTitle>
+            <AlertDescription>
+              <p className="mb-2">{scrapeError}</p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowDebugInfo(!showDebugInfo)}
+                className="mt-1"
+              >
+                {showDebugInfo ? "Hide Debug Info" : "Show Debug Info"}
+              </Button>
+              
+              {showDebugInfo && (
+                <Accordion type="single" collapsible className="mt-2">
+                  <AccordionItem value="debugging">
+                    <AccordionTrigger>Debugging Information</AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-2 text-xs">
+                        <p><strong>Possible Causes:</strong></p>
+                        <ul className="list-disc pl-5 space-y-1">
+                          <li>BBC Sport may have changed their website structure</li>
+                          <li>Network connectivity issues from the Edge Function</li>
+                          <li>The BBC Sport website might be blocking requests from Supabase IP addresses</li>
+                          <li>Rate limiting or temporary BBC Sport outage</li>
+                        </ul>
+                        
+                        <p className="mt-3"><strong>Troubleshooting Steps:</strong></p>
+                        <ul className="list-disc pl-5 space-y-1">
+                          <li>Check the <a href="https://supabase.com/dashboard/project/bbbxhwaixjjxgboeiktq/functions/scrape-highland-league/logs" target="_blank" className="text-blue-600 underline">Edge Function logs</a> for detailed error information</li>
+                          <li>Verify if the BBC Sport website structure has changed</li>
+                          <li>Try running the scraper again later</li>
+                        </ul>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <div className="flex flex-col gap-4">
           <TooltipProvider>
             <Tooltip>
@@ -224,6 +282,16 @@ const DataScraperControl = () => {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
+          
+          {edgeFunctionStatus === 'deployed' && (
+            <Button 
+              variant="outline" 
+              onClick={() => window.open('https://supabase.com/dashboard/project/bbbxhwaixjjxgboeiktq/functions/scrape-highland-league/logs', '_blank')}
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+              View Edge Function Logs
+            </Button>
+          )}
           
           {hasError && (
             <Button 

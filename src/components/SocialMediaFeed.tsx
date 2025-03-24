@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Twitter, Instagram, Facebook, ShoppingCart } from 'lucide-react';
+import { Twitter, Instagram, Facebook } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 // Latest social media posts from Banks o' Dee FC (expanded with more posts)
@@ -88,9 +88,16 @@ const SocialMediaFeed = () => {
   const [socialPosts, setSocialPosts] = useState([]);
   
   useEffect(() => {
-    // In a real application, this would fetch data from social media APIs
-    // Limit to only 8 posts
-    setSocialPosts(realSocialPosts.slice(0, 8));
+    // Ensure we're getting the latest data by sorting the posts by date before slicing
+    const sortedPosts = [...realSocialPosts].sort((a, b) => {
+      // Convert string dates to Date objects for proper comparison
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      return dateB.getTime() - dateA.getTime(); // Sort in descending order (newest first)
+    });
+    
+    // Take the 8 most recent posts
+    setSocialPosts(sortedPosts.slice(0, 8));
   }, []);
   
   return (

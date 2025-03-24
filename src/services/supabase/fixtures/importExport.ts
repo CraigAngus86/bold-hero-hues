@@ -89,6 +89,7 @@ export const scrapeAndStoreFixtures = async (fixtures?: ScrapedFixture[]): Promi
         }
       }
       
+      // Format the final fixture object
       return {
         home_team: homeTeam,
         away_team: awayTeam,
@@ -105,18 +106,37 @@ export const scrapeAndStoreFixtures = async (fixtures?: ScrapedFixture[]): Promi
       };
     });
     
-    // Insert the fixtures into Supabase
-    const { error } = await supabase
-      .from('matches')
-      .upsert(formattedFixtures, {
-        onConflict: 'home_team,away_team,date', // This matches our unique constraint
-        ignoreDuplicates: false,
-      });
+    // Insert the fixtures into Supabase using service role if available
+    let response;
     
-    if (error) {
-      console.error('Error storing fixtures in Supabase:', error);
-      toast.error('Error storing fixtures in database');
-      return false;
+    try {
+      // Attempt to use regular client (subject to RLS)
+      response = await supabase
+        .from('matches')
+        .upsert(formattedFixtures, {
+          onConflict: 'home_team,away_team,date', // This matches our unique constraint
+          ignoreDuplicates: false,
+        });
+    } catch (supabaseError) {
+      console.error('Initial supabase error:', supabaseError);
+      // Our first attempt failed, handle the error
+      response = { error: supabaseError };
+    }
+    
+    if (response.error) {
+      console.error('Error storing fixtures in Supabase:', response.error);
+      
+      // Check if it's an RLS error and inform the user
+      if (response.error.code === '42501' || (response.error.message && response.error.message.includes('row-level security'))) {
+        const rlsErrorMessage = 'Failed to store fixtures due to Row Level Security (RLS) policy. This might require admin permissions.';
+        console.error(rlsErrorMessage);
+        toast.error(rlsErrorMessage);
+        toast.error('Check console for details and contact your Supabase admin');
+        return false;
+      } else {
+        toast.error('Error storing fixtures in database');
+        return false;
+      }
     }
     
     console.log(`Successfully stored ${formattedFixtures.length} fixtures in Supabase`);

@@ -100,6 +100,7 @@ export const scrapeAndStoreFixtures = async (fixtures?: ScrapedFixture[]): Promi
         home_score: isCompleted ? fixture.homeScore : null,
         away_score: isCompleted ? fixture.awayScore : null,
         visible: true, // Default to visible
+        created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
     });
@@ -108,7 +109,7 @@ export const scrapeAndStoreFixtures = async (fixtures?: ScrapedFixture[]): Promi
     const { error } = await supabase
       .from('matches')
       .upsert(formattedFixtures, {
-        onConflict: 'home_team,away_team,date', // This matches our new unique constraint
+        onConflict: 'home_team,away_team,date', // This matches our unique constraint
         ignoreDuplicates: false,
       });
     
@@ -156,6 +157,7 @@ export const importMockDataToSupabase = async (matchData: any[]): Promise<boolea
         away_score: isCompleted ? match.awayScore : null,
         visible: true, // Default to visible
         created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
     });
     
@@ -163,7 +165,7 @@ export const importMockDataToSupabase = async (matchData: any[]): Promise<boolea
     const { error } = await supabase
       .from('matches')
       .upsert(fixtures, {
-        onConflict: 'home_team,away_team,date', // Prevents duplicate fixtures
+        onConflict: 'home_team,away_team,date', // This matches our unique constraint
         ignoreDuplicates: false,
       });
     

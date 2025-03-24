@@ -6,15 +6,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { getApiConfig, saveApiConfig, DEFAULT_API_CONFIG } from '@/services/config/apiConfig';
+import { getApiConfig, saveApiConfig, DEFAULT_API_CONFIG, ApiConfig } from '@/services/config/apiConfig';
 import { toast } from "sonner";
 import { clearLeagueDataCache } from '@/services/leagueDataService';
 
 const DataScraperControl = () => {
-  const [config, setConfig] = useState({
+  // Fix the TypeScript error by making sure config state has the required apiServerUrl
+  const [config, setConfig] = useState<ApiConfig>({
     ...DEFAULT_API_CONFIG,
-    apiServerUrl: 'http://localhost:3001' // Default to localhost server
+    apiServerUrl: DEFAULT_API_CONFIG.apiServerUrl || 'http://localhost:3001'
   });
+  
   const [isStatusChecking, setIsStatusChecking] = useState(false);
   const [serverStatus, setServerStatus] = useState<'unknown' | 'ok' | 'error'>('unknown');
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
@@ -40,9 +42,17 @@ const DataScraperControl = () => {
     setAutoConnecting(true);
     checkServerStatus(configWithServer);
     
+    // Try to load data directly from the mock data
+    if (!loadedConfig.apiServerUrl) {
+      toast.info("Using mock data since no server is configured");
+      clearLeagueDataCache(); // Force refresh with mock data
+    }
+    
     // Set up periodic server checks
     const interval = setInterval(() => {
-      checkServerStatus(configWithServer);
+      if (config.apiServerUrl) { // Only check if a server URL is configured
+        checkServerStatus(configWithServer);
+      }
     }, 60000); // Check every minute
     
     return () => clearInterval(interval);
@@ -79,7 +89,19 @@ const DataScraperControl = () => {
   const checkServerStatus = async (configToUse = config) => {
     try {
       setIsStatusChecking(true);
-      const serverUrl = configToUse.apiServerUrl || 'http://localhost:3001';
+      
+      // If no server URL is configured, don't try to connect
+      if (!configToUse.apiServerUrl) {
+        setServerStatus('error');
+        setIsStatusChecking(false);
+        if (autoConnecting) {
+          setAutoConnecting(false);
+          toast.info("No server configured. Using mock data instead.");
+        }
+        return;
+      }
+      
+      const serverUrl = configToUse.apiServerUrl;
       
       // Use AbortController to set a timeout
       const controller = new AbortController();
@@ -115,7 +137,7 @@ const DataScraperControl = () => {
       
       if (autoConnecting) {
         setAutoConnecting(false);
-        toast.error("Could not connect to the Highland League server. Using mock data instead.");
+        toast.info("Could not connect to the Highland League server. Using mock data instead.");
       }
     } finally {
       setIsStatusChecking(false);
@@ -126,16 +148,20 @@ const DataScraperControl = () => {
   const handleForceRefresh = async () => {
     try {
       toast.info("Refreshing Highland League data...");
-      const serverUrl = config.apiServerUrl || 'http://localhost:3001';
       
-      await fetch(`${serverUrl}/api/league-table?refresh=true`, {
-        headers: {
-          ...(config.apiKey ? { 'X-API-Key': config.apiKey } : {})
-        },
-        mode: 'cors'
-      });
+      if (config.apiServerUrl && serverStatus === 'ok') {
+        // If server is configured and online, refresh from server
+        const serverUrl = config.apiServerUrl;
+        
+        await fetch(`${serverUrl}/api/league-table?refresh=true`, {
+          headers: {
+            ...(config.apiKey ? { 'X-API-Key': config.apiKey } : {})
+          },
+          mode: 'cors'
+        });
+      }
       
-      // Clear local cache
+      // Clear local cache in any case
       clearLeagueDataCache();
       
       toast.success("Highland League data refreshed successfully");
@@ -145,6 +171,12 @@ const DataScraperControl = () => {
     } catch (error) {
       console.error('Failed to refresh data:', error);
       toast.error("Failed to refresh Highland League data");
+      
+      // Clear cache anyway to force reload of mock data
+      clearLeagueDataCache();
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
     }
   };
 
@@ -160,12 +192,20 @@ const DataScraperControl = () => {
         <TabsContent value="server" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Highland League Scraper Status</CardTitle>
+              <CardTitle>Highland League Data Status</CardTitle>
               <CardDescription>
-                Current status of the Highland League data server
+                Current status of the Highland League data
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="p-4 bg-amber-50 border border-amber-200 rounded-md mb-4">
+                <p className="text-amber-800 font-medium">Important Note</p>
+                <p className="text-sm text-amber-700">
+                  You don't need to run a server - the app works with mock data by default. 
+                  Server settings are only needed if you want to use real scraped data.
+                </p>
+              </div>
+            
               <div className="flex flex-col space-y-4">
                 {isStatusChecking ? (
                   <div className="p-3 bg-gray-50 border border-gray-200 rounded-md">
@@ -184,10 +224,10 @@ const DataScraperControl = () => {
                     )}
                   </div>
                 ) : serverStatus === 'error' ? (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                    <p className="text-red-700 font-medium">Server is offline</p>
-                    <p className="text-sm text-red-600">
-                      Using mock data instead. Start the server to see real data.
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
+                    <p className="text-amber-700 font-medium">Using mock data</p>
+                    <p className="text-sm text-amber-600">
+                      The app is using mock data for the league table.
                     </p>
                   </div>
                 ) : (
@@ -198,49 +238,51 @@ const DataScraperControl = () => {
                 
                 <div className="flex space-x-3">
                   <Button 
-                    onClick={() => checkServerStatus()} 
-                    disabled={isStatusChecking}
-                    variant="outline"
-                  >
-                    Check Server Status
-                  </Button>
-                  
-                  <Button 
                     onClick={handleForceRefresh} 
-                    disabled={isStatusChecking || serverStatus !== 'ok'}
+                    disabled={isStatusChecking}
                     variant="default"
                   >
                     Refresh League Data
                   </Button>
+                  
+                  {config.apiServerUrl && (
+                    <Button 
+                      onClick={() => checkServerStatus()} 
+                      disabled={isStatusChecking}
+                      variant="outline"
+                    >
+                      Check Server Status
+                    </Button>
+                  )}
                 </div>
               </div>
               
               <div className="space-y-2 pt-4">
-                <Label htmlFor="apiServerUrl">Server URL</Label>
+                <Label htmlFor="apiServerUrl">Server URL (Optional)</Label>
                 <Input
                   id="apiServerUrl"
                   name="apiServerUrl"
                   value={config.apiServerUrl || ''}
                   onChange={handleConfigChange}
-                  placeholder="http://localhost:3001"
+                  placeholder="Leave empty to use mock data"
                 />
                 <p className="text-sm text-gray-500">
-                  URL of the Highland League scraper server
+                  If you have a Highland League scraper server running, enter its URL here
                 </p>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="apiKey">API Key</Label>
+                <Label htmlFor="apiKey">API Key (Optional)</Label>
                 <Input
                   id="apiKey"
                   name="apiKey"
                   value={config.apiKey || ''}
                   onChange={handleConfigChange}
                   type="password"
-                  placeholder="Enter API key (optional)"
+                  placeholder="Enter API key if required"
                 />
                 <p className="text-sm text-gray-500">
-                  Optional API key for authentication
+                  Only needed if your server requires authentication
                 </p>
               </div>
             </CardContent>
@@ -340,19 +382,18 @@ const DataScraperControl = () => {
       
       <Card>
         <CardHeader>
-          <CardTitle>Server Installation Instructions</CardTitle>
+          <CardTitle>Data Information</CardTitle>
         </CardHeader>
         <CardContent>
-          <ol className="list-decimal list-inside space-y-2 text-sm">
-            <li>Navigate to the <code className="px-1 py-0.5 bg-gray-100 rounded">server</code> directory in your project.</li>
-            <li>Run <code className="px-1 py-0.5 bg-gray-100 rounded">npm install</code> to install dependencies.</li>
-            <li>Start the server: <code className="px-1 py-0.5 bg-gray-100 rounded">npm run dev</code> for development or <code className="px-1 py-0.5 bg-gray-100 rounded">npm start</code> for production.</li>
-            <li>The server will automatically update its data every 6 hours.</li>
-          </ol>
-          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
-            <p className="text-amber-700 text-sm">
-              <strong>Note:</strong> For production, deploy this server to a hosting service like 
-              Heroku, Vercel, AWS, or Digital Ocean for continuous data availability.
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-blue-700 font-medium">How the data works</p>
+            <p className="text-sm text-blue-600 mt-1">
+              By default, the app uses mock data for the league table. This data is refreshed when you click the 
+              "Refresh League Data" button.
+            </p>
+            <p className="text-sm text-blue-600 mt-2">
+              For technical users: You can set up a server to scrape real-time data from the BBC Sport Highland League 
+              page. The server settings are optional and only needed if you want to use real scraped data.
             </p>
           </div>
         </CardContent>

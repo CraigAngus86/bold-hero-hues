@@ -1,3 +1,4 @@
+
 // API configuration interface
 export interface ApiConfig {
   useProxy: boolean;
@@ -6,7 +7,7 @@ export interface ApiConfig {
   useLocalStorage: boolean;
   autoRefresh: boolean;
   refreshInterval: number; // in minutes
-  apiServerUrl?: string; // URL for the Node.js scraper server
+  apiServerUrl?: string; // URL for the Node.js scraper server - making this optional
 }
 
 // Default API configuration

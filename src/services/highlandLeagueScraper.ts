@@ -7,27 +7,39 @@ import { getApiConfig } from './config/apiConfig';
 // This file provides both real API calls and fallback mock data for Highland League information
 console.log('Highland League scraper initialized');
 
-// Function to fetch league table data from our Node.js server
+// Function to fetch league table data from our Node.js server (if available)
 async function fetchLeagueTableFromServer(): Promise<TeamStats[]> {
   try {
+    const config = getApiConfig();
+    
+    // If no server URL is configured, throw an error to use mock data
+    if (!config.apiServerUrl) {
+      throw new Error('No server URL configured');
+    }
+    
     console.log('Attempting to fetch Highland League table from server');
     
-    const config = getApiConfig();
-    // Use the configured API server or fall back to the default URL
-    const serverUrl = config.apiServerUrl || 'http://localhost:3001';
+    // Use the configured API server
+    const serverUrl = config.apiServerUrl;
     const url = `${serverUrl}/api/league-table`;
     
     console.log(`Fetching from: ${url}`);
     
-    // Make the HTTP request to our Node.js server
+    // Make the HTTP request to our Node.js server with a timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+    
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
         // Add API key if configured
         ...(config.apiKey ? { 'X-API-Key': config.apiKey } : {})
       },
+      signal: controller.signal,
       mode: 'cors' // Explicitly enable CORS
     });
+    
+    clearTimeout(timeoutId);
     
     if (!response.ok) {
       console.error('Failed to fetch from server:', response.status, response.statusText);

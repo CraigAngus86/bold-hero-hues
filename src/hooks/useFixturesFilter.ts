@@ -30,11 +30,21 @@ export const useFixturesFilter = ({ matches, competitions }: UseFixturesFilterPr
   const availableMonths = useMemo(() => getAvailableMonths(matches), [matches]);
   
   const filteredMatches = useMemo(() => {
+    // Get current date once for consistent comparison
+    const today = new Date();
+    
     const filtered = matches.filter(match => {
       const competitionMatch = selectedCompetition === "All Competitions" || match.competition === selectedCompetition;
-      const timeframeMatch = (showPast && match.isCompleted) || (showUpcoming && !match.isCompleted);
       
-      const matchMonth = new Date(match.date).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+      // Check both isCompleted flag and date for more consistent filtering
+      const matchDate = new Date(match.date);
+      const isPastMatch = match.isCompleted || matchDate < today;
+      const isUpcomingMatch = !match.isCompleted && matchDate >= today;
+      
+      // Apply the filter based on user selection
+      const timeframeMatch = (showPast && isPastMatch) || (showUpcoming && isUpcomingMatch);
+      
+      const matchMonth = matchDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
       const monthMatch = selectedMonth === "All Months" || matchMonth === selectedMonth;
       
       return competitionMatch && timeframeMatch && monthMatch;

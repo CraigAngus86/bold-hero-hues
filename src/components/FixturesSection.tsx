@@ -42,11 +42,11 @@ const FixturesSection = () => {
         const today = new Date();
         console.log('Today is:', today.toISOString());
         
-        // Function to get upcoming matches with proper filtering
+        // Standardized function to get upcoming matches
         const getUpcomingMatches = (matches: Match[]) => {
           console.log('Filtering upcoming matches, total to filter:', matches.length);
           
-          // Filter to get only upcoming matches (not completed and date is in the future)
+          // Filter upcoming matches: not completed AND date is in the future
           const upcoming = matches
             .filter(match => {
               const matchDate = new Date(match.date);
@@ -61,8 +61,9 @@ const FixturesSection = () => {
           return upcoming;
         };
         
-        // Function to get recent results
+        // Standardized function to get recent results
         const getRecentResults = (matches: Match[]) => {
+          // Filter completed matches: must be marked as completed
           return matches
             .filter(match => match.isCompleted)
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())

@@ -36,8 +36,14 @@ export const convertToMatchFormat = (match: SupabaseMatch): Match => {
   };
 };
 
-// Convert frontend Match to Supabase format
+// Convert frontend Match to Supabase format for single match
 export const convertToSupabaseFormat = (match: Partial<Match>): Partial<SupabaseMatch> => {
+  // Make sure required fields are present
+  if (!match.homeTeam || !match.awayTeam || !match.date || !match.time || !match.competition || !match.venue) {
+    console.error('Missing required fields for match conversion');
+    throw new Error('Missing required fields for match conversion');
+  }
+
   const supabaseMatch: Partial<SupabaseMatch> = {
     home_team: match.homeTeam,
     away_team: match.awayTeam,
@@ -45,7 +51,8 @@ export const convertToSupabaseFormat = (match: Partial<Match>): Partial<Supabase
     time: match.time,
     competition: match.competition,
     venue: match.venue,
-    is_completed: match.isCompleted
+    is_completed: match.isCompleted || false,
+    status: match.isCompleted ? 'completed' : 'upcoming'
   };
 
   if (match.isCompleted && match.homeScore !== undefined && match.awayScore !== undefined) {
@@ -136,7 +143,7 @@ export const addMatchToSupabase = async (match: Partial<Match>): Promise<string 
     
     const { data, error } = await supabase
       .from('matches')
-      .insert([supabaseMatch])
+      .insert(supabaseMatch)
       .select();
 
     if (error) {
@@ -157,7 +164,25 @@ export const addMatchToSupabase = async (match: Partial<Match>): Promise<string 
 // Update an existing match in Supabase
 export const updateMatchInSupabase = async (id: string, match: Partial<Match>): Promise<boolean> => {
   try {
-    const supabaseMatch = convertToSupabaseFormat(match);
+    // For update, we don't need to enforce all required fields since we're updating
+    // specific fields of an existing record
+    const supabaseMatch: Partial<SupabaseMatch> = {};
+    
+    if (match.homeTeam) supabaseMatch.home_team = match.homeTeam;
+    if (match.awayTeam) supabaseMatch.away_team = match.awayTeam;
+    if (match.date) supabaseMatch.date = match.date;
+    if (match.time) supabaseMatch.time = match.time;
+    if (match.competition) supabaseMatch.competition = match.competition;
+    if (match.venue) supabaseMatch.venue = match.venue;
+    if (match.isCompleted !== undefined) {
+      supabaseMatch.is_completed = match.isCompleted;
+      supabaseMatch.status = match.isCompleted ? 'completed' : 'upcoming';
+    }
+    
+    if (match.isCompleted && match.homeScore !== undefined && match.awayScore !== undefined) {
+      supabaseMatch.home_score = match.homeScore;
+      supabaseMatch.away_score = match.awayScore;
+    }
     
     // Update the updated_at field
     supabaseMatch.updated_at = new Date().toISOString();

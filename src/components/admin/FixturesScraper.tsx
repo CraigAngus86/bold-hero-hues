@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { RefreshCw, Check, Download, AlertCircle } from "lucide-react";
+import { RefreshCw, Check, Download, AlertCircle, Info } from "lucide-react";
 import { scrapeAndStoreFixtures } from '@/services/supabase/fixtures/importExport'; 
 import { toast } from 'sonner';
 import { ScrapedFixture } from '@/types/fixtures';
@@ -15,6 +15,7 @@ export default function FixturesScraper() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [htmlSample, setHtmlSample] = useState<string | null>(null);
+  const [dataFormatting, setDataFormatting] = useState<string | null>(null);
   
   const handleFetchFixtures = async () => {
     try {
@@ -23,6 +24,7 @@ export default function FixturesScraper() {
       setSuccess(false);
       setResults([]);
       setHtmlSample(null);
+      setDataFormatting(null);
       
       console.log('Starting fixture scraping from Highland Football League website...');
       toast.info('Scraping fixtures from Highland Football League website... This may take a moment.');
@@ -64,6 +66,21 @@ export default function FixturesScraper() {
       
       console.log('Fixtures fetch successful, proceeding with import...', fixtures);
       
+      // Log a sample of the data to check format
+      if (fixtures.length > 0) {
+        const sample = fixtures[0];
+        const formattingInfo = `
+Sample fixture data format:
+- Date: "${sample.date}"
+- Time: "${sample.time}"
+- Home Team: "${sample.homeTeam}"
+- Away Team: "${sample.awayTeam}"
+- Competition: "${sample.competition}"
+`;
+        setDataFormatting(formattingInfo);
+        console.log(formattingInfo);
+      }
+      
       // Format the data as ScrapedFixture objects
       const formattedFixtures = fixtures.map((item: any): ScrapedFixture => ({
         homeTeam: item.homeTeam,
@@ -77,17 +94,18 @@ export default function FixturesScraper() {
         awayScore: item.isCompleted ? item.awayScore : null
       }));
       
+      // Show a preview of the data before storing
+      setResults(formattedFixtures);
+      
       // Store fixtures
       const success = await scrapeAndStoreFixtures(formattedFixtures);
       
       if (!success) {
-        setError('Failed to store fixtures. Check the console for details.');
+        setError('Failed to store fixtures. The data format might be incorrect.');
         toast.error('Failed to store fixtures in database');
         return;
       }
       
-      // Get the data to display
-      setResults(formattedFixtures);
       setSuccess(true);
       toast.success(`Successfully imported ${formattedFixtures.length} fixtures`);
       
@@ -142,6 +160,18 @@ export default function FixturesScraper() {
                   </pre>
                 </details>
               )}
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {dataFormatting && (
+          <Alert className="bg-blue-50 border-blue-200">
+            <Info className="h-4 w-4 text-blue-600" />
+            <AlertTitle className="text-blue-800">Data Sample</AlertTitle>
+            <AlertDescription className="text-blue-700">
+              <pre className="text-xs bg-blue-50 p-2 rounded-md overflow-x-auto whitespace-pre-wrap">
+                {dataFormatting}
+              </pre>
             </AlertDescription>
           </Alert>
         )}

@@ -8,7 +8,7 @@ import NewsManager from '@/components/admin/NewsManager';
 import SponsorsManager from '@/components/admin/SponsorsManager';
 import TeamManager from '@/components/admin/TeamManager';
 import LeagueTableManager from '@/components/admin/LeagueTableManager';
-import ImageManager from '@/components/admin/ImageManager';
+import ImageManager from '@/components/admin/image-manager/ImageManager';
 import { Database, Globe, Server, Newspaper, Users, Award, Image } from 'lucide-react';
 import DataDashboard from '@/components/admin/data/DataDashboard';
 import { createInitialFolders } from '@/integrations/supabase/client';

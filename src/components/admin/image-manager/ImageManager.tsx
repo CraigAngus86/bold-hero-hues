@@ -1,17 +1,18 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
-import { FolderPlus, Upload, Folder, ArrowLeft, FileImage, Clipboard, X } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { Card, CardContent } from '@/components/ui/card';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { supabase } from '@/integrations/supabase/client';
-import { v4 as uuidv4 } from 'uuid';
+import FolderGrid from './FolderGrid';
+import ImagesGrid from './ImagesGrid';
+import BreadcrumbNavigation from './BreadcrumbNavigation';
+import NewFolderDialog from './NewFolderDialog';
+import ImagePreviewDialog from './ImagePreviewDialog';
+import { useToast } from '@/components/ui/use-toast';
+import { Upload, FolderPlus } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 // Define the folder structure type
-interface ImageFolder {
+export interface ImageFolder {
   id: string;
   name: string;
   path: string;
@@ -19,15 +20,19 @@ interface ImageFolder {
   created_at: string;
 }
 
+export interface ImageFile {
+  id: string;
+  name: string;
+  metadata: any;
+}
+
 const ImageManager = () => {
   const { toast } = useToast();
   const [folders, setFolders] = useState<ImageFolder[]>([]);
   const [currentFolder, setCurrentFolder] = useState<ImageFolder | null>(null);
-  const [parentFolders, setParentFolders] = useState<ImageFolder[]>([]);
   const [subfolders, setSubfolders] = useState<ImageFolder[]>([]);
   const [images, setImages] = useState<any[]>([]);
   const [newFolderDialogOpen, setNewFolderDialogOpen] = useState(false);
-  const [newFolderName, setNewFolderName] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
@@ -153,7 +158,7 @@ const ImageManager = () => {
   };
 
   // Create a new subfolder
-  const createNewFolder = async () => {
+  const createNewFolder = async (newFolderName: string) => {
     if (!newFolderName.trim()) {
       toast({
         title: "Folder name required",
@@ -208,7 +213,6 @@ const ImageManager = () => {
       });
       
       // Reset and close dialog
-      setNewFolderName('');
       setNewFolderDialogOpen(false);
     } catch (error: any) {
       console.error('Error creating folder:', error);
@@ -295,16 +299,6 @@ const ImageManager = () => {
     setImageDialogOpen(true);
   };
 
-  // Copy image URL to clipboard
-  const copyImageUrl = (url: string) => {
-    navigator.clipboard.writeText(url).then(() => {
-      toast({
-        title: "URL copied",
-        description: "Image URL has been copied to clipboard."
-      });
-    });
-  };
-
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -342,26 +336,11 @@ const ImageManager = () => {
         </div>
       </div>
       
-      {/* Breadcrumb Navigation - Fixed HTML structure */}
-      <Breadcrumb className="mb-4">
-        <BreadcrumbItem>
-          <BreadcrumbLink onClick={() => navigateToBreadcrumb(null)}>
-            Home
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        
-        {breadcrumbs.map((folder, index) => (
-          <BreadcrumbItem key={folder.id}>
-            <BreadcrumbSeparator />
-            <BreadcrumbLink 
-              onClick={() => navigateToBreadcrumb(folder)}
-              className={index === breadcrumbs.length - 1 ? "font-semibold" : ""}
-            >
-              {folder.name}
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-        ))}
-      </Breadcrumb>
+      {/* Breadcrumb Navigation */}
+      <BreadcrumbNavigation 
+        breadcrumbs={breadcrumbs} 
+        onNavigate={navigateToBreadcrumb} 
+      />
       
       {/* Back button */}
       {currentFolder && (
@@ -377,114 +356,32 @@ const ImageManager = () => {
       
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {/* Display Folders */}
-        {subfolders.map(folder => (
-          <Card 
-            key={folder.id}
-            className="cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => navigateToFolder(folder)}
-          >
-            <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-              <Folder className="h-12 w-12 text-team-blue mb-2" />
-              <span className="text-sm font-medium">{folder.name}</span>
-            </CardContent>
-          </Card>
-        ))}
+        <FolderGrid 
+          folders={subfolders} 
+          onFolderClick={navigateToFolder} 
+        />
         
         {/* Display Images */}
-        {images
-          .filter(item => !item.name.endsWith('.folder'))
-          .map(image => (
-          <Card 
-            key={image.id}
-            className="cursor-pointer hover:shadow-md transition-shadow overflow-hidden"
-            onClick={() => viewImage(image.name)}
-          >
-            <CardContent className="p-0 aspect-square relative group">
-              <img 
-                src={getImageUrl(image.name)} 
-                alt={image.name}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white p-2 text-xs truncate">
-                {image.name.substring(0, 8)}...
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+        <ImagesGrid 
+          images={images} 
+          getImageUrl={getImageUrl}
+          onImageClick={viewImage}
+        />
       </div>
       
       {/* New Folder Dialog */}
-      <Dialog open={newFolderDialogOpen} onOpenChange={setNewFolderDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Create New Folder</DialogTitle>
-            <DialogDescription>
-              Enter a name for your new folder.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="folderName" className="text-right text-sm">
-                Folder Name
-              </label>
-              <Input
-                id="folderName"
-                value={newFolderName}
-                onChange={(e) => setNewFolderName(e.target.value)}
-                className="col-span-3"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setNewFolderDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={createNewFolder}>Create</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <NewFolderDialog 
+        open={newFolderDialogOpen}
+        onOpenChange={setNewFolderDialogOpen}
+        onCreateFolder={createNewFolder}
+      />
       
       {/* Image Preview Dialog */}
-      <Dialog open={imageDialogOpen} onOpenChange={setImageDialogOpen}>
-        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader className="flex flex-row justify-between items-center">
-            <DialogTitle>Image Preview</DialogTitle>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => setImageDialogOpen(false)}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </DialogHeader>
-          {selectedImage && (
-            <div className="flex flex-col items-center">
-              <div className="relative max-h-[60vh] overflow-hidden">
-                <img 
-                  src={selectedImage} 
-                  alt="Preview" 
-                  className="max-w-full h-auto"
-                />
-              </div>
-              <div className="w-full flex items-center mt-4 bg-gray-100 rounded-md p-2">
-                <Input 
-                  value={selectedImage} 
-                  readOnly 
-                  className="flex-grow bg-transparent border-none focus-visible:ring-0"
-                />
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => copyImageUrl(selectedImage)}
-                  className="ml-2"
-                >
-                  <Clipboard className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <ImagePreviewDialog
+        open={imageDialogOpen}
+        onOpenChange={setImageDialogOpen}
+        imageUrl={selectedImage}
+      />
     </div>
   );
 };

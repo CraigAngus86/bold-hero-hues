@@ -7,8 +7,6 @@ import LeagueStatsPanel from './LeagueStatsPanel';
 import LeagueInfoPanel from './LeagueInfoPanel';
 import { TeamStats } from './types';
 import { fetchLeagueTableFromSupabase, getLastUpdateTime } from '@/services/supabase/leagueDataService';
-import { Database } from "lucide-react";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 const LeagueTablePage = () => {
   const [leagueData, setLeagueData] = useState<TeamStats[]>([]);
@@ -77,14 +75,6 @@ const LeagueTablePage = () => {
           </p>
         )}
       </motion.div>
-      
-      <Alert className="mb-6 bg-green-50 border-green-200">
-        <Database className="h-4 w-4 text-green-800" />
-        <AlertTitle className="text-green-800">Live Data</AlertTitle>
-        <AlertDescription className="text-green-700">
-          This table is populated with real-time data scraped from the BBC Sport website and stored in Supabase.
-        </AlertDescription>
-      </Alert>
       
       {/* League Stats Summary */}
       <LeagueStatsPanel leagueData={leagueData} season={dataSeason} />

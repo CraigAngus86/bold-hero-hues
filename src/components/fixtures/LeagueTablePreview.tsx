@@ -1,4 +1,3 @@
-
 import { Link } from 'react-router-dom';
 import { Trophy } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,9 +10,31 @@ interface LeagueTablePreviewProps {
 
 const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
   // Handle empty or null data with sensible defaults
-  const previewTeams = leagueData && leagueData.length > 0 
-    ? leagueData.slice(0, 8)
-    : [];
+  const getPreviewTeams = () => {
+    if (!leagueData || leagueData.length === 0) return [];
+    
+    // Find Banks o' Dee position
+    const banksODeeIndex = leagueData.findIndex(team => team.team === "Banks o' Dee");
+    
+    if (banksODeeIndex === -1) {
+      // If Banks o' Dee is not in the data, just return top 6
+      return leagueData.slice(0, 6);
+    } else {
+      // Make sure we include Banks o' Dee and 5 other teams
+      const result = [...leagueData.slice(0, 5)]; // Get top 5 teams
+      
+      // If Banks o' Dee is already in top 5, we're done
+      if (banksODeeIndex < 5) {
+        return result;
+      }
+      
+      // Otherwise, add Banks o' Dee as the 6th team
+      result.push(leagueData[banksODeeIndex]);
+      return result;
+    }
+  };
+  
+  const previewTeams = getPreviewTeams();
   
   return (
     <Card className="overflow-hidden border-team-gray hover:shadow-md transition-shadow bg-white flex flex-col h-full">

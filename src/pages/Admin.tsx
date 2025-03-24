@@ -8,6 +8,7 @@ import NewsManager from '@/components/admin/NewsManager';
 import SponsorsManager from '@/components/admin/SponsorsManager';
 import TeamManager from '@/components/admin/TeamManager';
 import AdminDatabaseSection from '@/components/admin/AdminDatabaseSection';
+import LeagueTableManager from '@/components/admin/LeagueTableManager';
 
 const Admin = () => {
   return (
@@ -20,11 +21,12 @@ const Admin = () => {
           <p className="text-gray-600 mb-8">Manage website content and settings</p>
           
           <Tabs defaultValue="news" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4 md:w-auto">
+            <TabsList className="grid w-full grid-cols-5 md:w-auto">
               <TabsTrigger value="news">News</TabsTrigger>
               <TabsTrigger value="team">Team</TabsTrigger>
               <TabsTrigger value="sponsors">Sponsors</TabsTrigger>
               <TabsTrigger value="data">Data Management</TabsTrigger>
+              <TabsTrigger value="league">League Table</TabsTrigger>
             </TabsList>
             
             <TabsContent value="news">
@@ -79,6 +81,20 @@ const Admin = () => {
                 </CardHeader>
                 <CardContent>
                   <AdminDatabaseSection />
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="league">
+              <Card>
+                <CardHeader>
+                  <CardTitle>League Table Management</CardTitle>
+                  <CardDescription>
+                    Manage Highland League team logos and table data.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <LeagueTableManager />
                 </CardContent>
               </Card>
             </TabsContent>

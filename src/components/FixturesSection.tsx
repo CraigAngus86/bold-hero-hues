@@ -8,7 +8,7 @@ import { TeamStats } from './league/types';
 import { fetchLeagueTableFromSupabase } from '@/services/supabase/leagueDataService';
 import { Match } from './fixtures/types';
 import { toast } from 'sonner';
-import { fetchFixturesFromSupabase, fetchResultsFromSupabase } from '@/services/supabase/fixtures/fetchService';
+import { fetchFixturesFromSupabase, fetchResultsFromSupabase } from '@/services/supabase/fixturesService';
 import { convertToMatches } from '@/types/fixtures';
 
 const FixturesSection = () => {
@@ -35,13 +35,38 @@ const FixturesSection = () => {
         const fixtures = convertToMatches(fixturesData);
         const results = convertToMatches(resultsData);
         
-        // Get upcoming matches (next 3)
-        setUpcomingMatches(fixtures.slice(0, 3));
-        
-        // Get recent results (last 3)
-        setRecentResults(results.slice(0, 3));
-        
-        console.log('Data loaded successfully');
+        // Check if we have valid data, otherwise fall back to mock data
+        if (fixtures.length === 0 || results.length === 0) {
+          console.log('No fixtures or results found from Supabase, falling back to mock data');
+          // Load mock data
+          const { mockMatches } = await import('@/components/fixtures/fixturesMockData');
+          
+          // Filter and prepare match data
+          const today = new Date();
+          
+          // Get upcoming matches (not completed and in the future)
+          const upcoming = mockMatches
+            .filter(match => !match.isCompleted && new Date(match.date) >= today)
+            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+            .slice(0, 3); // Show only next 3 matches
+          
+          // Get recent results (completed)
+          const recent = mockMatches
+            .filter(match => match.isCompleted)
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+            .slice(0, 3); // Show only last 3 matches
+          
+          setUpcomingMatches(upcoming);
+          setRecentResults(recent);
+        } else {
+          // Get upcoming matches (next 3)
+          setUpcomingMatches(fixtures.slice(0, 3));
+          
+          // Get recent results (last 3)
+          setRecentResults(results.slice(0, 3));
+          
+          console.log('Data loaded successfully');
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
         toast.error('Failed to load fixtures and results data');

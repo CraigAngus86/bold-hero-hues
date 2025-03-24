@@ -11,6 +11,18 @@ interface LeagueStatsPanelProps {
 }
 
 const LeagueStatsPanel = ({ leagueData, season = "2024-2025" }: LeagueStatsPanelProps) => {
+  // Get the leader (team at position 1)
+  const leader = leagueData.find(team => team.position === 1);
+  
+  // Find Banks o' Dee position and data
+  const ourTeam = leagueData.find(team => 
+    team.team.toLowerCase().includes("banks o' dee") || 
+    team.team.toLowerCase().includes("banks o dee")
+  );
+  
+  // Get total number of teams
+  const totalTeams = leagueData.length;
+  
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -22,7 +34,7 @@ const LeagueStatsPanel = ({ leagueData, season = "2024-2025" }: LeagueStatsPanel
         <Trophy className="w-10 h-10 text-team-blue mr-4" />
         <div>
           <p className="text-xs text-gray-500">Current Leaders</p>
-          <p className="font-bold text-lg">{leagueData[0]?.team || "Buckie Thistle"}</p>
+          <p className="font-bold text-lg">{leader?.team || "No data available"}</p>
         </div>
       </div>
       <div className="bg-white shadow-sm rounded-lg p-4 flex items-center">
@@ -37,8 +49,8 @@ const LeagueStatsPanel = ({ leagueData, season = "2024-2025" }: LeagueStatsPanel
         <div>
           <p className="text-xs text-gray-500">Our Position</p>
           <p className="font-bold text-lg">
-            {leagueData.find(t => t.team === "Banks o' Dee")?.position || 3}
-            <span className="text-xs text-gray-500 ml-1">/ 17</span>
+            {ourTeam?.position || "N/A"}
+            {totalTeams > 0 && <span className="text-xs text-gray-500 ml-1">/ {totalTeams}</span>}
           </p>
         </div>
       </div>
@@ -47,11 +59,13 @@ const LeagueStatsPanel = ({ leagueData, season = "2024-2025" }: LeagueStatsPanel
         <div>
           <p className="text-xs text-gray-500">Our Form</p>
           <div className="flex items-center space-x-1 mt-1">
-            {leagueData.find(t => t.team === "Banks o' Dee")?.form.map((result, idx) => (
-              <FormIndicator key={idx} result={result} />
-            )) || Array(5).fill("").map((_, idx) => (
-              <FormIndicator key={idx} result={idx % 2 === 0 ? "W" : "D"} />
-            ))}
+            {ourTeam?.form && ourTeam.form.length > 0 ? (
+              ourTeam.form.map((result, idx) => (
+                <FormIndicator key={idx} result={result} />
+              ))
+            ) : (
+              <span className="text-xs text-gray-500">No form data available</span>
+            )}
           </div>
         </div>
       </div>

@@ -36,6 +36,60 @@ export type Database = {
         }
         Relationships: []
       }
+      fixtures: {
+        Row: {
+          away_score: number | null
+          away_team: string
+          competition: string
+          created_at: string | null
+          date: string
+          home_score: number | null
+          home_team: string
+          id: string
+          import_date: string | null
+          is_completed: boolean | null
+          season: string | null
+          source: string | null
+          time: string
+          updated_at: string | null
+          venue: string | null
+        }
+        Insert: {
+          away_score?: number | null
+          away_team: string
+          competition: string
+          created_at?: string | null
+          date: string
+          home_score?: number | null
+          home_team: string
+          id?: string
+          import_date?: string | null
+          is_completed?: boolean | null
+          season?: string | null
+          source?: string | null
+          time: string
+          updated_at?: string | null
+          venue?: string | null
+        }
+        Update: {
+          away_score?: number | null
+          away_team?: string
+          competition?: string
+          created_at?: string | null
+          date?: string
+          home_score?: number | null
+          home_team?: string
+          id?: string
+          import_date?: string | null
+          is_completed?: boolean | null
+          season?: string | null
+          source?: string | null
+          time?: string
+          updated_at?: string | null
+          venue?: string | null
+        }
+        Relationships: []
+      }
       highland_league_table: {
         Row: {
           created_at: string | null
@@ -135,6 +189,39 @@ export type Database = {
           updated_at?: string
           venue?: string
           visible?: boolean
+        }
+        Relationships: []
+      }
+      scrape_logs: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          items_added: number | null
+          items_found: number | null
+          items_updated: number | null
+          source: string
+          status: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          items_added?: number | null
+          items_found?: number | null
+          items_updated?: number | null
+          source: string
+          status: string
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          items_added?: number | null
+          items_found?: number | null
+          items_updated?: number | null
+          source?: string
+          status?: string
         }
         Relationships: []
       }

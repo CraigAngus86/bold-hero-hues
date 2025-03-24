@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import UpcomingFixtures from './fixtures/UpcomingFixtures';
@@ -5,9 +6,10 @@ import RecentResults from './fixtures/RecentResults';
 import LeagueTablePreview from './fixtures/LeagueTablePreview';
 import { TeamStats } from './league/types';
 import { fetchLeagueTableFromSupabase } from '@/services/supabase/leagueDataService';
-import { fetchFixtures, fetchResults } from '@/services/leagueDataService';
 import { Match } from './fixtures/types';
 import { toast } from 'sonner';
+import { fetchFixturesFromSupabase, fetchResultsFromSupabase } from '@/services/supabase/fixturesService';
+import { convertToMatches } from '@/types/fixtures';
 
 const FixturesSection = () => {
   const [leagueData, setLeagueData] = useState<TeamStats[] | null>(null);
@@ -21,13 +23,17 @@ const FixturesSection = () => {
         setIsLoading(true);
         
         // Fetch all data in parallel
-        const [leagueTable, fixtures, results] = await Promise.all([
+        const [leagueTable, fixturesData, resultsData] = await Promise.all([
           fetchLeagueTableFromSupabase(),
-          fetchFixtures(),
-          fetchResults()
+          fetchFixturesFromSupabase(),
+          fetchResultsFromSupabase()
         ]);
         
         setLeagueData(leagueTable);
+        
+        // Convert fixtures and results to Match format
+        const fixtures = convertToMatches(fixturesData);
+        const results = convertToMatches(resultsData);
         
         // Get upcoming matches (next 3)
         setUpcomingMatches(fixtures.slice(0, 3));

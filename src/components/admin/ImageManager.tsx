@@ -172,7 +172,17 @@ const ImageManager = () => {
         ? `${currentFolder.path}/${pathName}` 
         : pathName;
       
-      // Insert new folder into database
+      // First create the folder in storage to make sure it works
+      const { error: storageError } = await supabase
+        .storage
+        .from('images')
+        .upload(`${fullPath}/.folder`, new Blob([''])); // Empty file to create folder
+      
+      if (storageError && storageError.message !== 'The resource already exists') {
+        throw storageError;
+      }
+      
+      // Then insert folder into database
       const { data, error } = await supabase
         .from('image_folders')
         .insert({
@@ -183,14 +193,6 @@ const ImageManager = () => {
         .select();
       
       if (error) throw error;
-      
-      // Create folder in storage
-      const { error: storageError } = await supabase
-        .storage
-        .from('images')
-        .upload(`${fullPath}/.folder`, new Blob([''])); // Empty file to create folder
-      
-      if (storageError && storageError.message !== 'The resource already exists') throw storageError;
       
       // Refresh folders list
       fetchAllFolders();
@@ -203,11 +205,11 @@ const ImageManager = () => {
       // Reset and close dialog
       setNewFolderName('');
       setNewFolderDialogOpen(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating folder:', error);
       toast({
         title: "Failed to create folder",
-        description: "There was a problem creating the folder.",
+        description: error.message || "There was a problem creating the folder.",
         variant: "destructive"
       });
     }

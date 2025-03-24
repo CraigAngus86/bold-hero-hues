@@ -10,3 +10,40 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // import { supabase } from "@/integrations/supabase/client";
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+// Helper function to create initial folders
+export const createInitialFolders = async () => {
+  try {
+    // Check if Misc folder exists
+    const { data: existingFolders } = await supabase
+      .from('image_folders')
+      .select('*')
+      .eq('name', 'Misc');
+    
+    // If Misc folder doesn't exist, create it
+    if (!existingFolders || existingFolders.length === 0) {
+      // Create Misc folder in database
+      const { error: dbError } = await supabase
+        .from('image_folders')
+        .insert({
+          name: 'Misc',
+          path: 'misc',
+          parent_id: null
+        });
+      
+      if (dbError) throw dbError;
+      
+      // Create folder in storage
+      const { error: storageError } = await supabase
+        .storage
+        .from('images')
+        .upload('misc/.folder', new Blob(['']));
+      
+      if (storageError && storageError.message !== 'The resource already exists') {
+        console.error('Error creating Misc folder in storage:', storageError);
+      }
+    }
+  } catch (error) {
+    console.error('Error creating initial folders:', error);
+  }
+};

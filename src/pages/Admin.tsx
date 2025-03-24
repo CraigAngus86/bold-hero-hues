@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,8 +11,14 @@ import LeagueTableManager from '@/components/admin/LeagueTableManager';
 import ImageManager from '@/components/admin/ImageManager';
 import { Database, Globe, Server, Newspaper, Users, Award, Image } from 'lucide-react';
 import DataDashboard from '@/components/admin/data/DataDashboard';
+import { createInitialFolders } from '@/integrations/supabase/client';
 
 const Admin = () => {
+  useEffect(() => {
+    // Create the initial folders when the Admin page loads
+    createInitialFolders();
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />

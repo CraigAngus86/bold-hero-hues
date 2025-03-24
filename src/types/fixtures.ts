@@ -17,7 +17,7 @@ export interface ScrapedFixture {
 
 // Function to convert ScrapedFixture to Match type
 export function convertToMatch(fixture: ScrapedFixture): import('@/components/fixtures/types').Match {
-  // Use the provided ID or generate a unique one if needed
+  // Generate a unique ID if not already present
   const id = fixture.id || `fixture-${fixture.homeTeam}-${fixture.awayTeam}-${fixture.date}-${Math.random().toString(36).substring(2, 9)}`;
   
   return {

@@ -7,7 +7,7 @@ import { AlertCircle, RefreshCw, Check, Download, Globe } from "lucide-react";
 import { scrapeAndStoreFixtures } from '@/services/supabase/fixtures/importExport'; 
 import { toast } from 'sonner';
 import { supabase } from '@/services/supabase/supabaseClient';
-import { ScrapedFixture } from '@/utils/FirecrawlService';
+import { ScrapedFixture } from '@/types/fixtures';
 
 export default function FixturesScraper() {
   const [isLoading, setIsLoading] = useState(false);
@@ -16,7 +16,7 @@ export default function FixturesScraper() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   
-  // Test the scraping function
+  // Test the scraping function with BBC Sport
   const handleTestFetch = async () => {
     try {
       setTestLoading(true);
@@ -24,12 +24,12 @@ export default function FixturesScraper() {
       setSuccess(false);
       setResults([]);
       
-      console.log('Testing fixture scraping from HFL website...');
-      toast.info('Testing connection to Highland League website...');
+      console.log('Testing fixture scraping from BBC Sport website...');
+      toast.info('Testing connection to BBC Sport website...');
       
       // Call the Edge Function directly
-      const { data, error: fnError } = await supabase.functions.invoke('scrape-fixtures', {
-        body: { url: 'http://www.highlandfootballleague.com/Fixtures/' }
+      const { data, error: fnError } = await supabase.functions.invoke('scrape-bbc-fixtures', {
+        body: { url: 'https://www.bbc.com/sport/football/scottish-highland-league/scores-fixtures' }
       });
       
       if (fnError || !data?.success) {
@@ -43,7 +43,7 @@ export default function FixturesScraper() {
       console.log('Test fetch successful, found', data.data.length, 'fixtures');
       setResults(data.data);
       setSuccess(true);
-      toast.success(`Successfully fetched ${data.data.length} fixtures`);
+      toast.success(`Successfully fetched ${data.data.length} fixtures from BBC Sport`);
       
     } catch (error) {
       console.error('Error testing fetch:', error);
@@ -54,18 +54,18 @@ export default function FixturesScraper() {
     }
   };
   
-  // Fetch and store fixtures
-  const handleFetchFixtures = async () => {
+  // Fetch from Highland League website
+  const handleFetchFromHFL = async () => {
     try {
       setIsLoading(true);
       setError(null);
       setSuccess(false);
       setResults([]);
       
-      console.log('Starting fixture scraping and storage process...');
-      toast.info('Scraping fixtures... This may take a moment.');
+      console.log('Starting fixture scraping from Highland League website...');
+      toast.info('Scraping fixtures from Highland League website...');
       
-      // Get fixtures using the Edge Function
+      // Get fixtures using the Highland League Edge Function
       const { data, error: fnError } = await supabase.functions.invoke('scrape-fixtures', {
         body: { url: 'http://www.highlandfootballleague.com/Fixtures/' }
       });
@@ -92,7 +92,56 @@ export default function FixturesScraper() {
       // Get the data to display
       setResults(data.data);
       setSuccess(true);
-      toast.success(`Successfully imported ${data.data.length} fixtures`);
+      toast.success(`Successfully imported ${data.data.length} fixtures from Highland League website`);
+      
+    } catch (error) {
+      console.error('Error fetching fixtures:', error);
+      setError(error instanceof Error ? error.message : 'An unknown error occurred');
+      toast.error('An error occurred while fetching fixtures');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch from BBC Sport
+  const handleFetchFromBBC = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      setSuccess(false);
+      setResults([]);
+      
+      console.log('Starting fixture scraping from BBC Sport...');
+      toast.info('Scraping fixtures from BBC Sport...');
+      
+      // Get fixtures using the BBC Sport Edge Function
+      const { data, error: fnError } = await supabase.functions.invoke('scrape-bbc-fixtures', {
+        body: { url: 'https://www.bbc.com/sport/football/scottish-highland-league/scores-fixtures' }
+      });
+      
+      if (fnError || !data?.success) {
+        const errorMsg = fnError?.message || data?.error || 'Failed to fetch fixtures';
+        console.error('Fetch failed:', errorMsg);
+        setError(errorMsg);
+        toast.error(errorMsg);
+        return;
+      }
+      
+      console.log('Fixtures fetch successful, proceeding with import...');
+      
+      // Store fixtures
+      const success = await scrapeAndStoreFixtures(data.data);
+      
+      if (!success) {
+        setError('Failed to store fixtures. Check the console for details.');
+        toast.error('Failed to store fixtures in database');
+        return;
+      }
+      
+      // Get the data to display
+      setResults(data.data);
+      setSuccess(true);
+      toast.success(`Successfully imported ${data.data.length} fixtures from BBC Sport`);
       
     } catch (error) {
       console.error('Error fetching fixtures:', error);
@@ -137,17 +186,17 @@ export default function FixturesScraper() {
       <CardHeader>
         <CardTitle>Highland League Fixtures Importer</CardTitle>
         <CardDescription>
-          Fetch fixtures from the official Highland Football League website
+          Fetch fixtures from official Highland League sources using Supabase Edge Functions
         </CardDescription>
       </CardHeader>
       
       <CardContent className="space-y-4">
         <Alert>
           <Globe className="h-4 w-4" />
-          <AlertTitle>Official Highland League Website</AlertTitle>
+          <AlertTitle>Data Sources</AlertTitle>
           <AlertDescription>
-            This tool fetches fixtures directly from the official Highland Football League website 
-            using a Supabase Edge Function, similar to how the league table is fetched.
+            This tool offers two data sources: The official Highland Football League website and BBC Sport's
+            Highland League section. The BBC source typically provides more reliable structured data.
           </AlertDescription>
         </Alert>
         
@@ -194,11 +243,11 @@ export default function FixturesScraper() {
         )}
       </CardContent>
       
-      <CardFooter className="flex flex-col gap-3 sm:flex-row">
+      <CardFooter className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         <Button
-          className="w-full"
+          className="w-full sm:w-auto"
           onClick={handleTestFetch}
-          disabled={testLoading}
+          disabled={testLoading || isLoading}
           variant="outline"
         >
           {testLoading ? (
@@ -209,25 +258,44 @@ export default function FixturesScraper() {
           ) : (
             <>
               <Globe className="mr-2 h-4 w-4" />
-              Test Connection
+              Test BBC Sport Connection
             </>
           )}
         </Button>
         
         <Button
-          className="w-full"
-          onClick={handleFetchFixtures}
+          className="w-full sm:w-auto"
+          onClick={handleFetchFromBBC}
           disabled={isLoading || testLoading}
         >
-          {isLoading ? (
+          {isLoading && success === false ? (
             <>
               <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-              Fetching & Storing...
+              Fetching from BBC Sport...
             </>
           ) : (
             <>
               <Globe className="mr-2 h-4 w-4" />
-              Fetch & Store Fixtures
+              Fetch from BBC Sport
+            </>
+          )}
+        </Button>
+        
+        <Button
+          className="w-full sm:w-auto"
+          onClick={handleFetchFromHFL}
+          disabled={isLoading || testLoading}
+          variant="secondary"
+        >
+          {isLoading && success === true ? (
+            <>
+              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+              Fetching from HFL...
+            </>
+          ) : (
+            <>
+              <Globe className="mr-2 h-4 w-4" />
+              Fetch from Highland League
             </>
           )}
         </Button>

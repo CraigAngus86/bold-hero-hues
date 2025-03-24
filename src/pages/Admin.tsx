@@ -9,7 +9,7 @@ import SponsorsManager from '@/components/admin/SponsorsManager';
 import TeamManager from '@/components/admin/TeamManager';
 import LeagueTableManager from '@/components/admin/LeagueTableManager';
 import FixturesManager from '@/components/admin/fixtures/FixturesManager';
-import { Database, Rss, Server } from 'lucide-react';
+import { Database, Globe, Server } from 'lucide-react';
 import DataDashboard from '@/components/admin/data/DataDashboard';
 
 const Admin = () => {
@@ -22,15 +22,15 @@ const Admin = () => {
           <h1 className="text-3xl font-bold text-team-blue mb-2">Admin Dashboard</h1>
           <p className="text-gray-600 mb-6">Manage website content and settings</p>
           
-          <Tabs defaultValue="news" className="space-y-6">
+          <Tabs defaultValue="data" className="space-y-6">
             <TabsList className="grid grid-cols-6 md:w-auto">
               <TabsTrigger value="news">News</TabsTrigger>
               <TabsTrigger value="team">Team</TabsTrigger>
               <TabsTrigger value="sponsors">Sponsors</TabsTrigger>
               <TabsTrigger value="data">
                 <span className="flex items-center">
-                  <Database className="h-4 w-4 mr-2" />
-                  Data
+                  <Globe className="h-4 w-4 mr-2" />
+                  Highland Data
                 </span>
               </TabsTrigger>
               <TabsTrigger value="league">League Table</TabsTrigger>
@@ -82,9 +82,9 @@ const Admin = () => {
             <TabsContent value="data">
               <Card>
                 <CardHeader>
-                  <CardTitle>Data Management & Scrapers</CardTitle>
+                  <CardTitle>Highland League Data Scrapers</CardTitle>
                   <CardDescription>
-                    Configure data sources, import/export data, and manage Highland League data.
+                    Fetch fixtures, results, and league table data from official Highland League sources.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

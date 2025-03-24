@@ -3,12 +3,12 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Rss, Database, Server } from "lucide-react";
+import { Database, Server, Globe } from "lucide-react";
 import DataScraperControl from '@/components/admin/DataScraperControl';
 import ScrapedDataTable from '@/components/admin/data/ScrapedDataTable';
 import ServerMonitor from '@/components/admin/data/ServerMonitor';
 import { ApiConfig, DEFAULT_API_CONFIG } from '@/services/config/apiConfig';
-import FixturesScraper from '@/components/admin/FixturesScraper';
+import FixturesScraper from '@/components/admin/fixtures/FixturesScraper';
 
 const DataDashboard = () => {
   // Create a complete ApiConfig object for the ServerMonitor component
@@ -23,8 +23,8 @@ const DataDashboard = () => {
       <Tabs defaultValue="fixtures" className="w-full">
         <TabsList className="mb-4">
           <TabsTrigger value="fixtures" className="flex items-center">
-            <Rss className="h-4 w-4 mr-2" />
-            Fixtures Scraper
+            <Globe className="h-4 w-4 mr-2" />
+            Highland League Fixtures
           </TabsTrigger>
           <TabsTrigger value="scrapers" className="flex items-center">
             <Database className="h-4 w-4 mr-2" />

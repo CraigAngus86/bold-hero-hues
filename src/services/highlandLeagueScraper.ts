@@ -75,7 +75,7 @@ async function fetchFixturesFromEdgeFunction(): Promise<{
       throw new Error('Supabase client not initialized');
     }
     
-    // Call the Supabase edge function to scrape fixture data
+    // Call the Supabase edge function to scrape fixture data from BBC Sport
     const { data, error } = await supabase.functions.invoke('scrape-bbc-fixtures', {
       body: { 
         url: 'https://www.bbc.com/sport/football/scottish-highland-league/scores-fixtures'
@@ -106,6 +106,49 @@ async function fetchFixturesFromEdgeFunction(): Promise<{
   }
 }
 
+// Function to fetch fixtures from Highland League website
+async function fetchFixturesFromHFLEdgeFunction(): Promise<{
+  fixtures: Match[],
+  results: Match[]
+}> {
+  try {
+    console.log('Attempting to fetch fixtures from Highland League website via edge function');
+    
+    if (!supabase) {
+      throw new Error('Supabase client not initialized');
+    }
+    
+    // Call the Supabase edge function to scrape fixture data
+    const { data, error } = await supabase.functions.invoke('scrape-fixtures', {
+      body: { 
+        url: 'http://www.highlandfootballleague.com/Fixtures/'
+      }
+    });
+    
+    if (error) {
+      console.error('Error from HFL edge function:', error);
+      throw new Error(`Edge function error: ${error.message}`);
+    }
+    
+    if (!data || !data.success || !data.data || data.data.length === 0) {
+      console.error('No fixtures returned from HFL edge function:', data);
+      throw new Error('No fixtures found from Highland League website');
+    }
+    
+    console.log(`Successfully fetched ${data.data.length} fixtures from Highland League website`);
+    
+    // Convert to Match objects and separate fixtures and results
+    const allMatches = convertToMatches(data.data);
+    const fixtures = allMatches.filter(match => !match.isCompleted);
+    const results = allMatches.filter(match => match.isCompleted);
+    
+    return { fixtures, results };
+  } catch (error) {
+    console.error('Error fetching from HFL edge function:', error);
+    throw error; // Let the caller handle the fallback
+  }
+}
+
 export const scrapeHighlandLeagueData = async () => {
   try {
     console.log('Fetching Highland League data');
@@ -120,20 +163,36 @@ export const scrapeHighlandLeagueData = async () => {
         console.log(`Successfully fetched ${fixtures.length} fixtures and ${results.length} results from BBC Sport`);
         return { leagueTable, fixtures, results };
       } else {
-        console.log('No fixtures found from BBC Sport, trying mock data');
+        console.log('No fixtures found from BBC Sport, trying Highland League website');
         throw new Error('No fixtures found from BBC Sport');
       }
-    } catch (error) {
-      console.error('Error getting fixtures from BBC Sport:', error);
+    } catch (bbcError) {
+      console.error('Error getting fixtures from BBC Sport:', bbcError);
       
-      // Last resort fallback to hardcoded mock data
-      console.log('Using hardcoded mock fixture data as a last resort');
-      toast.warning('Using mock fixture data - could not fetch real data');
-      return {
-        leagueTable,
-        fixtures: mockMatches.filter(match => !match.isCompleted),
-        results: mockMatches.filter(match => match.isCompleted)
-      };
+      // Try the Highland League website as a backup
+      try {
+        console.log('Attempting to fetch fixtures from Highland League website');
+        const { fixtures, results } = await fetchFixturesFromHFLEdgeFunction();
+        
+        if (fixtures.length > 0 || results.length > 0) {
+          console.log(`Successfully fetched ${fixtures.length} fixtures and ${results.length} results from Highland League website`);
+          return { leagueTable, fixtures, results };
+        } else {
+          console.log('No fixtures found from Highland League website, using mock data');
+          throw new Error('No fixtures found from Highland League website');
+        }
+      } catch (hflError) {
+        console.error('Error getting fixtures from Highland League website:', hflError);
+        
+        // Last resort fallback to hardcoded mock data
+        console.log('Using hardcoded mock fixture data as a last resort');
+        toast.warning('Using mock fixture data - could not fetch real data');
+        return {
+          leagueTable,
+          fixtures: mockMatches.filter(match => !match.isCompleted),
+          results: mockMatches.filter(match => match.isCompleted)
+        };
+      }
     }
   } catch (error) {
     console.error('Error in scrapeHighlandLeagueData:', error);
@@ -156,9 +215,23 @@ export const scrapeLeagueTable = async () => {
 
 export const scrapeFixtures = async (): Promise<Match[]> => {
   try {
-    // Try to get real fixture data from the edge function
-    const { fixtures } = await fetchFixturesFromEdgeFunction();
-    return fixtures;
+    // Try to get real fixture data from the BBC edge function
+    try {
+      const { fixtures } = await fetchFixturesFromEdgeFunction();
+      return fixtures;
+    } catch (bbcError) {
+      console.error('Error scraping fixtures from BBC:', bbcError);
+      
+      // Try the Highland League website as a backup
+      try {
+        const { fixtures } = await fetchFixturesFromHFLEdgeFunction();
+        return fixtures;
+      } catch (hflError) {
+        console.error('Error scraping fixtures from Highland League website:', hflError);
+        console.log('Using mock fixtures data due to error');
+        return mockMatches.filter(match => !match.isCompleted);
+      }
+    }
   } catch (error) {
     console.error('Error scraping fixtures:', error);
     console.log('Using mock fixtures data due to error');
@@ -168,9 +241,23 @@ export const scrapeFixtures = async (): Promise<Match[]> => {
 
 export const scrapeResults = async (): Promise<Match[]> => {
   try {
-    // Try to get real results data from the edge function
-    const { results } = await fetchFixturesFromEdgeFunction();
-    return results;
+    // Try to get real results data from the BBC edge function
+    try {
+      const { results } = await fetchFixturesFromEdgeFunction();
+      return results;
+    } catch (bbcError) {
+      console.error('Error scraping results from BBC:', bbcError);
+      
+      // Try the Highland League website as a backup
+      try {
+        const { results } = await fetchFixturesFromHFLEdgeFunction();
+        return results;
+      } catch (hflError) {
+        console.error('Error scraping results from Highland League website:', hflError);
+        console.log('Using mock results data due to error');
+        return mockMatches.filter(match => match.isCompleted);
+      }
+    }
   } catch (error) {
     console.error('Error scraping results:', error);
     console.log('Using mock results data due to error');

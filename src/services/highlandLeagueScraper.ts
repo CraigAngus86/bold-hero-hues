@@ -3,9 +3,9 @@ import { TeamStats } from '@/components/league/types';
 import { mockLeagueData } from '@/components/league/types';
 import { mockMatches } from '@/components/fixtures/fixturesMockData';
 import { getApiConfig } from './config/apiConfig';
-import { FirecrawlService } from '@/utils/FirecrawlService';
 import { convertToMatches } from '@/types/fixtures';
 import { Match } from '@/components/fixtures/types';
+import { supabase } from '@/services/supabase/supabaseClient';
 import { toast } from 'sonner';
 
 // This file provides both real API calls and fallback mock data for Highland League information
@@ -63,48 +63,78 @@ async function fetchLeagueTableFromServer(): Promise<TeamStats[]> {
   }
 }
 
+// Function to fetch fixtures and results from Supabase edge function
+async function fetchFixturesFromEdgeFunction(): Promise<{
+  fixtures: Match[],
+  results: Match[]
+}> {
+  try {
+    console.log('Attempting to fetch fixtures from Supabase edge function');
+    
+    if (!supabase) {
+      throw new Error('Supabase client not initialized');
+    }
+    
+    // Call the Supabase edge function to scrape fixture data
+    const { data, error } = await supabase.functions.invoke('scrape-bbc-fixtures', {
+      body: { 
+        url: 'https://www.bbc.com/sport/football/scottish-highland-league/scores-fixtures'
+      }
+    });
+    
+    if (error) {
+      console.error('Error from edge function:', error);
+      throw new Error(`Edge function error: ${error.message}`);
+    }
+    
+    if (!data || !data.success || !data.data || data.data.length === 0) {
+      console.error('No fixtures returned from edge function:', data);
+      throw new Error('No fixtures found from BBC Sport');
+    }
+    
+    console.log(`Successfully fetched ${data.data.length} fixtures from BBC Sport via edge function`);
+    
+    // Convert to Match objects and separate fixtures and results
+    const allMatches = convertToMatches(data.data);
+    const fixtures = allMatches.filter(match => !match.isCompleted);
+    const results = allMatches.filter(match => match.isCompleted);
+    
+    return { fixtures, results };
+  } catch (error) {
+    console.error('Error fetching from edge function:', error);
+    throw error; // Let the caller handle the fallback
+  }
+}
+
 export const scrapeHighlandLeagueData = async () => {
   try {
     console.log('Fetching Highland League data');
     const leagueTable = await scrapeLeagueTable();
     
-    // Try to use real fixture data from Transfermarkt
+    // Try to use real fixture data from the edge function
     try {
-      console.log('Attempting to fetch fixtures from Transfermarkt');
-      const { success, data } = await FirecrawlService.fetchTransfermarktFixtures();
+      console.log('Attempting to fetch fixtures from BBC Sport');
+      const { fixtures, results } = await fetchFixturesFromEdgeFunction();
       
-      if (success && data && data.length > 0) {
-        console.log(`Successfully fetched ${data.length} fixtures from Transfermarkt`);
-        // Convert ScrapedFixture[] to Match[]
-        const fixturesData = convertToMatches(data.filter(match => !match.isCompleted));
-        const resultsData = convertToMatches(data.filter(match => match.isCompleted));
-        return { leagueTable, fixtures: fixturesData, results: resultsData };
+      if (fixtures.length > 0 || results.length > 0) {
+        console.log(`Successfully fetched ${fixtures.length} fixtures and ${results.length} results from BBC Sport`);
+        return { leagueTable, fixtures, results };
       } else {
-        console.log('No fixtures found from Transfermarkt, trying mock data');
-        throw new Error('No fixtures found from Transfermarkt');
+        console.log('No fixtures found from BBC Sport, trying mock data');
+        throw new Error('No fixtures found from BBC Sport');
       }
     } catch (error) {
-      console.error('Error getting fixtures from Transfermarkt:', error);
+      console.error('Error getting fixtures from BBC Sport:', error);
       
-      // Try using mock data from the FirecrawlService
-      console.log('Generating mock fixtures as fallback');
-      const mockData = FirecrawlService.generateMockFixtures();
-      if (mockData && mockData.length > 0) {
-        console.log(`Generated ${mockData.length} mock fixtures`);
-        const fixturesData = convertToMatches(mockData.filter(match => !match.isCompleted));
-        const resultsData = convertToMatches(mockData.filter(match => match.isCompleted));
-        return { leagueTable, fixtures: fixturesData, results: resultsData };
-      }
+      // Last resort fallback to hardcoded mock data
+      console.log('Using hardcoded mock fixture data as a last resort');
+      toast.warning('Using mock fixture data - could not fetch real data');
+      return {
+        leagueTable,
+        fixtures: mockMatches.filter(match => !match.isCompleted),
+        results: mockMatches.filter(match => match.isCompleted)
+      };
     }
-    
-    // Last resort fallback to hardcoded mock data
-    console.log('Using hardcoded mock fixture data as a last resort');
-    toast.warning('Using mock fixture data - could not fetch real data');
-    return {
-      leagueTable,
-      fixtures: mockMatches.filter(match => !match.isCompleted),
-      results: mockMatches.filter(match => match.isCompleted)
-    };
   } catch (error) {
     console.error('Error in scrapeHighlandLeagueData:', error);
     return {
@@ -126,21 +156,9 @@ export const scrapeLeagueTable = async () => {
 
 export const scrapeFixtures = async (): Promise<Match[]> => {
   try {
-    // Try to get real fixture data from Transfermarkt
-    const { success, data } = await FirecrawlService.fetchTransfermarktFixtures();
-    if (success && data && data.length > 0) {
-      return convertToMatches(data.filter(match => !match.isCompleted));
-    }
-    
-    // Try using mock data from the FirecrawlService
-    const mockData = FirecrawlService.generateMockFixtures();
-    if (mockData && mockData.length > 0) {
-      return convertToMatches(mockData.filter(match => !match.isCompleted));
-    }
-    
-    // Fall back to hardcoded mock data
-    console.log('Using hardcoded mock fixtures data - all scraping attempts failed');
-    return mockMatches.filter(match => !match.isCompleted);
+    // Try to get real fixture data from the edge function
+    const { fixtures } = await fetchFixturesFromEdgeFunction();
+    return fixtures;
   } catch (error) {
     console.error('Error scraping fixtures:', error);
     console.log('Using mock fixtures data due to error');
@@ -150,21 +168,9 @@ export const scrapeFixtures = async (): Promise<Match[]> => {
 
 export const scrapeResults = async (): Promise<Match[]> => {
   try {
-    // Try to get real results data from Transfermarkt
-    const { success, data } = await FirecrawlService.fetchTransfermarktFixtures();
-    if (success && data && data.length > 0) {
-      return convertToMatches(data.filter(match => match.isCompleted));
-    }
-    
-    // Try using mock data from the FirecrawlService
-    const mockData = FirecrawlService.generateMockFixtures();
-    if (mockData && mockData.length > 0) {
-      return convertToMatches(mockData.filter(match => match.isCompleted));
-    }
-    
-    // Fall back to hardcoded mock data
-    console.log('Using hardcoded mock results data - all scraping attempts failed');
-    return mockMatches.filter(match => match.isCompleted);
+    // Try to get real results data from the edge function
+    const { results } = await fetchFixturesFromEdgeFunction();
+    return results;
   } catch (error) {
     console.error('Error scraping results:', error);
     console.log('Using mock results data due to error');

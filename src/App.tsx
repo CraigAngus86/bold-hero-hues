@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
+import ErrorBoundary from "./components/ErrorBoundary";
 import Index from "./pages/Index";
 import News from "./pages/News";
 import Team from "./pages/Team";
@@ -35,18 +36,20 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <AnimatePresence mode="wait">
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/news" element={<News />} />
-              <Route path="/team" element={<Team />} />
-              <Route path="/fixtures" element={<Fixtures />} />
-              <Route path="/table" element={<LeagueTable />} />
-              <Route path="/stadium" element={<Stadium />} />
-              <Route path="/tickets" element={<Tickets />} />
-              <Route path="/admin" element={<Admin />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <ErrorBoundary>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/news" element={<News />} />
+                <Route path="/team" element={<Team />} />
+                <Route path="/fixtures" element={<Fixtures />} />
+                <Route path="/table" element={<LeagueTable />} />
+                <Route path="/stadium" element={<Stadium />} />
+                <Route path="/tickets" element={<Tickets />} />
+                <Route path="/admin" element={<Admin />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </ErrorBoundary>
           </AnimatePresence>
         </BrowserRouter>
       </TooltipProvider>

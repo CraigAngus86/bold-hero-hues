@@ -11,6 +11,7 @@ interface NewsStore {
   deleteNews: (id: number) => void;
   getNewsById: (id: number) => NewsItem | undefined;
   clearAllNews: () => void;
+  restoreDefaultNews: () => void;
 }
 
 // Create a store with persistence
@@ -41,10 +42,22 @@ export const useNewsStore = create<NewsStore>()(
       
       getNewsById: (id) => get().news.find(item => item.id === id),
       
-      clearAllNews: () => set({ news: [] })
+      clearAllNews: () => set({ news: [] }),
+      
+      restoreDefaultNews: () => set({ news: initialNews })
     }),
     {
       name: 'banks-o-dee-news-storage',
+      onRehydrateStorage: () => {
+        console.log('News store has been rehydrated');
+        return (state) => {
+          if (!state || !state.news || !Array.isArray(state.news)) {
+            console.error('Failed to rehydrate news store or invalid data structure');
+            // Return the initialNews if the rehydrated state is invalid
+            state?.news = initialNews;
+          }
+        };
+      }
     }
   )
 );

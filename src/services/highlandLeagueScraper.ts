@@ -2,7 +2,7 @@
 import { mockLeagueData } from '@/components/league/types';
 import { mockMatches } from '@/components/fixtures/fixturesMockData';
 
-// This file now only provides mock data
+// This file provides mock data for Highland League information
 console.log('Using mock data for Highland League information');
 
 export const scrapeHighlandLeagueData = async () => {

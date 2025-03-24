@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import NewsManager from '@/components/admin/NewsManager';
 import SponsorsManager from '@/components/admin/SponsorsManager';
 import TeamManager from '@/components/admin/TeamManager';
+import AdminDatabaseSection from '@/components/admin/AdminDatabaseSection';
 
 const Admin = () => {
   return (
@@ -19,10 +20,11 @@ const Admin = () => {
           <p className="text-gray-600 mb-8">Manage website content and settings</p>
           
           <Tabs defaultValue="news" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 md:w-auto">
+            <TabsList className="grid w-full grid-cols-4 md:w-auto">
               <TabsTrigger value="news">News</TabsTrigger>
               <TabsTrigger value="team">Team</TabsTrigger>
               <TabsTrigger value="sponsors">Sponsors</TabsTrigger>
+              <TabsTrigger value="data">Data Management</TabsTrigger>
             </TabsList>
             
             <TabsContent value="news">
@@ -63,6 +65,20 @@ const Admin = () => {
                 </CardHeader>
                 <CardContent>
                   <SponsorsManager />
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="data">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Data Management</CardTitle>
+                  <CardDescription>
+                    Configure data sources, import/export data, and manage API settings.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <AdminDatabaseSection />
                 </CardContent>
               </Card>
             </TabsContent>

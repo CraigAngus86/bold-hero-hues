@@ -11,6 +11,7 @@ import { fetchLeagueTable, fetchFixtures, fetchResults } from '@/services/league
 import { RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { clearLeagueDataCache } from '@/services/leagueDataService';
+import ErrorBoundary from './ErrorBoundary';
 
 const FixturesSection = () => {
   const [recentMatches, setRecentMatches] = useState<Match[]>([]);
@@ -18,6 +19,7 @@ const FixturesSection = () => {
   const [leagueData, setLeagueData] = useState<TeamStats[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [hasError, setHasError] = useState<boolean>(false);
   
   const fetchData = async (refresh = false) => {
     try {
@@ -28,6 +30,7 @@ const FixturesSection = () => {
       } else {
         setIsLoading(true);
       }
+      setHasError(false);
       
       // Fetch all data in parallel
       const [tableData, fixtures, results] = await Promise.all([
@@ -60,8 +63,11 @@ const FixturesSection = () => {
       }
     } catch (error) {
       console.error('Error loading fixtures data:', error);
+      setHasError(true);
       if (refresh) {
         toast.error('Failed to refresh data');
+      } else {
+        toast.error('Failed to load fixtures data');
       }
     } finally {
       setIsLoading(false);
@@ -108,11 +114,24 @@ const FixturesSection = () => {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-team-blue"></div>
             <p className="ml-3 text-gray-600">Loading data...</p>
           </div>
+        ) : hasError ? (
+          <div className="h-64 flex items-center justify-center">
+            <div className="text-center">
+              <p className="text-red-500 mb-4">There was an error loading the fixtures data.</p>
+              <Button onClick={handleRefresh} variant="default">Try Again</Button>
+            </div>
+          </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <RecentResults matches={recentMatches} />
-            <UpcomingFixtures matches={upcomingMatches} />
-            <LeagueTablePreview leagueData={leagueData} />
+            <ErrorBoundary>
+              <RecentResults matches={recentMatches} />
+            </ErrorBoundary>
+            <ErrorBoundary>
+              <UpcomingFixtures matches={upcomingMatches} />
+            </ErrorBoundary>
+            <ErrorBoundary>
+              <LeagueTablePreview leagueData={leagueData} />
+            </ErrorBoundary>
           </div>
         )}
       </div>

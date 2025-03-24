@@ -1,4 +1,5 @@
 
+import { useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
@@ -8,23 +9,50 @@ import FixturesSection from '@/components/FixturesSection';
 import SocialMediaFeed from '@/components/SocialMediaFeed';
 import Footer from '@/components/Footer';
 import { ArrowRight } from 'lucide-react';
-import { useNewsStore, formatDate } from '@/services/news';
+import { useNewsStore } from '@/services/news/newsStore';
+import { formatDate } from '@/services/news/utils';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const Index = () => {
   const { news } = useNewsStore();
   
-  // Sort all news by date
-  const sortedNews = [...news].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  // Memoize sorted news to prevent unnecessary recalculations
+  const sortedNews = useMemo(() => {
+    if (!news || !Array.isArray(news)) return [];
+    return [...news].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [news]);
   
-  // Skip the first 3 items (shown in hero) and get the next 7 news items for the Latest News section
-  const latestNews = sortedNews.slice(3, 10);
+  // Get latest news items after the hero (which uses the first 3)
+  const latestNews = useMemo(() => {
+    return sortedNews.slice(3, 10);
+  }, [sortedNews]);
+  
+  // Render news card with memo to prevent unnecessary rerenders
+  const renderNewsCard = useCallback((newsItem: any, index: number, isFeatureCard = false) => {
+    if (!newsItem) return null;
+    
+    return (
+      <NewsCard
+        key={newsItem.id}
+        title={newsItem.title}
+        excerpt={newsItem.excerpt}
+        image={newsItem.image}
+        date={formatDate(newsItem.date)}
+        category={newsItem.category}
+        featured={isFeatureCard}
+        className="h-full"
+      />
+    );
+  }, []);
   
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
       
       {/* Hero Section */}
-      <Hero />
+      <ErrorBoundary>
+        <Hero />
+      </ErrorBoundary>
       
       {/* Latest News - with fixed grid layout */}
       <section className="py-16 bg-white">
@@ -40,51 +68,48 @@ const Index = () => {
             </a>
           </div>
           
-          <div className="grid grid-cols-12 gap-6">
-            {latestNews.map((newsItem, index) => {
-              // First item is large (spans 6x3)
-              if (index === 0) {
-                return (
-                  <div key={newsItem.id} className="col-span-12 md:col-span-6">
-                    <NewsCard
-                      title={newsItem.title}
-                      excerpt={newsItem.excerpt}
-                      image={newsItem.image}
-                      date={formatDate(newsItem.date)}
-                      category={newsItem.category}
-                      featured={true}
-                      className="h-full"
-                    />
-                  </div>
-                );
-              }
-              
-              // All other items are small (3x3)
-              return (
-                <div key={newsItem.id} className="col-span-12 sm:col-span-6 md:col-span-3">
-                  <NewsCard
-                    title={newsItem.title}
-                    excerpt={newsItem.excerpt}
-                    image={newsItem.image}
-                    date={formatDate(newsItem.date)}
-                    category={newsItem.category}
-                    className="h-full"
-                  />
+          <ErrorBoundary>
+            <div className="grid grid-cols-12 gap-6">
+              {latestNews.length > 0 ? (
+                <>
+                  {/* First item is large (spans 6x3) */}
+                  {latestNews[0] && (
+                    <div className="col-span-12 md:col-span-6">
+                      {renderNewsCard(latestNews[0], 0, true)}
+                    </div>
+                  )}
+                  
+                  {/* All other items are small (3x3) */}
+                  {latestNews.slice(1).map((newsItem, idx) => (
+                    <div key={newsItem.id} className="col-span-12 sm:col-span-6 md:col-span-3">
+                      {renderNewsCard(newsItem, idx + 1)}
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <div className="col-span-12 py-12 text-center text-gray-500">
+                  <p>No news items available at the moment.</p>
                 </div>
-              );
-            })}
-          </div>
+              )}
+            </div>
+          </ErrorBoundary>
         </div>
       </section>
       
       {/* Fixtures, Results & Table Section */}
-      <FixturesSection />
+      <ErrorBoundary>
+        <FixturesSection />
+      </ErrorBoundary>
       
       {/* Social Media Feed Section - moved below fixtures */}
-      <SocialMediaFeed />
+      <ErrorBoundary>
+        <SocialMediaFeed />
+      </ErrorBoundary>
       
       {/* Sponsors Carousel */}
-      <SponsorsCarousel />
+      <ErrorBoundary>
+        <SponsorsCarousel />
+      </ErrorBoundary>
       
       <Footer />
     </div>

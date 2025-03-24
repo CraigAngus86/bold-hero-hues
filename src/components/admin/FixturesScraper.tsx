@@ -23,28 +23,40 @@ export default function FixturesScraper() {
       setResults([]);
       
       console.log('Starting fixture scraping from Highland Football League website...');
-      toast.info('Scraping fixtures from HFL website... This may take a moment.');
+      toast.info('Scraping fixtures from Highland Football League website... This may take a moment.');
       
       // Call the Supabase Edge function to scrape fixtures
-      const { data, error } = await supabase.functions.invoke('scrape-fixtures');
+      const { data, error } = await supabase.functions.invoke('scrape-fixtures', {
+        body: { url: 'http://www.highlandfootballleague.com/Fixtures/' }
+      });
       
       if (error) {
         console.error('Edge function error:', error);
         setError(error.message || 'Failed to fetch fixtures');
-        toast.error('Failed to fetch fixtures from HFL website');
+        toast.error('Failed to fetch fixtures from Highland Football League website');
         return;
       }
       
-      if (!data || !Array.isArray(data)) {
-        setError('Invalid data received from scraper');
-        toast.error('Invalid data received from scraper');
+      if (!data || !data.success) {
+        const errorMessage = data?.error || 'Invalid data received from scraper';
+        console.error('Scraper error:', errorMessage);
+        setError(errorMessage);
+        toast.error(errorMessage);
         return;
       }
       
-      console.log('Fixtures fetch successful, proceeding with import...', data);
+      const fixtures = data.data;
+      
+      if (!fixtures || !Array.isArray(fixtures) || fixtures.length === 0) {
+        setError('No fixtures found on the Highland Football League website');
+        toast.error('No fixtures found');
+        return;
+      }
+      
+      console.log('Fixtures fetch successful, proceeding with import...', fixtures);
       
       // Format the data as ScrapedFixture objects
-      const fixtures = data.map((item: any): ScrapedFixture => ({
+      const formattedFixtures = fixtures.map((item: any): ScrapedFixture => ({
         homeTeam: item.homeTeam,
         awayTeam: item.awayTeam,
         date: item.date,
@@ -57,7 +69,7 @@ export default function FixturesScraper() {
       }));
       
       // Store fixtures
-      const success = await scrapeAndStoreFixtures(fixtures);
+      const success = await scrapeAndStoreFixtures(formattedFixtures);
       
       if (!success) {
         setError('Failed to store fixtures. Check the console for details.');
@@ -66,9 +78,9 @@ export default function FixturesScraper() {
       }
       
       // Get the data to display
-      setResults(fixtures);
+      setResults(formattedFixtures);
       setSuccess(true);
-      toast.success(`Successfully imported ${fixtures.length} fixtures`);
+      toast.success(`Successfully imported ${formattedFixtures.length} fixtures`);
       
     } catch (error) {
       console.error('Error fetching fixtures:', error);

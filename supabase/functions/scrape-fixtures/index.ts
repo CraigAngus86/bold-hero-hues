@@ -22,85 +22,76 @@ function extractFixtures(html: string) {
   const $ = cheerio.load(html)
   const fixtures = []
   
-  // Target the fixtures table - selector may need adjusting based on actual website structure
-  $('table.fixtures-table tr, .fixtures tr, table tr').each((index, row) => {
-    // Skip header rows
-    if (index === 0) return
+  // Target the fixtures table on Highland Football League website
+  // The website has multiple tables, so we need to find the right ones
+  $('table').each((_, table) => {
+    const $table = $(table)
     
-    const cells = $(row).find('td')
-    if (cells.length < 4) return // Skip rows with insufficient data
-    
-    try {
-      // Extract date
-      let dateText = $(cells[0]).text().trim()
-      
-      // Extract time
-      let timeText = $(cells[1]).text().trim()
-      if (!timeText) timeText = "15:00" // Default time if not provided
-      
-      // Extract teams - may need adjusting based on the actual format
-      let matchText = $(cells[2]).text().trim()
-      let homeTeam = '', awayTeam = ''
-      
-      // Handle different possible formats
-      if (matchText.includes(' v ')) {
-        [homeTeam, awayTeam] = matchText.split(' v ').map(t => t.trim())
-      } else if (matchText.includes(' vs ')) {
-        [homeTeam, awayTeam] = matchText.split(' vs ').map(t => t.trim())
-      } else if (matchText.includes(' - ')) {
-        [homeTeam, awayTeam] = matchText.split(' - ').map(t => t.trim())
-      }
-      
-      // Extract competition/venue
-      let competition = $(cells[3]).text().trim()
-      let venue = "TBD" // Default venue
-      
-      // Some sites include venue in a separate column
-      if (cells.length > 4) {
-        venue = $(cells[4]).text().trim()
-      }
-      
-      // Skip if we couldn't extract the teams
-      if (!homeTeam || !awayTeam) return
-      
-      // Check if the match has a score (indicating it's completed)
-      let isCompleted = false
-      let homeScore = null
-      let awayScore = null
-      
-      if (homeTeam.includes('(')) {
-        // Format might be "TeamName (2)" for scores
-        const scoreMatch = homeTeam.match(/\((\d+)\)$/)
-        if (scoreMatch) {
-          homeScore = parseInt(scoreMatch[1], 10)
-          homeTeam = homeTeam.replace(/\s*\(\d+\)$/, '').trim()
-          isCompleted = true
-        }
-      }
-      
-      if (awayTeam.includes('(')) {
-        const scoreMatch = awayTeam.match(/\((\d+)\)$/)
-        if (scoreMatch) {
-          awayScore = parseInt(scoreMatch[1], 10)
-          awayTeam = awayTeam.replace(/\s*\(\d+\)$/, '').trim()
-          isCompleted = true
-        }
-      }
-      
-      fixtures.push({
-        date: dateText,
-        time: timeText,
-        homeTeam,
-        awayTeam,
-        competition,
-        venue,
-        isCompleted,
-        homeScore,
-        awayScore
-      })
-    } catch (error) {
-      console.error('Error parsing fixture row:', error)
+    // Skip tables that don't look like fixtures tables
+    const headerText = $table.find('th').text().toLowerCase()
+    if (!headerText.includes('date') && !headerText.includes('home') && !headerText.includes('away')) {
+      return
     }
+    
+    $table.find('tr').each((index, row) => {
+      // Skip header rows
+      if (index === 0) return
+      
+      const cells = $(row).find('td')
+      if (cells.length < 3) return // Skip rows with insufficient data
+      
+      try {
+        // Extract date
+        let dateText = $(cells[0]).text().trim()
+        if (!dateText) return // Skip if no date
+        
+        // Extract teams and scores
+        let homeTeamCell = $(cells[1])
+        let awayTeamCell = $(cells[2])
+        
+        let homeTeam = homeTeamCell.text().trim()
+        let awayTeam = awayTeamCell.text().trim()
+        
+        // Skip if we couldn't extract the teams
+        if (!homeTeam || !awayTeam) return
+        
+        // Default values
+        let time = "15:00" // Default time if not provided
+        let competition = "Highland League"
+        let venue = "TBD"
+        let isCompleted = false
+        let homeScore = null
+        let awayScore = null
+        
+        // Check if the match has a score (indicated by numbers in parentheses or similar)
+        const homeScoreMatch = homeTeam.match(/\((\d+)\)/) || homeTeam.match(/(\d+)-\d+/)
+        const awayScoreMatch = awayTeam.match(/\((\d+)\)/) || awayTeam.match(/\d+-(\d+)/)
+        
+        if (homeScoreMatch && awayScoreMatch) {
+          isCompleted = true
+          homeScore = parseInt(homeScoreMatch[1], 10)
+          awayScore = parseInt(awayScoreMatch[1], 10)
+          
+          // Clean up team names by removing score information
+          homeTeam = homeTeam.replace(/\(\d+\)|\d+-\d+/, '').trim()
+          awayTeam = awayTeam.replace(/\(\d+\)|\d+-\d+/, '').trim()
+        }
+        
+        fixtures.push({
+          date: dateText,
+          time,
+          homeTeam,
+          awayTeam,
+          competition,
+          venue,
+          isCompleted,
+          homeScore,
+          awayScore
+        })
+      } catch (error) {
+        console.error('Error parsing fixture row:', error)
+      }
+    })
   })
   
   return fixtures
@@ -113,7 +104,7 @@ serve(async (req) => {
   }
   
   if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+    return new Response(JSON.stringify({ success: false, error: 'Method not allowed' }), {
       status: 405,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
@@ -122,14 +113,9 @@ serve(async (req) => {
   try {
     // Parse request body
     const requestData = await req.json()
-    const { url } = requestData
     
-    if (!url) {
-      return new Response(JSON.stringify({ error: 'URL is required' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
-    }
+    // Default to HFL website if no URL provided
+    const url = requestData.url || 'http://www.highlandfootballleague.com/Fixtures/'
     
     console.log(`Scraping fixtures from: ${url}`)
     

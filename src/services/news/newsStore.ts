@@ -2,7 +2,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { NewsItem } from './types';
-import { initialNews } from './mockData';
+
+// Initial news data (empty array)
+const initialNews: NewsItem[] = [];
 
 interface NewsStore {
   news: NewsItem[];
@@ -10,6 +12,7 @@ interface NewsStore {
   updateNews: (news: NewsItem) => void;
   deleteNews: (id: number) => void;
   getNewsById: (id: number) => NewsItem | undefined;
+  clearAllNews: () => void;
 }
 
 // Create a store with persistence
@@ -38,7 +41,9 @@ export const useNewsStore = create<NewsStore>()(
         news: state.news.filter(item => item.id !== id)
       })),
       
-      getNewsById: (id) => get().news.find(item => item.id === id)
+      getNewsById: (id) => get().news.find(item => item.id === id),
+      
+      clearAllNews: () => set({ news: [] })
     }),
     {
       name: 'banks-o-dee-news-storage',

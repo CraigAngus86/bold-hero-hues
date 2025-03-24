@@ -7,11 +7,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import NewsManager from '@/components/admin/NewsManager';
 import SponsorsManager from '@/components/admin/SponsorsManager';
 import TeamManager from '@/components/admin/TeamManager';
-import AdminDatabaseSection from '@/components/admin/AdminDatabaseSection';
 import LeagueTableManager from '@/components/admin/LeagueTableManager';
 import FixturesManager from '@/components/admin/fixtures/FixturesManager';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { InfoIcon } from 'lucide-react';
+import { InfoIcon, Database, Rss, Server } from 'lucide-react';
+import DataDashboard from '@/components/admin/data/DataDashboard';
 
 const Admin = () => {
   return (
@@ -40,11 +40,16 @@ const Admin = () => {
           </Alert>
           
           <Tabs defaultValue="news" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-6 md:w-auto">
+            <TabsList className="grid grid-cols-6 md:w-auto">
               <TabsTrigger value="news">News</TabsTrigger>
               <TabsTrigger value="team">Team</TabsTrigger>
               <TabsTrigger value="sponsors">Sponsors</TabsTrigger>
-              <TabsTrigger value="data">Data Management</TabsTrigger>
+              <TabsTrigger value="data">
+                <span className="flex items-center">
+                  <Database className="h-4 w-4 mr-2" />
+                  Data
+                </span>
+              </TabsTrigger>
               <TabsTrigger value="league">League Table</TabsTrigger>
               <TabsTrigger value="fixtures">Fixtures</TabsTrigger>
             </TabsList>
@@ -94,13 +99,13 @@ const Admin = () => {
             <TabsContent value="data">
               <Card>
                 <CardHeader>
-                  <CardTitle>Data Management</CardTitle>
+                  <CardTitle>Data Management & Scrapers</CardTitle>
                   <CardDescription>
-                    Configure data sources, import/export data, and manage API settings.
+                    Configure data sources, import/export data, and manage Highland League data.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <AdminDatabaseSection />
+                  <DataDashboard />
                 </CardContent>
               </Card>
             </TabsContent>

@@ -5,11 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, RefreshCw, Check, Database, Rss } from "lucide-react";
+import { AlertCircle, RefreshCw, Check, Rss } from "lucide-react";
 import { FirecrawlService, ScrapedFixture } from '@/utils/FirecrawlService';
-import { importMockDataToSupabase } from '@/services/supabase/fixturesService'; 
+import { scrapeAndStoreFixtures } from '@/services/supabase/fixtures/importExport'; 
 import { toast } from 'sonner';
-import { Match } from '@/components/fixtures/types';
 
 export default function FixturesScraper() {
   const [apiKey, setApiKey] = useState(FirecrawlService.getApiKey() || '');
@@ -35,6 +34,15 @@ export default function FixturesScraper() {
       setSuccess(false);
       setResults([]);
       
+      // Use scrapeAndStoreFixtures function which already handles everything
+      const success = await scrapeAndStoreFixtures();
+      
+      if (!success) {
+        setError('Failed to fetch and store fixtures. Check the console for details.');
+        return;
+      }
+      
+      // Get the data to display
       const result = await FirecrawlService.fetchHighlandLeagueRSS();
       
       if (!result.success || !result.data) {
@@ -44,26 +52,7 @@ export default function FixturesScraper() {
       
       setResults(result.data);
       setSuccess(true);
-      
-      // Store the scraped data in Supabase
-      // We need to ensure all required fields are present for Match type
-      const matchesWithRequiredFields: Match[] = result.data.map((fixture, index) => ({
-        id: `temp-${index}`, // temporary id for display, will be replaced by UUID in Supabase
-        homeTeam: fixture.homeTeam,
-        awayTeam: fixture.awayTeam,
-        date: fixture.date,
-        time: fixture.time,
-        competition: fixture.competition,
-        venue: fixture.venue,
-        isCompleted: fixture.isCompleted || false, // Provide default value for required field
-        homeScore: fixture.homeScore || null,
-        awayScore: fixture.awayScore || null
-      }));
-      
-      const stored = await importMockDataToSupabase(matchesWithRequiredFields);
-      if (stored) {
-        toast.success(`Successfully imported ${result.data.length} fixtures`);
-      }
+      toast.success(`Successfully imported ${result.data.length} fixtures`);
       
     } catch (error) {
       console.error('Error fetching fixtures:', error);

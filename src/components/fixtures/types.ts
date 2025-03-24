@@ -1,4 +1,3 @@
-
 export interface Match {
   id: number;
   homeTeam: string;
@@ -13,6 +12,7 @@ export interface Match {
 }
 
 export interface TeamStats {
+  id?: number;
   position: number;
   team: string;
   played: number;

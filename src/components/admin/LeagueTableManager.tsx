@@ -46,6 +46,12 @@ const LeagueTableManager = () => {
     if (!selectedTeam || !logoUrl.trim()) return;
     
     try {
+      // Check if the team has an id before attempting to update
+      if (selectedTeam.id === undefined) {
+        toast.error('Cannot update team without an ID');
+        return;
+      }
+      
       const { error } = await supabase
         .from('highland_league_table')
         .update({ logo: logoUrl })
@@ -97,7 +103,7 @@ const LeagueTableManager = () => {
                   </TableHeader>
                   <TableBody>
                     {teams.length > 0 ? teams.map((team) => (
-                      <TableRow key={team.id} className={team.team === "Banks o' Dee" ? "bg-team-lightBlue/30" : ""}>
+                      <TableRow key={team.id || team.position} className={team.team === "Banks o' Dee" ? "bg-team-lightBlue/30" : ""}>
                         <TableCell>{team.position}</TableCell>
                         <TableCell className="font-medium">{team.team}</TableCell>
                         <TableCell>

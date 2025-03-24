@@ -1,5 +1,6 @@
 
 export interface TeamStats {
+  id?: number;
   position: number;
   team: string;
   played: number;

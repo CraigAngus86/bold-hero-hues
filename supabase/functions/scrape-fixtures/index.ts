@@ -22,38 +22,90 @@ function extractFixtures(html: string) {
   const $ = cheerio.load(html)
   const fixtures = []
   
-  // Target the fixtures table on Highland Football League website
-  // The website has multiple tables, so we need to find the right ones
-  $('table').each((_, table) => {
-    const $table = $(table)
+  console.log('Starting to extract fixtures from HTML')
+  
+  // Target all tables on the page that might contain fixtures
+  $('table').each((tableIndex, table) => {
+    console.log(`Examining table ${tableIndex}`)
     
-    // Skip tables that don't look like fixtures tables
-    const headerText = $table.find('th').text().toLowerCase()
-    if (!headerText.includes('date') && !headerText.includes('home') && !headerText.includes('away')) {
+    const $table = $(table)
+    const rows = $table.find('tr')
+    
+    // Skip tables with fewer than 2 rows (no data or headers only)
+    if (rows.length < 2) {
+      console.log(`Skipping table ${tableIndex}: insufficient rows (${rows.length})`)
       return
     }
     
-    $table.find('tr').each((index, row) => {
-      // Skip header rows
-      if (index === 0) return
+    // Get header text to check if this looks like a fixtures table
+    const headerRow = rows.first()
+    const headerCells = headerRow.find('th, td') // Some tables might use td for headers
+    const headerTexts = headerCells.map((_, cell) => $(cell).text().trim().toLowerCase()).get()
+    
+    console.log(`Table ${tableIndex} headers:`, headerTexts.join(', '))
+    
+    // Check if this has the structure of a fixtures table
+    // Look for columns that might indicate date, teams, etc.
+    const hasDateColumn = headerTexts.some(text => text.includes('date') || text.includes('day'))
+    const hasTeamColumns = headerTexts.some(text => text.includes('home') || text.includes('away') || text.includes('team'))
+    
+    if (!hasDateColumn && !hasTeamColumns) {
+      console.log(`Skipping table ${tableIndex}: doesn't appear to be a fixtures table`)
+      return
+    }
+    
+    console.log(`Processing fixtures from table ${tableIndex}`)
+    
+    // Determine column indices based on headers
+    let dateIndex = -1
+    let homeTeamIndex = -1
+    let awayTeamIndex = -1
+    let scoreIndex = -1
+    
+    headerTexts.forEach((text, index) => {
+      if (text.includes('date') || text.includes('day')) dateIndex = index
+      if (text.includes('home')) homeTeamIndex = index
+      if (text.includes('away')) awayTeamIndex = index
+      if (text.includes('score') || text.includes('result')) scoreIndex = index
+    })
+    
+    // If we couldn't identify the key columns, but it looks like a fixtures table,
+    // make a best guess based on common formats
+    if (dateIndex === -1 && headerCells.length >= 1) dateIndex = 0
+    if (homeTeamIndex === -1 && headerCells.length >= 2) homeTeamIndex = 1
+    if (awayTeamIndex === -1 && headerCells.length >= 3) awayTeamIndex = 2
+    
+    console.log(`Column indices - Date: ${dateIndex}, Home: ${homeTeamIndex}, Away: ${awayTeamIndex}, Score: ${scoreIndex}`)
+    
+    // Process each row (skip header)
+    $(rows).each((rowIndex, row) => {
+      if (rowIndex === 0) return // Skip header row
       
       const cells = $(row).find('td')
-      if (cells.length < 3) return // Skip rows with insufficient data
+      if (cells.length < Math.max(dateIndex, homeTeamIndex, awayTeamIndex) + 1) {
+        console.log(`Skipping row ${rowIndex}: insufficient cells (${cells.length})`)
+        return
+      }
       
       try {
         // Extract date
-        let dateText = $(cells[0]).text().trim()
-        if (!dateText) return // Skip if no date
+        let dateText = dateIndex >= 0 ? $(cells[dateIndex]).text().trim() : ''
+        if (!dateText) {
+          console.log(`Skipping row ${rowIndex}: no date text`)
+          return
+        }
         
-        // Extract teams and scores
-        let homeTeamCell = $(cells[1])
-        let awayTeamCell = $(cells[2])
+        // Extract teams
+        let homeTeam = homeTeamIndex >= 0 ? $(cells[homeTeamIndex]).text().trim() : ''
+        let awayTeam = awayTeamIndex >= 0 ? $(cells[awayTeamIndex]).text().trim() : ''
         
-        let homeTeam = homeTeamCell.text().trim()
-        let awayTeam = awayTeamCell.text().trim()
+        // Skip if we couldn't get both teams
+        if (!homeTeam || !awayTeam) {
+          console.log(`Skipping row ${rowIndex}: missing team name(s)`)
+          return
+        }
         
-        // Skip if we couldn't extract the teams
-        if (!homeTeam || !awayTeam) return
+        console.log(`Found fixture: ${dateText} - ${homeTeam} vs ${awayTeam}`)
         
         // Default values
         let time = "15:00" // Default time if not provided
@@ -63,18 +115,59 @@ function extractFixtures(html: string) {
         let homeScore = null
         let awayScore = null
         
-        // Check if the match has a score (indicated by numbers in parentheses or similar)
-        const homeScoreMatch = homeTeam.match(/\((\d+)\)/) || homeTeam.match(/(\d+)-\d+/)
-        const awayScoreMatch = awayTeam.match(/\((\d+)\)/) || awayTeam.match(/\d+-(\d+)/)
+        // Extract time if embedded in the date string
+        const timeMatch = dateText.match(/(\d{1,2}[:.]\d{2})/)
+        if (timeMatch) {
+          time = timeMatch[1].replace('.', ':')
+          // Remove time from date string
+          dateText = dateText.replace(timeMatch[0], '').trim()
+        }
         
-        if (homeScoreMatch && awayScoreMatch) {
+        // Look for scores in the team names or in a separate score column
+        const extractScore = (text) => {
+          const scoreMatch = text.match(/(\d+)[-:](\d+)/) || text.match(/(\d+)\s*[-:]\s*(\d+)/)
+          if (scoreMatch) {
+            return [parseInt(scoreMatch[1], 10), parseInt(scoreMatch[2], 10)]
+          }
+          return null
+        }
+        
+        // Try to extract scores from team names (may be embedded)
+        let scoreFromHomeTeam = extractScore(homeTeam)
+        let scoreFromAwayTeam = extractScore(awayTeam)
+        
+        // Try to extract scores from a dedicated score column
+        let scoreFromScoreColumn = scoreIndex >= 0 ? extractScore($(cells[scoreIndex]).text().trim()) : null
+        
+        // Use the first valid score we find
+        let score = scoreFromScoreColumn || scoreFromHomeTeam || scoreFromAwayTeam
+        
+        if (score) {
           isCompleted = true
-          homeScore = parseInt(homeScoreMatch[1], 10)
-          awayScore = parseInt(awayScoreMatch[1], 10)
+          homeScore = score[0]
+          awayScore = score[1]
           
-          // Clean up team names by removing score information
-          homeTeam = homeTeam.replace(/\(\d+\)|\d+-\d+/, '').trim()
-          awayTeam = awayTeam.replace(/\(\d+\)|\d+-\d+/, '').trim()
+          // Clean up team names if score was embedded
+          if (scoreFromHomeTeam) {
+            homeTeam = homeTeam.replace(/\s*\d+\s*[-:]\s*\d+\s*/, '').trim()
+          }
+          if (scoreFromAwayTeam) {
+            awayTeam = awayTeam.replace(/\s*\d+\s*[-:]\s*\d+\s*/, '').trim()
+          }
+        }
+        
+        // Check for brackets which sometimes contain scores
+        const homeScoreInBrackets = homeTeam.match(/\((\d+)\)/)
+        const awayScoreInBrackets = awayTeam.match(/\((\d+)\)/)
+        
+        if (homeScoreInBrackets && awayScoreInBrackets) {
+          isCompleted = true
+          homeScore = parseInt(homeScoreInBrackets[1], 10)
+          awayScore = parseInt(awayScoreInBrackets[1], 10)
+          
+          // Clean up team names
+          homeTeam = homeTeam.replace(/\s*\(\d+\)\s*/, '').trim()
+          awayTeam = awayTeam.replace(/\s*\(\d+\)\s*/, '').trim()
         }
         
         fixtures.push({
@@ -89,11 +182,12 @@ function extractFixtures(html: string) {
           awayScore
         })
       } catch (error) {
-        console.error('Error parsing fixture row:', error)
+        console.error(`Error parsing row ${rowIndex}:`, error)
       }
     })
   })
   
+  console.log(`Total fixtures extracted: ${fixtures.length}`)
   return fixtures
 }
 
@@ -131,9 +225,22 @@ serve(async (req) => {
     }
     
     const html = await response.text()
+    console.log(`Fetched HTML length: ${html.length} characters`)
+    
+    // Extract fixtures
     const fixtures = extractFixtures(html)
     
-    console.log(`Extracted ${fixtures.length} fixtures`)
+    if (fixtures.length === 0) {
+      console.log("No fixtures were found in the HTML. Here's a sample of the HTML:")
+      console.log(html.substring(0, 500) + "...")
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: 'No fixtures found on the page',
+        htmlSample: html.substring(0, 1000) + "..." // Include a sample of the HTML for debugging
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
     
     return new Response(JSON.stringify({ success: true, data: fixtures }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }

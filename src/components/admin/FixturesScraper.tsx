@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { RefreshCw, Check, Download } from "lucide-react";
+import { RefreshCw, Check, Download, AlertCircle } from "lucide-react";
 import { scrapeAndStoreFixtures } from '@/services/supabase/fixtures/importExport'; 
 import { toast } from 'sonner';
 import { ScrapedFixture } from '@/types/fixtures';
@@ -14,6 +14,7 @@ export default function FixturesScraper() {
   const [results, setResults] = useState<ScrapedFixture[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [htmlSample, setHtmlSample] = useState<string | null>(null);
   
   const handleFetchFixtures = async () => {
     try {
@@ -21,6 +22,7 @@ export default function FixturesScraper() {
       setError(null);
       setSuccess(false);
       setResults([]);
+      setHtmlSample(null);
       
       console.log('Starting fixture scraping from Highland Football League website...');
       toast.info('Scraping fixtures from Highland Football League website... This may take a moment.');
@@ -41,6 +43,13 @@ export default function FixturesScraper() {
         const errorMessage = data?.error || 'Invalid data received from scraper';
         console.error('Scraper error:', errorMessage);
         setError(errorMessage);
+        
+        // If we have an HTML sample for debugging, show it
+        if (data?.htmlSample) {
+          setHtmlSample(data.htmlSample);
+          console.log('HTML sample from failed scraping:', data.htmlSample);
+        }
+        
         toast.error(errorMessage);
         return;
       }
@@ -121,8 +130,19 @@ export default function FixturesScraper() {
       <CardContent className="space-y-4">
         {error && (
           <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription className="space-y-2">
+              <p>{error}</p>
+              {htmlSample && (
+                <details className="mt-2">
+                  <summary className="text-xs cursor-pointer">HTML Sample (for debugging)</summary>
+                  <pre className="mt-2 text-xs bg-gray-100 p-2 rounded-md overflow-x-auto max-h-40">
+                    {htmlSample}
+                  </pre>
+                </details>
+              )}
+            </AlertDescription>
           </Alert>
         )}
         

@@ -6,7 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Loader2, RefreshCw } from 'lucide-react';
+import { Loader2, RefreshCw, Globe } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { 
   scrapeHighlandLeagueData,
@@ -145,7 +145,7 @@ const DataScraperControl = () => {
             <div className="space-y-0.5">
               <Label>Use Proxy</Label>
               <p className="text-sm text-gray-500">
-                Use a proxy server for API requests
+                Use a proxy server for API requests (recommended for production to avoid CORS issues)
               </p>
             </div>
             <Switch
@@ -176,6 +176,19 @@ const DataScraperControl = () => {
               value={apiConfig.apiKey || ''}
               onChange={(e) => handleConfigChange('apiKey', e.target.value)}
             />
+          </div>
+
+          <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-md">
+            <div className="flex items-start">
+              <Globe className="h-5 w-5 text-amber-500 mt-0.5 mr-2" />
+              <div>
+                <h4 className="text-sm font-medium text-amber-800">Data Source Information</h4>
+                <p className="text-xs text-amber-700 mt-1">
+                  League table data is scraped from <a href="https://www.bbc.com/sport/football/scottish-highland-league/table" className="underline" target="_blank" rel="noopener noreferrer">BBC Sport</a>. 
+                  In a production environment, you should implement a server-side solution with a proper CORS proxy to avoid browser limitations.
+                </p>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>

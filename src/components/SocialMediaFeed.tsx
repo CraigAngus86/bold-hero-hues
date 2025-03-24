@@ -89,7 +89,8 @@ const SocialMediaFeed = () => {
   
   useEffect(() => {
     // In a real application, this would fetch data from social media APIs
-    setSocialPosts(realSocialPosts);
+    // Limit to only 8 posts
+    setSocialPosts(realSocialPosts.slice(0, 8));
   }, []);
   
   return (
@@ -102,7 +103,7 @@ const SocialMediaFeed = () => {
           </p>
         </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {socialPosts.map((post) => (
             <motion.div
               key={post.id}
@@ -110,10 +111,10 @@ const SocialMediaFeed = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
               viewport={{ once: true }}
-              className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+              className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow aspect-square flex flex-col"
             >
               {/* Header */}
-              <div className="flex items-center p-2 border-b border-gray-100">
+              <div className="flex items-center p-3 border-b border-gray-100">
                 <div className={`p-1.5 rounded-full mr-1.5 ${
                   post.platform === 'twitter' ? 'bg-[#1DA1F2]/10 text-[#1DA1F2]' : 
                   post.platform === 'instagram' ? 'bg-[#C13584]/10 text-[#C13584]' : 
@@ -130,11 +131,11 @@ const SocialMediaFeed = () => {
               </div>
               
               {/* Content */}
-              <div className="p-2">
-                <p className="text-xs text-gray-700 mb-2 line-clamp-4">{post.content}</p>
+              <div className="p-3 flex-1 flex flex-col">
+                <p className="text-xs text-gray-700 mb-2 line-clamp-6 flex-1">{post.content}</p>
                 
                 {/* Stats */}
-                <div className="flex justify-between text-[10px] text-gray-500">
+                <div className="flex justify-between text-[10px] text-gray-500 mt-auto">
                   <span>{post.likes} Likes</span>
                   <span>{post.comments} Comments</span>
                   {post.shares && <span>{post.shares} Shares</span>}

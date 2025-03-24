@@ -5,10 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, RefreshCw, Check, Database } from "lucide-react";
+import { AlertCircle, RefreshCw, Check, Database, Rss } from "lucide-react";
 import { FirecrawlService, ScrapedFixture } from '@/utils/FirecrawlService';
-import { importMockDataToSupabase, scrapeAndStoreFixtures } from '@/services/supabase/fixturesService';
+import { importMockDataToSupabase } from '@/services/supabase/fixturesService'; 
 import { toast } from 'sonner';
+import { Match } from '@/components/fixtures/types';
 
 export default function FixturesScraper() {
   const [apiKey, setApiKey] = useState(FirecrawlService.getApiKey() || '');
@@ -27,17 +28,17 @@ export default function FixturesScraper() {
     toast.success('API key saved successfully');
   };
   
-  const handleScrapeFixtures = async () => {
+  const handleFetchFixtures = async () => {
     try {
       setIsLoading(true);
       setError(null);
       setSuccess(false);
       setResults([]);
       
-      const result = await FirecrawlService.scrapeHighlandLeagueFixtures();
+      const result = await FirecrawlService.fetchHighlandLeagueRSS();
       
       if (!result.success || !result.data) {
-        setError(result.error || 'Failed to scrape fixtures');
+        setError(result.error || 'Failed to fetch fixtures from RSS feed');
         return;
       }
       
@@ -45,13 +46,19 @@ export default function FixturesScraper() {
       setSuccess(true);
       
       // Store the scraped data in Supabase
-      const stored = await importMockDataToSupabase(result.data);
+      // We need to convert ScrapedFixture[] to Match[] by adding an id
+      const matchesWithIds: Match[] = result.data.map((fixture, index) => ({
+        ...fixture,
+        id: `temp-${index}` // temporary id for display, will be replaced by UUID in Supabase
+      }));
+      
+      const stored = await importMockDataToSupabase(matchesWithIds);
       if (stored) {
         toast.success(`Successfully imported ${result.data.length} fixtures`);
       }
       
     } catch (error) {
-      console.error('Error scraping fixtures:', error);
+      console.error('Error fetching fixtures:', error);
       setError(error instanceof Error ? error.message : 'An unknown error occurred');
     } finally {
       setIsLoading(false);
@@ -61,9 +68,9 @@ export default function FixturesScraper() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Highland League Fixtures Scraper</CardTitle>
+        <CardTitle>Highland League Fixtures Importer</CardTitle>
         <CardDescription>
-          Scrape fixtures from the Highland Football League website
+          Fetch fixtures from the Highland Football League RSS feed
         </CardDescription>
       </CardHeader>
       
@@ -95,18 +102,23 @@ export default function FixturesScraper() {
             <Check className="h-4 w-4 text-green-600" />
             <AlertTitle className="text-green-800">Success</AlertTitle>
             <AlertDescription className="text-green-700">
-              Successfully scraped {results.length} fixtures
+              Successfully fetched {results.length} fixtures
             </AlertDescription>
           </Alert>
         )}
         
         {results.length > 0 && (
           <div className="mt-4">
-            <h3 className="font-medium mb-2">Scraped Fixtures:</h3>
+            <h3 className="font-medium mb-2">Fetched Fixtures:</h3>
             <div className="max-h-60 overflow-y-auto border rounded-md p-4">
               {results.map((fixture, index) => (
                 <div key={index} className="mb-2 text-sm">
                   {fixture.date} {fixture.time}: {fixture.homeTeam} vs {fixture.awayTeam}
+                  {fixture.isCompleted && (
+                    <span className="ml-2 text-green-600">
+                      ({fixture.homeScore} - {fixture.awayScore})
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
@@ -117,18 +129,18 @@ export default function FixturesScraper() {
       <CardFooter>
         <Button
           className="w-full"
-          onClick={handleScrapeFixtures}
+          onClick={handleFetchFixtures}
           disabled={isLoading || !apiKey}
         >
           {isLoading ? (
             <>
               <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-              Scraping...
+              Fetching...
             </>
           ) : (
             <>
-              <Database className="mr-2 h-4 w-4" />
-              Scrape Fixtures
+              <Rss className="mr-2 h-4 w-4" />
+              Fetch Fixtures from RSS
             </>
           )}
         </Button>

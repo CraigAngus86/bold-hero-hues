@@ -47,11 +47,11 @@ export const importMockDataToSupabase = async (mockMatches: Match[]): Promise<bo
       return false;
     }
 
-    toast.success('Mock data imported successfully');
+    toast.success('Match data imported successfully');
     return true;
   } catch (error) {
     console.error('Error in importMockDataToSupabase:', error);
-    toast.error('Failed to import mock data');
+    toast.error('Failed to import match data');
     return false;
   }
 };
@@ -59,11 +59,22 @@ export const importMockDataToSupabase = async (mockMatches: Match[]): Promise<bo
 // Scrape fixtures and results and store in Supabase
 export const scrapeAndStoreFixtures = async (): Promise<boolean> => {
   try {
-    toast.info("Scraping fixtures and results data...");
+    toast.info("Fetching fixtures and results data...");
     
-    // This would normally call an edge function or API to scrape data
-    // For now, let's simulate by importing mock data
-    const { mockMatches } = await import('@/components/fixtures/fixturesMockData');
+    // Use the FirecrawlService to fetch fixtures from RSS
+    const { FirecrawlService } = await import('@/utils/FirecrawlService');
+    const result = await FirecrawlService.fetchHighlandLeagueRSS();
+    
+    if (!result.success || !result.data) {
+      toast.error(result.error || 'Failed to fetch fixtures');
+      return false;
+    }
+    
+    // Add a temporary ID to each fixture for the importMockDataToSupabase function
+    const fixturesWithIds = result.data.map((fixture, index) => ({
+      ...fixture,
+      id: `temp-${index}` // Temporary ID, will be replaced by UUID in Supabase
+    }));
     
     // Clear existing data first
     const { error: deleteError } = await supabase
@@ -77,10 +88,10 @@ export const scrapeAndStoreFixtures = async (): Promise<boolean> => {
       return false;
     }
     
-    return await importMockDataToSupabase(mockMatches);
+    return await importMockDataToSupabase(fixturesWithIds);
   } catch (error) {
     console.error('Error in scrapeAndStoreFixtures:', error);
-    toast.error('Failed to scrape and store fixtures data');
+    toast.error('Failed to fetch and store fixtures data');
     return false;
   }
 };

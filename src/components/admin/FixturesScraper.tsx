@@ -46,13 +46,21 @@ export default function FixturesScraper() {
       setSuccess(true);
       
       // Store the scraped data in Supabase
-      // We need to convert ScrapedFixture[] to Match[] by adding an id
-      const matchesWithIds: Match[] = result.data.map((fixture, index) => ({
-        ...fixture,
-        id: `temp-${index}` // temporary id for display, will be replaced by UUID in Supabase
+      // We need to ensure all required fields are present for Match type
+      const matchesWithRequiredFields: Match[] = result.data.map((fixture, index) => ({
+        id: `temp-${index}`, // temporary id for display, will be replaced by UUID in Supabase
+        homeTeam: fixture.homeTeam,
+        awayTeam: fixture.awayTeam,
+        date: fixture.date,
+        time: fixture.time,
+        competition: fixture.competition,
+        venue: fixture.venue,
+        isCompleted: fixture.isCompleted || false, // Provide default value for required field
+        homeScore: fixture.homeScore || null,
+        awayScore: fixture.awayScore || null
       }));
       
-      const stored = await importMockDataToSupabase(matchesWithIds);
+      const stored = await importMockDataToSupabase(matchesWithRequiredFields);
       if (stored) {
         toast.success(`Successfully imported ${result.data.length} fixtures`);
       }

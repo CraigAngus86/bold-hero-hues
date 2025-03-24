@@ -1,3 +1,4 @@
+
 import { toast } from 'sonner';
 
 // Define the response structure from the Firecrawl API
@@ -21,6 +22,16 @@ export interface ScrapedFixture {
   awayScore?: number | null;
 }
 
+/**
+ * FirecrawlService
+ * 
+ * This service helps with fetching RSS feed data from the Highland Football League website.
+ * To use this service, you need to get a Firecrawl API key:
+ * 
+ * 1. Sign up at https://firecrawl.dev or https://app.firecrawl.dev
+ * 2. Once logged in, go to the API Keys section in your dashboard
+ * 3. Create a new API key and use it in the API Key input field in the admin dashboard
+ */
 export class FirecrawlService {
   private static API_KEY_STORAGE_KEY = 'firecrawl_api_key';
 

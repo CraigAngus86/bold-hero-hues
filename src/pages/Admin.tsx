@@ -10,6 +10,8 @@ import TeamManager from '@/components/admin/TeamManager';
 import AdminDatabaseSection from '@/components/admin/AdminDatabaseSection';
 import LeagueTableManager from '@/components/admin/LeagueTableManager';
 import FixturesManager from '@/components/admin/fixtures/FixturesManager';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { InfoIcon } from 'lucide-react';
 
 const Admin = () => {
   return (
@@ -19,7 +21,23 @@ const Admin = () => {
       <div className="flex-1 pt-24 pb-20">
         <div className="container mx-auto px-4">
           <h1 className="text-3xl font-bold text-team-blue mb-2">Admin Dashboard</h1>
-          <p className="text-gray-600 mb-8">Manage website content and settings</p>
+          <p className="text-gray-600 mb-4">Manage website content and settings</p>
+          
+          <Alert className="mb-6 bg-blue-50 border-blue-200">
+            <InfoIcon className="h-4 w-4 text-blue-500" />
+            <AlertTitle className="text-blue-700">API Key Required</AlertTitle>
+            <AlertDescription className="text-blue-600">
+              To use the fixtures scraper feature, you'll need a Firecrawl API key. 
+              <a 
+                href="https://firecrawl.dev" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="underline text-blue-700 ml-1 hover:text-blue-800"
+              >
+                Sign up at Firecrawl.dev
+              </a> to get your API key.
+            </AlertDescription>
+          </Alert>
           
           <Tabs defaultValue="news" className="space-y-6">
             <TabsList className="grid w-full grid-cols-6 md:w-auto">

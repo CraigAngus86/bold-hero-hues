@@ -13,7 +13,8 @@ export const importMockDataToSupabase = async (mockMatches: Match[]): Promise<bo
       match.date &&
       match.time &&
       match.competition &&
-      match.venue
+      match.venue &&
+      typeof match.isCompleted === 'boolean' // Ensure isCompleted is a boolean
     );
     
     if (validMatches.length === 0) {
@@ -30,7 +31,7 @@ export const importMockDataToSupabase = async (mockMatches: Match[]): Promise<bo
       time: match.time,
       competition: match.competition,
       venue: match.venue,
-      is_completed: match.isCompleted || false,
+      is_completed: match.isCompleted,
       home_score: match.isCompleted ? match.homeScore : null,
       away_score: match.isCompleted ? match.awayScore : null,
       status: match.isCompleted ? 'completed' : 'upcoming',
@@ -70,10 +71,18 @@ export const scrapeAndStoreFixtures = async (): Promise<boolean> => {
       return false;
     }
     
-    // Add a temporary ID to each fixture for the importMockDataToSupabase function
-    const fixturesWithIds = result.data.map((fixture, index) => ({
-      ...fixture,
-      id: `temp-${index}` // Temporary ID, will be replaced by UUID in Supabase
+    // Add a temporary ID to each fixture and ensure required fields are present
+    const fixturesWithRequiredFields: Match[] = result.data.map((fixture, index) => ({
+      id: `temp-${index}`, // Temporary ID, will be replaced by UUID in Supabase
+      homeTeam: fixture.homeTeam,
+      awayTeam: fixture.awayTeam,
+      date: fixture.date,
+      time: fixture.time,
+      competition: fixture.competition,
+      venue: fixture.venue,
+      isCompleted: fixture.isCompleted || false, // Default to false if not provided
+      homeScore: fixture.homeScore || null,
+      awayScore: fixture.awayScore || null
     }));
     
     // Clear existing data first
@@ -88,7 +97,7 @@ export const scrapeAndStoreFixtures = async (): Promise<boolean> => {
       return false;
     }
     
-    return await importMockDataToSupabase(fixturesWithIds);
+    return await importMockDataToSupabase(fixturesWithRequiredFields);
   } catch (error) {
     console.error('Error in scrapeAndStoreFixtures:', error);
     toast.error('Failed to fetch and store fixtures data');

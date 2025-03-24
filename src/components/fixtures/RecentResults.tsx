@@ -19,7 +19,7 @@ const RecentResults = ({ matches }: RecentResultsProps) => {
         <div className="space-y-0.5 flex-1">
           {matches.map((match) => (
             <div key={match.id} className="p-1 border-b border-gray-100 last:border-0">
-              <div className="text-xs text-[#00105a] font-medium">
+              <div className="text-xs text-[#00105a] font-medium text-center">
                 {match.competition} • {formatDate(match.date)}
               </div>
               <div className="flex items-center justify-between text-sm my-0.5">
@@ -38,9 +38,6 @@ const RecentResults = ({ matches }: RecentResultsProps) => {
                     {match.awayTeam}
                   </span>
                 </div>
-              </div>
-              <div className="text-xs text-gray-500 text-center">
-                {match.venue}
               </div>
             </div>
           ))}

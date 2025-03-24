@@ -3,8 +3,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useState } from "react";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Index from "./pages/Index";
 import News from "./pages/News";
@@ -15,6 +15,17 @@ import Stadium from "./pages/Stadium";
 import Tickets from "./pages/Tickets";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+
+// Scroll to top component that triggers on route change
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
 
 const App = () => {
   // Create a new QueryClient instance inside the component
@@ -34,6 +45,7 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <ErrorBoundary>
+            <ScrollToTop />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/news" element={<News />} />

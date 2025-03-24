@@ -1,3 +1,4 @@
+
 import { toast } from 'sonner';
 
 // Define the response structure from the Firecrawl API
@@ -31,6 +32,13 @@ export class FirecrawlService {
   private static DEFAULT_API_KEY = 'fc-83bcbd73547640f0a7b2be29068dadad';
   private static TRANSFERMARKT_URL = 'https://www.transfermarkt.com/banks-o-dee-fc/spielplandatum/verein/25442/saison_id/2024';
 
+  // Available CORS proxies to try in order
+  private static CORS_PROXIES = [
+    'https://corsproxy.io/?',
+    'https://cors-anywhere.herokuapp.com/',
+    'https://api.allorigins.win/raw?url=',
+  ];
+
   // Save API key to local storage
   static saveApiKey(apiKey: string): void {
     localStorage.setItem(this.API_KEY_STORAGE_KEY, apiKey);
@@ -51,48 +59,65 @@ export class FirecrawlService {
       
       console.log('Fetching fixtures from Transfermarkt:', targetUrl);
       
-      // Create a CORS proxy URL to bypass CORS restrictions
-      const corsProxy = 'https://corsproxy.io/?';
-      const proxyUrl = `${corsProxy}${encodeURIComponent(targetUrl)}`;
-      
-      console.log(`Attempting to fetch through CORS proxy: ${proxyUrl}`);
-      
-      const response = await fetch(proxyUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        }
-      });
+      // Try each CORS proxy until one works
+      for (const proxyBase of this.CORS_PROXIES) {
+        try {
+          const proxyUrl = `${proxyBase}${encodeURIComponent(targetUrl)}`;
+          console.log(`Attempting to fetch through CORS proxy: ${proxyUrl}`);
+          
+          const response = await fetch(proxyUrl, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            },
+            // Add a timeout to prevent hanging requests
+            signal: AbortSignal.timeout(10000) // 10 second timeout
+          });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`HTTP error ${response.status} fetching Transfermarkt data: ${errorText}`);
-        return { 
-          success: false, 
-          error: `Failed to fetch fixtures from Transfermarkt: ${response.status} ${response.statusText}` 
-        };
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.warn(`HTTP error ${response.status} with proxy ${proxyBase}: ${errorText}`);
+            continue; // Try the next proxy
+          }
+          
+          const htmlContent = await response.text();
+          
+          if (!htmlContent || htmlContent.trim() === '') {
+            console.warn(`Received empty response from proxy ${proxyBase}`);
+            continue; // Try the next proxy
+          }
+          
+          console.log(`Successfully fetched HTML data from Transfermarkt via ${proxyBase}, length: ${htmlContent.length} characters`);
+          
+          // Get a sample of the HTML for debugging purposes
+          const htmlSample = htmlContent.substring(0, 1000) + '...';
+          
+          // Parse the Transfermarkt HTML content to extract fixtures
+          const fixtures = this.parseTransfermarktFixtures(htmlContent);
+          
+          if (fixtures.length === 0) {
+            console.warn(`No fixtures found in HTML from proxy ${proxyBase}`);
+            continue; // Try the next proxy
+          }
+          
+          console.log(`Extracted ${fixtures.length} fixtures from Transfermarkt via ${proxyBase}`);
+          
+          // Successfully fetched and parsed fixtures
+          return { 
+            success: true, 
+            data: fixtures,
+            htmlSample 
+          };
+        } catch (proxyError) {
+          console.warn(`Error with proxy ${proxyBase}:`, proxyError);
+          // Continue to the next proxy
+        }
       }
       
-      const htmlContent = await response.text();
-      
-      if (!htmlContent || htmlContent.trim() === '') {
-        console.error('Received empty response from Transfermarkt');
-        return { success: false, error: 'Received empty response from Transfermarkt' };
-      }
-      
-      console.log(`Successfully fetched HTML data from Transfermarkt, length: ${htmlContent.length} characters`);
-      
-      // Get a sample of the HTML for debugging purposes
-      const htmlSample = htmlContent.substring(0, 1000) + '...';
-      
-      // Parse the Transfermarkt HTML content to extract fixtures
-      const fixtures = this.parseTransfermarktFixtures(htmlContent);
-      
-      console.log(`Extracted ${fixtures.length} fixtures from Transfermarkt`);
-      
+      // If we get here, all proxies failed
       return { 
-        success: true, 
-        data: fixtures,
-        htmlSample 
+        success: false, 
+        error: 'All CORS proxies failed to fetch Transfermarkt data. Try using the mock data instead.',
+        htmlSample: 'No HTML content could be fetched from any proxy.'
       };
     } catch (error) {
       console.error('Error in fetchTransfermarktFixtures:', error);
@@ -101,6 +126,80 @@ export class FirecrawlService {
         error: error instanceof Error ? error.message : 'Failed to fetch fixtures from Transfermarkt' 
       };
     }
+  }
+
+  // Generate mock fixtures as a fallback
+  static generateMockFixtures(): ScrapedFixture[] {
+    const teams = [
+      'Banks O\' Dee FC', 'Brechin City FC', 'Buckie Thistle FC', 'Clachnacuddin FC',
+      'Deveronvale FC', 'Formartine Utd FC', 'Forres Mechanics FC', 'Fraserburgh FC',
+      'Huntly FC', 'Inverurie Loco Works FC', 'Keith FC', 'Lossiemouth FC',
+      'Nairn County FC', 'Rothes FC', 'Strathspey Thistle FC', 'Turriff Utd FC', 'Wick Academy FC'
+    ];
+    
+    const venues = ['Spain Park', 'Glebe Park', 'Victoria Park', 'Grant Street Park', 'Princess Royal Park'];
+    
+    // Current date
+    const startDate = new Date();
+    const fixtures: ScrapedFixture[] = [];
+    
+    // Generate 20 fixtures (10 upcoming, 10 completed)
+    for (let i = 0; i < 20; i++) {
+      const isCompleted = i < 10;
+      const fixtureDate = new Date(startDate);
+      
+      if (isCompleted) {
+        // Completed matches in the past
+        fixtureDate.setDate(fixtureDate.getDate() - (i + 1));
+      } else {
+        // Upcoming matches in the future
+        fixtureDate.setDate(fixtureDate.getDate() + (i - 9));
+      }
+      
+      // Format date as YYYY-MM-DD
+      const dateStr = fixtureDate.toISOString().split('T')[0];
+      
+      // Randomly select teams (ensuring they are different)
+      let homeTeamIndex = Math.floor(Math.random() * teams.length);
+      let awayTeamIndex;
+      do {
+        awayTeamIndex = Math.floor(Math.random() * teams.length);
+      } while (awayTeamIndex === homeTeamIndex);
+      
+      // Ensure Banks O' Dee is in every fixture
+      const isBanksHome = Math.random() > 0.5;
+      if (isBanksHome) {
+        homeTeamIndex = 0; // Banks O' Dee is the first team in the array
+      } else {
+        awayTeamIndex = 0;
+      }
+      
+      // Generate random scores for completed matches
+      let homeScore = null;
+      let awayScore = null;
+      if (isCompleted) {
+        homeScore = Math.floor(Math.random() * 4);
+        awayScore = Math.floor(Math.random() * 4);
+      }
+      
+      // Pick a random venue or use Spain Park for home games
+      const venue = isBanksHome ? 'Spain Park' : venues[Math.floor(Math.random() * venues.length)];
+      
+      fixtures.push({
+        id: `mock-${dateStr}-${homeTeamIndex}-${awayTeamIndex}`,
+        homeTeam: teams[homeTeamIndex],
+        awayTeam: teams[awayTeamIndex],
+        date: dateStr,
+        time: '15:00',
+        competition: 'Highland League',
+        venue,
+        isCompleted,
+        homeScore,
+        awayScore
+      });
+    }
+    
+    return fixtures;
   }
 
   // Parse Transfermarkt fixtures from HTML content
@@ -246,6 +345,11 @@ export class FirecrawlService {
           console.warn(`Error parsing fixture row ${index}:`, err);
         }
       });
+      
+      // If no fixtures were parsed but HTML was received, there may be an issue with the HTML structure
+      if (fixtures.length === 0 && html.length > 0) {
+        console.warn('HTML was received but no fixtures could be parsed. The website structure may have changed.');
+      }
       
       return fixtures;
     } catch (error) {

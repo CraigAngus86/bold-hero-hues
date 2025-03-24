@@ -3,13 +3,14 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { RefreshCw, Check, Download, AlertCircle, Info, Link2 } from "lucide-react";
+import { RefreshCw, Check, Download, AlertCircle, Info, Link2, Database } from "lucide-react";
 import { scrapeAndStoreFixtures } from '@/services/supabase/fixtures/importExport'; 
 import { toast } from 'sonner';
 import { ScrapedFixture } from '@/types/fixtures';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FirecrawlService } from '@/utils/FirecrawlService';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function FixturesScraper() {
   const [isLoading, setIsLoading] = useState(false);
@@ -69,7 +70,33 @@ export default function FixturesScraper() {
     }
   };
 
-  const processScrapedFixtures = (fixtures: any[], source: string) => {
+  const handleUseMockData = () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      setSuccess(false);
+      setResults([]);
+      setHtmlSample(null);
+      setDataFormatting(null);
+      
+      console.log('Generating mock fixture data...');
+      
+      // Generate mock fixtures
+      const mockFixtures = FirecrawlService.generateMockFixtures();
+      
+      processScrapedFixtures(mockFixtures, 'Mock Data');
+      
+      toast.success(`Generated ${mockFixtures.length} mock fixtures`);
+    } catch (error) {
+      console.error('Error generating mock fixtures:', error);
+      setError(error instanceof Error ? error.message : 'An unknown error occurred');
+      toast.error('An error occurred while generating mock fixtures');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const processScrapedFixtures = (fixtures: ScrapedFixture[], source: string) => {
     console.log(`Fixtures fetch successful from ${source}, proceeding with import...`, fixtures);
     
     // Log a sample of the data to check format
@@ -77,13 +104,14 @@ export default function FixturesScraper() {
       const sample = fixtures[0];
       const formattingInfo = `
 Sample fixture data format from ${source}:
+- ID: "${sample.id}"
 - Date: "${sample.date}"
 - Time: "${sample.time}"
 - Home Team: "${sample.homeTeam}"
 - Away Team: "${sample.awayTeam}"
 - Competition: "${sample.competition}"
 ${sample.venue ? `- Venue: "${sample.venue}"` : ''}
-${sample.isCompleted ? `- Completed: "${sample.isCompleted}"` : ''}
+${sample.isCompleted !== undefined ? `- Completed: "${sample.isCompleted}"` : ''}
 ${sample.homeScore !== undefined ? `- Home Score: "${sample.homeScore}"` : ''}
 ${sample.awayScore !== undefined ? `- Away Score: "${sample.awayScore}"` : ''}
 `;
@@ -93,6 +121,7 @@ ${sample.awayScore !== undefined ? `- Away Score: "${sample.awayScore}"` : ''}
     
     // Format the data as ScrapedFixture objects
     const formattedFixtures = fixtures.map((item: any): ScrapedFixture => ({
+      id: item.id || `fixture-${Math.random().toString(36).substring(2, 9)}`,
       homeTeam: item.homeTeam,
       awayTeam: item.awayTeam,
       date: item.date,
@@ -107,7 +136,7 @@ ${sample.awayScore !== undefined ? `- Away Score: "${sample.awayScore}"` : ''}
     // Show a preview of the data before storing
     setResults(formattedFixtures);
     setSuccess(true);
-    toast.success(`Found ${formattedFixtures.length} fixtures from Transfermarkt`);
+    toast.success(`Found ${formattedFixtures.length} fixtures from ${source}`);
   };
 
   const handleStoreFixtures = async () => {
@@ -168,47 +197,94 @@ ${sample.awayScore !== undefined ? `- Away Score: "${sample.awayScore}"` : ''}
       </CardHeader>
       
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="transfermarktUrl">Transfermarkt URL</Label>
-          <div className="flex gap-2">
-            <Input 
-              id="transfermarktUrl" 
-              value={transfermarktUrl} 
-              onChange={(e) => setTransfermarktUrl(e.target.value)}
-              placeholder="Enter Transfermarkt URL"
-              className="flex-1"
-            />
-            <Button 
-              variant="outline" 
-              size="icon"
-              onClick={() => window.open(transfermarktUrl, '_blank')}
-              title="Open URL in new tab"
+        <Tabs defaultValue="transfermarkt" className="w-full">
+          <TabsList className="grid grid-cols-2 w-full">
+            <TabsTrigger value="transfermarkt">Transfermarkt</TabsTrigger>
+            <TabsTrigger value="mock">Mock Data</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="transfermarkt" className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="transfermarktUrl">Transfermarkt URL</Label>
+              <div className="flex gap-2">
+                <Input 
+                  id="transfermarktUrl" 
+                  value={transfermarktUrl} 
+                  onChange={(e) => setTransfermarktUrl(e.target.value)}
+                  placeholder="Enter Transfermarkt URL"
+                  className="flex-1"
+                />
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={() => window.open(transfermarktUrl, '_blank')}
+                  title="Open URL in new tab"
+                >
+                  <Link2 className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                The default URL fetches fixtures for Banks O' Dee FC from the current season on Transfermarkt.
+              </p>
+            </div>
+            
+            <Button
+              className="w-full"
+              onClick={handleFetchFromTransfermarkt}
+              disabled={isLoading}
             >
-              <Link2 className="h-4 w-4" />
+              {isLoading ? (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  Fetching from Transfermarkt...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Fetch from Transfermarkt
+                </>
+              )}
             </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            The default URL fetches fixtures for Banks O' Dee FC from the current season on Transfermarkt.
-          </p>
-        </div>
-        
-        <Button
-          className="w-full"
-          onClick={handleFetchFromTransfermarkt}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <>
-              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-              Fetching from Transfermarkt...
-            </>
-          ) : (
-            <>
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Fetch from Transfermarkt
-            </>
-          )}
-        </Button>
+            
+            <Alert variant="default" className="bg-blue-50 border-blue-200">
+              <Info className="h-4 w-4 text-blue-600" />
+              <AlertTitle className="text-blue-800">About CORS Proxies</AlertTitle>
+              <AlertDescription className="text-blue-700">
+                This feature uses CORS proxies to access Transfermarkt. If one proxy fails, it will automatically try others.
+                If all proxies fail, try the Mock Data option instead.
+              </AlertDescription>
+            </Alert>
+          </TabsContent>
+          
+          <TabsContent value="mock" className="space-y-4">
+            <Alert variant="default" className="bg-amber-50 border-amber-200">
+              <Info className="h-4 w-4 text-amber-600" />
+              <AlertTitle className="text-amber-800">Mock Data</AlertTitle>
+              <AlertDescription className="text-amber-700">
+                If external scraping fails, you can generate random mock fixtures for testing purposes.
+                These fixtures will include both upcoming and past matches for Banks O' Dee FC.
+              </AlertDescription>
+            </Alert>
+            
+            <Button
+              className="w-full"
+              onClick={handleUseMockData}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Database className="mr-2 h-4 w-4 animate-pulse" />
+                  Generating Mock Data...
+                </>
+              ) : (
+                <>
+                  <Database className="mr-2 h-4 w-4" />
+                  Generate Mock Fixtures
+                </>
+              )}
+            </Button>
+          </TabsContent>
+        </Tabs>
         
         {error && (
           <Alert variant="destructive">
@@ -284,7 +360,7 @@ ${sample.awayScore !== undefined ? `- Away Score: "${sample.awayScore}"` : ''}
                 </>
               ) : (
                 <>
-                  <RefreshCw className="mr-2 h-4 w-4" />
+                  <Database className="mr-2 h-4 w-4" />
                   Store Fixtures in Database
                 </>
               )}

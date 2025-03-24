@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import LeagueTableContent from './league/LeagueTableContent';
 import { TeamStats } from './league/types';
-import { fetchLeagueTable, clearLeagueDataCache } from '@/services/leagueDataService';
+import { fetchLeagueTableFromSupabase, clearSupabaseCache } from '@/services/supabase/leagueDataService';
 import { toast } from "sonner";
 
 const LeagueTable = () => {
@@ -16,12 +16,12 @@ const LeagueTable = () => {
     try {
       if (refresh) {
         // Clear the cache if refreshing
-        clearLeagueDataCache();
+        clearSupabaseCache();
       } else {
         setIsLoading(true);
       }
       
-      const data = await fetchLeagueTable();
+      const data = await fetchLeagueTableFromSupabase();
       const sortedData = [...data].sort((a, b) => a.position - b.position);
       
       // For the homepage, only show the top 10 teams

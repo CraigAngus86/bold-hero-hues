@@ -1,139 +1,68 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { toast } from "sonner";
-import RecentResults from './fixtures/RecentResults';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import UpcomingFixtures from './fixtures/UpcomingFixtures';
+import RecentResults from './fixtures/RecentResults';
 import LeagueTablePreview from './fixtures/LeagueTablePreview';
-import { Match } from './fixtures/types';
 import { TeamStats } from './league/types';
-import { fetchLeagueTable, fetchFixtures, fetchResults } from '@/services/leagueDataService';
-import { RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { clearLeagueDataCache } from '@/services/leagueDataService';
-import ErrorBoundary from './ErrorBoundary';
+import { fetchLeagueTableFromSupabase } from '@/services/supabase/leagueDataService';
 
 const FixturesSection = () => {
-  const [recentMatches, setRecentMatches] = useState<Match[]>([]);
-  const [upcomingMatches, setUpcomingMatches] = useState<Match[]>([]);
-  const [leagueData, setLeagueData] = useState<TeamStats[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
-  const [hasError, setHasError] = useState<boolean>(false);
-  
-  const fetchData = async (refresh = false) => {
-    try {
-      if (refresh) {
-        setIsRefreshing(true);
-        // Clear the cache if refreshing
-        clearLeagueDataCache();
-      } else {
-        setIsLoading(true);
-      }
-      setHasError(false);
-      
-      // Fetch all data in parallel
-      const [tableData, fixtures, results] = await Promise.all([
-        fetchLeagueTable(),
-        fetchFixtures(),
-        fetchResults()
-      ]);
-      
-      // Update state with the fetched data, with null checks
-      setLeagueData(tableData || []);
-      
-      // Get the 3 most recent results, with null checks
-      if (results && Array.isArray(results)) {
-        const recent = [...results]
-          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-          .slice(0, 3);
-        setRecentMatches(recent);
-      }
-      
-      // Get the 3 upcoming fixtures, with null checks
-      if (fixtures && Array.isArray(fixtures)) {
-        const upcoming = [...fixtures]
-          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-          .slice(0, 3);
-        setUpcomingMatches(upcoming);
-      }
-      
-      if (refresh) {
-        toast.success("Fixtures and results refreshed");
-      }
-    } catch (error) {
-      console.error('Error loading fixtures data:', error);
-      setHasError(true);
-      if (refresh) {
-        toast.error('Failed to refresh data');
-      } else {
-        toast.error('Failed to load fixtures data');
-      }
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  };
-  
+  const [activeTab, setActiveTab] = useState('fixtures');
+  const [leagueData, setLeagueData] = useState<TeamStats[] | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
-    fetchData();
+    const fetchLeagueData = async () => {
+      try {
+        setIsLoading(true);
+        const data = await fetchLeagueTableFromSupabase();
+        setLeagueData(data);
+      } catch (error) {
+        console.error('Error fetching league data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchLeagueData();
   }, []);
-  
-  const handleRefresh = () => {
-    fetchData(true);
-  };
 
   return (
-    <section className="py-10 bg-team-gray">
+    <section className="py-16 bg-team-gray">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-semibold text-team-blue">Fixtures, Results & Table</h2>
-          <Button 
-            onClick={handleRefresh} 
-            size="sm" 
-            variant="outline" 
-            disabled={isRefreshing || isLoading}
-            className="text-team-blue border-team-blue hover:bg-team-lightBlue"
-          >
-            {isRefreshing ? (
-              <>
-                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                Refreshing...
-              </>
-            ) : (
-              <>
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Refresh
-              </>
-            )}
-          </Button>
-        </div>
+        <motion.h2 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="text-2xl font-semibold text-team-blue mb-6"
+        >
+          Fixtures, Results & Table
+        </motion.h2>
         
-        {isLoading ? (
-          <div className="h-64 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-team-blue"></div>
-            <p className="ml-3 text-gray-600">Loading data...</p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-6">
+            <Tabs defaultValue="fixtures" value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid grid-cols-2 mb-6 bg-white">
+                <TabsTrigger value="fixtures">Upcoming Fixtures</TabsTrigger>
+                <TabsTrigger value="results">Recent Results</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="fixtures" className="mt-0">
+                <UpcomingFixtures />
+              </TabsContent>
+              
+              <TabsContent value="results" className="mt-0">
+                <RecentResults />
+              </TabsContent>
+            </Tabs>
           </div>
-        ) : hasError ? (
-          <div className="h-64 flex items-center justify-center">
-            <div className="text-center">
-              <p className="text-red-500 mb-4">There was an error loading the fixtures data.</p>
-              <Button onClick={handleRefresh} variant="default">Try Again</Button>
-            </div>
+          
+          <div>
+            <LeagueTablePreview leagueData={leagueData} />
           </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <ErrorBoundary>
-              <RecentResults matches={recentMatches} />
-            </ErrorBoundary>
-            <ErrorBoundary>
-              <UpcomingFixtures matches={upcomingMatches} />
-            </ErrorBoundary>
-            <ErrorBoundary>
-              <LeagueTablePreview leagueData={leagueData} />
-            </ErrorBoundary>
-          </div>
-        )}
+        </div>
       </div>
     </section>
   );

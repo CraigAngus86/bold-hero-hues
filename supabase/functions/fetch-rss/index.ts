@@ -30,6 +30,8 @@ function parseRSS(xmlData: string) {
       const description = $(element).find('description').text().trim();
       const link = $(element).find('link').text().trim();
       
+      console.log('Processing RSS item:', title);
+      
       // Extract the match info from the title
       // Example formats: "Team A v Team B", "Team A vs Team B", "Team A (2) v Team B (1)"
       let matchInfo = title;
@@ -124,7 +126,7 @@ serve(async (req) => {
   }
   
   if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+    return new Response(JSON.stringify({ success: false, error: 'Method not allowed' }), {
       status: 405,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
@@ -136,7 +138,7 @@ serve(async (req) => {
     const { url } = requestData
     
     if (!url) {
-      return new Response(JSON.stringify({ error: 'URL is required' }), {
+      return new Response(JSON.stringify({ success: false, error: 'URL is required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
@@ -152,10 +154,20 @@ serve(async (req) => {
     })
     
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`HTTP error ${response.status} fetching RSS feed: ${errorText}`);
       throw new Error(`Failed to fetch from ${url}: ${response.status} ${response.statusText}`)
     }
     
     const xmlData = await response.text()
+    
+    if (!xmlData || xmlData.trim() === '') {
+      console.error('Received empty response from RSS feed');
+      throw new Error('Received empty response from RSS feed')
+    }
+    
+    console.log(`Successfully fetched XML data, length: ${xmlData.length} characters`);
+    
     const fixtures = parseRSS(xmlData)
     
     console.log(`Extracted ${fixtures.length} fixtures from RSS feed`)

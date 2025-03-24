@@ -22,6 +22,8 @@ export const importMockDataToSupabase = async (mockMatches: Match[]): Promise<bo
       return false;
     }
     
+    console.log(`Validated ${validMatches.length} matches for import`);
+    
     // Convert to Supabase format with all required fields
     // Create an array of objects with explicitly defined required fields
     const supabaseMatches = validMatches.map(match => ({
@@ -38,6 +40,8 @@ export const importMockDataToSupabase = async (mockMatches: Match[]): Promise<bo
       visible: true
     }));
     
+    console.log(`Importing ${supabaseMatches.length} matches to Supabase...`);
+    
     const { error } = await supabase
       .from('matches')
       .insert(supabaseMatches);
@@ -48,6 +52,7 @@ export const importMockDataToSupabase = async (mockMatches: Match[]): Promise<bo
       return false;
     }
 
+    console.log('Match data imported successfully');
     toast.success('Match data imported successfully');
     return true;
   } catch (error) {

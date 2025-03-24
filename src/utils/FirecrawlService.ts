@@ -40,6 +40,7 @@ export class FirecrawlService {
   static saveApiKey(apiKey: string): void {
     localStorage.setItem(this.API_KEY_STORAGE_KEY, apiKey);
     console.log('Firecrawl API key saved successfully');
+    toast.success('API key saved successfully');
   }
 
   // Get API key from local storage or use the default one
@@ -52,8 +53,12 @@ export class FirecrawlService {
     try {
       const apiKey = this.getApiKey();
       if (!apiKey) {
-        return { success: false, error: 'API key not found. Please set your Firecrawl API key first.' };
+        const msg = 'API key not found. Please set your Firecrawl API key first.';
+        console.error(msg);
+        return { success: false, error: msg };
       }
+
+      console.log('Fetching Highland League RSS with API key:', apiKey.substring(0, 5) + '...');
 
       // Call our Supabase Edge Function to handle the RSS feed fetch
       const response = await fetch('/api/fetch-rss', {
@@ -83,6 +88,9 @@ export class FirecrawlService {
         return { success: false, error: result.error };
       }
 
+      // Log the successful result
+      console.log('Successfully fetched RSS data:', result.data.length, 'fixtures');
+      
       return { success: true, data: result.data };
     } catch (error) {
       console.error('Error in fetchHighlandLeagueRSS:', error);

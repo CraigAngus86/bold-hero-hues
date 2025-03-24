@@ -43,12 +43,25 @@ export default function FixturesScraper() {
       console.log('Starting fixture scraping and storage process...');
       toast.info('Scraping fixtures... This may take a moment.');
       
-      // Use scrapeAndStoreFixtures function which already handles everything
+      // First, test the connection by fetching RSS without storing
+      const testResult = await FirecrawlService.fetchHighlandLeagueRSS();
+      
+      if (!testResult.success || !testResult.data) {
+        const errorMsg = testResult.error || 'Failed to fetch fixtures from RSS feed';
+        console.error('Test fetch failed:', errorMsg);
+        setError(errorMsg);
+        toast.error(errorMsg);
+        return;
+      }
+      
+      console.log('Test fetch successful, proceeding with import...');
+      
+      // If test successful, proceed with storage
       const success = await scrapeAndStoreFixtures();
       
       if (!success) {
-        setError('Failed to fetch and store fixtures. Check the console for details.');
-        toast.error('Failed to fetch and store fixtures');
+        setError('Failed to store fixtures. Check the console for details.');
+        toast.error('Failed to store fixtures in database');
         return;
       }
       

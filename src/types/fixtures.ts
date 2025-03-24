@@ -1,4 +1,3 @@
-
 /**
  * Represents a fixture scraped from external sources
  */

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -7,7 +6,6 @@ import FixturesFilter from '@/components/fixtures/FixturesFilter';
 import MonthFixtures from '@/components/fixtures/MonthFixtures';
 import NoFixturesFound from '@/components/fixtures/NoFixturesFound';
 import { fetchFixtures, fetchResults } from '@/services/leagueDataService';
-import { fetchCompetitionsFromSupabase } from '@/services/supabase/fixturesService';
 import { useFixturesFilter } from '@/hooks/useFixturesFilter';
 import { Match } from '@/components/fixtures/types';
 import { toast } from "sonner";
@@ -22,23 +20,17 @@ const Fixtures = () => {
       setIsLoading(true);
       try {
         // Fetch both fixtures and results
-        const [fixtures, results, competitions] = await Promise.all([
+        const [fixtures, results] = await Promise.all([
           fetchFixtures(),
-          fetchResults(),
-          fetchCompetitionsFromSupabase()
+          fetchResults()
         ]);
         
         // Combine them into a single array
         setAllMatches([...fixtures, ...results]);
         
-        // Set available competitions
-        if (competitions && competitions.length > 0) {
-          setAvailableCompetitions(["All Competitions", ...competitions]);
-        } else {
-          // Extract unique competitions from matches as fallback
-          const uniqueCompetitions = [...new Set([...fixtures, ...results].map(match => match.competition))];
-          setAvailableCompetitions(["All Competitions", ...uniqueCompetitions.sort()]);
-        }
+        // Extract unique competitions from matches
+        const uniqueCompetitions = [...new Set([...fixtures, ...results].map(match => match.competition))];
+        setAvailableCompetitions(["All Competitions", ...uniqueCompetitions.sort()]);
         
       } catch (error) {
         console.error('Error loading fixtures data:', error);

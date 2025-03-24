@@ -1,13 +1,11 @@
-
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
 import UpcomingFixtures from './fixtures/UpcomingFixtures';
 import RecentResults from './fixtures/RecentResults';
 import LeagueTablePreview from './fixtures/LeagueTablePreview';
 import { TeamStats } from './league/types';
 import { fetchLeagueTableFromSupabase } from '@/services/supabase/leagueDataService';
-import { fetchFixturesFromSupabase, fetchResultsFromSupabase } from '@/services/supabase/fixturesService'; 
+import { fetchFixtures, fetchResults } from '@/services/leagueDataService';
 import { Match } from './fixtures/types';
 import { toast } from 'sonner';
 
@@ -25,8 +23,8 @@ const FixturesSection = () => {
         // Fetch all data in parallel
         const [leagueTable, fixtures, results] = await Promise.all([
           fetchLeagueTableFromSupabase(),
-          fetchFixturesFromSupabase(),
-          fetchResultsFromSupabase()
+          fetchFixtures(),
+          fetchResults()
         ]);
         
         setLeagueData(leagueTable);
@@ -37,7 +35,7 @@ const FixturesSection = () => {
         // Get recent results (last 3)
         setRecentResults(results.slice(0, 3));
         
-        console.log('Data loaded from Supabase successfully');
+        console.log('Data loaded successfully');
       } catch (error) {
         console.error('Error fetching data:', error);
         toast.error('Failed to load fixtures and results data');

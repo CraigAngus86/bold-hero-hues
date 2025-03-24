@@ -3,13 +3,14 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, RefreshCw, Check, Download, Link2, Globe } from "lucide-react";
+import { AlertCircle, RefreshCw, Check, Download, Link2, Calendar } from "lucide-react";
 import { scrapeAndStoreFixtures } from '@/services/supabase/fixtures/importExport'; 
 import { toast } from 'sonner';
 import { ScrapedFixture } from '@/types/fixtures';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/services/supabase/supabaseClient';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 export default function TransfermarktScraper() {
   const [isLoading, setIsLoading] = useState(false);
@@ -18,8 +19,28 @@ export default function TransfermarktScraper() {
   const [success, setSuccess] = useState(false);
   const [htmlSample, setHtmlSample] = useState<string | null>(null);
   const [transfermarktUrl, setTransfermarktUrl] = useState<string>(
-    'https://www.transfermarkt.com/banks-o-dee-fc/spielplandatum/verein/25442/plus/0?saison_id=&wettbewerb_id=SC5H&day=&heim_gast=&punkte=&datum_von=&datum_bis='
+    'https://www.transfermarkt.com/banks-o-dee-fc/spielplandatum/verein/25442/plus/0?saison_id=&wettbewerb_id=&day=&heim_gast=&punkte=&datum_von=&datum_bis='
   );
+  
+  // Predefined URL options
+  const urlOptions = [
+    {
+      label: 'All Competitions (Recommended)',
+      value: 'https://www.transfermarkt.com/banks-o-dee-fc/spielplandatum/verein/25442/plus/0?saison_id=&wettbewerb_id=&day=&heim_gast=&punkte=&datum_von=&datum_bis='
+    },
+    {
+      label: 'Highland League Only',
+      value: 'https://www.transfermarkt.com/banks-o-dee-fc/spielplandatum/verein/25442/plus/0?saison_id=&wettbewerb_id=SC5H&day=&heim_gast=&punkte=&datum_von=&datum_bis='
+    },
+    {
+      label: 'Current Season',
+      value: 'https://www.transfermarkt.com/banks-o-dee-fc/spielplandatum/verein/25442/plus/0?saison_id=2024&wettbewerb_id=&day=&heim_gast=&punkte=&datum_von=&datum_bis='
+    }
+  ];
+
+  const handleUrlSelect = (value: string) => {
+    setTransfermarktUrl(value);
+  };
   
   const handleFetchFromTransfermarkt = async () => {
     try {
@@ -152,11 +173,27 @@ export default function TransfermarktScraper() {
       <CardHeader>
         <CardTitle>Transfermarkt Fixtures Importer</CardTitle>
         <CardDescription>
-          Fetch and import fixtures from Transfermarkt for Banks O' Dee FC
+          Fetch and import fixtures from Transfermarkt for Banks O' Dee FC. Choose a preset URL or enter a custom one.
         </CardDescription>
       </CardHeader>
       
       <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label>URL Presets</Label>
+          <Select onValueChange={handleUrlSelect} defaultValue={transfermarktUrl}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select a preset URL" />
+            </SelectTrigger>
+            <SelectContent>
+              {urlOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      
         <div className="space-y-2">
           <Label htmlFor="transfermarktUrl">Transfermarkt URL</Label>
           <div className="flex gap-2">
@@ -177,7 +214,7 @@ export default function TransfermarktScraper() {
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">
-            The default URL fetches fixtures for Banks O' Dee FC from Transfermarkt.
+            The URL should point to Banks O' Dee FC's fixture list on Transfermarkt. Try different competition filters if needed.
           </p>
         </div>
         
@@ -193,7 +230,7 @@ export default function TransfermarktScraper() {
             </>
           ) : (
             <>
-              <Globe className="mr-2 h-4 w-4" />
+              <Calendar className="mr-2 h-4 w-4" />
               Fetch from Transfermarkt
             </>
           )}
@@ -233,7 +270,7 @@ export default function TransfermarktScraper() {
             <div className="max-h-60 overflow-y-auto border rounded-md p-4">
               {results.map((fixture, index) => (
                 <div key={index} className="mb-2 text-sm">
-                  {fixture.date} {fixture.time}: {fixture.homeTeam} vs {fixture.awayTeam}
+                  <span className="font-medium">{fixture.date} {fixture.time}</span>: {fixture.competition !== 'Highland League' && <span className="text-blue-600">[{fixture.competition}]</span>} {fixture.homeTeam} vs {fixture.awayTeam}
                   {fixture.isCompleted && (
                     <span className="ml-2 text-green-600">
                       ({fixture.homeScore} - {fixture.awayScore})

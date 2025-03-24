@@ -9,7 +9,7 @@ import SponsorsManager from '@/components/admin/SponsorsManager';
 import TeamManager from '@/components/admin/TeamManager';
 import LeagueTableManager from '@/components/admin/LeagueTableManager';
 import FixturesManager from '@/components/admin/fixtures/FixturesManager';
-import { Database, Globe, Server } from 'lucide-react';
+import { Database, Globe, Server, Calendar } from 'lucide-react';
 import DataDashboard from '@/components/admin/data/DataDashboard';
 
 const Admin = () => {
@@ -29,11 +29,11 @@ const Admin = () => {
               <TabsTrigger value="sponsors">Sponsors</TabsTrigger>
               <TabsTrigger value="data" className="flex items-center justify-center">
                 <Globe className="h-4 w-4 mr-2" />
-                Highland Data
+                Data Scrapers
               </TabsTrigger>
               <TabsTrigger value="league">League Table</TabsTrigger>
               <TabsTrigger value="fixtures" className="flex items-center justify-center">
-                <Server className="h-4 w-4 mr-2" />
+                <Calendar className="h-4 w-4 mr-2" />
                 Fixtures
               </TabsTrigger>
             </TabsList>
@@ -83,9 +83,9 @@ const Admin = () => {
             <TabsContent value="data">
               <Card>
                 <CardHeader>
-                  <CardTitle>Highland League Data Scrapers</CardTitle>
+                  <CardTitle>Data Scraping & Import Tools</CardTitle>
                   <CardDescription>
-                    Fetch fixtures, results, and league table data from official Highland League sources.
+                    Import fixtures, results, and league data from external sources including Transfermarkt and Highland League websites.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

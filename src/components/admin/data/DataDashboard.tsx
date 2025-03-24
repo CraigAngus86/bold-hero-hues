@@ -3,7 +3,7 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Database, Server, Globe } from "lucide-react";
+import { Database, Calendar, Globe } from "lucide-react";
 import DataScraperControl from '@/components/admin/DataScraperControl';
 import ScrapedDataTable from '@/components/admin/data/ScrapedDataTable';
 import ServerMonitor from '@/components/admin/data/ServerMonitor';
@@ -23,15 +23,15 @@ const DataDashboard = () => {
       <Tabs defaultValue="fixtures" className="w-full">
         <TabsList className="mb-4">
           <TabsTrigger value="fixtures" className="flex items-center">
-            <Globe className="h-4 w-4 mr-2" />
-            Transfermarkt Fixtures
+            <Calendar className="h-4 w-4 mr-2" />
+            Transfermarkt Import
           </TabsTrigger>
-          <TabsTrigger value="scrapers" className="flex items-center">
-            <Database className="h-4 w-4 mr-2" />
-            Data Scrapers
+          <TabsTrigger value="highland" className="flex items-center">
+            <Globe className="h-4 w-4 mr-2" />
+            Highland League
           </TabsTrigger>
           <TabsTrigger value="server" className="flex items-center">
-            <Server className="h-4 w-4 mr-2" />
+            <Database className="h-4 w-4 mr-2" />
             Server Status
           </TabsTrigger>
         </TabsList>
@@ -40,7 +40,7 @@ const DataDashboard = () => {
           <TransfermarktScraper />
         </TabsContent>
         
-        <TabsContent value="scrapers" className="space-y-6">
+        <TabsContent value="highland" className="space-y-6">
           <TooltipProvider>
             <DataScraperControl />
           </TooltipProvider>

@@ -1,6 +1,7 @@
 
 import React from 'react';
 import DataScraperControl from './DataScraperControl';
+import ScrapedDataTable from './data/ScrapedDataTable';
 import { Separator } from "@/components/ui/separator";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -19,6 +20,10 @@ const AdminDatabaseSection = () => {
       <TooltipProvider>
         <DataScraperControl />
       </TooltipProvider>
+      
+      <Separator />
+      
+      <ScrapedDataTable />
     </div>
   );
 };

@@ -8,16 +8,44 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { getApiConfig, saveApiConfig, DEFAULT_API_CONFIG } from '@/services/config/apiConfig';
 import { toast } from "sonner";
+import { clearLeagueDataCache } from '@/services/leagueDataService';
 
 const DataScraperControl = () => {
-  const [config, setConfig] = useState(DEFAULT_API_CONFIG);
+  const [config, setConfig] = useState({
+    ...DEFAULT_API_CONFIG,
+    apiServerUrl: 'http://localhost:3001' // Default to localhost server
+  });
   const [isStatusChecking, setIsStatusChecking] = useState(false);
   const [serverStatus, setServerStatus] = useState<'unknown' | 'ok' | 'error'>('unknown');
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [autoConnecting, setAutoConnecting] = useState(true);
 
+  // On initial load, set up the server configuration and auto-connect
   useEffect(() => {
+    // Load existing config
     const loadedConfig = getApiConfig();
-    setConfig(loadedConfig);
+    
+    // Merge with default server URL if needed
+    const configWithServer = {
+      ...loadedConfig,
+      apiServerUrl: loadedConfig.apiServerUrl || 'http://localhost:3001'
+    };
+    
+    setConfig(configWithServer);
+    
+    // Auto-save the configuration
+    saveApiConfig(configWithServer);
+    
+    // Auto-check server status
+    setAutoConnecting(true);
+    checkServerStatus(configWithServer);
+    
+    // Set up periodic server checks
+    const interval = setInterval(() => {
+      checkServerStatus(configWithServer);
+    }, 60000); // Check every minute
+    
+    return () => clearInterval(interval);
   }, []);
 
   const handleConfigChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,7 +66,9 @@ const DataScraperControl = () => {
 
   const handleSaveConfig = () => {
     saveApiConfig(config);
+    clearLeagueDataCache(); // Clear cache to force refresh with new settings
     toast.success("API configuration saved successfully");
+    checkServerStatus();
   };
 
   const handleResetDefaults = () => {
@@ -46,15 +76,24 @@ const DataScraperControl = () => {
     toast.info("Reset to default configuration");
   };
 
-  const checkServerStatus = async () => {
+  const checkServerStatus = async (configToUse = config) => {
     try {
       setIsStatusChecking(true);
-      const serverUrl = config.apiServerUrl || 'http://localhost:3001';
+      const serverUrl = configToUse.apiServerUrl || 'http://localhost:3001';
+      
+      // Use AbortController to set a timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+      
       const response = await fetch(`${serverUrl}/api/status`, {
         headers: {
-          ...(config.apiKey ? { 'X-API-Key': config.apiKey } : {})
-        }
+          ...(configToUse.apiKey ? { 'X-API-Key': configToUse.apiKey } : {})
+        },
+        signal: controller.signal,
+        mode: 'cors' // Explicitly enable CORS
       });
+      
+      clearTimeout(timeoutId);
       
       if (!response.ok) {
         throw new Error(`Server error: ${response.status}`);
@@ -63,13 +102,49 @@ const DataScraperControl = () => {
       const data = await response.json();
       setServerStatus('ok');
       setLastUpdated(data.lastUpdated);
-      toast.success("Server connection successful!");
+      
+      if (autoConnecting) {
+        setAutoConnecting(false);
+        toast.success("Connected to Highland League data server");
+        // Force refresh the league data
+        clearLeagueDataCache();
+      }
     } catch (error) {
       console.error('Server status check failed:', error);
       setServerStatus('error');
-      toast.error("Could not connect to the server");
+      
+      if (autoConnecting) {
+        setAutoConnecting(false);
+        toast.error("Could not connect to the Highland League server. Using mock data instead.");
+      }
     } finally {
       setIsStatusChecking(false);
+    }
+  };
+
+  // Function to force refresh league data
+  const handleForceRefresh = async () => {
+    try {
+      toast.info("Refreshing Highland League data...");
+      const serverUrl = config.apiServerUrl || 'http://localhost:3001';
+      
+      await fetch(`${serverUrl}/api/league-table?refresh=true`, {
+        headers: {
+          ...(config.apiKey ? { 'X-API-Key': config.apiKey } : {})
+        },
+        mode: 'cors'
+      });
+      
+      // Clear local cache
+      clearLeagueDataCache();
+      
+      toast.success("Highland League data refreshed successfully");
+      setTimeout(() => {
+        window.location.reload(); // Reload the page to show new data
+      }, 1500);
+    } catch (error) {
+      console.error('Failed to refresh data:', error);
+      toast.error("Failed to refresh Highland League data");
     }
   };
 
@@ -85,13 +160,62 @@ const DataScraperControl = () => {
         <TabsContent value="server" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Node.js Scraper Server</CardTitle>
+              <CardTitle>Highland League Scraper Status</CardTitle>
               <CardDescription>
-                Configure the connection to your data scraper server
+                Current status of the Highland League data server
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
+              <div className="flex flex-col space-y-4">
+                {isStatusChecking ? (
+                  <div className="p-3 bg-gray-50 border border-gray-200 rounded-md">
+                    <div className="flex items-center">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-team-blue mr-3"></div>
+                      <p className="text-gray-700">Checking server status...</p>
+                    </div>
+                  </div>
+                ) : serverStatus === 'ok' ? (
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+                    <p className="text-green-700 font-medium">Server is online</p>
+                    {lastUpdated && (
+                      <p className="text-sm text-green-600">
+                        Last data update: {new Date(lastUpdated).toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+                ) : serverStatus === 'error' ? (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                    <p className="text-red-700 font-medium">Server is offline</p>
+                    <p className="text-sm text-red-600">
+                      Using mock data instead. Start the server to see real data.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="p-3 bg-gray-50 border border-gray-200 rounded-md">
+                    <p className="text-gray-700">Server status unknown</p>
+                  </div>
+                )}
+                
+                <div className="flex space-x-3">
+                  <Button 
+                    onClick={() => checkServerStatus()} 
+                    disabled={isStatusChecking}
+                    variant="outline"
+                  >
+                    Check Server Status
+                  </Button>
+                  
+                  <Button 
+                    onClick={handleForceRefresh} 
+                    disabled={isStatusChecking || serverStatus !== 'ok'}
+                    variant="default"
+                  >
+                    Refresh League Data
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="space-y-2 pt-4">
                 <Label htmlFor="apiServerUrl">Server URL</Label>
                 <Input
                   id="apiServerUrl"
@@ -101,7 +225,7 @@ const DataScraperControl = () => {
                   placeholder="http://localhost:3001"
                 />
                 <p className="text-sm text-gray-500">
-                  Enter the URL of your Node.js scraper server
+                  URL of the Highland League scraper server
                 </p>
               </div>
               
@@ -116,38 +240,8 @@ const DataScraperControl = () => {
                   placeholder="Enter API key (optional)"
                 />
                 <p className="text-sm text-gray-500">
-                  If your server requires authentication, enter the API key here
+                  Optional API key for authentication
                 </p>
-              </div>
-              
-              <div className="flex flex-col space-y-4 mt-4">
-                <Button 
-                  onClick={checkServerStatus} 
-                  disabled={isStatusChecking}
-                  variant={serverStatus === 'error' ? "destructive" : "outline"}
-                >
-                  {isStatusChecking ? 'Checking...' : 'Check Server Status'}
-                </Button>
-                
-                {serverStatus === 'ok' && (
-                  <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-                    <p className="text-green-700 font-medium">Server is online</p>
-                    {lastUpdated && (
-                      <p className="text-sm text-green-600">
-                        Last data update: {new Date(lastUpdated).toLocaleString()}
-                      </p>
-                    )}
-                  </div>
-                )}
-                
-                {serverStatus === 'error' && (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                    <p className="text-red-700 font-medium">Server is offline</p>
-                    <p className="text-sm text-red-600">
-                      Unable to connect to the server. Please check the URL and make sure the server is running.
-                    </p>
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card>
@@ -252,15 +346,13 @@ const DataScraperControl = () => {
           <ol className="list-decimal list-inside space-y-2 text-sm">
             <li>Navigate to the <code className="px-1 py-0.5 bg-gray-100 rounded">server</code> directory in your project.</li>
             <li>Run <code className="px-1 py-0.5 bg-gray-100 rounded">npm install</code> to install dependencies.</li>
-            <li>Create a .env file from the example: <code className="px-1 py-0.5 bg-gray-100 rounded">cp .env.example .env</code></li>
             <li>Start the server: <code className="px-1 py-0.5 bg-gray-100 rounded">npm run dev</code> for development or <code className="px-1 py-0.5 bg-gray-100 rounded">npm start</code> for production.</li>
-            <li>Enter the server URL above (default: <code className="px-1 py-0.5 bg-gray-100 rounded">http://localhost:3001</code>)</li>
+            <li>The server will automatically update its data every 6 hours.</li>
           </ol>
           <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
             <p className="text-amber-700 text-sm">
-              <strong>Note:</strong> For production, you should deploy this server to a hosting service like 
-              Heroku, Vercel, AWS, or Digital Ocean. The server must be running continuously to provide data 
-              to your website.
+              <strong>Note:</strong> For production, deploy this server to a hosting service like 
+              Heroku, Vercel, AWS, or Digital Ocean for continuous data availability.
             </p>
           </div>
         </CardContent>

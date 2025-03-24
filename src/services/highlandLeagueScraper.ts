@@ -25,7 +25,8 @@ async function fetchLeagueTableFromServer(): Promise<TeamStats[]> {
         'Content-Type': 'application/json',
         // Add API key if configured
         ...(config.apiKey ? { 'X-API-Key': config.apiKey } : {})
-      }
+      },
+      mode: 'cors' // Explicitly enable CORS
     });
     
     if (!response.ok) {

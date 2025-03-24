@@ -3,21 +3,24 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Database, RefreshCw, AlertTriangle, Server, Info } from "lucide-react";
+import { Database, RefreshCw, AlertTriangle, Server, Info, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { triggerLeagueDataScrape, getLastUpdateTime } from '@/services/supabase/leagueDataService';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { supabase } from '@/integrations/supabase/client';
 
 const DataScraperControl = () => {
   const [isScrapingData, setIsScrapingData] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [hasError, setHasError] = useState(false);
   const [errorDetails, setErrorDetails] = useState<string | null>(null);
+  const [edgeFunctionStatus, setEdgeFunctionStatus] = useState<'checking' | 'deployed' | 'not-deployed' | 'unknown'>('checking');
 
-  // Load last update time on component mount
+  // Load last update time on component mount and check Edge Function status
   useEffect(() => {
     checkLastUpdated();
+    checkEdgeFunctionStatus();
   }, []);
 
   const checkLastUpdated = async () => {
@@ -32,6 +35,28 @@ const DataScraperControl = () => {
       console.error("Error checking last updated:", error);
       setHasError(true);
       setErrorDetails("Failed to fetch last update time");
+    }
+  };
+
+  // Check if the Edge Function exists
+  const checkEdgeFunctionStatus = async () => {
+    try {
+      setEdgeFunctionStatus('checking');
+      // Try to list functions to see if our function is deployed
+      const { data, error } = await supabase.functions.listFunctions();
+      
+      if (error) {
+        console.error('Error checking Edge Function status:', error);
+        setEdgeFunctionStatus('unknown');
+        return;
+      }
+      
+      // Check if our function is in the list
+      const scrapeFunction = data?.find(fn => fn.name === 'scrape-highland-league');
+      setEdgeFunctionStatus(scrapeFunction ? 'deployed' : 'not-deployed');
+    } catch (error) {
+      console.error('Error checking Edge Function status:', error);
+      setEdgeFunctionStatus('unknown');
     }
   };
 
@@ -61,6 +86,55 @@ const DataScraperControl = () => {
       }
     } finally {
       setIsScrapingData(false);
+    }
+  };
+
+  // Render function deployment status
+  const renderEdgeFunctionStatus = () => {
+    switch (edgeFunctionStatus) {
+      case 'deployed':
+        return (
+          <div className="flex items-center gap-2 text-green-700">
+            <Badge variant="outline" className="bg-green-100">Deployed</Badge>
+            <span className="text-sm">Edge Function is deployed and ready</span>
+          </div>
+        );
+      case 'not-deployed':
+        return (
+          <Alert variant="destructive" className="mt-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Edge Function Not Deployed</AlertTitle>
+            <AlertDescription>
+              <p className="mb-2">
+                The scrape-highland-league Edge Function is not deployed to your Supabase project. 
+                Please visit your Supabase Dashboard to deploy the function.
+              </p>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="mt-2"
+                onClick={() => window.open('https://supabase.com/dashboard/project/bbbxhwaixjjxgboeiktq/functions', '_blank')}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Go to Supabase Functions
+              </Button>
+            </AlertDescription>
+          </Alert>
+        );
+      case 'checking':
+        return (
+          <div className="flex items-center gap-2 text-gray-600">
+            <RefreshCw className="h-4 w-4 animate-spin" />
+            <span className="text-sm">Checking Edge Function status...</span>
+          </div>
+        );
+      default:
+        return (
+          <div className="flex items-center gap-2 text-yellow-600">
+            <Badge variant="outline" className="bg-yellow-100">Unknown</Badge>
+            <span className="text-sm">Could not determine Edge Function status</span>
+          </div>
+        );
     }
   };
 
@@ -110,6 +184,12 @@ const DataScraperControl = () => {
             </p>
           </div>
         )}
+
+        {/* Edge Function Status */}
+        <div className="border-t pt-4">
+          <div className="font-medium mb-2">Edge Function Status:</div>
+          {renderEdgeFunctionStatus()}
+        </div>
         
         <div className="flex flex-col gap-4">
           <TooltipProvider>
@@ -117,7 +197,7 @@ const DataScraperControl = () => {
               <TooltipTrigger asChild>
                 <Button 
                   onClick={handleForceRefresh} 
-                  disabled={isScrapingData}
+                  disabled={isScrapingData || edgeFunctionStatus === 'not-deployed'}
                   className="w-full"
                 >
                   <RefreshCw className={`h-4 w-4 mr-2 ${isScrapingData ? 'animate-spin' : ''}`} />

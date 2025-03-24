@@ -5,7 +5,8 @@ import ScrapedDataTable from './data/ScrapedDataTable';
 import { Separator } from "@/components/ui/separator";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Database, Cloud } from "lucide-react";
+import { Database, Cloud, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const AdminDatabaseSection = () => {
   return (
@@ -27,6 +28,25 @@ const AdminDatabaseSection = () => {
             <li>Stores the data securely in your Supabase database</li>
             <li>Provides automatic fallbacks if the primary data source is unavailable</li>
           </ul>
+          <div className="mt-3">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => window.open('https://supabase.com/dashboard/project/bbbxhwaixjjxgboeiktq/functions', '_blank')}
+              className="mr-2"
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Edge Functions
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => window.open('https://supabase.com/dashboard/project/bbbxhwaixjjxgboeiktq/editor', '_blank')}
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Database Editor
+            </Button>
+          </div>
         </AlertDescription>
       </Alert>
       

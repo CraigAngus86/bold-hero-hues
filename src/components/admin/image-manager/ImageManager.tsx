@@ -8,8 +8,9 @@ import BreadcrumbNavigation from './BreadcrumbNavigation';
 import NewFolderDialog from './NewFolderDialog';
 import ImagePreviewDialog from './ImagePreviewDialog';
 import { useToast } from '@/components/ui/use-toast';
-import { Upload, FolderPlus } from 'lucide-react';
-import { ArrowLeft } from 'lucide-react';
+import { Upload, FolderPlus, ArrowLeft } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
+import { Input } from './Input';
 
 // Define the folder structure type
 export interface ImageFolder {

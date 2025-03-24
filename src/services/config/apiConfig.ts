@@ -1,4 +1,3 @@
-
 // API configuration interface
 export interface ApiConfig {
   useProxy: boolean;
@@ -7,6 +6,7 @@ export interface ApiConfig {
   useLocalStorage: boolean;
   autoRefresh: boolean;
   refreshInterval: number; // in minutes
+  apiServerUrl?: string; // URL for the Node.js scraper server
 }
 
 // Default API configuration
@@ -16,7 +16,8 @@ export const DEFAULT_API_CONFIG: ApiConfig = {
   apiKey: '',
   useLocalStorage: true,
   autoRefresh: true,
-  refreshInterval: 360 // 6 hours
+  refreshInterval: 360, // 6 hours
+  apiServerUrl: 'http://localhost:3001' // Default Node.js server URL
 };
 
 // Cache keys for local storage

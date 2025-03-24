@@ -4,122 +4,51 @@ import { mockLeagueData } from '@/components/league/types';
 import { mockMatches } from '@/components/fixtures/fixturesMockData';
 import { getApiConfig } from './config/apiConfig';
 
-// This file provides both real scraping and fallback mock data for Highland League information
+// This file provides both real API calls and fallback mock data for Highland League information
 console.log('Highland League scraper initialized');
 
-// Utility function to parse the BBC Sport Highland League table
-async function scrapeBBCSportTable(): Promise<TeamStats[]> {
+// Function to fetch league table data from our Node.js server
+async function fetchLeagueTableFromServer(): Promise<TeamStats[]> {
   try {
-    console.log('Attempting to scrape BBC Sport Highland League table');
+    console.log('Attempting to fetch Highland League table from server');
     
     const config = getApiConfig();
-    const proxyPrefix = config.useProxy && config.proxyUrl ? config.proxyUrl : '';
-    const url = `${proxyPrefix}https://www.bbc.com/sport/football/scottish-highland-league/table`;
+    // Use the configured API server or fall back to the default URL
+    const serverUrl = config.apiServerUrl || 'http://localhost:3001';
+    const url = `${serverUrl}/api/league-table`;
     
-    // Make the HTTP request to the BBC Sport website
+    console.log(`Fetching from: ${url}`);
+    
+    // Make the HTTP request to our Node.js server
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        'Content-Type': 'application/json',
+        // Add API key if configured
+        ...(config.apiKey ? { 'X-API-Key': config.apiKey } : {})
       }
     });
     
     if (!response.ok) {
-      console.error('Failed to fetch BBC Sport page:', response.status, response.statusText);
-      throw new Error(`Failed to fetch BBC Sport page: ${response.status}`);
+      console.error('Failed to fetch from server:', response.status, response.statusText);
+      throw new Error(`Failed to fetch from server: ${response.status}`);
     }
     
-    const html = await response.text();
-    console.log('Successfully fetched BBC Sport page');
+    const data = await response.json();
+    console.log('Successfully fetched league table from server');
     
-    // Parse the HTML to extract the table data
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    
-    // The table rows are typically in a table with a specific class
-    const tableRows = doc.querySelectorAll('.gs-o-table__row');
-    if (!tableRows || tableRows.length === 0) {
-      console.error('Could not find table rows in BBC Sport page');
-      throw new Error('Could not find table rows in BBC Sport page');
-    }
-    
-    // Extract data from each row
-    const leagueData: TeamStats[] = [];
-    let position = 1;
-    
-    tableRows.forEach((row, index) => {
-      // Skip the header row
-      if (index === 0) return;
-      
-      try {
-        const cells = row.querySelectorAll('td');
-        if (cells.length < 10) return;
-        
-        // Extract team name
-        const teamNameElement = cells[0].querySelector('.gs-o-table__cell--left');
-        const teamName = teamNameElement ? teamNameElement.textContent?.trim() : '';
-        
-        if (!teamName) return;
-        
-        // Extract other stats
-        const played = parseInt(cells[1].textContent?.trim() || '0');
-        const won = parseInt(cells[2].textContent?.trim() || '0');
-        const drawn = parseInt(cells[3].textContent?.trim() || '0');
-        const lost = parseInt(cells[4].textContent?.trim() || '0');
-        const goalsFor = parseInt(cells[5].textContent?.trim() || '0');
-        const goalsAgainst = parseInt(cells[6].textContent?.trim() || '0');
-        const goalDifference = parseInt(cells[7].textContent?.trim() || '0');
-        const points = parseInt(cells[8].textContent?.trim() || '0');
-        
-        // Extract form
-        const formElement = cells[9].querySelectorAll('.gs-o-status-icon');
-        const form: string[] = [];
-        formElement.forEach(el => {
-          const className = el.className;
-          if (className.includes('gs-o-status-icon--win')) form.push('W');
-          else if (className.includes('gs-o-status-icon--draw')) form.push('D');
-          else if (className.includes('gs-o-status-icon--loss')) form.push('L');
-        });
-        
-        // Create a TeamStats object
-        leagueData.push({
-          position,
-          team: teamName,
-          played,
-          won,
-          drawn,
-          lost,
-          goalsFor,
-          goalsAgainst,
-          goalDifference,
-          points,
-          form: form.slice(0, 5) // Last 5 results
-        });
-        
-        position++;
-      } catch (error) {
-        console.error('Error parsing row:', error);
-      }
-    });
-    
-    if (leagueData.length === 0) {
-      console.error('Failed to extract any team data from BBC Sport page');
-      throw new Error('Failed to extract team data');
-    }
-    
-    console.log(`Successfully extracted data for ${leagueData.length} teams`);
-    return leagueData;
+    return data.leagueTable;
     
   } catch (error) {
-    console.error('Error scraping BBC Sport table:', error);
+    console.error('Error fetching league table from server:', error);
     // Fall back to mock data
-    console.log('Falling back to mock data due to scraping error');
+    console.log('Falling back to mock data due to server error');
     return mockLeagueData;
   }
 }
 
 export const scrapeHighlandLeagueData = async () => {
   try {
-    console.log('Scraping Highland League data');
+    console.log('Fetching Highland League data');
     const leagueTable = await scrapeLeagueTable();
     
     // For now, we'll use mock data for fixtures and results
@@ -140,7 +69,7 @@ export const scrapeHighlandLeagueData = async () => {
 
 export const scrapeLeagueTable = async () => {
   try {
-    return await scrapeBBCSportTable();
+    return await fetchLeagueTableFromServer();
   } catch (error) {
     console.error('Error in scrapeLeagueTable:', error);
     return mockLeagueData;

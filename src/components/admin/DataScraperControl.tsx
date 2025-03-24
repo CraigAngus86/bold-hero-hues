@@ -1,258 +1,269 @@
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Loader2, RefreshCw, Globe } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { 
-  scrapeHighlandLeagueData,
-  scrapeLeagueTable,
-  scrapeFixtures,
-  scrapeResults
-} from '@/services/highlandLeagueScraper';
+import React, { useState, useEffect } from 'react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { getApiConfig, saveApiConfig, DEFAULT_API_CONFIG } from '@/services/config/apiConfig';
+import { toast } from "sonner";
 
 const DataScraperControl = () => {
-  const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [apiConfig, setApiConfig] = useState(getApiConfig());
-  
-  const handleConfigChange = (field: keyof typeof DEFAULT_API_CONFIG, value: any) => {
-    const updatedConfig = { ...apiConfig, [field]: value };
-    setApiConfig(updatedConfig);
-    saveApiConfig(updatedConfig);
+  const [config, setConfig] = useState(DEFAULT_API_CONFIG);
+  const [isStatusChecking, setIsStatusChecking] = useState(false);
+  const [serverStatus, setServerStatus] = useState<'unknown' | 'ok' | 'error'>('unknown');
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadedConfig = getApiConfig();
+    setConfig(loadedConfig);
+  }, []);
+
+  const handleConfigChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
     
-    toast({
-      title: "Settings updated",
-      description: `API configuration has been updated.`,
+    setConfig({
+      ...config,
+      [name]: type === 'checkbox' ? checked : value
     });
   };
-  
-  const refreshData = async (dataType: 'all' | 'table' | 'fixtures' | 'results') => {
-    setLoading(true);
-    
+
+  const handleSwitchChange = (name: string, checked: boolean) => {
+    setConfig({
+      ...config,
+      [name]: checked
+    });
+  };
+
+  const handleSaveConfig = () => {
+    saveApiConfig(config);
+    toast.success("API configuration saved successfully");
+  };
+
+  const handleResetDefaults = () => {
+    setConfig(DEFAULT_API_CONFIG);
+    toast.info("Reset to default configuration");
+  };
+
+  const checkServerStatus = async () => {
     try {
-      let result;
+      setIsStatusChecking(true);
+      const serverUrl = config.apiServerUrl || 'http://localhost:3001';
+      const response = await fetch(`${serverUrl}/api/status`, {
+        headers: {
+          ...(config.apiKey ? { 'X-API-Key': config.apiKey } : {})
+        }
+      });
       
-      switch (dataType) {
-        case 'all':
-          result = await scrapeHighlandLeagueData();
-          toast({
-            title: "Data refreshed",
-            description: "All Highland League data has been updated.",
-          });
-          break;
-        case 'table':
-          result = await scrapeLeagueTable();
-          toast({
-            title: "League table refreshed",
-            description: "Highland League table has been updated.",
-          });
-          break;
-        case 'fixtures':
-          result = await scrapeFixtures();
-          toast({
-            title: "Fixtures refreshed",
-            description: "Highland League fixtures have been updated.",
-          });
-          break;
-        case 'results':
-          result = await scrapeResults();
-          toast({
-            title: "Results refreshed",
-            description: "Highland League results have been updated.",
-          });
-          break;
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
       }
       
-      console.log(`Refreshed ${dataType} data:`, result);
+      const data = await response.json();
+      setServerStatus('ok');
+      setLastUpdated(data.lastUpdated);
+      toast.success("Server connection successful!");
     } catch (error) {
-      console.error("Error refreshing data:", error);
-      toast({
-        title: "Error",
-        description: "Failed to refresh data. Please check the console for details.",
-        variant: "destructive",
-      });
+      console.error('Server status check failed:', error);
+      setServerStatus('error');
+      toast.error("Could not connect to the server");
     } finally {
-      setLoading(false);
+      setIsStatusChecking(false);
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-medium">Data Scraper & API Settings</h3>
-        <p className="text-sm text-gray-500">
-          Configure how the application retrieves Highland League data and refresh data manually.
-        </p>
-      </div>
-      
-      <Separator />
-      
-      {/* API Configuration */}
-      <Card>
-        <CardHeader>
-          <CardTitle>API Configuration</CardTitle>
-          <CardDescription>
-            Configure how data is fetched and stored
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>Use Local Storage</Label>
-              <p className="text-sm text-gray-500">
-                Cache data locally to reduce API calls
-              </p>
-            </div>
-            <Switch
-              checked={apiConfig.useLocalStorage}
-              onCheckedChange={(checked) => handleConfigChange('useLocalStorage', checked)}
-            />
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>Auto Refresh</Label>
-              <p className="text-sm text-gray-500">
-                Periodically refresh data
-              </p>
-            </div>
-            <Switch
-              checked={apiConfig.autoRefresh}
-              onCheckedChange={(checked) => handleConfigChange('autoRefresh', checked)}
-            />
-          </div>
-          
-          {apiConfig.autoRefresh && (
-            <div className="grid gap-2">
-              <Label htmlFor="refreshInterval">Refresh Interval (minutes)</Label>
-              <Input
-                id="refreshInterval"
-                type="number"
-                min="5"
-                value={apiConfig.refreshInterval}
-                onChange={(e) => handleConfigChange('refreshInterval', Number(e.target.value))}
-              />
-            </div>
-          )}
-          
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>Use Proxy</Label>
-              <p className="text-sm text-gray-500">
-                Use a proxy server for API requests (recommended for production to avoid CORS issues)
-              </p>
-            </div>
-            <Switch
-              checked={apiConfig.useProxy}
-              onCheckedChange={(checked) => handleConfigChange('useProxy', checked)}
-            />
-          </div>
-          
-          {apiConfig.useProxy && (
-            <div className="grid gap-2">
-              <Label htmlFor="proxyUrl">Proxy URL</Label>
-              <Input
-                id="proxyUrl"
-                type="url"
-                placeholder="https://proxy.example.com"
-                value={apiConfig.proxyUrl || ''}
-                onChange={(e) => handleConfigChange('proxyUrl', e.target.value)}
-              />
-            </div>
-          )}
-          
-          <div className="grid gap-2">
-            <Label htmlFor="apiKey">API Key (if required)</Label>
-            <Input
-              id="apiKey"
-              type="password"
-              placeholder="Enter API key"
-              value={apiConfig.apiKey || ''}
-              onChange={(e) => handleConfigChange('apiKey', e.target.value)}
-            />
-          </div>
-
-          <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-md">
-            <div className="flex items-start">
-              <Globe className="h-5 w-5 text-amber-500 mt-0.5 mr-2" />
-              <div>
-                <h4 className="text-sm font-medium text-amber-800">Data Source Information</h4>
-                <p className="text-xs text-amber-700 mt-1">
-                  League table data is scraped from <a href="https://www.bbc.com/sport/football/scottish-highland-league/table" className="underline" target="_blank" rel="noopener noreferrer">BBC Sport</a>. 
-                  In a production environment, you should implement a server-side solution with a proper CORS proxy to avoid browser limitations.
+    <div className="space-y-8">
+      <Tabs defaultValue="server">
+        <TabsList>
+          <TabsTrigger value="server">Server Settings</TabsTrigger>
+          <TabsTrigger value="proxy">Proxy Settings</TabsTrigger>
+          <TabsTrigger value="cache">Cache Settings</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="server" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Node.js Scraper Server</CardTitle>
+              <CardDescription>
+                Configure the connection to your data scraper server
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="apiServerUrl">Server URL</Label>
+                <Input
+                  id="apiServerUrl"
+                  name="apiServerUrl"
+                  value={config.apiServerUrl || ''}
+                  onChange={handleConfigChange}
+                  placeholder="http://localhost:3001"
+                />
+                <p className="text-sm text-gray-500">
+                  Enter the URL of your Node.js scraper server
                 </p>
               </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+              
+              <div className="space-y-2">
+                <Label htmlFor="apiKey">API Key</Label>
+                <Input
+                  id="apiKey"
+                  name="apiKey"
+                  value={config.apiKey || ''}
+                  onChange={handleConfigChange}
+                  type="password"
+                  placeholder="Enter API key (optional)"
+                />
+                <p className="text-sm text-gray-500">
+                  If your server requires authentication, enter the API key here
+                </p>
+              </div>
+              
+              <div className="flex flex-col space-y-4 mt-4">
+                <Button 
+                  onClick={checkServerStatus} 
+                  disabled={isStatusChecking}
+                  variant={serverStatus === 'error' ? "destructive" : "outline"}
+                >
+                  {isStatusChecking ? 'Checking...' : 'Check Server Status'}
+                </Button>
+                
+                {serverStatus === 'ok' && (
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+                    <p className="text-green-700 font-medium">Server is online</p>
+                    {lastUpdated && (
+                      <p className="text-sm text-green-600">
+                        Last data update: {new Date(lastUpdated).toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+                )}
+                
+                {serverStatus === 'error' && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                    <p className="text-red-700 font-medium">Server is offline</p>
+                    <p className="text-sm text-red-600">
+                      Unable to connect to the server. Please check the URL and make sure the server is running.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="proxy" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Proxy Settings</CardTitle>
+              <CardDescription>
+                Configure proxy settings for fetching data
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="useProxy"
+                  checked={config.useProxy}
+                  onCheckedChange={(checked) => handleSwitchChange('useProxy', checked)}
+                />
+                <Label htmlFor="useProxy">Use Proxy</Label>
+              </div>
+              
+              {config.useProxy && (
+                <div className="space-y-2">
+                  <Label htmlFor="proxyUrl">Proxy URL</Label>
+                  <Input
+                    id="proxyUrl"
+                    name="proxyUrl"
+                    value={config.proxyUrl || ''}
+                    onChange={handleConfigChange}
+                    placeholder="https://your-proxy-url.com/"
+                  />
+                  <p className="text-sm text-gray-500">
+                    Enter the full proxy URL including the protocol (http/https)
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="cache" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Cache Settings</CardTitle>
+              <CardDescription>
+                Configure caching options for league data
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="useLocalStorage"
+                  checked={config.useLocalStorage}
+                  onCheckedChange={(checked) => handleSwitchChange('useLocalStorage', checked)}
+                />
+                <Label htmlFor="useLocalStorage">Use Local Storage</Label>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="autoRefresh"
+                  checked={config.autoRefresh}
+                  onCheckedChange={(checked) => handleSwitchChange('autoRefresh', checked)}
+                />
+                <Label htmlFor="autoRefresh">Auto Refresh</Label>
+              </div>
+              
+              {config.autoRefresh && (
+                <div className="space-y-2">
+                  <Label htmlFor="refreshInterval">Refresh Interval (minutes)</Label>
+                  <Input
+                    id="refreshInterval"
+                    name="refreshInterval"
+                    type="number"
+                    min="5"
+                    value={config.refreshInterval}
+                    onChange={handleConfigChange}
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
       
-      {/* Manual Refresh */}
+      <div className="flex space-x-4">
+        <Button onClick={handleSaveConfig} className="flex-1">
+          Save Configuration
+        </Button>
+        <Button onClick={handleResetDefaults} variant="outline">
+          Reset to Defaults
+        </Button>
+      </div>
+      
       <Card>
         <CardHeader>
-          <CardTitle>Refresh Data</CardTitle>
-          <CardDescription>
-            Manually refresh Highland League data
-          </CardDescription>
+          <CardTitle>Server Installation Instructions</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-gray-500">
-            Data is automatically refreshed based on your settings, but you can manually trigger 
-            an update using the buttons below.
-          </p>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <Button
-              variant="outline"
-              className="w-full"
-              disabled={loading}
-              onClick={() => refreshData('table')}
-            >
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-              Refresh Table
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full"
-              disabled={loading}
-              onClick={() => refreshData('fixtures')}
-            >
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-              Refresh Fixtures
-            </Button>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <Button
-              variant="outline"
-              className="w-full"
-              disabled={loading}
-              onClick={() => refreshData('results')}
-            >
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-              Refresh Results
-            </Button>
-            <Button
-              className="w-full"
-              disabled={loading}
-              onClick={() => refreshData('all')}
-            >
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-              Refresh All Data
-            </Button>
+        <CardContent>
+          <ol className="list-decimal list-inside space-y-2 text-sm">
+            <li>Navigate to the <code className="px-1 py-0.5 bg-gray-100 rounded">server</code> directory in your project.</li>
+            <li>Run <code className="px-1 py-0.5 bg-gray-100 rounded">npm install</code> to install dependencies.</li>
+            <li>Create a .env file from the example: <code className="px-1 py-0.5 bg-gray-100 rounded">cp .env.example .env</code></li>
+            <li>Start the server: <code className="px-1 py-0.5 bg-gray-100 rounded">npm run dev</code> for development or <code className="px-1 py-0.5 bg-gray-100 rounded">npm start</code> for production.</li>
+            <li>Enter the server URL above (default: <code className="px-1 py-0.5 bg-gray-100 rounded">http://localhost:3001</code>)</li>
+          </ol>
+          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
+            <p className="text-amber-700 text-sm">
+              <strong>Note:</strong> For production, you should deploy this server to a hosting service like 
+              Heroku, Vercel, AWS, or Digital Ocean. The server must be running continuously to provide data 
+              to your website.
+            </p>
           </div>
         </CardContent>
-        <CardFooter className="border-t px-6 py-4 bg-gray-50">
-          <p className="text-xs text-gray-500">
-            Last updated: {new Date().toLocaleString()}
-          </p>
-        </CardFooter>
       </Card>
     </div>
   );

@@ -9,7 +9,7 @@ import SponsorsManager from '@/components/admin/SponsorsManager';
 import TeamManager from '@/components/admin/TeamManager';
 import LeagueTableManager from '@/components/admin/LeagueTableManager';
 import FixturesManager from '@/components/admin/fixtures/FixturesManager';
-import { Database, Globe, Server, Calendar } from 'lucide-react';
+import { Database, Globe, Server, Calendar, Newspaper, Users, Award } from 'lucide-react';
 import DataDashboard from '@/components/admin/data/DataDashboard';
 
 const Admin = () => {
@@ -24,14 +24,26 @@ const Admin = () => {
           
           <Tabs defaultValue="data" className="space-y-6">
             <TabsList className="grid grid-cols-6 gap-2 md:w-auto">
-              <TabsTrigger value="news">News</TabsTrigger>
-              <TabsTrigger value="team">Team</TabsTrigger>
-              <TabsTrigger value="sponsors">Sponsors</TabsTrigger>
+              <TabsTrigger value="news" className="flex items-center justify-center">
+                <Newspaper className="h-4 w-4 mr-2" />
+                News
+              </TabsTrigger>
+              <TabsTrigger value="team" className="flex items-center justify-center">
+                <Users className="h-4 w-4 mr-2" />
+                Team
+              </TabsTrigger>
+              <TabsTrigger value="sponsors" className="flex items-center justify-center">
+                <Award className="h-4 w-4 mr-2" />
+                Sponsors
+              </TabsTrigger>
               <TabsTrigger value="data" className="flex items-center justify-center">
                 <Globe className="h-4 w-4 mr-2" />
                 Data Scrapers
               </TabsTrigger>
-              <TabsTrigger value="league">League Table</TabsTrigger>
+              <TabsTrigger value="league" className="flex items-center justify-center">
+                <Server className="h-4 w-4 mr-2" />
+                League Table
+              </TabsTrigger>
               <TabsTrigger value="fixtures" className="flex items-center justify-center">
                 <Calendar className="h-4 w-4 mr-2" />
                 Fixtures

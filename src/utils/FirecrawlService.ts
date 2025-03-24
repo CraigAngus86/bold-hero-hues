@@ -1,4 +1,3 @@
-
 import { toast } from 'sonner';
 
 // Define the response structure from the Firecrawl API
@@ -30,7 +29,7 @@ export interface ScrapedFixture {
 export class FirecrawlService {
   private static API_KEY_STORAGE_KEY = 'firecrawl_api_key';
   private static DEFAULT_API_KEY = 'fc-83bcbd73547640f0a7b2be29068dadad';
-  private static TRANSFERMARKT_URL = 'https://www.transfermarkt.com/banks-o-dee-fc/spielplandatum/verein/25442/saison_id/2024';
+  private static TRANSFERMARKT_URL = 'https://www.transfermarkt.com/banks-o-dee-fc/spielplandatum/verein/25442/plus/0?saison_id=&wettbewerb_id=&day=&heim_gast=&punkte=&datum_von=&datum_bis=';
 
   // Expanded list of CORS proxies to try in order
   private static CORS_PROXIES = [

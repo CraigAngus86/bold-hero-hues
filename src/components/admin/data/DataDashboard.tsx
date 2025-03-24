@@ -1,9 +1,9 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Database, Calendar, Globe } from "lucide-react";
+import { Database, Calendar, Globe, Server } from "lucide-react";
 import DataScraperControl from '@/components/admin/DataScraperControl';
 import ScrapedDataTable from '@/components/admin/data/ScrapedDataTable';
 import ServerMonitor from '@/components/admin/data/ServerMonitor';
@@ -18,6 +18,9 @@ const DataDashboard = () => {
     apiKey: localStorage.getItem('apiKey') || ''
   };
 
+  // Updated valid Transfermarkt URL (the one from the user)
+  const defaultTransfermarktUrl = 'https://www.transfermarkt.com/banks-o-dee-fc/spielplandatum/verein/25442/plus/0?saison_id=&wettbewerb_id=&day=&heim_gast=&punkte=&datum_von=&datum_bis=';
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="fixtures" className="w-full">
@@ -31,13 +34,13 @@ const DataDashboard = () => {
             Highland League
           </TabsTrigger>
           <TabsTrigger value="server" className="flex items-center">
-            <Database className="h-4 w-4 mr-2" />
+            <Server className="h-4 w-4 mr-2" />
             Server Status
           </TabsTrigger>
         </TabsList>
         
         <TabsContent value="fixtures" className="space-y-6">
-          <TransfermarktScraper />
+          <TransfermarktScraper defaultUrl={defaultTransfermarktUrl} />
         </TabsContent>
         
         <TabsContent value="highland" className="space-y-6">

@@ -1,7 +1,7 @@
 
 import { supabase } from '@/services/supabase/supabaseClient';
 import { toast } from 'sonner';
-import { ScrapedFixture } from '@/types/fixtures';
+import { ScrapedFixture, convertToMatch } from '@/types/fixtures';
 
 export const scrapeAndStoreFixtures = async (fixtures?: ScrapedFixture[]): Promise<boolean> => {
   try {
@@ -16,6 +16,11 @@ export const scrapeAndStoreFixtures = async (fixtures?: ScrapedFixture[]): Promi
     // Format the fixtures for the database
     const formattedFixtures = fixtures.map(fixture => {
       const isCompleted = !!fixture.isCompleted;
+      
+      // Generate an ID if one doesn't exist
+      if (!fixture.id) {
+        fixture.id = `${fixture.homeTeam}-${fixture.awayTeam}-${fixture.date}-${Math.random().toString(36).substring(2, 9)}`;
+      }
       
       // Format the final fixture object
       return {

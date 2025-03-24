@@ -1,4 +1,3 @@
-
 import { toast } from 'sonner';
 
 // Define the response structure from the Firecrawl API
@@ -10,7 +9,7 @@ interface FirecrawlResponse {
 
 // Define the structure for scraped fixtures
 export interface ScrapedFixture {
-  id?: string;  // Add id field to match the Match interface
+  id?: string | number;  // Add id field to match the Match interface
   homeTeam: string;
   awayTeam: string;
   date: string;
@@ -227,7 +226,11 @@ export class FirecrawlService {
           
           // Only add if we have valid teams
           if (homeTeam !== 'Unknown' && awayTeam !== 'Unknown') {
+            // Generate a unique ID for each fixture
+            const fixtureId = `${homeTeam}-${awayTeam}-${date}-${Math.random().toString(36).substring(2, 9)}`;
+            
             fixtures.push({
+              id: fixtureId,
               homeTeam,
               awayTeam,
               date,

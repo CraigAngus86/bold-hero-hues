@@ -4,6 +4,8 @@ import { mockLeagueData } from '@/components/league/types';
 import { mockMatches } from '@/components/fixtures/fixturesMockData';
 import { getApiConfig } from './config/apiConfig';
 import { FirecrawlService } from '@/utils/FirecrawlService';
+import { convertToMatches } from '@/types/fixtures';
+import { Match } from '@/components/fixtures/types';
 
 // This file provides both real API calls and fallback mock data for Highland League information
 console.log('Highland League scraper initialized');
@@ -69,8 +71,9 @@ export const scrapeHighlandLeagueData = async () => {
     try {
       const { success, data } = await FirecrawlService.fetchTransfermarktFixtures();
       if (success && data && data.length > 0) {
-        const fixtures = data.filter(match => !match.isCompleted);
-        const results = data.filter(match => match.isCompleted);
+        // Convert ScrapedFixture[] to Match[]
+        const fixtures = convertToMatches(data.filter(match => !match.isCompleted));
+        const results = convertToMatches(data.filter(match => match.isCompleted));
         return { leagueTable, fixtures, results };
       }
     } catch (error) {
@@ -102,12 +105,12 @@ export const scrapeLeagueTable = async () => {
   }
 };
 
-export const scrapeFixtures = async () => {
+export const scrapeFixtures = async (): Promise<Match[]> => {
   try {
     // Try to get real fixture data from Transfermarkt
     const { success, data } = await FirecrawlService.fetchTransfermarktFixtures();
     if (success && data && data.length > 0) {
-      return data.filter(match => !match.isCompleted);
+      return convertToMatches(data.filter(match => !match.isCompleted));
     }
     // Fall back to mock data
     console.log('Using mock fixtures data - Transfermarkt scraping failed');
@@ -119,12 +122,12 @@ export const scrapeFixtures = async () => {
   }
 };
 
-export const scrapeResults = async () => {
+export const scrapeResults = async (): Promise<Match[]> => {
   try {
     // Try to get real results data from Transfermarkt
     const { success, data } = await FirecrawlService.fetchTransfermarktFixtures();
     if (success && data && data.length > 0) {
-      return data.filter(match => match.isCompleted);
+      return convertToMatches(data.filter(match => match.isCompleted));
     }
     // Fall back to mock data
     console.log('Using mock results data - Transfermarkt scraping failed');

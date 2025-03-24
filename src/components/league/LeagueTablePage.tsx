@@ -5,14 +5,18 @@ import { toast } from "sonner";
 import LeagueTableContent from './LeagueTableContent';
 import LeagueStatsPanel from './LeagueStatsPanel';
 import LeagueInfoPanel from './LeagueInfoPanel';
-import { TeamStats, fullMockLeagueData } from './types';
+import { TeamStats } from './types';
 import { fetchLeagueTable, clearLeagueDataCache } from '@/services/leagueDataService';
+import { fetchLeagueTableFromSupabase, getLastUpdateTime } from '@/services/supabase/leagueDataService';
+import { Database } from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 const LeagueTablePage = () => {
   const [leagueData, setLeagueData] = useState<TeamStats[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [dataSeason, setDataSeason] = useState<string>("2024-2025");
   const [lastUpdated, setLastUpdated] = useState<string>("");
+  const [dataSource, setDataSource] = useState<string>("supabase");
   
   const loadLeagueData = async (refresh = false) => {
     try {
@@ -23,18 +27,45 @@ const LeagueTablePage = () => {
         setIsLoading(true);
       }
       
-      // Fetch the full league table data
+      // Try to fetch from Supabase first
+      try {
+        const data = await fetchLeagueTableFromSupabase();
+        
+        // Sort by position
+        const sortedData = [...data].sort((a, b) => a.position - b.position);
+        setLeagueData(sortedData);
+        setDataSource("supabase");
+        
+        // Get last updated time from Supabase
+        const lastUpdate = await getLastUpdateTime();
+        if (lastUpdate) {
+          setLastUpdated(new Date(lastUpdate).toLocaleString());
+        } else {
+          setLastUpdated(new Date().toLocaleString());
+        }
+        
+        if (refresh) {
+          toast.success("League table refreshed from Supabase");
+        }
+        return;
+      } catch (error) {
+        console.error('Error loading from Supabase, falling back to legacy data:', error);
+        // Fall back to legacy data service
+      }
+      
+      // Fallback: Fetch using the legacy data service
       const data = await fetchLeagueTable();
       
       // Sort by position
       const sortedData = [...data].sort((a, b) => a.position - b.position);
       setLeagueData(sortedData);
+      setDataSource("legacy");
       
       // Set last updated timestamp
       setLastUpdated(new Date().toLocaleString());
       
       if (refresh) {
-        toast.success("League table refreshed automatically");
+        toast.success("League table refreshed using legacy data");
       }
     } catch (error) {
       console.error('Error loading league data:', error);
@@ -46,16 +77,6 @@ const LeagueTablePage = () => {
   
   useEffect(() => {
     loadLeagueData();
-    
-    // Try to get cache timestamp to show when data was last updated
-    try {
-      const timestamp = localStorage.getItem('highland_league_cache_timestamp');
-      if (timestamp) {
-        setLastUpdated(new Date(parseInt(timestamp, 10)).toLocaleString());
-      }
-    } catch (e) {
-      console.error('Error getting cache timestamp:', e);
-    }
     
     // Set up auto-refresh every 30 minutes (1800000 ms)
     const autoRefreshInterval = setInterval(() => {
@@ -85,6 +106,16 @@ const LeagueTablePage = () => {
           </p>
         )}
       </motion.div>
+      
+      {dataSource === "supabase" && (
+        <Alert className="mb-6 bg-green-50 border-green-200">
+          <Database className="h-4 w-4 text-green-800" />
+          <AlertTitle className="text-green-800">Live Data</AlertTitle>
+          <AlertDescription className="text-green-700">
+            This table is populated with real-time data scraped from the BBC Sport website and stored in Supabase.
+          </AlertDescription>
+        </Alert>
+      )}
       
       {/* League Stats Summary */}
       <LeagueStatsPanel leagueData={leagueData} season={dataSeason} />

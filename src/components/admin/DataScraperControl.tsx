@@ -10,6 +10,7 @@ import ServerStatusCard from './data/ServerStatusCard';
 import ProxySettingsCard from './data/ProxySettingsCard';
 import CacheSettingsCard from './data/CacheSettingsCard';
 import DataInfoCard from './data/DataInfoCard';
+import { triggerLeagueDataScrape } from '@/services/supabase/leagueDataService';
 
 const DataScraperControl = () => {
   const { 
@@ -27,6 +28,8 @@ const DataScraperControl = () => {
     checkServerStatus 
   } = useServerStatus(config);
 
+  const [refreshing, setRefreshing] = React.useState(false);
+
   // Function to save configuration
   const handleSaveConfig = () => {
     saveConfig();
@@ -35,24 +38,16 @@ const DataScraperControl = () => {
     checkServerStatus();
   };
 
-  // Force refresh league data
+  // Force refresh league data from Supabase
   const handleForceRefresh = async () => {
     try {
-      toast.info("Refreshing Highland League data...");
+      setRefreshing(true);
+      toast.info("Refreshing Highland League data from Supabase...");
       
-      if (config.apiServerUrl && serverStatus === 'ok') {
-        // If server is configured and online, refresh from server
-        const serverUrl = config.apiServerUrl;
-        
-        await fetch(`${serverUrl}/api/league-table?refresh=true`, {
-          headers: {
-            ...(config.apiKey ? { 'X-API-Key': config.apiKey } : {})
-          },
-          mode: 'cors'
-        });
-      }
+      // Trigger a fresh scrape from the BBC website
+      await triggerLeagueDataScrape(true);
       
-      // Clear local cache in any case
+      // Clear local cache as well
       clearLeagueDataCache();
       
       toast.success("Highland League data refreshed successfully");
@@ -63,11 +58,10 @@ const DataScraperControl = () => {
       console.error('Failed to refresh data:', error);
       toast.error("Failed to refresh Highland League data");
       
-      // Clear cache anyway to force reload of mock data
+      // Clear cache anyway to force reload of data
       clearLeagueDataCache();
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -75,8 +69,8 @@ const DataScraperControl = () => {
     <div className="space-y-8">
       <Tabs defaultValue="server">
         <TabsList>
-          <TabsTrigger value="server">Server Settings</TabsTrigger>
-          <TabsTrigger value="proxy">Proxy Settings</TabsTrigger>
+          <TabsTrigger value="server">Data Settings</TabsTrigger>
+          <TabsTrigger value="proxy">Advanced Settings</TabsTrigger>
           <TabsTrigger value="cache">Cache Settings</TabsTrigger>
         </TabsList>
         
@@ -110,7 +104,14 @@ const DataScraperControl = () => {
       </Tabs>
       
       <div className="flex space-x-4">
-        <Button onClick={handleSaveConfig} className="flex-1">
+        <Button 
+          onClick={handleForceRefresh} 
+          className="flex-1"
+          disabled={refreshing}
+        >
+          {refreshing ? "Refreshing..." : "Refresh Highland League Data Now"}
+        </Button>
+        <Button onClick={handleSaveConfig} variant="outline">
           Save Configuration
         </Button>
         <Button onClick={resetToDefaults} variant="outline">

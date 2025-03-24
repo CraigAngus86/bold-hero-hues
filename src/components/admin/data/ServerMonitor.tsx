@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { AlertCircle, Server, CheckCircle2, RefreshCw, ExternalLink } from "lucide-react";
+import { AlertCircle, Server, CheckCircle2, RefreshCw, ExternalLink, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -10,6 +10,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { useServerStatus } from './useServerStatus';
 import { ApiConfig } from '@/services/config/apiConfig';
 import { toast } from "sonner";
+import { triggerLeagueDataScrape, getLastUpdateTime } from '@/services/supabase/leagueDataService';
 
 interface ServerMonitorProps {
   config: ApiConfig;
@@ -19,6 +20,20 @@ const ServerMonitor: React.FC<ServerMonitorProps> = ({ config }) => {
   const { serverStatus, isStatusChecking, lastUpdated, checkServerStatus } = useServerStatus(config);
   const [lastError, setLastError] = useState<Error | null>(null);
   const [expandedTroubleshooting, setExpandedTroubleshooting] = useState(false);
+  const [isScrapingData, setIsScrapingData] = useState(false);
+  const [supabaseLastUpdated, setSupabaseLastUpdated] = useState<string | null>(null);
+
+  // Check Supabase last updated time on component mount
+  React.useEffect(() => {
+    checkSupabaseLastUpdated();
+  }, []);
+
+  const checkSupabaseLastUpdated = async () => {
+    const lastUpdate = await getLastUpdateTime();
+    if (lastUpdate) {
+      setSupabaseLastUpdated(lastUpdate);
+    }
+  };
 
   const handleCheckStatus = async () => {
     try {
@@ -29,6 +44,21 @@ const ServerMonitor: React.FC<ServerMonitorProps> = ({ config }) => {
       console.error("Error checking server status:", error);
       setLastError(error instanceof Error ? error : new Error('Unknown error'));
       toast.error("Failed to check server status");
+    }
+  };
+
+  const handleTriggerScrape = async () => {
+    try {
+      setIsScrapingData(true);
+      toast.info("Scraping Highland League data...");
+      await triggerLeagueDataScrape(true);
+      toast.success("Highland League data scraped successfully");
+      checkSupabaseLastUpdated(); // Update the last updated time
+    } catch (error) {
+      console.error("Error scraping data:", error);
+      toast.error("Failed to scrape data");
+    } finally {
+      setIsScrapingData(false);
     }
   };
 
@@ -96,19 +126,21 @@ const ServerMonitor: React.FC<ServerMonitorProps> = ({ config }) => {
       </CardHeader>
       <CardContent className="pt-6">
         <div className="space-y-4">
-          <Alert className="bg-blue-50 border-blue-200">
-            <AlertTitle className="text-blue-800">Using Lovable's Website Builder</AlertTitle>
-            <AlertDescription className="text-blue-700">
-              Since you're using Lovable, you have two options for data:
-              <ul className="mt-2 list-disc list-inside">
-                <li>Connect to a public Highland League API service (enter URL below)</li>
-                <li>Continue using the built-in mock data (no configuration needed)</li>
-              </ul>
+          <Alert className="bg-green-50 border-green-200">
+            <Database className="h-4 w-4 text-green-800" />
+            <AlertTitle className="text-green-800">Supabase Integration Active</AlertTitle>
+            <AlertDescription className="text-green-700">
+              Your app is connected to Supabase for data storage and API functionality. You can scrape the latest Highland League data from BBC Sport.
+              {supabaseLastUpdated && (
+                <div className="mt-2 text-sm">
+                  <strong>Last Scrape:</strong> {new Date(supabaseLastUpdated).toLocaleString()}
+                </div>
+              )}
             </AlertDescription>
           </Alert>
 
           <div className="flex items-center justify-between">
-            <div className="font-medium">Status:</div>
+            <div className="font-medium">Legacy Server Status:</div>
             {renderServerStatus()}
           </div>
 
@@ -119,15 +151,24 @@ const ServerMonitor: React.FC<ServerMonitorProps> = ({ config }) => {
             </div>
           </div>
 
-          {serverStatus === 'error' && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Connection Failed</AlertTitle>
-              <AlertDescription>
-                Could not connect to the data source. Using mock data instead. See the options below.
-              </AlertDescription>
-            </Alert>
-          )}
+          <Alert variant="default" className="bg-blue-50 border-blue-200">
+            <AlertCircle className="h-4 w-4 text-blue-800" />
+            <AlertTitle className="text-blue-800">Using Supabase for Data</AlertTitle>
+            <AlertDescription className="text-blue-700">
+              This application is now using Supabase to store Highland League data. You can manually trigger a data scrape using the button below.
+            </AlertDescription>
+          </Alert>
+
+          <div className="flex justify-center">
+            <Button 
+              onClick={handleTriggerScrape}
+              disabled={isScrapingData}
+              className="w-full"
+            >
+              <Database className={`h-4 w-4 mr-2 ${isScrapingData ? 'animate-pulse' : ''}`} />
+              {isScrapingData ? 'Scraping Data...' : 'Scrape Highland League Data Now'}
+            </Button>
+          </div>
 
           <Accordion
             type="single" 
@@ -145,17 +186,6 @@ const ServerMonitor: React.FC<ServerMonitorProps> = ({ config }) => {
                       <div className="text-muted-foreground mt-1">{step.description}</div>
                     </div>
                   ))}
-                  <div className="mt-4">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => window.open('https://rapidapi.com/search/football', '_blank')}
-                      className="flex items-center gap-2"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      Find Football APIs on RapidAPI
-                    </Button>
-                  </div>
                 </div>
               </AccordionContent>
             </AccordionItem>
@@ -176,7 +206,7 @@ const ServerMonitor: React.FC<ServerMonitorProps> = ({ config }) => {
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Check data source connection</p>
+            <p>Check legacy data source connection</p>
           </TooltipContent>
         </Tooltip>
       </CardFooter>

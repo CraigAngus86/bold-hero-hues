@@ -9,10 +9,42 @@ export const addMatchToSupabase = async (match: Partial<Match>): Promise<string 
   try {
     const supabaseMatch = convertToSupabaseFormat(match);
     
-    // We need to use as an array for type safety
+    // Ensure all required fields are present
+    if (!supabaseMatch.home_team || !supabaseMatch.away_team || 
+        !supabaseMatch.date || !supabaseMatch.time || 
+        !supabaseMatch.competition || !supabaseMatch.venue) {
+      console.error('Missing required fields for match');
+      toast.error('Missing required fields for match');
+      return null;
+    }
+    
+    // Define the required fields explicitly for type safety
+    const matchToInsert = {
+      home_team: supabaseMatch.home_team,
+      away_team: supabaseMatch.away_team,
+      date: supabaseMatch.date,
+      time: supabaseMatch.time,
+      competition: supabaseMatch.competition,
+      venue: supabaseMatch.venue,
+      is_completed: supabaseMatch.is_completed || false,
+      status: supabaseMatch.status || 'upcoming',
+      visible: true
+    };
+    
+    // If the match is completed, add scores
+    if (supabaseMatch.is_completed && 
+        supabaseMatch.home_score !== undefined && 
+        supabaseMatch.away_score !== undefined) {
+      Object.assign(matchToInsert, {
+        home_score: supabaseMatch.home_score,
+        away_score: supabaseMatch.away_score
+      });
+    }
+
+    // Insert as an array for type safety
     const { data, error } = await supabase
       .from('matches')
-      .insert([supabaseMatch as Required<Pick<SupabaseMatch, 'home_team' | 'away_team' | 'date' | 'time' | 'competition' | 'venue'>>])
+      .insert([matchToInsert])
       .select();
 
     if (error) {

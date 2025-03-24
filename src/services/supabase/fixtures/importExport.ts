@@ -22,6 +22,7 @@ export const importMockDataToSupabase = async (mockMatches: Match[]): Promise<bo
     }
     
     // Convert to Supabase format with all required fields
+    // Create an array of objects with explicitly defined required fields
     const supabaseMatches = validMatches.map(match => ({
       home_team: match.homeTeam,
       away_team: match.awayTeam,
@@ -30,8 +31,8 @@ export const importMockDataToSupabase = async (mockMatches: Match[]): Promise<bo
       competition: match.competition,
       venue: match.venue,
       is_completed: match.isCompleted || false,
-      home_score: match.homeScore,
-      away_score: match.awayScore,
+      home_score: match.isCompleted ? match.homeScore : null,
+      away_score: match.isCompleted ? match.awayScore : null,
       status: match.isCompleted ? 'completed' : 'upcoming',
       visible: true
     }));

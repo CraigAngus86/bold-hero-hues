@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -12,17 +11,20 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/services/supabase/supabaseClient';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
-export default function TransfermarktScraper() {
+interface TransfermarktScraperProps {
+  defaultUrl?: string;
+}
+
+export default function TransfermarktScraper({ defaultUrl }: TransfermarktScraperProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<ScrapedFixture[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [htmlSample, setHtmlSample] = useState<string | null>(null);
   const [transfermarktUrl, setTransfermarktUrl] = useState<string>(
-    'https://www.transfermarkt.com/banks-o-dee-fc/spielplandatum/verein/25442/plus/0?saison_id=&wettbewerb_id=&day=&heim_gast=&punkte=&datum_von=&datum_bis='
+    defaultUrl || 'https://www.transfermarkt.com/banks-o-dee-fc/spielplandatum/verein/25442/plus/0?saison_id=&wettbewerb_id=&day=&heim_gast=&punkte=&datum_von=&datum_bis='
   );
   
-  // Predefined URL options
   const urlOptions = [
     {
       label: 'All Competitions (Recommended)',
@@ -53,7 +55,6 @@ export default function TransfermarktScraper() {
       console.log('Starting fixture scraping from Transfermarkt...');
       toast.info('Scraping fixtures from Transfermarkt... This may take a moment.');
       
-      // Call the Supabase edge function to scrape Transfermarkt data
       const { data, error } = await supabase.functions.invoke('scrape-transfermarkt', {
         body: { url: transfermarktUrl }
       });
@@ -63,7 +64,6 @@ export default function TransfermarktScraper() {
         console.error('Transfermarkt scraper error:', errorMessage);
         setError(errorMessage);
         
-        // If we have an HTML sample for debugging, show it
         if (data?.htmlSample) {
           setHtmlSample(data.htmlSample);
           console.log('HTML sample from failed scraping:', data.htmlSample);
@@ -76,7 +76,6 @@ export default function TransfermarktScraper() {
       if (!data.data || data.data.length === 0) {
         setError('No fixtures found on Transfermarkt');
         
-        // If we have an HTML sample for debugging, show it
         if (data.htmlSample) {
           setHtmlSample(data.htmlSample);
           console.log('HTML sample from failed scraping:', data.htmlSample);
@@ -100,7 +99,6 @@ export default function TransfermarktScraper() {
   const processScrapedFixtures = (fixtures: ScrapedFixture[]) => {
     console.log('Fixtures fetch successful from Transfermarkt, proceeding with import...', fixtures);
     
-    // Format the data as ScrapedFixture objects, ensuring each fixture has an ID
     const formattedFixtures = fixtures.map((item: any): ScrapedFixture => ({
       id: item.id || `fixture-${Math.random().toString(36).substring(2, 9)}`,
       homeTeam: item.homeTeam,
@@ -114,7 +112,6 @@ export default function TransfermarktScraper() {
       awayScore: item.isCompleted ? item.awayScore : null
     }));
     
-    // Show a preview of the data before storing
     setResults(formattedFixtures);
     setSuccess(true);
     toast.success(`Found ${formattedFixtures.length} fixtures from Transfermarkt`);
@@ -130,7 +127,6 @@ export default function TransfermarktScraper() {
       setIsLoading(true);
       toast.info('Storing fixtures in database...');
       
-      // Store fixtures
       const success = await scrapeAndStoreFixtures(results);
       
       if (!success) {

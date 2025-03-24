@@ -66,26 +66,58 @@ const FixturesSection = () => {
           Fixtures, Results & Table
         </motion.h2>
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="md:col-span-1">
             <Tabs defaultValue="fixtures" value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid grid-cols-2 mb-6 bg-white">
-                <TabsTrigger value="fixtures">Upcoming Fixtures</TabsTrigger>
-                <TabsTrigger value="results">Recent Results</TabsTrigger>
+                <TabsTrigger value="fixtures">Fixtures</TabsTrigger>
+                <TabsTrigger value="results">Results</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="fixtures" className="mt-0">
+              <TabsContent value="fixtures" className="mt-0 h-full">
                 <UpcomingFixtures matches={upcomingMatches} />
               </TabsContent>
               
-              <TabsContent value="results" className="mt-0">
+              <TabsContent value="results" className="mt-0 h-full">
                 <RecentResults matches={recentResults} />
               </TabsContent>
             </Tabs>
           </div>
           
-          <div>
+          <div className="md:col-span-1">
             <LeagueTablePreview leagueData={leagueData} />
+          </div>
+          
+          <div className="md:col-span-1">
+            <div className="bg-white p-6 rounded-lg shadow-sm h-full">
+              <h3 className="text-xl font-semibold text-team-blue mb-4">Club Information</h3>
+              <ul className="space-y-3">
+                <li className="flex items-center">
+                  <span className="text-gray-600 mr-2">Founded:</span>
+                  <span className="font-medium">1954</span>
+                </li>
+                <li className="flex items-center">
+                  <span className="text-gray-600 mr-2">Stadium:</span>
+                  <span className="font-medium">Spain Park</span>
+                </li>
+                <li className="flex items-center">
+                  <span className="text-gray-600 mr-2">Capacity:</span>
+                  <span className="font-medium">2,000</span>
+                </li>
+                <li className="flex items-center">
+                  <span className="text-gray-600 mr-2">League:</span>
+                  <span className="font-medium">Highland League</span>
+                </li>
+                <li className="flex items-center">
+                  <span className="text-gray-600 mr-2">Manager:</span>
+                  <span className="font-medium">Josh Winton</span>
+                </li>
+                <li className="flex items-center">
+                  <span className="text-gray-600 mr-2">Club Colors:</span>
+                  <span className="font-medium">Blue & White</span>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>

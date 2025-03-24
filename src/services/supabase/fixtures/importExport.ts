@@ -1,7 +1,7 @@
 
 import { supabase } from '@/services/supabase/supabaseClient';
 import { toast } from 'sonner';
-import { ScrapedFixture } from '@/utils/FirecrawlService';
+import { ScrapedFixture } from '@/types/fixtures';
 
 export const scrapeAndStoreFixtures = async (fixtures?: ScrapedFixture[]): Promise<boolean> => {
   try {

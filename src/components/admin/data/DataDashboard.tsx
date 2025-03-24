@@ -20,21 +20,25 @@ const DataDashboard = () => {
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="scrapers" className="w-full">
+      <Tabs defaultValue="fixtures" className="w-full">
         <TabsList className="mb-4">
-          <TabsTrigger value="scrapers" className="flex items-center">
-            <Database className="h-4 w-4 mr-2" />
-            Data Scrapers
-          </TabsTrigger>
           <TabsTrigger value="fixtures" className="flex items-center">
             <Rss className="h-4 w-4 mr-2" />
             Fixtures Scraper
+          </TabsTrigger>
+          <TabsTrigger value="scrapers" className="flex items-center">
+            <Database className="h-4 w-4 mr-2" />
+            Data Scrapers
           </TabsTrigger>
           <TabsTrigger value="server" className="flex items-center">
             <Server className="h-4 w-4 mr-2" />
             Server Status
           </TabsTrigger>
         </TabsList>
+        
+        <TabsContent value="fixtures" className="space-y-6">
+          <FixturesScraper />
+        </TabsContent>
         
         <TabsContent value="scrapers" className="space-y-6">
           <TooltipProvider>
@@ -44,10 +48,6 @@ const DataDashboard = () => {
           <Separator />
           
           <ScrapedDataTable />
-        </TabsContent>
-        
-        <TabsContent value="fixtures" className="space-y-6">
-          <FixturesScraper />
         </TabsContent>
         
         <TabsContent value="server" className="space-y-6">

@@ -1,88 +1,19 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, RefreshCw, Check, Rss, ExternalLink, Database, Globe, Newspaper } from "lucide-react";
-import { FirecrawlService, ScrapedFixture } from '@/utils/FirecrawlService';
+import { RefreshCw, Check, Download } from "lucide-react";
 import { scrapeAndStoreFixtures } from '@/services/supabase/fixtures/importExport'; 
 import { toast } from 'sonner';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrapedFixture } from '@/types/fixtures';
+import { supabase } from '@/services/supabase/supabaseClient';
 
 export default function FixturesScraper() {
-  const [apiKey, setApiKey] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [testLoading, setTestLoading] = useState(false);
   const [results, setResults] = useState<ScrapedFixture[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [debugInfo, setDebugInfo] = useState<any>(null);
-  const [showDebug, setShowDebug] = useState(false);
-  const [activeMethod, setActiveMethod] = useState<'bbc' | 'rss' | 'firecrawl'>('bbc');
-  
-  // Load the API key when the component mounts
-  useEffect(() => {
-    const savedApiKey = FirecrawlService.getApiKey() || '';
-    setApiKey(savedApiKey);
-  }, []);
-
-  const handleSaveApiKey = () => {
-    if (!apiKey.trim()) {
-      toast.error('Please enter a valid API key');
-      return;
-    }
-    
-    FirecrawlService.saveApiKey(apiKey.trim());
-    toast.success('API key saved successfully');
-  };
-  
-  // Test the connection with the selected method
-  const handleTestFetch = async () => {
-    try {
-      setTestLoading(true);
-      setError(null);
-      setSuccess(false);
-      setResults([]);
-      setDebugInfo(null);
-      
-      console.log(`Testing connection using ${activeMethod} method...`);
-      toast.info(`Testing connection to Highland League data source...`);
-      
-      let result;
-      
-      // Use the appropriate fetch method based on the active tab
-      if (activeMethod === 'bbc') {
-        result = await FirecrawlService.fetchBBCSportFixtures();
-      } else if (activeMethod === 'rss') {
-        result = await FirecrawlService.fetchRSSDirectly();
-      } else {
-        result = await FirecrawlService.fetchHighlandLeagueFixtures();
-      }
-      
-      if (!result.success || !result.data) {
-        const errorMsg = result.error || 'Failed to fetch fixtures';
-        console.error('Test fetch failed:', errorMsg);
-        setError(errorMsg);
-        toast.error(errorMsg);
-        return;
-      }
-      
-      console.log('Test fetch successful, found', result.data.length, 'fixtures');
-      setResults(result.data);
-      setSuccess(true);
-      toast.success(`Successfully fetched ${result.data.length} fixtures`);
-      
-    } catch (error) {
-      console.error('Error testing fetch:', error);
-      setError(error instanceof Error ? error.message : 'An unknown error occurred');
-      toast.error('An error occurred while testing the connection');
-    } finally {
-      setTestLoading(false);
-    }
-  };
   
   const handleFetchFixtures = async () => {
     try {
@@ -90,26 +21,43 @@ export default function FixturesScraper() {
       setError(null);
       setSuccess(false);
       setResults([]);
-      setDebugInfo(null);
       
-      console.log('Starting fixture scraping and storage process...');
-      toast.info('Scraping fixtures... This may take a moment.');
+      console.log('Starting fixture scraping from Highland Football League website...');
+      toast.info('Scraping fixtures from HFL website... This may take a moment.');
       
-      // Get fixtures using the best available method
-      const testResult = await FirecrawlService.fetchHighlandLeagueFixtures();
+      // Call the Supabase Edge function to scrape fixtures
+      const { data, error } = await supabase.functions.invoke('scrape-fixtures');
       
-      if (!testResult.success || !testResult.data) {
-        const errorMsg = testResult.error || 'Failed to fetch fixtures';
-        console.error('Fetch failed:', errorMsg);
-        setError(errorMsg);
-        toast.error(errorMsg);
+      if (error) {
+        console.error('Edge function error:', error);
+        setError(error.message || 'Failed to fetch fixtures');
+        toast.error('Failed to fetch fixtures from HFL website');
         return;
       }
       
-      console.log('Fixtures fetch successful, proceeding with import...');
+      if (!data || !Array.isArray(data)) {
+        setError('Invalid data received from scraper');
+        toast.error('Invalid data received from scraper');
+        return;
+      }
+      
+      console.log('Fixtures fetch successful, proceeding with import...', data);
+      
+      // Format the data as ScrapedFixture objects
+      const fixtures = data.map((item: any): ScrapedFixture => ({
+        homeTeam: item.homeTeam,
+        awayTeam: item.awayTeam,
+        date: item.date,
+        time: item.time || '15:00',
+        competition: item.competition || 'Highland League',
+        venue: item.venue || 'TBD',
+        isCompleted: !!item.isCompleted,
+        homeScore: item.isCompleted ? item.homeScore : null,
+        awayScore: item.isCompleted ? item.awayScore : null
+      }));
       
       // Store fixtures
-      const success = await scrapeAndStoreFixtures();
+      const success = await scrapeAndStoreFixtures(fixtures);
       
       if (!success) {
         setError('Failed to store fixtures. Check the console for details.');
@@ -118,9 +66,9 @@ export default function FixturesScraper() {
       }
       
       // Get the data to display
-      setResults(testResult.data);
+      setResults(fixtures);
       setSuccess(true);
-      toast.success(`Successfully imported ${testResult.data.length} fixtures`);
+      toast.success(`Successfully imported ${fixtures.length} fixtures`);
       
     } catch (error) {
       console.error('Error fetching fixtures:', error);
@@ -131,8 +79,22 @@ export default function FixturesScraper() {
     }
   };
 
-  const handleShowFirecrawlDocs = () => {
-    window.open('https://docs.firecrawl.dev', '_blank');
+  const handleExportFixtures = () => {
+    if (results.length === 0) {
+      toast.error('No fixtures to export');
+      return;
+    }
+
+    const dataStr = JSON.stringify(results, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    const exportFileDefaultName = `highland-league-fixtures-${new Date().toISOString().split('T')[0]}.json`;
+
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+    
+    toast.success('Fixtures exported to JSON file');
   };
   
   return (
@@ -140,92 +102,15 @@ export default function FixturesScraper() {
       <CardHeader>
         <CardTitle>Highland League Fixtures Importer</CardTitle>
         <CardDescription>
-          Fetch fixtures from multiple Highland League data sources
+          Fetch fixtures directly from the Highland Football League website
         </CardDescription>
       </CardHeader>
       
       <CardContent className="space-y-4">
-        <Tabs defaultValue="bbc" onValueChange={(v) => setActiveMethod(v as 'bbc' | 'rss' | 'firecrawl')}>
-          <TabsList>
-            <TabsTrigger value="bbc">
-              <Newspaper className="mr-2 h-4 w-4" />
-              BBC Sport
-            </TabsTrigger>
-            <TabsTrigger value="rss">
-              <Globe className="mr-2 h-4 w-4" />
-              RSS Feed
-            </TabsTrigger>
-            <TabsTrigger value="firecrawl">
-              <Database className="mr-2 h-4 w-4" />
-              Firecrawl API
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="bbc" className="space-y-4 pt-4">
-            <Alert>
-              <Newspaper className="h-4 w-4" />
-              <AlertTitle>BBC Sport Data</AlertTitle>
-              <AlertDescription>
-                This method fetches fixtures from the BBC Sport Highland League page. No API key required.
-                It's the most reliable source for current fixtures and results.
-              </AlertDescription>
-            </Alert>
-          </TabsContent>
-          
-          <TabsContent value="rss" className="space-y-4 pt-4">
-            <Alert>
-              <Globe className="h-4 w-4" />
-              <AlertTitle>Direct RSS Feed Access</AlertTitle>
-              <AlertDescription>
-                This method fetches directly from the Highland League RSS feed using a CORS proxy. No API key required.
-              </AlertDescription>
-            </Alert>
-          </TabsContent>
-          
-          <TabsContent value="firecrawl" className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <Label htmlFor="apiKey">Firecrawl API Key</Label>
-              <div className="flex space-x-2">
-                <Input
-                  id="apiKey"
-                  type="password"
-                  placeholder="Enter your Firecrawl API key"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                />
-                <Button onClick={handleSaveApiKey}>Save Key</Button>
-              </div>
-              <p className="text-xs text-gray-500 flex items-center gap-1">
-                Visit <a href="https://app.firecrawl.dev" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Firecrawl.dev</a> to get an API key.
-                <Button variant="ghost" size="sm" className="h-5 px-1" onClick={handleShowFirecrawlDocs}>
-                  <ExternalLink className="h-3 w-3" />
-                </Button>
-              </p>
-            </div>
-          </TabsContent>
-        </Tabs>
-        
         {error && (
           <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
-            <AlertDescription>
-              <div>{error}</div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setShowDebug(!showDebug)} 
-                className="mt-2"
-              >
-                {showDebug ? "Hide Debug Info" : "Show Debug Info"}
-              </Button>
-              
-              {showDebug && debugInfo && (
-                <div className="mt-2 p-2 bg-gray-800 text-white rounded text-xs font-mono overflow-auto max-h-48">
-                  <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
-                </div>
-              )}
-            </AlertDescription>
+            <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
         
@@ -256,61 +141,13 @@ export default function FixturesScraper() {
             </div>
           </div>
         )}
-
-        <Accordion type="single" collapsible className="mt-2">
-          <AccordionItem value="api-info">
-            <AccordionTrigger className="text-sm">Troubleshooting</AccordionTrigger>
-            <AccordionContent>
-              <div className="space-y-3 text-sm">
-                <div className="font-medium">Data Fetching Information</div>
-                <p className="text-gray-600">
-                  This tool now uses three different methods to fetch Highland League data:
-                </p>
-                <ol className="list-decimal list-inside space-y-1">
-                  <li><strong>BBC Sport:</strong> Fetches fixtures from the BBC Sport website (most reliable)</li>
-                  <li><strong>RSS Feed:</strong> Fetches directly from the Highland League RSS feed using a CORS proxy</li>
-                  <li><strong>Firecrawl API:</strong> Uses Firecrawl as a backup if other methods fail</li>
-                </ol>
-                <p className="text-gray-600 mt-2">
-                  If you're experiencing issues, try the following:
-                </p>
-                <ol className="list-decimal list-inside space-y-1">
-                  <li>Try each data source using the tabs above</li>
-                  <li>Use the "Test Connection" button before attempting to store data</li>
-                  <li>Check the browser console for detailed error messages</li>
-                  <li>If using Firecrawl, verify that your API key is correct</li>
-                  <li>Some methods may be affected by CORS policies or site changes</li>
-                </ol>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
       </CardContent>
       
       <CardFooter className="flex flex-col gap-3 sm:flex-row">
         <Button
           className="w-full"
-          onClick={handleTestFetch}
-          disabled={testLoading}
-          variant="outline"
-        >
-          {testLoading ? (
-            <>
-              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-              Testing...
-            </>
-          ) : (
-            <>
-              <Rss className="mr-2 h-4 w-4" />
-              Test Connection
-            </>
-          )}
-        </Button>
-        
-        <Button
-          className="w-full"
           onClick={handleFetchFixtures}
-          disabled={isLoading || testLoading}
+          disabled={isLoading}
         >
           {isLoading ? (
             <>
@@ -319,11 +156,22 @@ export default function FixturesScraper() {
             </>
           ) : (
             <>
-              <Rss className="mr-2 h-4 w-4" />
+              <RefreshCw className="mr-2 h-4 w-4" />
               Fetch & Store Fixtures
             </>
           )}
         </Button>
+        
+        {results.length > 0 && (
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={handleExportFixtures}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Export to JSON
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );

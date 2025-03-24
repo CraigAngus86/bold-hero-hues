@@ -1,15 +1,15 @@
-
 export interface Match {
-  id: string | number;
-  homeTeam: string;
-  awayTeam: string;
-  homeScore?: number;
-  awayScore?: number;
+  id: string;
   date: string;
   time: string;
   competition: string;
-  isCompleted: boolean;
+  homeTeam: string;
+  awayTeam: string;
   venue: string;
+  isCompleted: boolean;
+  homeScore?: number;
+  awayScore?: number;
+  hasMatchPhotos?: boolean;
 }
 
 export interface TeamStats {

@@ -8,7 +8,8 @@ import NewsManager from '@/components/admin/NewsManager';
 import SponsorsManager from '@/components/admin/SponsorsManager';
 import TeamManager from '@/components/admin/TeamManager';
 import LeagueTableManager from '@/components/admin/LeagueTableManager';
-import { Database, Globe, Server, Newspaper, Users, Award } from 'lucide-react';
+import ImageManager from '@/components/admin/ImageManager';
+import { Database, Globe, Server, Newspaper, Users, Award, Image } from 'lucide-react';
 import DataDashboard from '@/components/admin/data/DataDashboard';
 
 const Admin = () => {
@@ -35,6 +36,10 @@ const Admin = () => {
                 <TabsTrigger value="team" className="flex items-center">
                   <Users className="h-4 w-4 mr-2" />
                   Team
+                </TabsTrigger>
+                <TabsTrigger value="images" className="flex items-center">
+                  <Image className="h-4 w-4 mr-2" />
+                  Images
                 </TabsTrigger>
                 <TabsTrigger value="data" className="flex items-center">
                   <Database className="h-4 w-4 mr-2" />
@@ -80,6 +85,20 @@ const Admin = () => {
                   </CardHeader>
                   <CardContent className="pt-2">
                     <TeamManager />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="images">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Image Management</CardTitle>
+                    <CardDescription>
+                      Organize and upload match photos and sponsor logos
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-2">
+                    <ImageManager />
                   </CardContent>
                 </Card>
               </TabsContent>

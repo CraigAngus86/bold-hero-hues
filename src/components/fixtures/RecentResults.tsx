@@ -1,12 +1,21 @@
 
 import { Link } from 'react-router-dom';
-import { Clock } from 'lucide-react';
+import { Clock, Camera } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Match, formatDate } from './types';
+import { supabase } from '@/integrations/supabase/client';
 
 interface RecentResultsProps {
   matches: Match[];
 }
+
+// Helper function to generate the photo gallery path for a match
+const getMatchPhotoPath = (match: Match) => {
+  const matchDate = new Date(match.date);
+  const formattedDate = `${matchDate.getFullYear()}-${String(matchDate.getMonth() + 1).padStart(2, '0')}-${String(matchDate.getDate()).padStart(2, '0')}`;
+  const awayTeam = match.awayTeam.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  return `/admin?tab=images&folder=highland-league-matches/${awayTeam}-${formattedDate}`;
+};
 
 const RecentResults = ({ matches }: RecentResultsProps) => {
   return (
@@ -39,6 +48,19 @@ const RecentResults = ({ matches }: RecentResultsProps) => {
                   </span>
                 </div>
               </div>
+              
+              {/* Photo Gallery Link - only show if hasMatchPhotos is true */}
+              {'hasMatchPhotos' in match && match.hasMatchPhotos && (
+                <div className="mt-1 text-center">
+                  <Link 
+                    to={getMatchPhotoPath(match)} 
+                    className="inline-flex items-center justify-center text-xs text-team-blue hover:underline"
+                  >
+                    <Camera className="w-3 h-3 mr-1" />
+                    Match Photos
+                  </Link>
+                </div>
+              )}
             </div>
           ))}
         </div>

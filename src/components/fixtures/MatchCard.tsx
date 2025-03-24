@@ -1,10 +1,20 @@
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Match, formatDate } from './types';
+import { Camera } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface MatchCardProps {
   match: Match;
 }
+
+// Helper function to generate the photo gallery path for a match
+const getMatchPhotoPath = (match: Match) => {
+  const matchDate = new Date(match.date);
+  const formattedDate = `${matchDate.getFullYear()}-${String(matchDate.getMonth() + 1).padStart(2, '0')}-${String(matchDate.getDate()).padStart(2, '0')}`;
+  const awayTeam = match.awayTeam.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  return `/admin?tab=images&folder=highland-league-matches/${awayTeam}-${formattedDate}`;
+};
 
 // Generate placeholder logos for teams
 const getTeamLogo = (teamName: string) => {
@@ -83,16 +93,25 @@ const MatchCard = ({ match }: MatchCardProps) => {
             {match.venue}
           </div>
           
-          {!match.isCompleted && (
-            <div className="flex justify-center relative z-20">
+          <div className="flex justify-center space-x-2 relative z-20">
+            {/* Photo Gallery Link - only show if hasMatchPhotos is true */}
+            {'hasMatchPhotos' in match && match.hasMatchPhotos && match.isCompleted ? (
+              <Link 
+                to={getMatchPhotoPath(match)} 
+                className="text-xs bg-team-lightBlue text-team-blue px-3 py-1 rounded hover:bg-team-blue hover:text-white transition-colors text-center flex items-center"
+              >
+                <Camera className="w-3 h-3 mr-1" />
+                Match Photos
+              </Link>
+            ) : !match.isCompleted && (
               <a 
                 href="/tickets" 
                 className="text-xs bg-team-blue text-white px-3 py-1 rounded hover:bg-team-navy transition-colors text-center"
               >
                 Get Tickets
               </a>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>

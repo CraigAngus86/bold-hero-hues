@@ -10,6 +10,33 @@ import { Match } from './fixtures/types';
 import { toast } from 'sonner';
 import { fetchFixturesFromSupabase, fetchResultsFromSupabase } from '@/services/supabase/fixturesService';
 import { convertToMatches } from '@/types/fixtures';
+import { supabase } from '@/integrations/supabase/client';
+
+// Helper function to check if a folder exists in storage
+const checkMatchPhotosExist = async (match: Match): Promise<boolean> => {
+  // Format: highland-league-matches/[away-team]-[date]
+  const matchDate = new Date(match.date);
+  const formattedDate = `${matchDate.getFullYear()}-${String(matchDate.getMonth() + 1).padStart(2, '0')}-${String(matchDate.getDate()).padStart(2, '0')}`;
+  
+  // Create folder path for match photos
+  const awayTeam = match.awayTeam.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  const folderPath = `highland-league-matches/${awayTeam}-${formattedDate}`;
+  
+  try {
+    const { data, error } = await supabase
+      .storage
+      .from('images')
+      .list(folderPath);
+    
+    if (error) throw error;
+    
+    // Check if there are any files in the folder (excluding the .folder file)
+    return data && data.filter(item => !item.name.endsWith('.folder')).length > 0;
+  } catch (error) {
+    console.log('No match photos found:', error);
+    return false;
+  }
+};
 
 const FixturesSection = () => {
   const [leagueData, setLeagueData] = useState<TeamStats[] | null>(null);
@@ -75,10 +102,18 @@ const FixturesSection = () => {
           const upcoming = getUpcomingMatches(fixtures);
           const recent = getRecentResults(results);
           
+          // Check for match photos for recent results
+          const recentWithPhotos = await Promise.all(
+            recent.map(async (match) => {
+              const hasPhotos = await checkMatchPhotosExist(match);
+              return { ...match, hasMatchPhotos: hasPhotos };
+            })
+          );
+          
           // Only use real data if we actually have upcoming matches
           if (upcoming.length > 0) {
             setUpcomingMatches(upcoming);
-            setRecentResults(recent);
+            setRecentResults(recentWithPhotos);
             console.log('Using real data for fixtures and results');
             return;
           }

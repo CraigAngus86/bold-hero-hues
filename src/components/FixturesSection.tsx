@@ -37,13 +37,13 @@ const FixturesSection = () => {
     const upcoming = mockMatches
       .filter(match => !match.isCompleted && new Date(match.date) >= today)
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      .slice(0, 5); // Show only next 5 matches
+      .slice(0, 3); // Show only next 3 matches
     
     // Get recent results (completed)
     const recent = mockMatches
       .filter(match => match.isCompleted)
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 5); // Show only last 5 matches
+      .slice(0, 3); // Show only last 3 matches
     
     setUpcomingMatches(upcoming);
     setRecentResults(recent);
@@ -66,11 +66,11 @@ const FixturesSection = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-1">
-            <UpcomingFixtures matches={upcomingMatches} />
+            <RecentResults matches={recentResults} />
           </div>
           
           <div className="md:col-span-1">
-            <RecentResults matches={recentResults} />
+            <UpcomingFixtures matches={upcomingMatches} />
           </div>
           
           <div className="md:col-span-1">

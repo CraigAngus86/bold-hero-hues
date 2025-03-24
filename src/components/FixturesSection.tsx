@@ -61,7 +61,7 @@ const FixturesSection = () => {
           transition={{ duration: 0.4 }}
           className="text-2xl font-semibold text-team-blue mb-3"
         >
-          Fixtures, Results & Table
+          Results, Fixtures & League Table
         </motion.h2>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">

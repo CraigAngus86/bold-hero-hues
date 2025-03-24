@@ -23,18 +23,19 @@ const Admin = () => {
           <p className="text-gray-600 mb-6">Manage website content and settings</p>
           
           <Tabs defaultValue="data" className="space-y-6">
-            <TabsList className="grid grid-cols-6 md:w-auto">
+            <TabsList className="grid grid-cols-6 gap-2 md:w-auto">
               <TabsTrigger value="news">News</TabsTrigger>
               <TabsTrigger value="team">Team</TabsTrigger>
               <TabsTrigger value="sponsors">Sponsors</TabsTrigger>
-              <TabsTrigger value="data">
-                <span className="flex items-center">
-                  <Globe className="h-4 w-4 mr-2" />
-                  Highland Data
-                </span>
+              <TabsTrigger value="data" className="flex items-center justify-center">
+                <Globe className="h-4 w-4 mr-2" />
+                Highland Data
               </TabsTrigger>
               <TabsTrigger value="league">League Table</TabsTrigger>
-              <TabsTrigger value="fixtures">Fixtures</TabsTrigger>
+              <TabsTrigger value="fixtures" className="flex items-center justify-center">
+                <Server className="h-4 w-4 mr-2" />
+                Fixtures
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="news">

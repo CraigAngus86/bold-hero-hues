@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
@@ -14,6 +13,7 @@ import FixturesImportExport from './FixturesImportExport';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import FixturesFilter from '@/components/fixtures/FixturesFilter';
 import { useFixturesFilter } from '@/hooks/useFixturesFilter';
+import FixturesScraper from '@/components/admin/FixturesScraper';
 
 const FixturesManager = () => {
   const [matches, setMatches] = useState<Match[]>([]);
@@ -135,6 +135,8 @@ const FixturesManager = () => {
 
   return (
     <div className="space-y-6">
+      <FixturesScraper />
+      
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h3 className="text-xl font-semibold">Manage Fixtures & Results</h3>
         <div className="flex flex-wrap gap-2">

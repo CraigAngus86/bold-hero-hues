@@ -54,7 +54,9 @@ export const useNewsStore = create<NewsStore>()(
           if (!state || !state.news || !Array.isArray(state.news)) {
             console.error('Failed to rehydrate news store or invalid data structure');
             // Return the initialNews if the rehydrated state is invalid
-            state?.news = initialNews;
+            if (state) {
+              state.news = initialNews;
+            }
           }
         };
       }

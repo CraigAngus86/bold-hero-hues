@@ -1,0 +1,7 @@
+
+# A string value that determines the project that the function should be associated with.
+project_id = "bbbxhwaixjjxgboeiktq"
+
+[functions.scrape-transfermarkt]
+region = "us-east-1"
+verify_jwt = false

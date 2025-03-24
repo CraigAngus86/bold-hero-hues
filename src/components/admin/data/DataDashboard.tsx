@@ -8,7 +8,7 @@ import DataScraperControl from '@/components/admin/DataScraperControl';
 import ScrapedDataTable from '@/components/admin/data/ScrapedDataTable';
 import ServerMonitor from '@/components/admin/data/ServerMonitor';
 import { ApiConfig, DEFAULT_API_CONFIG } from '@/services/config/apiConfig';
-import FixturesScraper from '@/components/admin/fixtures/FixturesScraper';
+import TransfermarktScraper from '@/components/admin/fixtures/TransfermarktScraper';
 
 const DataDashboard = () => {
   // Create a complete ApiConfig object for the ServerMonitor component
@@ -24,7 +24,7 @@ const DataDashboard = () => {
         <TabsList className="mb-4">
           <TabsTrigger value="fixtures" className="flex items-center">
             <Globe className="h-4 w-4 mr-2" />
-            Highland League Fixtures
+            Transfermarkt Fixtures
           </TabsTrigger>
           <TabsTrigger value="scrapers" className="flex items-center">
             <Database className="h-4 w-4 mr-2" />
@@ -37,7 +37,7 @@ const DataDashboard = () => {
         </TabsList>
         
         <TabsContent value="fixtures" className="space-y-6">
-          <FixturesScraper />
+          <TransfermarktScraper />
         </TabsContent>
         
         <TabsContent value="scrapers" className="space-y-6">

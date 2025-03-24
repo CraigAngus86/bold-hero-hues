@@ -1,3 +1,4 @@
+
 import { Link } from 'react-router-dom';
 import { Trophy } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -38,19 +39,19 @@ const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
   
   return (
     <Card className="overflow-hidden border-team-gray hover:shadow-md transition-shadow bg-white flex flex-col h-full">
-      <div className="bg-[#00105a] text-white font-medium p-3 flex items-center justify-center">
-        <Trophy className="w-5 h-5 mr-2" />
+      <div className="bg-[#00105a] text-white font-medium p-2 flex items-center justify-center">
+        <Trophy className="w-4 h-4 mr-2" />
         <h3 className="text-lg font-semibold">Highland League</h3>
       </div>
-      <CardContent className="p-4 flex-1 flex flex-col">
+      <CardContent className="p-2 flex-1 flex flex-col">
         <div className="text-xs flex-1">
           <Table>
             <TableHeader className="bg-team-lightBlue">
               <TableRow>
-                <TableHead className="h-10 py-2 text-[#00105a]">Pos</TableHead>
-                <TableHead className="h-10 py-2 text-[#00105a] text-left">Team</TableHead>
-                <TableHead className="h-10 py-2 text-[#00105a] text-center">P</TableHead>
-                <TableHead className="h-10 py-2 text-[#00105a] text-center">Pts</TableHead>
+                <TableHead className="h-8 py-1 text-[#00105a]">Pos</TableHead>
+                <TableHead className="h-8 py-1 text-[#00105a] text-left">Team</TableHead>
+                <TableHead className="h-8 py-1 text-[#00105a] text-center">P</TableHead>
+                <TableHead className="h-8 py-1 text-[#00105a] text-center">Pts</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -60,32 +61,32 @@ const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
                     key={team.position}
                     className={team.team === "Banks o' Dee" ? "bg-team-lightBlue/30" : ""}
                   >
-                    <TableCell className="py-2 font-medium text-center">{team.position}</TableCell>
-                    <TableCell className="py-2 font-medium">
-                      <div className="flex items-center space-x-2">
+                    <TableCell className="py-1 font-medium text-center">{team.position}</TableCell>
+                    <TableCell className="py-1 font-medium">
+                      <div className="flex items-center space-x-1">
                         {team.team === "Banks o' Dee" ? (
                           <img 
                             src="/lovable-uploads/banks-o-dee-logo.png" 
                             alt="Banks o' Dee logo"
-                            className="w-6 h-6 object-contain"
+                            className="w-5 h-5 object-contain"
                           />
                         ) : (
                           <img 
                             src={team.logo || "https://placehold.co/40x40/team-white/team-blue?text=Logo"} 
                             alt={`${team.team} logo`}
-                            className="w-6 h-6 object-contain"
+                            className="w-5 h-5 object-contain"
                           />
                         )}
                         <span>{team.team}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="py-2 text-center">{team.played}</TableCell>
-                    <TableCell className="py-2 text-center font-bold">{team.points}</TableCell>
+                    <TableCell className="py-1 text-center">{team.played}</TableCell>
+                    <TableCell className="py-1 text-center font-bold">{team.points}</TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-4 text-gray-500">
+                  <TableCell colSpan={4} className="text-center py-2 text-gray-500">
                     No league data available
                   </TableCell>
                 </TableRow>
@@ -93,10 +94,10 @@ const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
             </TableBody>
           </Table>
         </div>
-        <div className="mt-4 text-center">
+        <div className="mt-2 text-center">
           <Link 
             to="/table" 
-            className="inline-block px-4 py-2 bg-[#00105a] text-white text-sm font-medium rounded hover:bg-[#c5e7ff] hover:text-[#00105a] transition-colors w-full"
+            className="inline-block px-3 py-1.5 bg-[#00105a] text-white text-xs font-medium rounded hover:bg-[#c5e7ff] hover:text-[#00105a] transition-colors w-full"
           >
             Full Table
           </Link>

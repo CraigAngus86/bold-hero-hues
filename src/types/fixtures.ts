@@ -3,7 +3,7 @@
  * Represents a fixture scraped from external sources
  */
 export interface ScrapedFixture {
-  id?: string | number; // Optional as it might not be present in scraped data
+  id?: string; // Optional as it might not be present in scraped data
   homeTeam: string;
   awayTeam: string;
   date: string;
@@ -40,7 +40,7 @@ export interface DBFixture {
 export function convertToMatch(fixture: ScrapedFixture | DBFixture): import('@/components/fixtures/types').Match {
   // Generate a unique ID if not already present
   const id = 'id' in fixture && fixture.id 
-    ? fixture.id 
+    ? String(fixture.id) // Ensure ID is a string
     : `fixture-${Math.random().toString(36).substring(2, 9)}`;
   
   // Handle both ScrapedFixture and DBFixture formats

@@ -5,7 +5,7 @@ import { Match } from './types';
 export const mockMatches: Match[] = [
   // August
   {
-    id: 101,
+    id: "101",
     homeTeam: "Banks o' Dee",
     awayTeam: "Brora Rangers",
     homeScore: 2,
@@ -17,7 +17,7 @@ export const mockMatches: Match[] = [
     venue: "Spain Park"
   },
   {
-    id: 102,
+    id: "102",
     homeTeam: "Rothes",
     awayTeam: "Banks o' Dee",
     homeScore: 0,
@@ -29,7 +29,7 @@ export const mockMatches: Match[] = [
     venue: "Mackessack Park"
   },
   {
-    id: 103,
+    id: "103",
     homeTeam: "Banks o' Dee",
     awayTeam: "Keith",
     homeScore: 4,
@@ -41,7 +41,7 @@ export const mockMatches: Match[] = [
     venue: "Spain Park"
   },
   {
-    id: 104,
+    id: "104",
     homeTeam: "Turriff United",
     awayTeam: "Banks o' Dee",
     homeScore: 1,
@@ -54,7 +54,7 @@ export const mockMatches: Match[] = [
   },
   // September
   {
-    id: 1,
+    id: "1",
     homeTeam: "Banks o' Dee",
     awayTeam: "Formartine United",
     homeScore: 3,
@@ -66,7 +66,7 @@ export const mockMatches: Match[] = [
     venue: "Spain Park"
   },
   {
-    id: 2,
+    id: "2",
     homeTeam: "Huntly",
     awayTeam: "Banks o' Dee",
     homeScore: 0,
@@ -78,7 +78,7 @@ export const mockMatches: Match[] = [
     venue: "Christie Park"
   },
   {
-    id: 3,
+    id: "3",
     homeTeam: "Banks o' Dee",
     awayTeam: "Deveronvale",
     homeScore: 4,
@@ -91,7 +91,7 @@ export const mockMatches: Match[] = [
   },
   // UPDATED: Future fixtures with dates after current date (2025-03-24)
   {
-    id: 4,
+    id: "4",
     homeTeam: "Banks o' Dee",
     awayTeam: "Buckie Thistle",
     date: "2025-04-15",
@@ -101,7 +101,7 @@ export const mockMatches: Match[] = [
     venue: "Spain Park"
   },
   {
-    id: 5,
+    id: "5",
     homeTeam: "Fraserburgh",
     awayTeam: "Banks o' Dee",
     date: "2025-04-22",
@@ -111,7 +111,7 @@ export const mockMatches: Match[] = [
     venue: "Bellslea Park"
   },
   {
-    id: 6,
+    id: "6",
     homeTeam: "Banks o' Dee",
     awayTeam: "Lossiemouth",
     date: "2025-04-29",
@@ -121,7 +121,7 @@ export const mockMatches: Match[] = [
     venue: "Spain Park"
   },
   {
-    id: 7,
+    id: "7",
     homeTeam: "Nairn County",
     awayTeam: "Banks o' Dee",
     date: "2025-05-06",
@@ -131,7 +131,7 @@ export const mockMatches: Match[] = [
     venue: "Station Park"
   },
   {
-    id: 8,
+    id: "8",
     homeTeam: "Banks o' Dee",
     awayTeam: "Wick Academy",
     date: "2025-05-13",
@@ -142,7 +142,7 @@ export const mockMatches: Match[] = [
   },
   // November
   {
-    id: 9,
+    id: "9",
     homeTeam: "Clachnacuddin",
     awayTeam: "Banks o' Dee",
     date: "2025-05-20",
@@ -152,7 +152,7 @@ export const mockMatches: Match[] = [
     venue: "Grant Street Park"
   },
   {
-    id: 10,
+    id: "10",
     homeTeam: "Banks o' Dee",
     awayTeam: "Strathspey Thistle",
     date: "2025-05-27",

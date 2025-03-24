@@ -3,7 +3,7 @@ import { Match } from './types';
 
 export const mockMatches: Match[] = [
   {
-    id: 1,
+    id: "1",
     homeTeam: "Banks o' Dee",
     awayTeam: "Formartine United",
     homeScore: 3,
@@ -15,7 +15,7 @@ export const mockMatches: Match[] = [
     venue: "Spain Park"
   },
   {
-    id: 2,
+    id: "2",
     homeTeam: "Huntly",
     awayTeam: "Banks o' Dee",
     homeScore: 0,
@@ -27,7 +27,7 @@ export const mockMatches: Match[] = [
     venue: "Christie Park"
   },
   {
-    id: 3,
+    id: "3",
     homeTeam: "Banks o' Dee",
     awayTeam: "Deveronvale",
     homeScore: 4,
@@ -39,7 +39,7 @@ export const mockMatches: Match[] = [
     venue: "Spain Park"
   },
   {
-    id: 4,
+    id: "4",
     homeTeam: "Banks o' Dee",
     awayTeam: "Buckie Thistle",
     date: "2023-09-30",
@@ -49,7 +49,7 @@ export const mockMatches: Match[] = [
     venue: "Spain Park"
   },
   {
-    id: 5,
+    id: "5",
     homeTeam: "Fraserburgh",
     awayTeam: "Banks o' Dee",
     date: "2023-10-07",
@@ -59,7 +59,7 @@ export const mockMatches: Match[] = [
     venue: "Bellslea Park"
   },
   {
-    id: 6,
+    id: "6",
     homeTeam: "Banks o' Dee",
     awayTeam: "Lossiemouth",
     date: "2023-10-14",

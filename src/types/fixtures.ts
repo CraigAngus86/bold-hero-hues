@@ -41,7 +41,7 @@ export function convertToMatch(fixture: ScrapedFixture | DBFixture): import('@/c
   // Generate a unique ID if not already present
   const id = 'id' in fixture && fixture.id 
     ? fixture.id 
-    : `fixture-${fixture.homeTeam || fixture.home_team}-${fixture.awayTeam || fixture.away_team}-${fixture.date}-${Math.random().toString(36).substring(2, 9)}`;
+    : `fixture-${Math.random().toString(36).substring(2, 9)}`;
   
   // Handle both ScrapedFixture and DBFixture formats
   const isDBFixture = 'home_team' in fixture;

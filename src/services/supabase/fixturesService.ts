@@ -310,10 +310,38 @@ const fetchUniqueCompetitions = async (): Promise<string[]> => {
   }
 };
 
-// Update our leagueDataService to use the new Supabase functions
+// Import mock data to Supabase
 export const importMockDataToSupabase = async (mockMatches: Match[]): Promise<boolean> => {
   try {
-    const supabaseMatches = mockMatches.map(match => convertToSupabaseFormat(match));
+    // First, validate the matches to ensure they have all required fields
+    const validMatches = mockMatches.filter(match => 
+      match.homeTeam && 
+      match.awayTeam && 
+      match.date &&
+      match.time &&
+      match.competition &&
+      match.venue
+    );
+    
+    if (validMatches.length === 0) {
+      toast.error('No valid matches to import');
+      return false;
+    }
+    
+    // Convert to Supabase format with all required fields
+    const supabaseMatches = validMatches.map(match => ({
+      home_team: match.homeTeam,
+      away_team: match.awayTeam,
+      date: match.date,
+      time: match.time,
+      competition: match.competition,
+      venue: match.venue,
+      is_completed: match.isCompleted || false,
+      home_score: match.homeScore,
+      away_score: match.awayScore,
+      status: match.isCompleted ? 'completed' : 'upcoming',
+      visible: true
+    }));
     
     const { error } = await supabase
       .from('matches')

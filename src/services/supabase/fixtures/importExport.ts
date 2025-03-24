@@ -86,8 +86,8 @@ export const scrapeAndStoreFixtures = async (): Promise<boolean> => {
       id: `temp-${index}`, // Temporary ID, will be replaced by UUID in Supabase
       homeTeam: fixture.homeTeam,
       awayTeam: fixture.awayTeam,
-      date: fixture.date,
-      time: fixture.time,
+      date: fixture.date || new Date().toISOString().split('T')[0], // Default to today if no date
+      time: fixture.time || '00:00', // Default time if none provided
       competition: fixture.competition || 'Highland League',
       venue: fixture.venue || 'TBD',
       isCompleted: fixture.isCompleted || false, // Default to false if not provided

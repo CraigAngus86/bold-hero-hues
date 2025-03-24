@@ -1,4 +1,3 @@
-
 import { toast } from 'sonner';
 
 // Define the response structure from the Firecrawl API
@@ -60,8 +59,8 @@ export class FirecrawlService {
 
       console.log('Fetching Highland League RSS with API key:', apiKey.substring(0, 5) + '...');
 
-      // Use direct API call to Firecrawl instead of going through our edge function
-      const response = await fetch('https://api.firecrawl.dev/scrape', {
+      // Fixed API endpoint - updated to use /api/v1/extract-html endpoint instead of /scrape
+      const response = await fetch('https://api.firecrawl.dev/api/v1/extract-html', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -69,13 +68,15 @@ export class FirecrawlService {
         },
         body: JSON.stringify({
           url: 'http://www.highlandfootballleague.com/rss/',
-          wait_for_selector: 'item'
+          selectors: ['item', 'title', 'description', 'pubDate']
         })
       });
 
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Error response from Firecrawl API:', errorText);
+        console.error('Response status:', response.status);
+        console.error('Response headers:', [...response.headers.entries()]);
         return { 
           success: false, 
           error: `HTTP error ${response.status}: ${errorText}` 

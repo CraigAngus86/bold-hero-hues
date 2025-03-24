@@ -5,10 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, RefreshCw, Check, Rss } from "lucide-react";
+import { AlertCircle, RefreshCw, Check, Rss, ExternalLink } from "lucide-react";
 import { FirecrawlService, ScrapedFixture } from '@/utils/FirecrawlService';
 import { scrapeAndStoreFixtures } from '@/services/supabase/fixtures/importExport'; 
 import { toast } from 'sonner';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 export default function FixturesScraper() {
   const [apiKey, setApiKey] = useState('');
@@ -17,6 +18,8 @@ export default function FixturesScraper() {
   const [results, setResults] = useState<ScrapedFixture[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [showDebug, setShowDebug] = useState(false);
   
   // Load the API key when the component mounts
   useEffect(() => {
@@ -41,6 +44,7 @@ export default function FixturesScraper() {
       setError(null);
       setSuccess(false);
       setResults([]);
+      setDebugInfo(null);
       
       console.log('Testing connection by fetching RSS without storing...');
       toast.info('Testing connection to Highland League RSS feed...');
@@ -75,6 +79,7 @@ export default function FixturesScraper() {
       setError(null);
       setSuccess(false);
       setResults([]);
+      setDebugInfo(null);
       
       console.log('Starting fixture scraping and storage process...');
       toast.info('Scraping fixtures... This may take a moment.');
@@ -114,6 +119,10 @@ export default function FixturesScraper() {
       setIsLoading(false);
     }
   };
+
+  const handleShowFirecrawlDocs = () => {
+    window.open('https://docs.firecrawl.dev', '_blank');
+  };
   
   return (
     <Card>
@@ -137,9 +146,11 @@ export default function FixturesScraper() {
             />
             <Button onClick={handleSaveApiKey}>Save Key</Button>
           </div>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 flex items-center gap-1">
             Visit <a href="https://app.firecrawl.dev" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Firecrawl.dev</a> to get an API key.
-            The API key has been pre-filled for you.
+            <Button variant="ghost" size="sm" className="h-5 px-1" onClick={handleShowFirecrawlDocs}>
+              <ExternalLink className="h-3 w-3" />
+            </Button>
           </p>
         </div>
         
@@ -147,7 +158,23 @@ export default function FixturesScraper() {
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription>
+              <div>{error}</div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowDebug(!showDebug)} 
+                className="mt-2"
+              >
+                {showDebug ? "Hide Debug Info" : "Show Debug Info"}
+              </Button>
+              
+              {showDebug && debugInfo && (
+                <div className="mt-2 p-2 bg-gray-800 text-white rounded text-xs font-mono overflow-auto max-h-48">
+                  <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
+                </div>
+              )}
+            </AlertDescription>
           </Alert>
         )}
         
@@ -178,6 +205,27 @@ export default function FixturesScraper() {
             </div>
           </div>
         )}
+
+        <Accordion type="single" collapsible className="mt-2">
+          <AccordionItem value="api-info">
+            <AccordionTrigger className="text-sm">API Troubleshooting</AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-3 text-sm">
+                <div className="font-medium">Firecrawl API Information</div>
+                <p className="text-gray-600">
+                  The Firecrawl API is being used to extract data from the Highland League RSS feed.
+                  If you're experiencing issues, try the following:
+                </p>
+                <ol className="list-decimal list-inside space-y-1">
+                  <li>Verify that your API key is correct</li>
+                  <li>Check that the Highland League RSS feed is online at <a href="http://www.highlandfootballleague.com/rss/" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">this URL</a></li>
+                  <li>Try using the "Test Connection" button before attempting to store data</li>
+                  <li>Check the browser console for detailed error messages</li>
+                </ol>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </CardContent>
       
       <CardFooter className="flex flex-col gap-3 sm:flex-row">

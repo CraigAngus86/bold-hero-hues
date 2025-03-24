@@ -1,4 +1,3 @@
-
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import * as cheerio from 'https://esm.sh/cheerio@1.0.0-rc.12'
@@ -21,10 +20,24 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    console.log('Edge Function: Starting scrape operation')
+    // Parse request
+    const requestData = await req.json().catch(() => ({}))
+    const { forceRefresh = false, action = null } = requestData
 
-    // Parse request to get force refresh parameter
-    const { forceRefresh } = await req.json().catch(() => ({ forceRefresh: false }))
+    // Handle status check action
+    if (action === 'status-check') {
+      console.log('Edge Function: Status check requested')
+      return new Response(
+        JSON.stringify({
+          success: true,
+          status: 'deployed',
+          message: 'Edge Function is deployed and operational'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    console.log('Edge Function: Starting scrape operation')
     console.log(`Edge Function: Force refresh requested: ${forceRefresh}`)
 
     // Check last scrape time from Supabase

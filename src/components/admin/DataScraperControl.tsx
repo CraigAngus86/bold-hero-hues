@@ -38,24 +38,39 @@ const DataScraperControl = () => {
     }
   };
 
-  // Check if the Edge Function exists
+  // Check if the Edge Function exists by attempting to invoke it with a status check
   const checkEdgeFunctionStatus = async () => {
     try {
       setEdgeFunctionStatus('checking');
-      // Try to list functions to see if our function is deployed
-      const { data, error } = await supabase.functions.listFunctions();
+      
+      // Try to invoke the function with a status check parameter
+      // This approach avoids using the listFunctions method which isn't available
+      const { data, error } = await supabase.functions.invoke('scrape-highland-league', {
+        body: { action: 'status-check' }
+      });
       
       if (error) {
-        console.error('Error checking Edge Function status:', error);
-        setEdgeFunctionStatus('unknown');
+        // If we get a 404 error, the function doesn't exist
+        if (error.message && error.message.includes('404')) {
+          console.log('Edge Function not found (404 error)');
+          setEdgeFunctionStatus('not-deployed');
+          return;
+        }
+        
+        // For other errors, the function might exist but has an issue
+        console.warn('Edge Function exists but returned an error:', error);
+        setEdgeFunctionStatus('deployed');
         return;
       }
       
-      // Check if our function is in the list
-      const scrapeFunction = data?.find(fn => fn.name === 'scrape-highland-league');
-      setEdgeFunctionStatus(scrapeFunction ? 'deployed' : 'not-deployed');
+      // If we get a response, the function exists
+      console.log('Edge Function status check response:', data);
+      setEdgeFunctionStatus('deployed');
+      
     } catch (error) {
       console.error('Error checking Edge Function status:', error);
+      
+      // If we can't connect, we can't determine the status
       setEdgeFunctionStatus('unknown');
     }
   };

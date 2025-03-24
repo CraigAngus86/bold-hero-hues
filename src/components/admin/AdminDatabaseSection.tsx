@@ -2,6 +2,7 @@
 import React from 'react';
 import DataScraperControl from './DataScraperControl';
 import { Separator } from "@/components/ui/separator";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const AdminDatabaseSection = () => {
   return (
@@ -15,7 +16,9 @@ const AdminDatabaseSection = () => {
       
       <Separator />
       
-      <DataScraperControl />
+      <TooltipProvider>
+        <DataScraperControl />
+      </TooltipProvider>
     </div>
   );
 };

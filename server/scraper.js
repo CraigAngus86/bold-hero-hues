@@ -12,11 +12,23 @@ async function scrapeLeagueTable() {
     
     const url = 'https://www.bbc.com/sport/football/scottish-highland-league/table';
     
-    // Make the HTTP request to the BBC Sport website
+    // Make the HTTP request to the BBC Sport website with proper headers
     const { data: html } = await axios.get(url, {
       headers: {
-        'User-Agent': process.env.USER_AGENT || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      }
+        'User-Agent': process.env.USER_AGENT || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'DNT': '1',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Sec-Fetch-User': '?1',
+        'Cache-Control': 'max-age=0'
+      },
+      timeout: 10000 // 10 second timeout
     });
     
     console.log('Successfully fetched BBC Sport page');
@@ -24,7 +36,7 @@ async function scrapeLeagueTable() {
     // Parse the HTML to extract the table data
     const $ = cheerio.load(html);
     
-    // The table rows are typically in a table with a specific class
+    // Target the correct table selector - BBC Sport specific
     const tableRows = $('.gs-o-table__row');
     if (!tableRows || tableRows.length === 0) {
       console.error('Could not find table rows in BBC Sport page');
@@ -33,7 +45,6 @@ async function scrapeLeagueTable() {
     
     // Extract data from each row
     const leagueData = [];
-    let position = 1;
     
     tableRows.each((index, row) => {
       // Skip the header row
@@ -41,33 +52,46 @@ async function scrapeLeagueTable() {
       
       try {
         const cells = $(row).find('td');
-        if (cells.length < 10) return;
+        if (cells.length < 9) return; // Must have at least position through points
         
-        // Extract team name
-        const teamNameElement = $(cells[0]).find('.gs-o-table__cell--left');
-        const teamName = teamNameElement.text().trim();
+        // Position - first cell
+        const position = parseInt($(cells[0]).text().trim(), 10);
+        if (isNaN(position)) return; // Skip if not a valid team row
         
-        if (!teamName) return;
+        // Extract team name - typically in first cell with team name class
+        const teamNameElement = $(cells[0]).find('.gs-o-table__cell--left .qa-full-team-name');
+        let teamName = teamNameElement.text().trim();
         
-        // Extract other stats
-        const played = parseInt($(cells[1]).text().trim() || '0');
-        const won = parseInt($(cells[2]).text().trim() || '0');
-        const drawn = parseInt($(cells[3]).text().trim() || '0');
-        const lost = parseInt($(cells[4]).text().trim() || '0');
-        const goalsFor = parseInt($(cells[5]).text().trim() || '0');
-        const goalsAgainst = parseInt($(cells[6]).text().trim() || '0');
-        const goalDifference = parseInt($(cells[7]).text().trim() || '0');
-        const points = parseInt($(cells[8]).text().trim() || '0');
+        if (!teamName) {
+          // Alternative selector if the first one doesn't work
+          teamName = $(cells[0]).find('.gs-o-table__cell--left').text().trim();
+        }
         
-        // Extract form
-        const formElement = $(cells[9]).find('.gs-o-status-icon');
+        if (!teamName) return; // Skip if no team name found
+        
+        // Extract other stats - adjust indices based on BBC's table structure
+        const played = parseInt($(cells[1]).text().trim() || '0', 10);
+        const won = parseInt($(cells[2]).text().trim() || '0', 10);
+        const drawn = parseInt($(cells[3]).text().trim() || '0', 10);
+        const lost = parseInt($(cells[4]).text().trim() || '0', 10);
+        const goalsFor = parseInt($(cells[5]).text().trim() || '0', 10);
+        const goalsAgainst = parseInt($(cells[6]).text().trim() || '0', 10);
+        const goalDifference = parseInt($(cells[7]).text().trim() || '0', 10);
+        const points = parseInt($(cells[8]).text().trim() || '0', 10);
+        
+        // Extract form if available (may be in the last cell)
         const form = [];
-        formElement.each((i, el) => {
-          const className = $(el).attr('class');
-          if (className.includes('gs-o-status-icon--win')) form.push('W');
-          else if (className.includes('gs-o-status-icon--draw')) form.push('D');
-          else if (className.includes('gs-o-status-icon--loss')) form.push('L');
-        });
+        if (cells.length > 9) {
+          const formCell = $(cells[9]);
+          
+          // Look for form icons
+          formCell.find('.gs-o-status-icon, .gel-icon').each((i, el) => {
+            const className = $(el).attr('class') || '';
+            if (className.includes('win')) form.push('W');
+            else if (className.includes('draw')) form.push('D');
+            else if (className.includes('loss')) form.push('L');
+          });
+        }
         
         // Create a team stats object
         leagueData.push({
@@ -84,7 +108,6 @@ async function scrapeLeagueTable() {
           form: form.slice(0, 5) // Last 5 results
         });
         
-        position++;
       } catch (error) {
         console.error('Error parsing row:', error);
       }

@@ -4,6 +4,8 @@ import DataScraperControl from './DataScraperControl';
 import ScrapedDataTable from './data/ScrapedDataTable';
 import { Separator } from "@/components/ui/separator";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Terminal } from "lucide-react";
 
 const AdminDatabaseSection = () => {
   return (
@@ -14,6 +16,15 @@ const AdminDatabaseSection = () => {
           Manage Highland League data settings and refresh the league table data
         </p>
       </div>
+      
+      <Alert>
+        <Terminal className="h-4 w-4" />
+        <AlertTitle>Server Required for Live Data</AlertTitle>
+        <AlertDescription>
+          To use live data instead of mock data, you need to run the included Node.js server.
+          Navigate to the server directory, run 'npm install' followed by 'npm start'.
+        </AlertDescription>
+      </Alert>
       
       <Separator />
       

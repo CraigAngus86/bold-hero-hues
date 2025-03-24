@@ -11,9 +11,9 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Enable CORS for all origins
+// Enable CORS for all origins with proper configuration
 app.use(cors({
-  origin: '*',
+  origin: '*', // Allow all origins
   methods: ['GET', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'X-API-Key']
 }));
@@ -52,9 +52,20 @@ const updateCache = async () => {
     lastUpdated = new Date();
     console.log('Cache updated successfully');
   } catch (error) {
-    console.error('Error updating cache:', error);
+    console.error('Error updating cache:', error.message);
+    console.error(error.stack);
   }
 };
+
+// Debug endpoint to show request headers
+app.get('/api/debug/headers', (req, res) => {
+  res.json({
+    headers: req.headers,
+    method: req.method,
+    url: req.url,
+    timestamp: new Date().toISOString()
+  });
+});
 
 // Initially populate the cache
 updateCache();
@@ -76,13 +87,24 @@ app.get('/api/league-table', validateApiKey, async (req, res) => {
       await updateCache();
     }
     
+    // If still no data after refresh attempt, return error
+    if (!cachedLeagueTable) {
+      return res.status(500).json({ 
+        error: 'No league table data available',
+        message: 'Failed to fetch data from BBC Sport. Please try again later.'
+      });
+    }
+    
     res.json({
       leagueTable: cachedLeagueTable,
       lastUpdated: lastUpdated ? lastUpdated.toISOString() : null
     });
   } catch (error) {
     console.error('Error fetching league table:', error);
-    res.status(500).json({ error: 'Failed to fetch league table' });
+    res.status(500).json({ 
+      error: 'Failed to fetch league table',
+      message: error.message
+    });
   }
 });
 
@@ -90,12 +112,26 @@ app.get('/api/league-table', validateApiKey, async (req, res) => {
 app.get('/api/status', (req, res) => {
   res.json({
     status: 'ok',
+    serverVersion: '1.0.0',
     lastUpdated: lastUpdated ? lastUpdated.toISOString() : null,
-    hasData: !!cachedLeagueTable
+    hasData: !!cachedLeagueTable,
+    dataCount: cachedLeagueTable ? cachedLeagueTable.length : 0
   });
 });
 
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Data scraper API available at http://localhost:${PORT}/api/league-table`);
+  console.log(`Status endpoint available at http://localhost:${PORT}/api/status`);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
 });

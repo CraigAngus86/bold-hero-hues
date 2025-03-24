@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ApiConfig } from '@/services/config/apiConfig';
+import { Badge } from "@/components/ui/badge";
 
 interface ServerStatusCardProps {
   config: ApiConfig;
@@ -30,16 +31,21 @@ const ServerStatusCard: React.FC<ServerStatusCardProps> = ({
       <CardHeader>
         <CardTitle>Highland League Data Status</CardTitle>
         <CardDescription>
-          Current status of the Highland League data
+          Configure and manage the Highland League data service
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="p-4 bg-amber-50 border border-amber-200 rounded-md mb-4">
-          <p className="text-amber-800 font-medium">Important Note</p>
-          <p className="text-sm text-amber-700">
-            You don't need to run a server - the app works with mock data by default. 
-            Server settings are only needed if you want to use real scraped data.
+          <p className="text-amber-800 font-medium">Server Connection Guide</p>
+          <p className="text-sm text-amber-700 mb-2">
+            For real data, you need to run the Node.js scraper server included in the project:
           </p>
+          <ol className="list-decimal list-inside text-sm text-amber-700 space-y-1">
+            <li>Open terminal in the 'server' directory</li>
+            <li>Run 'npm install' to install dependencies</li>
+            <li>Run 'npm start' to start the server</li>
+            <li>Server should be available at http://localhost:3001</li>
+          </ol>
         </div>
       
         <div className="flex flex-col space-y-4">
@@ -52,18 +58,24 @@ const ServerStatusCard: React.FC<ServerStatusCardProps> = ({
             </div>
           ) : serverStatus === 'ok' ? (
             <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-              <p className="text-green-700 font-medium">Server is online</p>
+              <div className="flex justify-between items-center">
+                <p className="text-green-700 font-medium">Server is online</p>
+                <Badge variant="success">Live Data</Badge>
+              </div>
               {lastUpdated && (
-                <p className="text-sm text-green-600">
+                <p className="text-sm text-green-600 mt-1">
                   Last data update: {new Date(lastUpdated).toLocaleString()}
                 </p>
               )}
             </div>
           ) : serverStatus === 'error' ? (
             <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
-              <p className="text-amber-700 font-medium">Using mock data</p>
-              <p className="text-sm text-amber-600">
-                The app is using mock data for the league table.
+              <div className="flex justify-between items-center">
+                <p className="text-amber-700 font-medium">Server connection failed</p>
+                <Badge variant="outline">Mock Data</Badge>
+              </div>
+              <p className="text-sm text-amber-600 mt-1">
+                Unable to connect to the scraper server. Please check if the server is running.
               </p>
             </div>
           ) : (
@@ -81,29 +93,27 @@ const ServerStatusCard: React.FC<ServerStatusCardProps> = ({
               Refresh League Data
             </Button>
             
-            {config.apiServerUrl && (
-              <Button 
-                onClick={checkServerStatus} 
-                disabled={isStatusChecking}
-                variant="outline"
-              >
-                Check Server Status
-              </Button>
-            )}
+            <Button 
+              onClick={checkServerStatus} 
+              disabled={isStatusChecking}
+              variant="outline"
+            >
+              Check Server Status
+            </Button>
           </div>
         </div>
         
         <div className="space-y-2 pt-4">
-          <Label htmlFor="apiServerUrl">Server URL (Optional)</Label>
+          <Label htmlFor="apiServerUrl">Server URL</Label>
           <Input
             id="apiServerUrl"
             name="apiServerUrl"
             value={config.apiServerUrl || ''}
             onChange={handleConfigChange}
-            placeholder="Leave empty to use mock data"
+            placeholder="http://localhost:3001"
           />
           <p className="text-sm text-gray-500">
-            If you have a Highland League scraper server running, enter its URL here
+            The URL of your Highland League scraper server (default: http://localhost:3001)
           </p>
         </div>
         

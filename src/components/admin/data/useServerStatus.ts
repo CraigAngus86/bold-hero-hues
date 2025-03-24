@@ -26,17 +26,20 @@ export const useServerStatus = (config: ApiConfig) => {
       }
       
       const serverUrl = configToUse.apiServerUrl;
+      console.log(`Checking server status at ${serverUrl}/api/status`);
       
       // Use AbortController to set a timeout
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
       
       const response = await fetch(`${serverUrl}/api/status`, {
         headers: {
-          ...(configToUse.apiKey ? { 'X-API-Key': configToUse.apiKey } : {})
+          ...(configToUse.apiKey ? { 'X-API-Key': configToUse.apiKey } : {}),
+          'Accept': 'application/json'
         },
         signal: controller.signal,
-        mode: 'cors' // Explicitly enable CORS
+        mode: 'cors', // Explicitly enable CORS
+        credentials: 'omit' // Omit credentials for cross-origin requests
       });
       
       clearTimeout(timeoutId);
@@ -53,14 +56,18 @@ export const useServerStatus = (config: ApiConfig) => {
         setAutoConnecting(false);
         toast.success("Connected to Highland League data server");
       }
+      
+      return data;
     } catch (error) {
       console.error('Server status check failed:', error);
       setServerStatus('error');
       
       if (autoConnecting) {
         setAutoConnecting(false);
-        toast.info("Could not connect to the Highland League server. Using mock data instead.");
+        toast.error("Could not connect to the Highland League server. Please check if the server is running.");
       }
+      
+      return null;
     } finally {
       setIsStatusChecking(false);
     }
@@ -68,17 +75,34 @@ export const useServerStatus = (config: ApiConfig) => {
 
   // Set up initial check and periodic checks
   useEffect(() => {
-    // Auto-check server status on initial load
-    checkServerStatus(config);
+    // Skip automatic check during development to reduce console noise
+    if (import.meta.env.DEV) {
+      console.log('Skipping automatic server check in development mode');
+      return;
+    }
+    
+    // Auto-check server status on initial load with a delay
+    const initialCheckTimeout = setTimeout(() => {
+      if (config.apiServerUrl) {
+        checkServerStatus(config);
+      } else {
+        setServerStatus('error');
+        setAutoConnecting(false);
+        toast.info("No server configured. Using mock data instead.");
+      }
+    }, 1000);
     
     // Set up periodic server checks
     const interval = setInterval(() => {
       if (config.apiServerUrl) { // Only check if a server URL is configured
         checkServerStatus(config);
       }
-    }, 60000); // Check every minute
+    }, 300000); // Check every 5 minutes
     
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(initialCheckTimeout);
+      clearInterval(interval);
+    };
   }, [config.apiServerUrl, config.apiKey]);
 
   return {

@@ -59,8 +59,12 @@ export class FirecrawlService {
 
       console.log('Fetching Highland League RSS with API key:', apiKey.substring(0, 5) + '...');
 
-      // Fixed API endpoint - updated to use /api/v1/extract-html endpoint instead of /scrape
-      const response = await fetch('https://api.firecrawl.dev/api/v1/extract-html', {
+      // Current documented Firecrawl endpoint - updated from previous attempts
+      const apiUrl = 'https://api.firecrawl.dev/scrape';
+      
+      console.log(`Attempting to fetch from: ${apiUrl}`);
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -68,7 +72,7 @@ export class FirecrawlService {
         },
         body: JSON.stringify({
           url: 'http://www.highlandfootballleague.com/rss/',
-          selectors: ['item', 'title', 'description', 'pubDate']
+          wait_for_selector: 'item' // Wait for RSS items to load
         })
       });
 
@@ -86,12 +90,20 @@ export class FirecrawlService {
       const result = await response.json();
       
       if (!result.success) {
-        console.error('Error in Firecrawl API:', result.error);
+        console.error('Error in Firecrawl API response:', result.error);
         return { success: false, error: result.error };
       }
 
-      // Parse the HTML content from the RSS feed
-      const rssItems = this.parseRSSContent(result.html);
+      console.log('Firecrawl API response:', result);
+      
+      // Parse the HTML content from the response
+      const htmlContent = result.html || '';
+      if (!htmlContent) {
+        return { success: false, error: 'No HTML content returned from Firecrawl' };
+      }
+      
+      // Parse the RSS content
+      const rssItems = this.parseRSSContent(htmlContent);
       
       // Log the successful result
       console.log('Successfully fetched RSS data:', rssItems.length, 'fixtures');
@@ -121,103 +133,126 @@ export class FirecrawlService {
       
       console.log(`Found ${items.length} items in RSS feed`);
       
-      items.forEach((item, index) => {
-        try {
-          // Extract title and description from item
-          const title = item.querySelector('title')?.textContent || '';
-          const description = item.querySelector('description')?.textContent || '';
-          const pubDate = item.querySelector('pubDate')?.textContent || '';
+      // If no items found directly, try to parse from the raw HTML which might be encoded
+      if (items.length === 0) {
+        console.log('No items found directly, trying to parse from raw HTML');
+        
+        // Look for XML content that might be encoded in the HTML
+        const xmlContent = html.match(/<rss[^>]*>([\s\S]*?)<\/rss>/i);
+        if (xmlContent && xmlContent[0]) {
+          const rssDoc = parser.parseFromString(xmlContent[0], 'text/xml');
+          const rssItems = rssDoc.querySelectorAll('item');
           
-          console.log(`Processing item ${index + 1}: ${title}`);
+          console.log(`Found ${rssItems.length} items in parsed XML content`);
           
-          // Parse the title to extract team names and scores
-          let homeTeam = '', awayTeam = '', homeScore = null, awayScore = null, isCompleted = false;
-          
-          // Typical format: "Team A v Team B" or "Team A (2) v Team B (1)"
-          if (title.includes(' v ')) {
-            const parts = title.split(' v ');
-            
-            // Parse home team and possible score
-            if (parts[0].includes('(') && parts[0].includes(')')) {
-              const homeMatch = parts[0].match(/(.*)\s*\((\d+)\)/);
-              if (homeMatch) {
-                homeTeam = homeMatch[1].trim();
-                homeScore = parseInt(homeMatch[2], 10);
-                isCompleted = true;
-              } else {
-                homeTeam = parts[0].trim();
-              }
-            } else {
-              homeTeam = parts[0].trim();
-            }
-            
-            // Parse away team and possible score
-            if (parts[1].includes('(') && parts[1].includes(')')) {
-              const awayMatch = parts[1].match(/(.*)\s*\((\d+)\)/);
-              if (awayMatch) {
-                awayTeam = awayMatch[1].trim();
-                awayScore = parseInt(awayMatch[2], 10);
-                isCompleted = true;
-              } else {
-                awayTeam = parts[1].trim();
-              }
-            } else {
-              awayTeam = parts[1].trim();
-            }
-          } else if (title.includes(' vs ')) {
-            // Alternative format
-            const parts = title.split(' vs ');
-            homeTeam = parts[0].trim();
-            awayTeam = parts[1].trim();
-          }
-          
-          // Parse date from pubDate
-          const dateObj = new Date(pubDate);
-          const date = dateObj.toISOString().split('T')[0]; // YYYY-MM-DD
-          const time = `${dateObj.getHours().toString().padStart(2, '0')}:${dateObj.getMinutes().toString().padStart(2, '0')}`;
-          
-          // Extract competition and venue information from description
-          let competition = "Highland League";
-          let venue = "TBD";
-          
-          if (description) {
-            // Look for competition info
-            const competitionMatch = description.match(/Competition:\s*([^,\n]+)/i);
-            if (competitionMatch) {
-              competition = competitionMatch[1].trim();
-            }
-            
-            // Look for venue info
-            const venueMatch = description.match(/Venue:\s*([^,\n]+)/i);
-            if (venueMatch) {
-              venue = venueMatch[1].trim();
-            }
-          }
-          
-          // Only add the fixture if we have both team names
-          if (homeTeam && awayTeam) {
-            fixtures.push({
-              homeTeam,
-              awayTeam,
-              date,
-              time,
-              competition,
-              venue,
-              isCompleted,
-              homeScore,
-              awayScore
-            });
-          }
-        } catch (err) {
-          console.error('Error parsing RSS item:', err);
+          return this.parseRSSItems(rssItems);
         }
-      });
+      }
       
-      return fixtures;
+      return this.parseRSSItems(items);
     } catch (error) {
       console.error('Error parsing RSS content:', error);
       return [];
     }
+  }
+  
+  // Parse RSS items into fixtures
+  private static parseRSSItems(items: NodeListOf<Element>): ScrapedFixture[] {
+    const fixtures: ScrapedFixture[] = [];
+    
+    items.forEach((item, index) => {
+      try {
+        // Extract title and description from item
+        const title = item.querySelector('title')?.textContent || '';
+        const description = item.querySelector('description')?.textContent || '';
+        const pubDate = item.querySelector('pubDate')?.textContent || '';
+        
+        console.log(`Processing item ${index + 1}: ${title}`);
+        
+        // Parse the title to extract team names and scores
+        let homeTeam = '', awayTeam = '', homeScore = null, awayScore = null, isCompleted = false;
+        
+        // Typical format: "Team A v Team B" or "Team A (2) v Team B (1)"
+        if (title.includes(' v ')) {
+          const parts = title.split(' v ');
+          
+          // Parse home team and possible score
+          if (parts[0].includes('(') && parts[0].includes(')')) {
+            const homeMatch = parts[0].match(/(.*)\s*\((\d+)\)/);
+            if (homeMatch) {
+              homeTeam = homeMatch[1].trim();
+              homeScore = parseInt(homeMatch[2], 10);
+              isCompleted = true;
+            } else {
+              homeTeam = parts[0].trim();
+            }
+          } else {
+            homeTeam = parts[0].trim();
+          }
+          
+          // Parse away team and possible score
+          if (parts[1].includes('(') && parts[1].includes(')')) {
+            const awayMatch = parts[1].match(/(.*)\s*\((\d+)\)/);
+            if (awayMatch) {
+              awayTeam = awayMatch[1].trim();
+              awayScore = parseInt(awayMatch[2], 10);
+              isCompleted = true;
+            } else {
+              awayTeam = parts[1].trim();
+            }
+          } else {
+            awayTeam = parts[1].trim();
+          }
+        } else if (title.includes(' vs ')) {
+          // Alternative format
+          const parts = title.split(' vs ');
+          homeTeam = parts[0].trim();
+          awayTeam = parts[1].trim();
+        }
+        
+        // Parse date from pubDate
+        const dateObj = new Date(pubDate);
+        const date = dateObj.toISOString().split('T')[0]; // YYYY-MM-DD
+        const time = `${dateObj.getHours().toString().padStart(2, '0')}:${dateObj.getMinutes().toString().padStart(2, '0')}`;
+        
+        // Extract competition and venue information from description
+        let competition = "Highland League";
+        let venue = "TBD";
+        
+        if (description) {
+          // Look for competition info
+          const competitionMatch = description.match(/Competition:\s*([^,\n]+)/i);
+          if (competitionMatch) {
+            competition = competitionMatch[1].trim();
+          }
+          
+          // Look for venue info
+          const venueMatch = description.match(/Venue:\s*([^,\n]+)/i);
+          if (venueMatch) {
+            venue = venueMatch[1].trim();
+          }
+        }
+        
+        // Only add the fixture if we have both team names
+        if (homeTeam && awayTeam) {
+          fixtures.push({
+            homeTeam,
+            awayTeam,
+            date,
+            time,
+            competition,
+            venue,
+            isCompleted,
+            homeScore,
+            awayScore
+          });
+        }
+      } catch (err) {
+        console.error('Error parsing RSS item:', err);
+      }
+    });
+    
+    return fixtures;
   }
 
   // Keep the scrapeHighlandLeagueFixtures method for backward compatibility

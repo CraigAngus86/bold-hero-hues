@@ -54,7 +54,7 @@ export const importMockDataToSupabase = async (mockMatches: Match[]): Promise<bo
     }
 
     console.log('Match data imported successfully');
-    toast.success('Match data imported successfully');
+    toast.success(`Successfully imported ${supabaseMatches.length} fixtures`);
     return true;
   } catch (error) {
     console.error('Error in importMockDataToSupabase:', error);

@@ -32,6 +32,7 @@ export class FirecrawlService {
   private static DEFAULT_API_KEY = 'fc-83bcbd73547640f0a7b2be29068dadad';
   private static RSS_URL = 'http://www.highlandfootballleague.com/rss/';
   private static BBC_FIXTURES_URL = 'https://www.bbc.com/sport/football/scottish-highland-league/scores-fixtures';
+  private static HFL_FIXTURES_URL = 'http://www.highlandfootballleague.com/Fixtures/';
 
   // Save API key to local storage
   static saveApiKey(apiKey: string): void {
@@ -45,7 +46,307 @@ export class FirecrawlService {
     return localStorage.getItem(this.API_KEY_STORAGE_KEY) || this.DEFAULT_API_KEY;
   }
 
-  // New method: Fetch fixtures directly from BBC Sport
+  // New method: Fetch fixtures directly from Highland Football League website
+  static async fetchHighlandLeagueWebsite(): Promise<{ success: boolean; data?: ScrapedFixture[]; error?: string }> {
+    try {
+      console.log('Fetching fixtures directly from Highland Football League website');
+      
+      // Create a CORS proxy URL to bypass CORS restrictions
+      const corsProxy = 'https://corsproxy.io/?';
+      const url = `${corsProxy}${encodeURIComponent(this.HFL_FIXTURES_URL)}`;
+      
+      console.log(`Attempting to fetch from: ${url}`);
+      
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        }
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`HTTP error ${response.status} fetching HFL website: ${errorText}`);
+        return { 
+          success: false, 
+          error: `Failed to fetch fixtures from HFL website: ${response.status} ${response.statusText}` 
+        };
+      }
+      
+      const htmlContent = await response.text();
+      
+      if (!htmlContent || htmlContent.trim() === '') {
+        console.error('Received empty response from HFL website');
+        return { success: false, error: 'Received empty response from HFL website' };
+      }
+      
+      console.log(`Successfully fetched HTML data from HFL website, length: ${htmlContent.length} characters`);
+      
+      // Parse the HFL website HTML content to extract fixtures
+      const fixtures = this.parseHFLWebsiteFixtures(htmlContent);
+      
+      console.log(`Extracted ${fixtures.length} fixtures from HFL website`);
+      
+      return { success: true, data: fixtures };
+    } catch (error) {
+      console.error('Error in fetchHighlandLeagueWebsite:', error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Failed to fetch fixtures from HFL website' 
+      };
+    }
+  }
+
+  // Parse HFL website fixtures from HTML content
+  private static parseHFLWebsiteFixtures(html: string): ScrapedFixture[] {
+    try {
+      console.log('Parsing HFL website fixtures...');
+      
+      const fixtures: ScrapedFixture[] = [];
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      
+      // Find fixture tables - HFL website uses tables for fixtures
+      const fixtureTables = doc.querySelectorAll('table.fixtures-table, table');
+      
+      console.log(`Found ${fixtureTables.length} potential fixture tables`);
+      
+      if (fixtureTables.length === 0) {
+        console.log('No fixture tables found, trying alternative selectors');
+        const alternativeTables = doc.querySelectorAll('div.fixtures table, .content table');
+        console.log(`Found ${alternativeTables.length} tables with alternative selectors`);
+        
+        if (alternativeTables.length > 0) {
+          this.parseTableFixtures(alternativeTables, fixtures);
+        }
+      } else {
+        this.parseTableFixtures(fixtureTables, fixtures);
+      }
+      
+      // If no fixtures found via tables, try extracting from general content
+      if (fixtures.length === 0) {
+        console.log('No fixtures found in tables, trying to extract from general content');
+        // Look for fixture sections or text that contains fixture information
+        const fixturesSections = doc.querySelectorAll('.fixtures, .fixture-list, .content');
+        
+        fixturesSections.forEach(section => {
+          const text = section.textContent || '';
+          // Try to find patterns like "Team A vs Team B - Date, Time"
+          const fixturePatterns = text.match(/([A-Za-z\s]+)\s+(?:v|vs|versus)\s+([A-Za-z\s]+)(?:\s*[-–]\s*([A-Za-z0-9,\s]+))?/g);
+          
+          if (fixturePatterns) {
+            fixturePatterns.forEach(pattern => {
+              try {
+                const match = pattern.match(/([A-Za-z\s]+)\s+(?:v|vs|versus)\s+([A-Za-z\s]+)(?:\s*[-–]\s*([A-Za-z0-9,\s]+))?/);
+                if (match) {
+                  const homeTeam = match[1].trim();
+                  const awayTeam = match[2].trim();
+                  let dateInfo = match[3] ? match[3].trim() : '';
+                  
+                  // Default date to today if not provided
+                  let date = new Date().toISOString().split('T')[0];
+                  let time = '15:00';
+                  
+                  // Try to extract date and time from the info
+                  if (dateInfo) {
+                    const dateTimeMatch = dateInfo.match(/(\d{1,2}[\/\.-]\d{1,2}[\/\.-]\d{2,4})?(?:\s*,?\s*(\d{1,2}:\d{2}))?/);
+                    if (dateTimeMatch) {
+                      if (dateTimeMatch[1]) {
+                        // Try to parse the date
+                        const dateParts = dateTimeMatch[1].split(/[\/\.-]/);
+                        if (dateParts.length === 3) {
+                          // Assuming day/month/year format
+                          let year = dateParts[2].length === 2 ? '20' + dateParts[2] : dateParts[2];
+                          const dateObj = new Date(`${year}-${dateParts[1]}-${dateParts[0]}`);
+                          if (!isNaN(dateObj.getTime())) {
+                            date = dateObj.toISOString().split('T')[0];
+                          }
+                        }
+                      }
+                      
+                      if (dateTimeMatch[2]) {
+                        time = dateTimeMatch[2];
+                      }
+                    }
+                  }
+                  
+                  fixtures.push({
+                    homeTeam,
+                    awayTeam,
+                    date,
+                    time,
+                    competition: 'Highland League',
+                    venue: 'TBD',
+                    isCompleted: false,
+                    homeScore: null,
+                    awayScore: null
+                  });
+                }
+              } catch (err) {
+                console.warn('Error parsing fixture pattern:', err);
+              }
+            });
+          }
+        });
+      }
+      
+      return fixtures;
+    } catch (error) {
+      console.error('Error parsing HFL website fixtures:', error);
+      return [];
+    }
+  }
+  
+  // Helper method to parse fixtures from tables
+  private static parseTableFixtures(tables: NodeListOf<Element>, fixtures: ScrapedFixture[]): void {
+    tables.forEach((table, tableIndex) => {
+      try {
+        console.log(`Processing table ${tableIndex + 1}`);
+        const rows = table.querySelectorAll('tr');
+        
+        console.log(`Found ${rows.length} rows in table ${tableIndex + 1}`);
+        
+        // Skip the header row if it exists
+        const startIndex = rows.length > 0 && rows[0].querySelector('th') ? 1 : 0;
+        
+        for (let i = startIndex; i < rows.length; i++) {
+          try {
+            const cells = rows[i].querySelectorAll('td');
+            if (cells.length < 3) continue; // Need at least date, teams, and competition
+            
+            // Determine which columns contain what data
+            let dateText = '';
+            let timeText = '15:00'; // Default time
+            let teamsText = '';
+            let venueText = 'TBD';
+            let competitionText = 'Highland League';
+            
+            // Try to determine the data in each cell based on content and position
+            if (cells.length >= 3) {
+              // Most common structure: Date | Teams | Competition/Venue
+              dateText = cells[0].textContent?.trim() || '';
+              teamsText = cells[1].textContent?.trim() || '';
+              competitionText = cells[2].textContent?.trim() || 'Highland League';
+              
+              // If we have more cells, see if one contains venue info
+              if (cells.length > 3) {
+                venueText = cells[3].textContent?.trim() || 'TBD';
+              }
+              
+              // Check if the date cell contains time as well
+              const dateTimeSplit = dateText.split(/\s+/);
+              if (dateTimeSplit.length > 1 && dateTimeSplit[1].match(/\d{1,2}:\d{2}/)) {
+                timeText = dateTimeSplit[1];
+                dateText = dateTimeSplit[0];
+              }
+            }
+            
+            // Parse the date
+            let date = new Date().toISOString().split('T')[0]; // Default to today
+            if (dateText) {
+              try {
+                // Try various date formats
+                let dateObj;
+                
+                // Check for "Day Month Year" format (e.g., "25 December 2023")
+                const dmyMatch = dateText.match(/(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/);
+                if (dmyMatch) {
+                  const day = dmyMatch[1];
+                  const month = dmyMatch[2];
+                  const year = dmyMatch[3];
+                  const monthMap: {[key: string]: string} = {
+                    'january': '01', 'february': '02', 'march': '03', 'april': '04',
+                    'may': '05', 'june': '06', 'july': '07', 'august': '08',
+                    'september': '09', 'october': '10', 'november': '11', 'december': '12'
+                  };
+                  const monthNum = monthMap[month.toLowerCase()];
+                  if (monthNum) {
+                    dateObj = new Date(`${year}-${monthNum}-${day}`);
+                  }
+                } else {
+                  // Try DD/MM/YYYY format
+                  const parts = dateText.split(/[\/\.-]/);
+                  if (parts.length === 3) {
+                    let day = parts[0];
+                    let month = parts[1];
+                    let year = parts[2].length === 2 ? '20' + parts[2] : parts[2];
+                    dateObj = new Date(`${year}-${month}-${day}`);
+                  }
+                }
+                
+                if (dateObj && !isNaN(dateObj.getTime())) {
+                  date = dateObj.toISOString().split('T')[0];
+                }
+              } catch (e) {
+                console.warn(`Could not parse date: ${dateText}`);
+              }
+            }
+            
+            // Parse teams
+            let homeTeam = '';
+            let awayTeam = '';
+            
+            if (teamsText) {
+              // Try different team separators
+              let separator = '';
+              if (teamsText.includes(' v ')) separator = ' v ';
+              else if (teamsText.includes(' vs ')) separator = ' vs ';
+              else if (teamsText.includes(' vs. ')) separator = ' vs. ';
+              else if (teamsText.includes(' - ')) separator = ' - ';
+              
+              if (separator) {
+                const teams = teamsText.split(separator);
+                if (teams.length === 2) {
+                  homeTeam = teams[0].trim();
+                  awayTeam = teams[1].trim();
+                  
+                  // Check for scores in the team names
+                  const homeScoreMatch = homeTeam.match(/(.+)\s+\((\d+)\)$/);
+                  const awayScoreMatch = awayTeam.match(/(.+)\s+\((\d+)\)$/);
+                  
+                  let isCompleted = false;
+                  let homeScore = null;
+                  let awayScore = null;
+                  
+                  if (homeScoreMatch) {
+                    homeTeam = homeScoreMatch[1].trim();
+                    homeScore = parseInt(homeScoreMatch[2], 10);
+                    isCompleted = true;
+                  }
+                  
+                  if (awayScoreMatch) {
+                    awayTeam = awayScoreMatch[1].trim();
+                    awayScore = parseInt(awayScoreMatch[2], 10);
+                    isCompleted = true;
+                  }
+                  
+                  // Only add if we have both team names
+                  if (homeTeam && awayTeam) {
+                    fixtures.push({
+                      homeTeam,
+                      awayTeam,
+                      date,
+                      time: timeText,
+                      competition: competitionText,
+                      venue: venueText,
+                      isCompleted,
+                      homeScore,
+                      awayScore
+                    });
+                  }
+                }
+              }
+            }
+          } catch (err) {
+            console.warn(`Error parsing row ${i} in table ${tableIndex + 1}:`, err);
+          }
+        }
+      } catch (err) {
+        console.warn(`Error processing table ${tableIndex + 1}:`, err);
+      }
+    });
+  }
+
+  // New method: Fetch fixtures from BBC Sport
   static async fetchBBCSportFixtures(): Promise<{ success: boolean; data?: ScrapedFixture[]; error?: string }> {
     try {
       console.log('Fetching fixtures from BBC Sport');
@@ -250,9 +551,24 @@ export class FirecrawlService {
 
   // Primary method to fetch fixtures from any available source
   static async fetchHighlandLeagueFixtures(): Promise<{ success: boolean; data?: ScrapedFixture[]; error?: string }> {
-    // First try BBC Sport (most reliable)
+    // First try the official HFL website (most reliable source)
     try {
-      console.log('Attempting BBC Sport fixtures fetch first');
+      console.log('Attempting Highland Football League website fetch first');
+      const hflResult = await this.fetchHighlandLeagueWebsite();
+      
+      if (hflResult.success && hflResult.data && hflResult.data.length > 0) {
+        console.log('HFL website fixtures fetch successful');
+        return hflResult;
+      } else {
+        console.log('HFL website fixtures fetch failed, trying BBC Sport');
+      }
+    } catch (error) {
+      console.error('Error in HFL website fetch, continuing to BBC:', error);
+    }
+    
+    // Then try BBC Sport
+    try {
+      console.log('Attempting BBC Sport fixtures fetch');
       const bbcResult = await this.fetchBBCSportFixtures();
       
       if (bbcResult.success && bbcResult.data && bbcResult.data.length > 0) {
@@ -290,7 +606,7 @@ export class FirecrawlService {
       }
 
       console.log('Fetching Highland League RSS with API key:', apiKey.substring(0, 5) + '...');
-
+      
       // Firecrawl endpoint
       const apiUrl = 'https://api.firecrawl.dev/scrape';
       

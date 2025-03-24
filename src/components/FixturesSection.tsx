@@ -38,44 +38,25 @@ const FixturesSection = () => {
         console.log('Fixtures from API:', fixtures.length);
         console.log('Results from API:', results.length);
         
-        // Use real data if available, otherwise fall back to mock data
-        if (fixtures.length === 0 || results.length === 0) {
-          console.log('No fixtures or results found from Supabase, falling back to mock data');
-          // Load mock data
-          const { mockMatches } = await import('@/components/fixtures/fixturesMockData');
+        // Always import mockMatches for easy fallback
+        const { mockMatches } = await import('@/components/fixtures/fixturesMockData');
+        
+        // Calculate the current date only once
+        const today = new Date();
+        console.log('Today is:', today.toISOString());
+        
+        // Function to get upcoming matches with proper filtering
+        const getUpcomingMatches = (matches: Match[]) => {
+          console.log('Filtering upcoming matches, total to filter:', matches.length);
           
-          // Filter and prepare match data
-          const today = new Date();
-          
-          // Get upcoming matches (not completed and in the future)
-          const upcoming = mockMatches
-            .filter(match => !match.isCompleted && new Date(match.date) >= today)
-            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-            .slice(0, 3); // Show only next 3 matches
-          
-          console.log('Mock upcoming matches:', upcoming.length);
-          
-          // Get recent results (completed)
-          const recent = mockMatches
-            .filter(match => match.isCompleted)
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-            .slice(0, 3); // Show only last 3 matches
-          
-          setUpcomingMatches(upcoming);
-          setRecentResults(recent);
-        } else {
-          // Get upcoming matches (not completed and in the future)
-          const today = new Date();
-          
-          // Explicitly log the current date for debugging
-          console.log('Today is:', today.toISOString());
-          
-          // Debug: Log all fixtures with their dates for comparison
-          fixtures.forEach(fixture => {
-            console.log(`Fixture: ${fixture.homeTeam} vs ${fixture.awayTeam}, Date: ${fixture.date}, isCompleted: ${fixture.isCompleted}`);
+          // Debug log each match
+          matches.forEach(match => {
+            const matchDate = new Date(match.date);
+            console.log(`Match: ${match.homeTeam} vs ${match.awayTeam}, Date: ${match.date}, ISO: ${matchDate.toISOString()}, isCompleted: ${match.isCompleted}`);
           });
           
-          const upcoming = fixtures
+          // Filter to get only upcoming matches (not completed and date is in the future)
+          const upcoming = matches
             .filter(match => {
               const matchDate = new Date(match.date);
               const isUpcoming = !match.isCompleted && matchDate >= today;
@@ -85,27 +66,43 @@ const FixturesSection = () => {
             .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
             .slice(0, 3); // Show only next 3 matches
           
-          console.log('Real upcoming matches after filtering:', upcoming.length);
-          
-          // Get recent results (completed)
-          const recent = results
+          console.log('Filtered upcoming matches:', upcoming.length);
+          return upcoming;
+        };
+        
+        // Function to get recent results
+        const getRecentResults = (matches: Match[]) => {
+          return matches
             .filter(match => match.isCompleted)
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
             .slice(0, 3); // Show only last 3 matches
+        };
+        
+        // Use real data if available and valid
+        if (fixtures.length > 0 && results.length > 0) {
+          const upcoming = getUpcomingMatches(fixtures);
+          const recent = getRecentResults(results);
           
-          setUpcomingMatches(upcoming);
-          setRecentResults(recent);
-          
-          console.log('Data loaded successfully');
+          // Only use real data if we actually have upcoming matches
+          if (upcoming.length > 0) {
+            setUpcomingMatches(upcoming);
+            setRecentResults(recent);
+            console.log('Using real data for fixtures and results');
+            return;
+          }
         }
+        
+        // If we got here, we need to use mock data
+        console.log('Using mock data for fixtures and results');
+        setUpcomingMatches(getUpcomingMatches(mockMatches));
+        setRecentResults(getRecentResults(mockMatches));
+        
       } catch (error) {
         console.error('Error fetching data:', error);
         toast.error('Failed to load fixtures and results data');
         
-        // Fall back to mock data if needed
+        // Fall back to mock data
         const { mockMatches } = await import('@/components/fixtures/fixturesMockData');
-        
-        // Filter and prepare match data
         const today = new Date();
         
         // Get upcoming matches (not completed and in the future)
@@ -113,6 +110,8 @@ const FixturesSection = () => {
           .filter(match => !match.isCompleted && new Date(match.date) >= today)
           .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
           .slice(0, 3); // Show only next 3 matches
+        
+        console.log('Mock upcoming matches after error:', upcoming.length);
         
         // Get recent results (completed)
         const recent = mockMatches

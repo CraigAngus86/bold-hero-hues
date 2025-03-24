@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Import, Upload, Download } from 'lucide-react';
 import { Match } from '@/components/fixtures/types';
-import { importMockDataToSupabase } from '@/services/supabase/fixturesService';
+import { importMockDataToSupabase } from '@/services/supabase/fixtures/importExport';
 import { toast } from 'sonner';
 
 interface FixturesImportExportProps {

@@ -56,3 +56,57 @@ export const scrapeAndStoreFixtures = async (): Promise<boolean> => {
     return false;
   }
 };
+
+/**
+ * Import matches from external JSON data
+ * @param matchData Array of match data to import
+ * @returns boolean indicating success
+ */
+export const importMockDataToSupabase = async (matchData: any[]): Promise<boolean> => {
+  try {
+    if (!matchData || matchData.length === 0) {
+      console.error('No match data provided for import');
+      return false;
+    }
+    
+    console.log(`Preparing to import ${matchData.length} matches to Supabase...`);
+    
+    // Format the fixtures for the database
+    const fixtures = matchData.map(match => {
+      const isCompleted = !!match.isCompleted;
+      
+      return {
+        home_team: match.homeTeam,
+        away_team: match.awayTeam,
+        date: match.date,
+        time: match.time || '15:00',
+        competition: match.competition || 'Highland League',
+        venue: match.venue || 'TBD',
+        is_completed: isCompleted,
+        home_score: isCompleted ? match.homeScore : null,
+        away_score: isCompleted ? match.awayScore : null,
+        visible: true, // Default to visible
+        created_at: new Date().toISOString(),
+      };
+    });
+    
+    // Insert the fixtures into Supabase
+    const { error } = await supabase
+      .from('matches')
+      .upsert(fixtures, {
+        onConflict: 'home_team,away_team,date', // Prevents duplicate fixtures
+        ignoreDuplicates: false,
+      });
+    
+    if (error) {
+      console.error('Error importing matches to Supabase:', error);
+      return false;
+    }
+    
+    console.log(`Successfully imported ${fixtures.length} matches to Supabase`);
+    return true;
+  } catch (error) {
+    console.error('Error in importMockDataToSupabase:', error);
+    return false;
+  }
+};

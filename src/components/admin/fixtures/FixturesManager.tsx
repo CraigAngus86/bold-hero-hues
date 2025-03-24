@@ -1,10 +1,12 @@
+
 import { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Eye, EyeOff, Edit, Trash2, FileJson, Upload, Download, RefreshCw } from 'lucide-react';
 import { Match } from '@/components/fixtures/types';
 import { fetchAllMatches } from '@/services/leagueDataService';
-import { toggleMatchVisibility, deleteMatchFromSupabase, scrapeAndStoreFixtures } from '@/services/supabase/fixturesService';
+import { toggleMatchVisibility, deleteMatchFromSupabase } from '@/services/supabase/fixtures/updateMatches';
+import { scrapeAndStoreFixtures } from '@/services/supabase/fixtures/importExport';
 import { formatDate } from '@/components/fixtures/types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';

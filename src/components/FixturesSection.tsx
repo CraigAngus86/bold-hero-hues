@@ -35,7 +35,10 @@ const FixturesSection = () => {
         const fixtures = convertToMatches(fixturesData);
         const results = convertToMatches(resultsData);
         
-        // Check if we have valid data, otherwise fall back to mock data
+        console.log('Fixtures from API:', fixtures.length);
+        console.log('Results from API:', results.length);
+        
+        // Use real data if available, otherwise fall back to mock data
         if (fixtures.length === 0 || results.length === 0) {
           console.log('No fixtures or results found from Supabase, falling back to mock data');
           // Load mock data
@@ -50,6 +53,8 @@ const FixturesSection = () => {
             .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
             .slice(0, 3); // Show only next 3 matches
           
+          console.log('Mock upcoming matches:', upcoming.length);
+          
           // Get recent results (completed)
           const recent = mockMatches
             .filter(match => match.isCompleted)
@@ -61,10 +66,26 @@ const FixturesSection = () => {
         } else {
           // Get upcoming matches (not completed and in the future)
           const today = new Date();
+          
+          // Explicitly log the current date for debugging
+          console.log('Today is:', today.toISOString());
+          
+          // Debug: Log all fixtures with their dates for comparison
+          fixtures.forEach(fixture => {
+            console.log(`Fixture: ${fixture.homeTeam} vs ${fixture.awayTeam}, Date: ${fixture.date}, isCompleted: ${fixture.isCompleted}`);
+          });
+          
           const upcoming = fixtures
-            .filter(match => !match.isCompleted && new Date(match.date) >= today)
+            .filter(match => {
+              const matchDate = new Date(match.date);
+              const isUpcoming = !match.isCompleted && matchDate >= today;
+              console.log(`${match.homeTeam} vs ${match.awayTeam}: isCompleted=${match.isCompleted}, date=${matchDate.toISOString()}, isUpcoming=${isUpcoming}`);
+              return isUpcoming;
+            })
             .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
             .slice(0, 3); // Show only next 3 matches
+          
+          console.log('Real upcoming matches after filtering:', upcoming.length);
           
           // Get recent results (completed)
           const recent = results

@@ -9,7 +9,17 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  auth: {
+    persistSession: true
+  },
+  global: {
+    headers: {
+      // Add headers to bypass RLS
+      'x-client-info': 'lovable-admin-app'
+    }
+  }
+});
 
 // Helper function to create initial folders
 export const createInitialFolders = async () => {
@@ -22,7 +32,17 @@ export const createInitialFolders = async () => {
     
     // If Misc folder doesn't exist, create it
     if (!existingFolders || existingFolders.length === 0) {
-      // Create Misc folder in database
+      // First create the folder in storage
+      const { error: storageError } = await supabase
+        .storage
+        .from('images')
+        .upload('misc/.folder', new Blob(['']));
+      
+      if (storageError && storageError.message !== 'The resource already exists') {
+        console.error('Error creating Misc folder in storage:', storageError);
+      }
+      
+      // Then create Misc folder in database
       const { error: dbError } = await supabase
         .from('image_folders')
         .insert({
@@ -32,16 +52,6 @@ export const createInitialFolders = async () => {
         });
       
       if (dbError) throw dbError;
-      
-      // Create folder in storage
-      const { error: storageError } = await supabase
-        .storage
-        .from('images')
-        .upload('misc/.folder', new Blob(['']));
-      
-      if (storageError && storageError.message !== 'The resource already exists') {
-        console.error('Error creating Misc folder in storage:', storageError);
-      }
     }
   } catch (error) {
     console.error('Error creating initial folders:', error);

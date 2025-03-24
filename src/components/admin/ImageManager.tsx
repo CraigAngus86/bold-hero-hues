@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { FolderPlus, Upload, Folder, ArrowLeft, FileImage, Clipboard, X } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
@@ -173,6 +173,7 @@ const ImageManager = () => {
         : pathName;
       
       // First create the folder in storage to make sure it works
+      console.log("Creating folder in storage:", fullPath);
       const { error: storageError } = await supabase
         .storage
         .from('images')
@@ -182,6 +183,7 @@ const ImageManager = () => {
         throw storageError;
       }
       
+      console.log("Storage folder created, now creating database entry");
       // Then insert folder into database
       const { data, error } = await supabase
         .from('image_folders')
@@ -192,7 +194,10 @@ const ImageManager = () => {
         })
         .select();
       
-      if (error) throw error;
+      if (error) {
+        console.error("Database error:", error);
+        throw error;
+      }
       
       // Refresh folders list
       fetchAllFolders();
@@ -337,7 +342,7 @@ const ImageManager = () => {
         </div>
       </div>
       
-      {/* Breadcrumb Navigation */}
+      {/* Breadcrumb Navigation - Fixed HTML structure */}
       <Breadcrumb className="mb-4">
         <BreadcrumbItem>
           <BreadcrumbLink onClick={() => navigateToBreadcrumb(null)}>
@@ -347,7 +352,7 @@ const ImageManager = () => {
         
         {breadcrumbs.map((folder, index) => (
           <BreadcrumbItem key={folder.id}>
-            <BreadcrumbSeparator>/</BreadcrumbSeparator>
+            <BreadcrumbSeparator />
             <BreadcrumbLink 
               onClick={() => navigateToBreadcrumb(folder)}
               className={index === breadcrumbs.length - 1 ? "font-semibold" : ""}
@@ -413,6 +418,9 @@ const ImageManager = () => {
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Create New Folder</DialogTitle>
+            <DialogDescription>
+              Enter a name for your new folder.
+            </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">

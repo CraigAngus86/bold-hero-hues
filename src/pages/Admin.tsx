@@ -9,6 +9,7 @@ import SponsorsManager from '@/components/admin/SponsorsManager';
 import TeamManager from '@/components/admin/TeamManager';
 import AdminDatabaseSection from '@/components/admin/AdminDatabaseSection';
 import LeagueTableManager from '@/components/admin/LeagueTableManager';
+import FixturesManager from '@/components/admin/fixtures/FixturesManager';
 
 const Admin = () => {
   return (
@@ -21,12 +22,13 @@ const Admin = () => {
           <p className="text-gray-600 mb-8">Manage website content and settings</p>
           
           <Tabs defaultValue="news" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5 md:w-auto">
+            <TabsList className="grid w-full grid-cols-6 md:w-auto">
               <TabsTrigger value="news">News</TabsTrigger>
               <TabsTrigger value="team">Team</TabsTrigger>
               <TabsTrigger value="sponsors">Sponsors</TabsTrigger>
               <TabsTrigger value="data">Data Management</TabsTrigger>
               <TabsTrigger value="league">League Table</TabsTrigger>
+              <TabsTrigger value="fixtures">Fixtures</TabsTrigger>
             </TabsList>
             
             <TabsContent value="news">
@@ -95,6 +97,20 @@ const Admin = () => {
                 </CardHeader>
                 <CardContent>
                   <LeagueTableManager />
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="fixtures">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Fixtures & Results Management</CardTitle>
+                  <CardDescription>
+                    Manage all match fixtures and results, import/export data, and control what appears on the website.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <FixturesManager />
                 </CardContent>
               </Card>
             </TabsContent>

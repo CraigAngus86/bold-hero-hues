@@ -15,6 +15,12 @@ import {
   exportLeagueData as exportData,
   importLeagueData as importData
 } from './cache/leagueDataCache';
+import { 
+  fetchFixturesFromSupabase, 
+  fetchResultsFromSupabase,
+  fetchMatchesFromSupabase
+} from './supabase/fixturesService';
+import { fetchLeagueTableFromSupabase } from './supabase/leagueDataService';
 
 // Re-export for backward compatibility
 export { clearLeagueDataCache } from './cache/leagueDataCache';
@@ -40,16 +46,34 @@ export const fetchLeagueData = async (forceRefresh = false): Promise<{
       }
     }
     
-    // If no valid cache or force refresh, fetch fresh data
-    console.log('Fetching fresh data...');
-    // Try to use the scraper to get real data
+    // First try to get data from Supabase
+    try {
+      console.log('Fetching data from Supabase...');
+      
+      // Run these in parallel for better performance
+      const [leagueTable, fixtures, results] = await Promise.all([
+        fetchLeagueTableFromSupabase(),
+        fetchFixturesFromSupabase(),
+        fetchResultsFromSupabase()
+      ]);
+      
+      if (leagueTable.length > 0 && (fixtures.length > 0 || results.length > 0)) {
+        const data = { leagueTable, fixtures, results };
+        cacheLeagueData(data);
+        return data;
+      }
+    } catch (error) {
+      console.error('Error fetching from Supabase:', error);
+    }
+    
+    // If Supabase data is not available, try the scraper
+    console.log('Fetching fresh data from scraper...');
     try {
       const config = getApiConfig();
       
       // Use proxy if configured
       if (config.useProxy && config.proxyUrl) {
         console.log(`Using proxy: ${config.proxyUrl}`);
-        // Implementation would depend on your proxy setup
       }
       
       const data = await scrapeHighlandLeagueData();
@@ -75,6 +99,16 @@ export const fetchLeagueData = async (forceRefresh = false): Promise<{
 // Function to fetch and parse the league table data
 export const fetchLeagueTable = async (): Promise<TeamStats[]> => {
   try {
+    // First try to get data from Supabase
+    try {
+      const leagueTable = await fetchLeagueTableFromSupabase();
+      if (leagueTable.length > 0) {
+        return leagueTable;
+      }
+    } catch (error) {
+      console.error('Error fetching league table from Supabase:', error);
+    }
+    
     // Try to scrape the real league table
     try {
       const leagueTable = await scrapeLeagueTable();
@@ -95,6 +129,16 @@ export const fetchLeagueTable = async (): Promise<TeamStats[]> => {
 // Function to fetch and parse the fixtures data
 export const fetchFixtures = async (): Promise<Match[]> => {
   try {
+    // First try to get data from Supabase
+    try {
+      const fixtures = await fetchFixturesFromSupabase();
+      if (fixtures.length > 0) {
+        return fixtures;
+      }
+    } catch (error) {
+      console.error('Error fetching fixtures from Supabase:', error);
+    }
+    
     // Try to scrape the real fixtures
     try {
       const fixtures = await scrapeFixtures();
@@ -115,6 +159,16 @@ export const fetchFixtures = async (): Promise<Match[]> => {
 // Function to fetch and parse the results data
 export const fetchResults = async (): Promise<Match[]> => {
   try {
+    // First try to get data from Supabase
+    try {
+      const results = await fetchResultsFromSupabase();
+      if (results.length > 0) {
+        return results;
+      }
+    } catch (error) {
+      console.error('Error fetching results from Supabase:', error);
+    }
+    
     // Try to scrape the real results
     try {
       const results = await scrapeResults();
@@ -129,5 +183,27 @@ export const fetchResults = async (): Promise<Match[]> => {
   } catch (error) {
     console.error('Error fetching results:', error);
     throw new Error('Failed to fetch results');
+  }
+};
+
+// New function to fetch all matches (for admin pages)
+export const fetchAllMatches = async (): Promise<Match[]> => {
+  try {
+    // First try to get data from Supabase
+    try {
+      const matches = await fetchMatchesFromSupabase();
+      if (matches.length > 0) {
+        return matches;
+      }
+    } catch (error) {
+      console.error('Error fetching all matches from Supabase:', error);
+    }
+    
+    // Fallback to mock data
+    const { mockMatches } = await import('@/components/fixtures/fixturesMockData');
+    return mockMatches;
+  } catch (error) {
+    console.error('Error fetching all matches:', error);
+    throw new Error('Failed to fetch all matches');
   }
 };

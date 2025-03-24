@@ -1,5 +1,6 @@
+
 export interface Match {
-  id: number;
+  id: string | number;
   homeTeam: string;
   awayTeam: string;
   homeScore?: number;

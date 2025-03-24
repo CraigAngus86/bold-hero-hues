@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      competitions: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       highland_league_table: {
         Row: {
           created_at: string | null
@@ -57,6 +84,57 @@ export type Database = {
           position?: number
           team?: string
           won?: number
+        }
+        Relationships: []
+      }
+      matches: {
+        Row: {
+          away_score: number | null
+          away_team: string
+          competition: string
+          created_at: string
+          date: string
+          home_score: number | null
+          home_team: string
+          id: string
+          is_completed: boolean
+          status: string | null
+          time: string
+          updated_at: string
+          venue: string
+          visible: boolean
+        }
+        Insert: {
+          away_score?: number | null
+          away_team: string
+          competition: string
+          created_at?: string
+          date: string
+          home_score?: number | null
+          home_team: string
+          id?: string
+          is_completed?: boolean
+          status?: string | null
+          time: string
+          updated_at?: string
+          venue: string
+          visible?: boolean
+        }
+        Update: {
+          away_score?: number | null
+          away_team?: string
+          competition?: string
+          created_at?: string
+          date?: string
+          home_score?: number | null
+          home_team?: string
+          id?: string
+          is_completed?: boolean
+          status?: string | null
+          time?: string
+          updated_at?: string
+          venue?: string
+          visible?: boolean
         }
         Relationships: []
       }

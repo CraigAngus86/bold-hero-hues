@@ -6,28 +6,40 @@ import { motion } from 'framer-motion';
 import FixturesFilter from '@/components/fixtures/FixturesFilter';
 import MonthFixtures from '@/components/fixtures/MonthFixtures';
 import NoFixturesFound from '@/components/fixtures/NoFixturesFound';
-import { competitions } from '@/components/fixtures/fixturesMockData';
+import { fetchFixtures, fetchResults } from '@/services/leagueDataService';
+import { fetchCompetitionsFromSupabase } from '@/services/supabase/fixturesService';
 import { useFixturesFilter } from '@/hooks/useFixturesFilter';
 import { Match } from '@/components/fixtures/types';
-import { fetchFixtures, fetchResults } from '@/services/leagueDataService';
 import { toast } from "sonner";
 
 const Fixtures = () => {
   const [allMatches, setAllMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [availableCompetitions, setAvailableCompetitions] = useState<string[]>(["All Competitions"]);
   
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
       try {
         // Fetch both fixtures and results
-        const [fixtures, results] = await Promise.all([
+        const [fixtures, results, competitions] = await Promise.all([
           fetchFixtures(),
-          fetchResults()
+          fetchResults(),
+          fetchCompetitionsFromSupabase()
         ]);
         
         // Combine them into a single array
         setAllMatches([...fixtures, ...results]);
+        
+        // Set available competitions
+        if (competitions && competitions.length > 0) {
+          setAvailableCompetitions(["All Competitions", ...competitions]);
+        } else {
+          // Extract unique competitions from matches as fallback
+          const uniqueCompetitions = [...new Set([...fixtures, ...results].map(match => match.competition))];
+          setAvailableCompetitions(["All Competitions", ...uniqueCompetitions.sort()]);
+        }
+        
       } catch (error) {
         console.error('Error loading fixtures data:', error);
         toast.error('Failed to load fixtures and results');
@@ -51,7 +63,7 @@ const Fixtures = () => {
     setShowUpcoming,
     availableMonths,
     clearFilters
-  } = useFixturesFilter({ matches: allMatches, competitions });
+  } = useFixturesFilter({ matches: allMatches, competitions: availableCompetitions });
   
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -87,7 +99,7 @@ const Fixtures = () => {
                 setShowPast={setShowPast}
                 showUpcoming={showUpcoming}
                 setShowUpcoming={setShowUpcoming}
-                competitions={competitions}
+                competitions={availableCompetitions}
                 availableMonths={availableMonths}
                 onClearFilters={clearFilters}
               />

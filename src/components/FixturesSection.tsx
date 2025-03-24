@@ -7,8 +7,9 @@ import RecentResults from './fixtures/RecentResults';
 import LeagueTablePreview from './fixtures/LeagueTablePreview';
 import { TeamStats } from './league/types';
 import { fetchLeagueTableFromSupabase } from '@/services/supabase/leagueDataService';
-import { mockMatches } from '@/components/fixtures/fixturesMockData';
+import { fetchFixturesFromSupabase, fetchResultsFromSupabase } from '@/services/supabase/fixturesService'; 
 import { Match } from './fixtures/types';
+import { toast } from 'sonner';
 
 const FixturesSection = () => {
   const [leagueData, setLeagueData] = useState<TeamStats[] | null>(null);
@@ -17,41 +18,56 @@ const FixturesSection = () => {
   const [recentResults, setRecentResults] = useState<Match[]>([]);
 
   useEffect(() => {
-    const fetchLeagueData = async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true);
-        const data = await fetchLeagueTableFromSupabase();
-        setLeagueData(data);
-        console.log('League data from Supabase:', data);
+        
+        // Fetch all data in parallel
+        const [leagueTable, fixtures, results] = await Promise.all([
+          fetchLeagueTableFromSupabase(),
+          fetchFixturesFromSupabase(),
+          fetchResultsFromSupabase()
+        ]);
+        
+        setLeagueData(leagueTable);
+        
+        // Get upcoming matches (next 3)
+        setUpcomingMatches(fixtures.slice(0, 3));
+        
+        // Get recent results (last 3)
+        setRecentResults(results.slice(0, 3));
+        
+        console.log('Data loaded from Supabase successfully');
       } catch (error) {
-        console.error('Error fetching league data:', error);
+        console.error('Error fetching data:', error);
+        toast.error('Failed to load fixtures and results data');
+        
+        // Fall back to mock data if needed
+        const { mockMatches } = await import('@/components/fixtures/fixturesMockData');
+        
+        // Filter and prepare match data
+        const today = new Date();
+        
+        // Get upcoming matches (not completed and in the future)
+        const upcoming = mockMatches
+          .filter(match => !match.isCompleted && new Date(match.date) >= today)
+          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+          .slice(0, 3); // Show only next 3 matches
+        
+        // Get recent results (completed)
+        const recent = mockMatches
+          .filter(match => match.isCompleted)
+          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+          .slice(0, 3); // Show only last 3 matches
+        
+        setUpcomingMatches(upcoming);
+        setRecentResults(recent);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchLeagueData();
-    
-    // Filter and prepare match data
-    const today = new Date();
-    
-    // Get upcoming matches (not completed and in the future)
-    const upcoming = mockMatches
-      .filter(match => !match.isCompleted && new Date(match.date) >= today)
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      .slice(0, 3); // Show only next 3 matches
-    
-    // Get recent results (completed)
-    const recent = mockMatches
-      .filter(match => match.isCompleted)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 3); // Show only last 3 matches
-    
-    setUpcomingMatches(upcoming);
-    setRecentResults(recent);
-    
-    console.log('Recent results:', recent);
-    console.log('Upcoming matches:', upcoming);
+    fetchData();
   }, []);
 
   return (
@@ -66,19 +82,26 @@ const FixturesSection = () => {
           Results, Fixtures & League Table
         </motion.h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div className="md:col-span-1">
-            <RecentResults matches={recentResults} />
+        {isLoading ? (
+          <div className="h-48 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-team-blue"></div>
+            <p className="ml-3 text-gray-600">Loading data...</p>
           </div>
-          
-          <div className="md:col-span-1">
-            <UpcomingFixtures matches={upcomingMatches} />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="md:col-span-1">
+              <RecentResults matches={recentResults} />
+            </div>
+            
+            <div className="md:col-span-1">
+              <UpcomingFixtures matches={upcomingMatches} />
+            </div>
+            
+            <div className="md:col-span-1">
+              <LeagueTablePreview leagueData={leagueData} />
+            </div>
           </div>
-          
-          <div className="md:col-span-1">
-            <LeagueTablePreview leagueData={leagueData} />
-          </div>
-        </div>
+        )}
       </div>
     </section>
   );

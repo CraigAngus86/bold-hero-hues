@@ -1,3 +1,4 @@
+
 import { useNavigate } from 'react-router-dom';
 import { Trophy } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -25,11 +26,12 @@ const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
       // If Banks o' Dee is not in the data, just return top 6
       return leagueData.slice(0, 6);
     } else {
-      // Make sure we include Banks o' Dee and 5 other teams
+      // Make sure we include Banks o' Dee and other teams to total 6
       const result = [...leagueData.slice(0, 5)]; // Get top 5 teams
       
-      // If Banks o' Dee is already in top 5, we're done
+      // If Banks o' Dee is already in top 5, add the 6th team
       if (banksODeeIndex < 5) {
+        result.push(leagueData[5]);
         return result;
       }
       
@@ -48,19 +50,19 @@ const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
   
   return (
     <Card className="overflow-hidden border-team-gray hover:shadow-md transition-shadow bg-white flex flex-col h-full">
-      <div className="bg-[#00105a] text-white font-medium p-2 flex items-center justify-center">
+      <div className="bg-[#00105a] text-white font-medium p-3 flex items-center justify-center">
         <Trophy className="w-4 h-4 mr-2" />
         <h3 className="text-lg font-semibold">Highland League</h3>
       </div>
-      <CardContent className="p-2 flex-1 flex flex-col">
+      <CardContent className="p-3 flex-1 flex flex-col">
         <div className="text-xs flex-1">
           <Table>
             <TableHeader className="bg-team-lightBlue">
               <TableRow>
-                <TableHead className="h-8 py-1 text-[#00105a]">Pos</TableHead>
-                <TableHead className="h-8 py-1 text-[#00105a] text-left">Team</TableHead>
-                <TableHead className="h-8 py-1 text-[#00105a] text-center">P</TableHead>
-                <TableHead className="h-8 py-1 text-[#00105a] text-center">Pts</TableHead>
+                <TableHead className="h-9 py-1.5 text-[#00105a]">Pos</TableHead>
+                <TableHead className="h-9 py-1.5 text-[#00105a] text-left">Team</TableHead>
+                <TableHead className="h-9 py-1.5 text-[#00105a] text-center">P</TableHead>
+                <TableHead className="h-9 py-1.5 text-[#00105a] text-center">Pts</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -70,8 +72,8 @@ const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
                     key={team.position}
                     className={team.team.toLowerCase().includes("banks o") ? "bg-team-lightBlue/30" : ""}
                   >
-                    <TableCell className="py-1 font-medium text-center">{team.position}</TableCell>
-                    <TableCell className="py-1 font-medium">
+                    <TableCell className="py-1.5 font-medium text-center">{team.position}</TableCell>
+                    <TableCell className="py-1.5 font-medium">
                       <div className="flex items-center space-x-1">
                         {team.team.toLowerCase().includes("banks o") ? (
                           <img 
@@ -89,8 +91,8 @@ const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
                         <span className="text-xs truncate max-w-[90px]">{team.team}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="py-1 text-center text-xs">{team.played}</TableCell>
-                    <TableCell className="py-1 text-center text-xs font-bold">{team.points}</TableCell>
+                    <TableCell className="py-1.5 text-center text-xs">{team.played}</TableCell>
+                    <TableCell className="py-1.5 text-center text-xs font-bold">{team.points}</TableCell>
                   </TableRow>
                 ))
               ) : (
@@ -103,10 +105,10 @@ const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
             </TableBody>
           </Table>
         </div>
-        <div className="mt-2 text-center">
+        <div className="mt-3 text-center">
           <button 
             onClick={handleNavigateToTable}
-            className="inline-block px-3 py-1.5 bg-[#00105a] text-white text-xs font-medium rounded hover:bg-[#c5e7ff] hover:text-[#00105a] transition-colors w-full"
+            className="inline-block px-3 py-2 bg-[#00105a] text-white text-xs font-medium rounded hover:bg-[#c5e7ff] hover:text-[#00105a] transition-colors w-full"
           >
             Full Table
           </button>

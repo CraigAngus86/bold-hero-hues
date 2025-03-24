@@ -11,25 +11,25 @@ interface UpcomingFixturesProps {
 const UpcomingFixtures = ({ matches }: UpcomingFixturesProps) => {
   return (
     <Card className="overflow-hidden border-team-gray hover:shadow-md transition-shadow bg-white flex flex-col h-full">
-      <div className="bg-[#00105a] text-white font-medium p-2 flex items-center justify-center">
+      <div className="bg-[#00105a] text-white font-medium p-3 flex items-center justify-center">
         <CalendarDays className="w-4 h-4 mr-2" />
         <h3 className="text-lg font-semibold">Upcoming Fixtures</h3>
       </div>
-      <CardContent className="p-2 flex-1 flex flex-col">
-        <div className="space-y-0.5 flex-1">
+      <CardContent className="p-3 flex-1 flex flex-col">
+        <div className="space-y-2 flex-1">
           {matches.map((match) => (
-            <div key={match.id} className="p-1 border-b border-gray-100 last:border-0">
-              <div className="text-xs text-[#00105a] font-medium">
+            <div key={match.id} className="py-2 border-b border-gray-100 last:border-0">
+              <div className="text-xs text-[#00105a] font-medium text-center mb-1.5">
                 {match.competition} • {formatDate(match.date)} • {match.time}
               </div>
-              <div className="flex items-center justify-between text-sm my-0.5">
+              <div className="flex items-center justify-between text-sm my-1.5">
                 <div className="flex items-center w-[40%] justify-end pr-2">
                   <span className={`font-medium ${match.homeTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
                     {match.homeTeam}
                   </span>
                 </div>
                 <div className="flex items-center justify-center w-[20%]">
-                  <span className="font-bold text-xs w-6 h-6 flex items-center justify-center bg-[#c5e7ff] rounded-sm">VS</span>
+                  <span className="font-bold text-xs w-7 h-7 flex items-center justify-center bg-[#c5e7ff] rounded-sm">VS</span>
                 </div>
                 <div className="flex items-center w-[40%] justify-start pl-2">
                   <span className={`font-medium ${match.awayTeam === "Banks o' Dee" ? "text-[#00105a]" : ""}`}>
@@ -37,22 +37,22 @@ const UpcomingFixtures = ({ matches }: UpcomingFixturesProps) => {
                   </span>
                 </div>
               </div>
-              <div className="text-xs text-gray-500 text-center">
+              <div className="text-xs text-gray-500 text-center mt-1.5">
                 {match.venue}
               </div>
             </div>
           ))}
         </div>
-        <div className="mt-2 grid grid-cols-2 gap-1">
+        <div className="mt-3 grid grid-cols-2 gap-1">
           <Link 
             to="/fixtures" 
-            className="inline-flex items-center justify-center px-3 py-1.5 bg-[#00105a] text-white text-xs font-medium rounded hover:bg-[#c5e7ff] hover:text-[#00105a] transition-colors text-center"
+            className="inline-flex items-center justify-center px-3 py-2 bg-[#00105a] text-white text-xs font-medium rounded hover:bg-[#c5e7ff] hover:text-[#00105a] transition-colors text-center"
           >
             All Fixtures
           </Link>
           <Link 
             to="/tickets" 
-            className="inline-flex items-center justify-center px-3 py-1.5 bg-white text-[#00105a] border border-[#00105a] text-xs font-medium rounded hover:bg-[#c5e7ff] hover:text-[#00105a] transition-colors"
+            className="inline-flex items-center justify-center px-3 py-2 bg-white text-[#00105a] border border-[#00105a] text-xs font-medium rounded hover:bg-[#c5e7ff] hover:text-[#00105a] transition-colors"
           >
             <Ticket className="w-3 h-3 mr-1" /> Tickets
           </Link>

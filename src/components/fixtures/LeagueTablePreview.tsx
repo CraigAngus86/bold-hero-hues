@@ -1,21 +1,27 @@
 
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Trophy } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { TeamStats } from '../league/types';
+import FormIndicator from '../league/FormIndicator';
 
 interface LeagueTablePreviewProps {
   leagueData: TeamStats[] | null;
 }
 
 const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
+  const navigate = useNavigate();
+  
   // Handle empty or null data with sensible defaults
   const getPreviewTeams = () => {
     if (!leagueData || leagueData.length === 0) return [];
     
     // Find Banks o' Dee position
-    const banksODeeIndex = leagueData.findIndex(team => team.team === "Banks o' Dee");
+    const banksODeeIndex = leagueData.findIndex(team => 
+      team.team.toLowerCase().includes("banks o' dee") || 
+      team.team.toLowerCase().includes("banks o dee")
+    );
     
     if (banksODeeIndex === -1) {
       // If Banks o' Dee is not in the data, just return top 6
@@ -35,6 +41,11 @@ const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
     }
   };
   
+  const handleNavigateToTable = () => {
+    navigate('/table');
+    window.scrollTo(0, 0);
+  };
+  
   const previewTeams = getPreviewTeams();
   
   return (
@@ -52,6 +63,7 @@ const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
                 <TableHead className="h-8 py-1 text-[#00105a] text-left">Team</TableHead>
                 <TableHead className="h-8 py-1 text-[#00105a] text-center">P</TableHead>
                 <TableHead className="h-8 py-1 text-[#00105a] text-center">Pts</TableHead>
+                <TableHead className="h-8 py-1 text-[#00105a] text-center">Form</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -59,34 +71,45 @@ const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
                 previewTeams.map((team) => (
                   <TableRow 
                     key={team.position}
-                    className={team.team === "Banks o' Dee" ? "bg-team-lightBlue/30" : ""}
+                    className={team.team.toLowerCase().includes("banks o") ? "bg-team-lightBlue/30" : ""}
                   >
                     <TableCell className="py-1 font-medium text-center">{team.position}</TableCell>
                     <TableCell className="py-1 font-medium">
                       <div className="flex items-center space-x-1">
-                        {team.team === "Banks o' Dee" ? (
+                        {team.team.toLowerCase().includes("banks o") ? (
                           <img 
                             src="/lovable-uploads/banks-o-dee-logo.png" 
                             alt="Banks o' Dee logo"
-                            className="w-5 h-5 object-contain"
+                            className="w-4 h-4 object-contain"
                           />
                         ) : (
                           <img 
                             src={team.logo || "https://placehold.co/40x40/team-white/team-blue?text=Logo"} 
                             alt={`${team.team} logo`}
-                            className="w-5 h-5 object-contain"
+                            className="w-4 h-4 object-contain"
                           />
                         )}
-                        <span>{team.team}</span>
+                        <span className="text-xs truncate max-w-[90px]">{team.team}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="py-1 text-center">{team.played}</TableCell>
-                    <TableCell className="py-1 text-center font-bold">{team.points}</TableCell>
+                    <TableCell className="py-1 text-center text-xs">{team.played}</TableCell>
+                    <TableCell className="py-1 text-center text-xs font-bold">{team.points}</TableCell>
+                    <TableCell className="py-1">
+                      <div className="flex space-x-1 justify-center">
+                        {team.form && team.form.length > 0 ? (
+                          team.form.slice(0, 3).map((result, idx) => (
+                            <FormIndicator key={idx} result={result} />
+                          ))
+                        ) : (
+                          <span className="text-gray-400 text-xs">-</span>
+                        )}
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-2 text-gray-500">
+                  <TableCell colSpan={5} className="text-center py-2 text-gray-500">
                     No league data available
                   </TableCell>
                 </TableRow>
@@ -95,12 +118,12 @@ const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
           </Table>
         </div>
         <div className="mt-2 text-center">
-          <Link 
-            to="/table" 
+          <button 
+            onClick={handleNavigateToTable}
             className="inline-block px-3 py-1.5 bg-[#00105a] text-white text-xs font-medium rounded hover:bg-[#c5e7ff] hover:text-[#00105a] transition-colors w-full"
           >
             Full Table
-          </Link>
+          </button>
         </div>
       </CardContent>
     </Card>

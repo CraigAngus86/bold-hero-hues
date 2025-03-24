@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import UpcomingFixtures from './fixtures/UpcomingFixtures';
 import RecentResults from './fixtures/RecentResults';
 import LeagueTablePreview from './fixtures/LeagueTablePreview';
@@ -21,6 +22,7 @@ const FixturesSection = () => {
         setIsLoading(true);
         const data = await fetchLeagueTableFromSupabase();
         setLeagueData(data);
+        console.log('League data from Supabase:', data);
       } catch (error) {
         console.error('Error fetching league data:', error);
       } finally {

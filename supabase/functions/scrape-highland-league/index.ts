@@ -213,14 +213,28 @@ serve(async (req) => {
           if (cells.length > 10) {
             const formCell = $(cells[10])
             
-            // Look for form icons
-            formCell.find('.gs-o-status-icon, .gel-icon').each((i, el) => {
+            // First try to find form icons by class names
+            formCell.find('[class*="gs-o-status-icon"], [class*="gel-icon"]').each((i, el) => {
               const className = $(el).attr('class') || ''
               if (className.includes('win')) form.push('W')
               else if (className.includes('draw')) form.push('D')
-              else if (className.includes('loss')) form.push('L')
+              else if (className.includes('loss') || className.includes('defeat')) form.push('L')
             })
+            
+            // If no form icons found, try parsing text content
+            if (form.length === 0) {
+              const formText = formCell.text().trim()
+              if (formText) {
+                formText.split('').forEach(char => {
+                  if (char === 'W' || char === 'w') form.push('W')
+                  else if (char === 'D' || char === 'd') form.push('D')
+                  else if (char === 'L' || char === 'l') form.push('L')
+                })
+              }
+            }
           }
+          
+          console.log(`Edge Function: Extracted form for ${teamName}:`, form)
           
           // Create a team stats object
           leagueData.push({

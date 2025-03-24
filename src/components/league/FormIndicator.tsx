@@ -16,7 +16,7 @@ const FormIndicator = ({ result }: FormIndicatorProps) => {
   };
   
   return (
-    <span className={`${getColor(result)} text-white text-xs font-bold w-5 h-5 inline-flex items-center justify-center rounded-full`}>
+    <span className={`${getColor(result)} text-white text-xs font-bold w-4 h-4 inline-flex items-center justify-center rounded-full`}>
       {result}
     </span>
   );

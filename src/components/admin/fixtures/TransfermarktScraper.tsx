@@ -24,21 +24,21 @@ export default function TransfermarktScraper({ defaultUrl }: TransfermarktScrape
   const [success, setSuccess] = useState(false);
   const [htmlSample, setHtmlSample] = useState<string | null>(null);
   const [transfermarktUrl, setTransfermarktUrl] = useState<string>(
-    defaultUrl || 'https://www.transfermarkt.com/banks-o-dee-fc/spielplandatum/verein/25442/plus/0?saison_id=&wettbewerb_id=&day=&heim_gast=&punkte=&datum_von=&datum_bis='
+    defaultUrl || 'https://www.transfermarkt.com/banks-o-dee-fc/spielplan/verein/25442/saison_id/2023'
   );
   
   const urlOptions = [
     {
-      label: 'All Competitions (Recommended)',
+      label: 'Current Season',
+      value: 'https://www.transfermarkt.com/banks-o-dee-fc/spielplan/verein/25442/saison_id/2023'
+    },
+    {
+      label: 'All Competitions',
       value: 'https://www.transfermarkt.com/banks-o-dee-fc/spielplandatum/verein/25442/plus/0?saison_id=&wettbewerb_id=&day=&heim_gast=&punkte=&datum_von=&datum_bis='
     },
     {
       label: 'Highland League Only',
-      value: 'https://www.transfermarkt.com/banks-o-dee-fc/spielplandatum/verein/25442/plus/0?saison_id=&wettbewerb_id=SC5H&day=&heim_gast=&punkte=&datum_von=&datum_bis='
-    },
-    {
-      label: 'Current Season',
-      value: 'https://www.transfermarkt.com/banks-o-dee-fc/spielplandatum/verein/25442/plus/0?saison_id=2024&wettbewerb_id=&day=&heim_gast=&punkte=&datum_von=&datum_bis='
+      value: 'https://www.transfermarkt.com/banks-o-dee-fc/spielplan/verein/25442/saison_id/2023/wettbewerb_id/SC5H'
     }
   ];
 

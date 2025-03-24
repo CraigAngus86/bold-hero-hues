@@ -29,7 +29,7 @@ export interface ScrapedFixture {
 export class FirecrawlService {
   private static API_KEY_STORAGE_KEY = 'firecrawl_api_key';
   private static DEFAULT_API_KEY = 'fc-83bcbd73547640f0a7b2be29068dadad';
-  private static TRANSFERMARKT_URL = 'https://www.transfermarkt.com/banks-o-dee-fc/spielplandatum/verein/25442/plus/0?saison_id=&wettbewerb_id=&day=&heim_gast=&punkte=&datum_von=&datum_bis=';
+  private static TRANSFERMARKT_URL = 'https://www.transfermarkt.com/banks-o-dee-fc/spielplan/verein/25442/saison_id/2023';
 
   // Expanded list of CORS proxies to try in order
   private static CORS_PROXIES = [
@@ -240,9 +240,22 @@ export class FirecrawlService {
       console.log(`Found ${fixtureRows.length} potential fixture rows`);
       
       let currentCompetition = 'Highland League';
+      let currentDate = '';
       
       fixtureRows.forEach((row, index) => {
         try {
+          // Check if this is a date row
+          const dateCell = row.querySelector('td.spieltagsansetzung');
+          if (dateCell) {
+            const dateText = dateCell.textContent?.trim() || '';
+            const dateMatch = dateText.match(/\d{2}[./-]\d{2}[./-]\d{2,4}/);
+            if (dateMatch) {
+              currentDate = this.formatDate(dateMatch[0]);
+              console.log(`Found date: ${currentDate}`);
+            }
+            return; // Skip this row, it's just a date header
+          }
+          
           // Check if this is a competition header row
           const competitionHeader = row.querySelector('td.hauptlink');
           if (competitionHeader) {
@@ -251,135 +264,348 @@ export class FirecrawlService {
             return; // Skip processing this row as a fixture
           }
           
-          // Extract date
-          const dateCell = row.querySelector('td:nth-child(1)');
-          let dateStr = dateCell?.textContent?.trim() || '';
+          // Extract fixture details
+          const cells = row.querySelectorAll('td');
           
-          // Format date as YYYY-MM-DD
-          let date = new Date().toISOString().split('T')[0]; // Default to today
-          if (dateStr) {
-            try {
-              // Transfermarkt format is typically DD/MM/YYYY or DD.MM.YYYY
-              const dateParts = dateStr.split(/[\/\.-]/);
-              if (dateParts.length === 3) {
-                const day = dateParts[0].padStart(2, '0');
-                const month = dateParts[1].padStart(2, '0');
-                const year = dateParts[2].length === 2 ? '20' + dateParts[2] : dateParts[2];
-                date = `${year}-${month}-${day}`;
-              }
-            } catch (e) {
-              console.warn(`Could not parse date: ${dateStr}`);
+          // Skip if not enough cells
+          if (cells.length < 3) return;
+          
+          // Try to extract time
+          let time = '15:00'; // Default time
+          Array.from(cells).some(cell => {
+            const cellText = cell.textContent?.trim() || '';
+            const timeMatch = cellText.match(/^\d{1,2}:\d{2}$/);
+            if (timeMatch) {
+              time = cellText;
+              return true;
             }
-          }
+            return false;
+          });
           
-          // Extract time
-          const timeCell = row.querySelector('td:nth-child(2)');
-          const time = timeCell?.textContent?.trim() || '15:00';
-          
-          // Extract home/away status
-          const homeAwayCell = row.querySelector('td:nth-child(3)');
-          const isHome = homeAwayCell?.textContent?.trim().toLowerCase().includes('h');
-          
-          // Extract teams
-          const matchCell = row.querySelector('td:nth-child(5) a');
-          let matchText = matchCell?.textContent?.trim() || '';
-          
-          // Extract teams and scores from match text (e.g. "Banks O'Dee 2:1 Inverurie Loco Works")
-          let homeTeam = 'Unknown';
-          let awayTeam = 'Unknown';
-          let homeScore: number | null = null;
-          let awayScore: number | null = null;
+          // Extract teams and score
+          let homeTeam = '', awayTeam = '';
+          let homeScore = null, awayScore = null;
           let isCompleted = false;
           
-          if (matchText.includes(':')) {
-            // This is likely a completed match with score
-            const scoreSplit = matchText.split(':');
+          // Look for the cell with match information
+          Array.from(cells).forEach(cell => {
+            const cellText = cell.textContent?.trim() || '';
             
-            if (scoreSplit.length >= 2) {
-              // Extract home team and score
-              const homeScoreParts = scoreSplit[0].trim().split(/\s+/);
-              if (homeScoreParts.length > 1) {
-                homeScore = parseInt(homeScoreParts.pop() || '0', 10);
-                homeTeam = homeScoreParts.join(' ');
-              } else {
-                homeTeam = homeScoreParts[0];
-              }
+            // Try different patterns
+            if (cellText.includes(' - ') || cellText.includes(' : ') || cellText.includes(' vs ')) {
+              console.log(`Found match text: ${cellText}`);
               
-              // Extract away team and score
-              const awayScoreParts = scoreSplit[1].trim().split(/\s+/);
-              if (awayScoreParts.length > 0) {
-                awayScore = parseInt(awayScoreParts[0], 10);
-                awayTeam = awayScoreParts.slice(1).join(' ');
-              }
+              let separator = ' - ';
+              if (cellText.includes(' : ')) separator = ' : ';
+              if (cellText.includes(' vs ')) separator = ' vs ';
               
-              isCompleted = true;
+              const parts = cellText.split(separator);
+              if (parts.length >= 2) {
+                homeTeam = parts[0].trim();
+                awayTeam = parts[1].trim();
+                
+                // Check for scores
+                const scoreMatch = cellText.match(/(\d+)\s*[:]\s*(\d+)/);
+                if (scoreMatch) {
+                  homeScore = parseInt(scoreMatch[1]);
+                  awayScore = parseInt(scoreMatch[2]);
+                  isCompleted = true;
+                  
+                  // Clean up team names
+                  homeTeam = homeTeam.replace(/\d+$/, '').trim();
+                  awayTeam = awayTeam.replace(/^\d+/, '').trim();
+                }
+              }
             }
-          } else if (matchText.includes(' - ')) {
-            // This is likely an upcoming match
-            const teams = matchText.split(' - ');
-            if (teams.length === 2) {
-              homeTeam = teams[0].trim();
-              awayTeam = teams[1].trim();
-            }
-          } else if (matchText.includes('vs')) {
-            // Alternative format
-            const teams = matchText.split('vs');
-            if (teams.length === 2) {
-              homeTeam = teams[0].trim();
-              awayTeam = teams[1].trim();
-            }
+          });
+          
+          // If we don't have a date from a date row, try to extract from the fixture row
+          if (!currentDate) {
+            Array.from(cells).some(cell => {
+              const cellText = cell.textContent?.trim() || '';
+              const dateMatch = cellText.match(/\d{2}[./-]\d{2}[./-]\d{2,4}/);
+              if (dateMatch) {
+                currentDate = this.formatDate(dateMatch[0]);
+                return true;
+              }
+              return false;
+            });
           }
           
-          // If we're the away team, swap home and away
-          if (!isHome && homeTeam.toLowerCase().includes('banks o') && !awayTeam.toLowerCase().includes('banks o')) {
-            const tempTeam = homeTeam;
-            homeTeam = awayTeam;
-            awayTeam = tempTeam;
-            
-            if (isCompleted) {
-              const tempScore = homeScore;
-              homeScore = awayScore;
-              awayScore = tempScore;
-            }
+          // If we still don't have a date, use today's date
+          if (!currentDate) {
+            currentDate = new Date().toISOString().split('T')[0];
           }
-          
-          // Determine venue (simple assumption)
-          const venue = isHome ? "Spain Park" : "Away";
           
           // Only add if we have valid teams
-          if (homeTeam !== 'Unknown' && awayTeam !== 'Unknown') {
-            // Generate a truly unique ID for each fixture
-            const fixtureId = `${date}-${homeTeam.substring(0, 3)}-${awayTeam.substring(0, 3)}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+          if (homeTeam && awayTeam) {
+            // Generate a unique ID for each fixture
+            const fixtureId = `transfermarkt-${currentDate}-${homeTeam}-${awayTeam}`.replace(/\s+/g, '-').toLowerCase();
             
+            // If homeTeam is just a number, it's invalid
+            if (/^\d+$/.test(homeTeam)) {
+              homeTeam = `Unknown Team ${homeTeam}`;
+            }
+            
+            // If awayTeam is just a number, it's invalid
+            if (/^\d+$/.test(awayTeam)) {
+              awayTeam = `Unknown Team ${awayTeam}`;
+            }
+            
+            // Create the fixture
             fixtures.push({
               id: fixtureId,
-              homeTeam,
-              awayTeam,
-              date,
+              date: currentDate,
               time,
               competition: currentCompetition,
-              venue,
+              homeTeam,
+              awayTeam,
+              venue: homeTeam.includes("Banks O") ? "Spain Park" : "Away",
               isCompleted,
               homeScore,
               awayScore
             });
+            
+            console.log(`Added fixture: ${homeTeam} vs ${awayTeam} on ${currentDate}`);
           }
         } catch (err) {
-          console.warn(`Error parsing fixture row ${index}:`, err);
+          console.warn(`Error parsing row ${index}:`, err);
         }
       });
       
-      // If no fixtures were parsed but HTML was received, there may be an issue with the HTML structure
-      if (fixtures.length === 0 && html.length > 0) {
-        console.warn('HTML was received but no fixtures could be parsed. The website structure may have changed.');
-        // Save sample HTML for debugging
-        localStorage.setItem('lastTransfermarktHtml', html.substring(0, 10000));
+      // If no fixtures were found using the primary approach, try a fallback approach
+      if (fixtures.length === 0) {
+        console.log('No fixtures found with primary approach, trying fallback method...');
+        
+        // Try to find tables with potential fixtures
+        const tables = doc.querySelectorAll('table');
+        console.log(`Found ${tables.length} tables to check`);
+        
+        tables.forEach((table, tableIndex) => {
+          const rows = table.querySelectorAll('tr');
+          console.log(`Table ${tableIndex + 1} has ${rows.length} rows`);
+          
+          let localDate = '';
+          
+          rows.forEach((row, rowIndex) => {
+            try {
+              const cells = row.querySelectorAll('td');
+              
+              // Skip rows with too few cells
+              if (cells.length < 2) return;
+              
+              // Check if this might be a date row
+              const firstCellText = cells[0].textContent?.trim() || '';
+              const dateMatch = firstCellText.match(/\d{2}[./-]\d{2}[./-]\d{2,4}/);
+              if (dateMatch && cells.length <= 2) {
+                localDate = this.formatDate(dateMatch[0]);
+                console.log(`Found date in table ${tableIndex + 1}, row ${rowIndex}: ${localDate}`);
+                return;
+              }
+              
+              // Try to find match information
+              let matchFound = false;
+              Array.from(cells).forEach(cell => {
+                const cellText = cell.textContent?.trim() || '';
+                
+                // Look for text that might be a fixture
+                if (cellText.includes(' - ') || cellText.includes(' : ') || cellText.includes(' vs ')) {
+                  console.log(`Potential match found in table ${tableIndex + 1}, row ${rowIndex}: ${cellText}`);
+                  
+                  let separator = ' - ';
+                  if (cellText.includes(' : ')) separator = ' : ';
+                  if (cellText.includes(' vs ')) separator = ' vs ';
+                  
+                  const parts = cellText.split(separator);
+                  if (parts.length >= 2) {
+                    let homeTeam = parts[0].trim();
+                    let awayTeam = parts[1].trim();
+                    
+                    // Check for scores
+                    const scoreMatch = cellText.match(/(\d+)\s*[:]\s*(\d+)/);
+                    let homeScore = null, awayScore = null;
+                    let isCompleted = false;
+                    
+                    if (scoreMatch) {
+                      homeScore = parseInt(scoreMatch[1]);
+                      awayScore = parseInt(scoreMatch[2]);
+                      isCompleted = true;
+                      
+                      // Clean up team names
+                      homeTeam = homeTeam.replace(/\d+$/, '').trim();
+                      awayTeam = awayTeam.replace(/^\d+/, '').trim();
+                    }
+                    
+                    // If we don't have a date, try to find one in nearby cells
+                    let matchDate = localDate;
+                    if (!matchDate) {
+                      Array.from(cells).some(nearbyCell => {
+                        const nearbyCellText = nearbyCell.textContent?.trim() || '';
+                        const nearbyDateMatch = nearbyCellText.match(/\d{2}[./-]\d{2}[./-]\d{2,4}/);
+                        if (nearbyDateMatch) {
+                          matchDate = this.formatDate(nearbyDateMatch[0]);
+                          return true;
+                        }
+                        return false;
+                      });
+                    }
+                    
+                    // If we still don't have a date, use today's date
+                    if (!matchDate) {
+                      matchDate = new Date().toISOString().split('T')[0];
+                    }
+                    
+                    // Only add if both teams are valid
+                    if (homeTeam && awayTeam) {
+                      // Generate a unique ID for each fixture
+                      const fixtureId = `transfermarkt-${matchDate}-${homeTeam}-${awayTeam}`.replace(/\s+/g, '-').toLowerCase();
+                      
+                      // If homeTeam is just a number, it's invalid
+                      if (/^\d+$/.test(homeTeam)) {
+                        homeTeam = `Unknown Team ${homeTeam}`;
+                      }
+                      
+                      // If awayTeam is just a number, it's invalid
+                      if (/^\d+$/.test(awayTeam)) {
+                        awayTeam = `Unknown Team ${awayTeam}`;
+                      }
+                      
+                      // Create the fixture
+                      fixtures.push({
+                        id: fixtureId,
+                        date: matchDate,
+                        time: '15:00',  // Default time
+                        competition: 'Highland League',  // Default competition
+                        homeTeam,
+                        awayTeam,
+                        venue: homeTeam.includes("Banks O") ? "Spain Park" : "Away",
+                        isCompleted,
+                        homeScore,
+                        awayScore
+                      });
+                      
+                      console.log(`Added match from fallback method: ${homeTeam} vs ${awayTeam} on ${matchDate}`);
+                      matchFound = true;
+                    }
+                  }
+                }
+              });
+              
+              // Return after adding a match to avoid duplicate processing
+              if (matchFound) return;
+              
+            } catch (err) {
+              console.warn(`Error parsing row in fallback method:`, err);
+            }
+          });
+        });
       }
       
-      return fixtures;
+      // Deduplicate fixtures
+      const uniqueFixtures = this.deduplicateFixtures(fixtures);
+      
+      // Clean up fixtures
+      const cleanedFixtures = this.cleanupFixtures(uniqueFixtures);
+      
+      console.log(`Final fixtures count after cleanup: ${cleanedFixtures.length}`);
+      
+      return cleanedFixtures;
     } catch (error) {
       console.error('Error parsing Transfermarkt fixtures:', error);
       return [];
     }
   }
+  
+  // Format date consistently
+  private static formatDate(dateText: string): string {
+    try {
+      if (!dateText) {
+        return new Date().toISOString().split('T')[0];
+      }
+      
+      // If already in YYYY-MM-DD format
+      if (dateText.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        return dateText;
+      }
+      
+      // Format DD.MM.YYYY or DD/MM/YYYY to YYYY-MM-DD
+      const dateMatch = dateText.match(/(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})/);
+      if (dateMatch) {
+        const day = dateMatch[1].padStart(2, '0');
+        const month = dateMatch[2].padStart(2, '0');
+        let year = dateMatch[3];
+        
+        // Handle 2-digit years
+        if (year.length === 2) {
+          year = '20' + year;
+        }
+        
+        return `${year}-${month}-${day}`;
+      }
+      
+      // Default to today's date if parsing fails
+      return new Date().toISOString().split('T')[0];
+    } catch (e) {
+      console.error("Error formatting date:", e);
+      return new Date().toISOString().split('T')[0];
+    }
+  }
+  
+  // Remove duplicate fixtures
+  private static deduplicateFixtures(fixtures: ScrapedFixture[]): ScrapedFixture[] {
+    const seen = new Set();
+    return fixtures.filter(fixture => {
+      const key = `${fixture.date}-${fixture.homeTeam}-${fixture.awayTeam}`.toLowerCase();
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    });
+  }
+  
+  // Clean up fixture data
+  private static cleanupFixtures(fixtures: ScrapedFixture[]): ScrapedFixture[] {
+    return fixtures.map(fixture => {
+      // Ensure home and away teams are proper team names, not just numbers
+      if (/^\d+$/.test(fixture.homeTeam)) {
+        fixture.homeTeam = `Unknown Team ${fixture.homeTeam}`;
+      }
+      
+      if (/^\d+$/.test(fixture.awayTeam)) {
+        fixture.awayTeam = `Unknown Team ${fixture.awayTeam}`;
+      }
+      
+      // Fix Banks O' Dee variations
+      if (fixture.homeTeam.toLowerCase().includes('banks') && fixture.homeTeam.toLowerCase().includes('dee')) {
+        fixture.homeTeam = "Banks O' Dee FC";
+      }
+      
+      if (fixture.awayTeam.toLowerCase().includes('banks') && fixture.awayTeam.toLowerCase().includes('dee')) {
+        fixture.awayTeam = "Banks O' Dee FC";
+      }
+      
+      // Ensure fixture has Banks O' Dee in either home or away
+      const hasBanks = fixture.homeTeam.includes("Banks O' Dee") || fixture.awayTeam.includes("Banks O' Dee");
+      if (!hasBanks) {
+        // If this is a Spain Park venue, make Banks the home team
+        if (fixture.venue === "Spain Park") {
+          fixture.homeTeam = "Banks O' Dee FC";
+        } else {
+          // Otherwise make them the away team
+          fixture.awayTeam = "Banks O' Dee FC";
+        }
+      }
+      
+      // Ensure fixture has proper venue
+      if (fixture.homeTeam.includes("Banks O' Dee")) {
+        fixture.venue = "Spain Park";
+      } else if (fixture.awayTeam.includes("Banks O' Dee")) {
+        fixture.venue = "Away";
+      }
+      
+      return fixture;
+    });
+  }
 }
+

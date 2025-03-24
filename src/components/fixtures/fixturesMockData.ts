@@ -1,3 +1,4 @@
+
 import { Match } from './types';
 
 // Mock data for demonstration - this would be fetched from an API
@@ -88,22 +89,22 @@ export const mockMatches: Match[] = [
     isCompleted: true,
     venue: "Spain Park"
   },
+  // UPDATED: Future fixtures with dates after current date (2025-03-24)
   {
     id: 4,
     homeTeam: "Banks o' Dee",
     awayTeam: "Buckie Thistle",
-    date: "2024-09-30",
+    date: "2025-04-15",
     time: "15:00",
     competition: "Highland League",
     isCompleted: false,
     venue: "Spain Park"
   },
-  // October
   {
     id: 5,
     homeTeam: "Fraserburgh",
     awayTeam: "Banks o' Dee",
-    date: "2024-10-07",
+    date: "2025-04-22",
     time: "15:00",
     competition: "Highland League",
     isCompleted: false,
@@ -113,7 +114,7 @@ export const mockMatches: Match[] = [
     id: 6,
     homeTeam: "Banks o' Dee",
     awayTeam: "Lossiemouth",
-    date: "2024-10-14",
+    date: "2025-04-29",
     time: "15:00",
     competition: "Highland League Cup",
     isCompleted: false,
@@ -123,7 +124,7 @@ export const mockMatches: Match[] = [
     id: 7,
     homeTeam: "Nairn County",
     awayTeam: "Banks o' Dee",
-    date: "2024-10-21",
+    date: "2025-05-06",
     time: "15:00",
     competition: "Highland League",
     isCompleted: false,
@@ -133,7 +134,7 @@ export const mockMatches: Match[] = [
     id: 8,
     homeTeam: "Banks o' Dee",
     awayTeam: "Wick Academy",
-    date: "2024-10-28",
+    date: "2025-05-13",
     time: "15:00",
     competition: "Highland League",
     isCompleted: false,
@@ -144,7 +145,7 @@ export const mockMatches: Match[] = [
     id: 9,
     homeTeam: "Clachnacuddin",
     awayTeam: "Banks o' Dee",
-    date: "2024-11-04",
+    date: "2025-05-20",
     time: "15:00",
     competition: "Highland League",
     isCompleted: false,
@@ -154,7 +155,7 @@ export const mockMatches: Match[] = [
     id: 10,
     homeTeam: "Banks o' Dee",
     awayTeam: "Strathspey Thistle",
-    date: "2024-11-11",
+    date: "2025-05-27",
     time: "15:00",
     competition: "Highland League",
     isCompleted: false,

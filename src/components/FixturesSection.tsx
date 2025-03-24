@@ -38,9 +38,6 @@ const FixturesSection = () => {
         console.log('Fixtures from API:', fixtures.length);
         console.log('Results from API:', results.length);
         
-        // Always import mockMatches for easy fallback
-        const { mockMatches } = await import('@/components/fixtures/fixturesMockData');
-        
         // Calculate the current date only once
         const today = new Date();
         console.log('Today is:', today.toISOString());
@@ -48,12 +45,6 @@ const FixturesSection = () => {
         // Function to get upcoming matches with proper filtering
         const getUpcomingMatches = (matches: Match[]) => {
           console.log('Filtering upcoming matches, total to filter:', matches.length);
-          
-          // Debug log each match
-          matches.forEach(match => {
-            const matchDate = new Date(match.date);
-            console.log(`Match: ${match.homeTeam} vs ${match.awayTeam}, Date: ${match.date}, ISO: ${matchDate.toISOString()}, isCompleted: ${match.isCompleted}`);
-          });
           
           // Filter to get only upcoming matches (not completed and date is in the future)
           const upcoming = matches
@@ -79,7 +70,7 @@ const FixturesSection = () => {
         };
         
         // Use real data if available and valid
-        if (fixtures.length > 0 && results.length > 0) {
+        if (fixtures.length > 0) {
           const upcoming = getUpcomingMatches(fixtures);
           const recent = getRecentResults(results);
           
@@ -92,8 +83,11 @@ const FixturesSection = () => {
           }
         }
         
-        // If we got here, we need to use mock data
+        // Fall back to mock data
         console.log('Using mock data for fixtures and results');
+        const { mockMatches } = await import('@/components/fixtures/fixturesMockData');
+        
+        // Apply the same filtering to mock data
         setUpcomingMatches(getUpcomingMatches(mockMatches));
         setRecentResults(getRecentResults(mockMatches));
         

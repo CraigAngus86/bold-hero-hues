@@ -8,7 +8,7 @@ import { TeamStats } from './league/types';
 import { fetchLeagueTableFromSupabase } from '@/services/supabase/leagueDataService';
 import { Match } from './fixtures/types';
 import { toast } from 'sonner';
-import { fetchFixturesFromSupabase, fetchResultsFromSupabase } from '@/services/supabase/fixturesService';
+import { fetchFixturesFromSupabase, fetchResultsFromSupabase } from '@/services/supabase/fixtures/fetchService';
 import { convertToMatches } from '@/types/fixtures';
 
 const FixturesSection = () => {

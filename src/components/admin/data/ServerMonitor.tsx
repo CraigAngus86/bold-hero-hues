@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AlertCircle, Server, CheckCircle2, RefreshCw, ExternalLink, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { useServerStatus } from './useServerStatus';
 import { ApiConfig } from '@/services/config/apiConfig';
 import { toast } from "sonner";
 import { triggerLeagueDataScrape, getLastUpdateTime } from '@/services/supabase/leagueDataService';
+import { supabase } from '@/services/supabase/supabaseClient';
 
 interface ServerMonitorProps {
   config: ApiConfig;
@@ -22,16 +23,23 @@ const ServerMonitor: React.FC<ServerMonitorProps> = ({ config }) => {
   const [expandedTroubleshooting, setExpandedTroubleshooting] = useState(false);
   const [isScrapingData, setIsScrapingData] = useState(false);
   const [supabaseLastUpdated, setSupabaseLastUpdated] = useState<string | null>(null);
+  const [supabaseEnabled, setSupabaseEnabled] = useState<boolean>(!!supabase);
 
   // Check Supabase last updated time on component mount
-  React.useEffect(() => {
-    checkSupabaseLastUpdated();
-  }, []);
+  useEffect(() => {
+    if (supabaseEnabled) {
+      checkSupabaseLastUpdated();
+    }
+  }, [supabaseEnabled]);
 
   const checkSupabaseLastUpdated = async () => {
-    const lastUpdate = await getLastUpdateTime();
-    if (lastUpdate) {
-      setSupabaseLastUpdated(lastUpdate);
+    try {
+      const lastUpdate = await getLastUpdateTime();
+      if (lastUpdate) {
+        setSupabaseLastUpdated(lastUpdate);
+      }
+    } catch (error) {
+      console.error("Error checking Supabase last updated:", error);
     }
   };
 
@@ -48,6 +56,11 @@ const ServerMonitor: React.FC<ServerMonitorProps> = ({ config }) => {
   };
 
   const handleTriggerScrape = async () => {
+    if (!supabaseEnabled) {
+      toast.error("Supabase connection not available");
+      return;
+    }
+
     try {
       setIsScrapingData(true);
       toast.info("Scraping Highland League data...");
@@ -126,18 +139,28 @@ const ServerMonitor: React.FC<ServerMonitorProps> = ({ config }) => {
       </CardHeader>
       <CardContent className="pt-6">
         <div className="space-y-4">
-          <Alert className="bg-green-50 border-green-200">
-            <Database className="h-4 w-4 text-green-800" />
-            <AlertTitle className="text-green-800">Supabase Integration Active</AlertTitle>
-            <AlertDescription className="text-green-700">
-              Your app is connected to Supabase for data storage and API functionality. You can scrape the latest Highland League data from BBC Sport.
-              {supabaseLastUpdated && (
-                <div className="mt-2 text-sm">
-                  <strong>Last Scrape:</strong> {new Date(supabaseLastUpdated).toLocaleString()}
-                </div>
-              )}
-            </AlertDescription>
-          </Alert>
+          {supabaseEnabled ? (
+            <Alert className="bg-green-50 border-green-200">
+              <Database className="h-4 w-4 text-green-800" />
+              <AlertTitle className="text-green-800">Supabase Integration Active</AlertTitle>
+              <AlertDescription className="text-green-700">
+                Your app is connected to Supabase for data storage and API functionality. You can scrape the latest Highland League data from BBC Sport.
+                {supabaseLastUpdated && (
+                  <div className="mt-2 text-sm">
+                    <strong>Last Scrape:</strong> {new Date(supabaseLastUpdated).toLocaleString()}
+                  </div>
+                )}
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <Alert className="bg-amber-50 border-amber-200">
+              <AlertCircle className="h-4 w-4 text-amber-800" />
+              <AlertTitle className="text-amber-800">Supabase Connection Issue</AlertTitle>
+              <AlertDescription className="text-amber-700">
+                Could not connect to Supabase. Please ensure your Supabase connection is properly configured and environment variables are available.
+              </AlertDescription>
+            </Alert>
+          )}
 
           <div className="flex items-center justify-between">
             <div className="font-medium">Legacy Server Status:</div>
@@ -151,18 +174,20 @@ const ServerMonitor: React.FC<ServerMonitorProps> = ({ config }) => {
             </div>
           </div>
 
-          <Alert variant="default" className="bg-blue-50 border-blue-200">
-            <AlertCircle className="h-4 w-4 text-blue-800" />
-            <AlertTitle className="text-blue-800">Using Supabase for Data</AlertTitle>
-            <AlertDescription className="text-blue-700">
-              This application is now using Supabase to store Highland League data. You can manually trigger a data scrape using the button below.
+          <Alert variant="default" className={supabaseEnabled ? "bg-blue-50 border-blue-200" : "bg-gray-50 border-gray-200"}>
+            <AlertCircle className={`h-4 w-4 ${supabaseEnabled ? "text-blue-800" : "text-gray-800"}`} />
+            <AlertTitle className={supabaseEnabled ? "text-blue-800" : "text-gray-800"}>Using Supabase for Data</AlertTitle>
+            <AlertDescription className={supabaseEnabled ? "text-blue-700" : "text-gray-700"}>
+              {supabaseEnabled ? 
+                "This application is now using Supabase to store Highland League data. You can manually trigger a data scrape using the button below." :
+                "Supabase connection is not available. You need to connect to Supabase to use this feature."}
             </AlertDescription>
           </Alert>
 
           <div className="flex justify-center">
             <Button 
               onClick={handleTriggerScrape}
-              disabled={isScrapingData}
+              disabled={isScrapingData || !supabaseEnabled}
               className="w-full"
             >
               <Database className={`h-4 w-4 mr-2 ${isScrapingData ? 'animate-pulse' : ''}`} />

@@ -8,15 +8,17 @@ import LeagueInfoPanel from './LeagueInfoPanel';
 import { TeamStats } from './types';
 import { fetchLeagueTable, clearLeagueDataCache } from '@/services/leagueDataService';
 import { fetchLeagueTableFromSupabase, getLastUpdateTime } from '@/services/supabase/leagueDataService';
-import { Database } from "lucide-react";
+import { Database, AlertCircle } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { supabase } from '@/services/supabase/supabaseClient';
 
 const LeagueTablePage = () => {
   const [leagueData, setLeagueData] = useState<TeamStats[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [dataSeason, setDataSeason] = useState<string>("2024-2025");
   const [lastUpdated, setLastUpdated] = useState<string>("");
-  const [dataSource, setDataSource] = useState<string>("supabase");
+  const [dataSource, setDataSource] = useState<string>("legacy");
+  const [supabaseEnabled, setSupabaseEnabled] = useState<boolean>(!!supabase);
   
   const loadLeagueData = async (refresh = false) => {
     try {
@@ -27,30 +29,34 @@ const LeagueTablePage = () => {
         setIsLoading(true);
       }
       
-      // Try to fetch from Supabase first
-      try {
-        const data = await fetchLeagueTableFromSupabase();
-        
-        // Sort by position
-        const sortedData = [...data].sort((a, b) => a.position - b.position);
-        setLeagueData(sortedData);
-        setDataSource("supabase");
-        
-        // Get last updated time from Supabase
-        const lastUpdate = await getLastUpdateTime();
-        if (lastUpdate) {
-          setLastUpdated(new Date(lastUpdate).toLocaleString());
-        } else {
-          setLastUpdated(new Date().toLocaleString());
+      // Try to fetch from Supabase if enabled
+      if (supabaseEnabled) {
+        try {
+          const data = await fetchLeagueTableFromSupabase();
+          
+          // Sort by position
+          const sortedData = [...data].sort((a, b) => a.position - b.position);
+          setLeagueData(sortedData);
+          setDataSource("supabase");
+          
+          // Get last updated time from Supabase
+          const lastUpdate = await getLastUpdateTime();
+          if (lastUpdate) {
+            setLastUpdated(new Date(lastUpdate).toLocaleString());
+          } else {
+            setLastUpdated(new Date().toLocaleString());
+          }
+          
+          if (refresh) {
+            toast.success("League table refreshed from Supabase");
+          }
+          
+          setIsLoading(false);
+          return;
+        } catch (error) {
+          console.error('Error loading from Supabase, falling back to legacy data:', error);
+          // Fall back to legacy data service
         }
-        
-        if (refresh) {
-          toast.success("League table refreshed from Supabase");
-        }
-        return;
-      } catch (error) {
-        console.error('Error loading from Supabase, falling back to legacy data:', error);
-        // Fall back to legacy data service
       }
       
       // Fallback: Fetch using the legacy data service
@@ -106,6 +112,16 @@ const LeagueTablePage = () => {
           </p>
         )}
       </motion.div>
+      
+      {!supabaseEnabled && (
+        <Alert className="mb-6 bg-amber-50 border-amber-200">
+          <AlertCircle className="h-4 w-4 text-amber-800" />
+          <AlertTitle className="text-amber-800">Supabase Connection Issue</AlertTitle>
+          <AlertDescription className="text-amber-700">
+            Could not connect to Supabase. Using fallback data source. Please check if your Supabase connection is properly configured.
+          </AlertDescription>
+        </Alert>
+      )}
       
       {dataSource === "supabase" && (
         <Alert className="mb-6 bg-green-50 border-green-200">

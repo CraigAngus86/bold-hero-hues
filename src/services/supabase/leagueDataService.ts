@@ -1,12 +1,15 @@
 
 import { TeamStats } from '@/components/league/types';
-import { supabase } from './supabaseClient';
+import { getSupabaseClient } from './supabaseClient';
 import { mockLeagueData } from '@/components/league/types';
 import { toast } from "sonner";
 
 // Function to fetch league table data from Supabase
 export async function fetchLeagueTableFromSupabase(): Promise<TeamStats[]> {
   try {
+    // Get Supabase client with error handling
+    const supabase = getSupabaseClient();
+    
     // First try to get data from Supabase
     const { data, error } = await supabase
       .from('highland_league_table')
@@ -39,6 +42,8 @@ export async function triggerLeagueDataScrape(forceRefresh = false): Promise<Tea
   try {
     console.log('Triggering league data scrape via Edge Function');
     
+    const supabase = getSupabaseClient();
+    
     const { data: response, error } = await supabase.functions.invoke('scrape-highland-league', {
       body: { forceRefresh }
     });
@@ -66,6 +71,8 @@ export async function triggerLeagueDataScrape(forceRefresh = false): Promise<Tea
 // Get the last update time for the league data
 export async function getLastUpdateTime(): Promise<string | null> {
   try {
+    const supabase = getSupabaseClient();
+    
     const { data, error } = await supabase
       .from('settings')
       .select('value')

@@ -4,7 +4,7 @@ import { Table, TableBody } from '@/components/ui/Table';
 import LeagueTableHeader from './LeagueTableHeader';
 import TeamRow from './TeamRow';
 import { TeamStats } from './types';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import { ErrorBoundary } from '@/components/ErrorBoundary'; // Updated import to use the correct ErrorBoundary
 
 interface LeagueTableContentProps {
   leagueData: TeamStats[];
@@ -29,7 +29,7 @@ const LeagueTableContent: React.FC<LeagueTableContentProps> = ({ leagueData }) =
     const key = team.id?.toString() || team.position?.toString() || team.team;
     
     return (
-      <ErrorBoundary key={key} componentName={`TeamRow-${team.team}`}>
+      <ErrorBoundary key={key} fallback={<tr><td colSpan={11}>Error displaying team data</td></tr>}>
         <TeamRow team={team} />
       </ErrorBoundary>
     );

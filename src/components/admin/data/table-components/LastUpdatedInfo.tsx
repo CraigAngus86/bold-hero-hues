@@ -13,9 +13,9 @@ export const LastUpdatedInfo: React.FC<LastUpdatedInfoProps> = ({ lastUpdated })
   if (!lastUpdated) return null;
   
   return (
-    <div className="text-sm text-muted-foreground mb-4 flex items-center">
-      <Clock className="h-4 w-4 mr-1.5 text-muted-foreground/70" />
-      <span>
+    <div className="text-sm bg-gray-50 rounded-md px-3 py-2 mb-5 inline-flex items-center border border-gray-200">
+      <Clock className="h-4 w-4 mr-2 text-team-blue" />
+      <span className="font-medium text-gray-700">
         Last updated: {new Date(lastUpdated).toLocaleString(undefined, {
           year: 'numeric',
           month: 'short',

@@ -13,21 +13,21 @@ interface LeagueDataTableProps {
  */
 export const LeagueDataTable: React.FC<LeagueDataTableProps> = ({ leagueTable }) => {
   return (
-    <div className="border rounded-md overflow-auto max-h-96 shadow-sm">
+    <div className="border rounded-lg overflow-auto max-h-[600px] shadow-sm hover:shadow-md transition-shadow duration-200">
       <Table>
-        <TableHeader className="bg-gray-50 sticky top-0 z-10">
+        <TableHeader className="bg-gradient-to-r from-gray-50 to-gray-100 sticky top-0 z-10">
           <TableRow>
-            <TableHead className="w-12 font-semibold">Pos</TableHead>
-            <TableHead className="font-semibold">Team</TableHead>
-            <TableHead className="w-12 font-semibold">P</TableHead>
-            <TableHead className="w-12 font-semibold">W</TableHead>
-            <TableHead className="w-12 font-semibold">D</TableHead>
-            <TableHead className="w-12 font-semibold">L</TableHead>
-            <TableHead className="w-12 font-semibold">GF</TableHead>
-            <TableHead className="w-12 font-semibold">GA</TableHead>
-            <TableHead className="w-12 font-semibold">GD</TableHead>
-            <TableHead className="w-12 font-semibold">Pts</TableHead>
-            <TableHead className="w-24 font-semibold">Form</TableHead>
+            <TableHead className="w-12 font-semibold text-team-blue">Pos</TableHead>
+            <TableHead className="font-semibold text-team-blue">Team</TableHead>
+            <TableHead className="w-12 font-semibold text-team-blue">P</TableHead>
+            <TableHead className="w-12 font-semibold text-team-blue">W</TableHead>
+            <TableHead className="w-12 font-semibold text-team-blue">D</TableHead>
+            <TableHead className="w-12 font-semibold text-team-blue">L</TableHead>
+            <TableHead className="w-12 font-semibold text-team-blue">GF</TableHead>
+            <TableHead className="w-12 font-semibold text-team-blue">GA</TableHead>
+            <TableHead className="w-12 font-semibold text-team-blue">GD</TableHead>
+            <TableHead className="w-12 font-semibold text-team-blue">Pts</TableHead>
+            <TableHead className="w-24 font-semibold text-team-blue">Form</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -36,7 +36,7 @@ export const LeagueDataTable: React.FC<LeagueDataTableProps> = ({ leagueTable })
           ))}
           {leagueTable.length === 0 && (
             <TableRow>
-              <TableCell colSpan={11} className="text-center py-6 text-gray-500">
+              <TableCell colSpan={11} className="text-center py-8 text-gray-500">
                 No data found. Try refreshing.
               </TableCell>
             </TableRow>

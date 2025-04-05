@@ -137,10 +137,10 @@ const ScrapedDataTable: React.FC = () => {
   }
 
   return (
-    <Card className="mt-6 border-team-blue/10 shadow-md">
-      <CardHeader className="flex flex-row items-center justify-between bg-gray-50 rounded-t-lg border-b">
+    <Card className="mt-6 border-team-blue/10 shadow-lg rounded-xl overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between bg-gradient-to-r from-team-blue/10 to-gray-50 rounded-t-xl border-b">
         <div>
-          <CardTitle className="text-team-blue">Highland League Table Data</CardTitle>
+          <CardTitle className="text-team-blue text-xl">Highland League Table Data</CardTitle>
           <div className="text-sm text-muted-foreground mt-1">
             Displaying {leagueTable.length} teams from Supabase
           </div>

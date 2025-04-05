@@ -8,9 +8,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PlusCircle, Edit, Trash, ExternalLink } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { Sponsor, useSponsorsStore } from '@/services/sponsorsService';
+import { useSponsorsStore, Sponsor } from '@/services/sponsorsService';
 
-const tierOptions = ['platinum', 'gold', 'silver', 'bronze'];
+const tierOptions = ['platinum', 'gold', 'silver', 'bronze'] as const;
 
 const SponsorsManager = () => {
   const { toast } = useToast();
@@ -165,7 +165,9 @@ const SponsorsManager = () => {
                 <label htmlFor="tier" className="text-right text-sm font-medium">Tier</label>
                 <Select 
                   value={currentSponsor?.tier}
-                  onValueChange={(value) => setCurrentSponsor(prev => prev ? {...prev, tier: value as 'platinum' | 'gold' | 'silver' | 'bronze'} : null)}
+                  onValueChange={(value: 'platinum' | 'gold' | 'silver' | 'bronze') => 
+                    setCurrentSponsor(prev => prev ? {...prev, tier: value} : null)
+                  }
                 >
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select tier" />

@@ -8,8 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Award, Plus, Edit, Trash, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
-import { Sponsor } from '@/types/sponsors';
-import { getAllSponsors, createSponsor, updateSponsor, deleteSponsor } from '@/services/sponsorsDbService';
+import { Sponsor } from '@/services/sponsorsService';
+import { getAllSponsors, createSponsor, updateSponsor, deleteSponsor } from '@/services/sponsorsService';
 
 const SponsorsManager = () => {
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
@@ -26,8 +26,13 @@ const SponsorsManager = () => {
   const fetchSponsors = async () => {
     setLoading(true);
     try {
-      const data = await getAllSponsors();
-      setSponsors(data);
+      const response = await getAllSponsors();
+      if (response.success && response.data) {
+        setSponsors(response.data);
+      } else {
+        console.error('Error fetching sponsors:', response.error);
+        toast.error('Failed to load sponsors');
+      }
     } catch (error) {
       console.error('Error fetching sponsors:', error);
       toast.error('Failed to load sponsors');
@@ -59,8 +64,8 @@ const SponsorsManager = () => {
     if (!sponsorToDelete) return;
 
     try {
-      const success = await deleteSponsor(sponsorToDelete.id.toString());
-      if (success) {
+      const response = await deleteSponsor(sponsorToDelete.id.toString());
+      if (response.success) {
         setSponsors(sponsors.filter(s => s.id !== sponsorToDelete.id));
         toast.success(`${sponsorToDelete.name} has been removed`);
       }
@@ -78,27 +83,27 @@ const SponsorsManager = () => {
       const dbSponsor = {
         name: currentSponsor.name || '',
         logo_url: currentSponsor.logoUrl || '',
-        tier: currentSponsor.tier as any,
+        tier: currentSponsor.tier as 'platinum' | 'gold' | 'silver' | 'bronze',
         website_url: currentSponsor.website,
         description: currentSponsor.description,
         is_active: true,
       };
 
-      let updatedSponsor;
+      let response;
       
       if (currentSponsor.id) {
         // Update existing sponsor
-        updatedSponsor = await updateSponsor(currentSponsor.id.toString(), dbSponsor);
-        if (updatedSponsor) {
-          setSponsors(sponsors.map(s => s.id === updatedSponsor?.id ? updatedSponsor : s));
-          toast.success(`${updatedSponsor.name} has been updated`);
+        response = await updateSponsor(currentSponsor.id.toString(), dbSponsor);
+        if (response.success && response.data) {
+          setSponsors(sponsors.map(s => s.id === response.data?.id ? response.data : s));
+          toast.success(`${response.data.name} has been updated`);
         }
       } else {
         // Create new sponsor
-        updatedSponsor = await createSponsor(dbSponsor as any);
-        if (updatedSponsor) {
-          setSponsors([...sponsors, updatedSponsor]);
-          toast.success(`${updatedSponsor.name} has been added`);
+        response = await createSponsor(dbSponsor as any);
+        if (response.success && response.data) {
+          setSponsors([...sponsors, response.data]);
+          toast.success(`${response.data.name} has been added`);
         }
       }
       
@@ -209,7 +214,9 @@ const SponsorsManager = () => {
               <label htmlFor="tier" className="text-right text-sm font-medium">Tier</label>
               <Select
                 value={currentSponsor?.tier || 'bronze'}
-                onValueChange={(value) => setCurrentSponsor(prev => ({ ...prev, tier: value as any }))}
+                onValueChange={(value: 'platinum' | 'gold' | 'silver' | 'bronze') => 
+                  setCurrentSponsor(prev => ({ ...prev, tier: value }))
+                }
               >
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select tier" />

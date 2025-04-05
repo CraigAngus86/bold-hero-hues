@@ -1,5 +1,5 @@
 import { supabase } from '@/services/supabase/supabaseClient';
-import { Sponsor, DBSponsor, convertToSponsor, convertToDBSponsor } from '@/types/sponsors';
+import { Sponsor, DBSponsor, convertToSponsor } from '@/types/sponsors';
 import { handleDbOperation, DbServiceResponse } from './utils/dbService';
 import { create } from 'zustand';
 
@@ -244,9 +244,9 @@ export const useSponsorsStore = create<SponsorsState>((set, get) => ({
     try {
       const response = await getActiveSponsors();
       if (response.success) {
-        set({ sponsors: response.data });
+        set({ sponsors: response.data || [] });
       } else {
-        set({ error: new Error(response.message) });
+        set({ error: new Error(response.message || 'Failed to fetch sponsors') });
       }
     } catch (error) {
       set({ error: error instanceof Error ? error : new Error('Unknown error') });
@@ -271,3 +271,6 @@ export const useSponsorsStore = create<SponsorsState>((set, get) => ({
     });
   }
 }));
+
+// Export Sponsor type to be used in components that import from this file
+export type { Sponsor };

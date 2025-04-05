@@ -12,21 +12,22 @@ export async function getAllTeamMembers(): Promise<DbServiceResponse<TeamMember[
       const { data, error } = await supabase
         .from('team_members')
         .select('*')
+        .eq('is_active', true)
         .order('name');
 
       if (error) throw error;
 
-      // Convert from DB format to the TeamMember type defined in types/team.ts
-      const teamMembers: TeamMember[] = data.map(item => convertToTeamMember(item as DBTeamMember));
+      // Convert from DB format to the TeamMember type
+      const members: TeamMember[] = data.map(item => convertToTeamMember(item as DBTeamMember));
 
-      return teamMembers;
+      return members;
     },
     'Failed to load team members'
   );
 }
 
 /**
- * Get team members by type
+ * Get team members by type (player, management, official)
  */
 export async function getTeamMembersByType(type: 'player' | 'management' | 'official'): Promise<DbServiceResponse<TeamMember[]>> {
   return handleDbOperation(
@@ -40,12 +41,12 @@ export async function getTeamMembersByType(type: 'player' | 'management' | 'offi
 
       if (error) throw error;
 
-      // Convert from DB format to the TeamMember type defined in types/team.ts
-      const teamMembers: TeamMember[] = data.map(item => convertToTeamMember(item as DBTeamMember));
+      // Convert from DB format to the TeamMember type
+      const members: TeamMember[] = data.map(item => convertToTeamMember(item as DBTeamMember));
 
-      return teamMembers;
+      return members;
     },
-    `Failed to load ${type} members`
+    `Failed to load ${type} team members`
   );
 }
 
@@ -63,10 +64,7 @@ export async function getTeamMemberById(id: string): Promise<DbServiceResponse<T
 
       if (error) throw error;
 
-      // Convert from DB format to the TeamMember type defined in types/team.ts
-      const teamMember: TeamMember = convertToTeamMember(data as DBTeamMember);
-
-      return teamMember;
+      return convertToTeamMember(data as DBTeamMember);
     },
     'Failed to load team member details'
   );
@@ -227,7 +225,6 @@ interface TeamState {
   fetchTeamMembers: () => Promise<void>;
   getPlayersByPosition: (position: string) => TeamMember[];
   getManagementStaff: () => TeamMember[];
-  getClubOfficials: () => TeamMember[];
   addTeamMember: (member: TeamMember) => void;
   updateTeamMember: (member: TeamMember) => void;
   deleteTeamMember: (id: number) => void;
@@ -242,9 +239,9 @@ export const useTeamStore = create<TeamState>((set, get) => ({
     try {
       const response = await getAllTeamMembers();
       if (response.success) {
-        set({ teamMembers: response.data });
+        set({ teamMembers: response.data || [] });
       } else {
-        set({ error: new Error(response.message) });
+        set({ error: new Error(response.message || 'Failed to fetch team members') });
       }
     } catch (error) {
       set({ error: error instanceof Error ? error : new Error('Unknown error') });
@@ -254,17 +251,16 @@ export const useTeamStore = create<TeamState>((set, get) => ({
   },
   getPlayersByPosition: (position: string) => {
     const { teamMembers } = get();
-    const players = teamMembers.filter(m => m.type === 'player');
-    if (position === 'All') return players;
-    return players.filter(p => p.position === position);
+    if (position === 'All') {
+      return teamMembers.filter(member => member.type === 'player');
+    }
+    return teamMembers.filter(
+      member => member.type === 'player' && member.position === position
+    );
   },
   getManagementStaff: () => {
     const { teamMembers } = get();
-    return teamMembers.filter(m => m.type === 'management');
-  },
-  getClubOfficials: () => {
-    const { teamMembers } = get();
-    return teamMembers.filter(m => m.type === 'official');
+    return teamMembers.filter(member => member.type === 'management');
   },
   addTeamMember: (member: TeamMember) => {
     const { teamMembers } = get();
@@ -283,3 +279,6 @@ export const useTeamStore = create<TeamState>((set, get) => ({
     });
   }
 }));
+
+// Export TeamMember type to be used in components that import from this file
+export type { TeamMember };

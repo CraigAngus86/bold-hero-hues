@@ -6,6 +6,8 @@ export interface DbServiceResponse<T> {
   data: T | null;
   error: Error | null;
   isLoading?: boolean;
+  success: boolean;
+  message?: string;
 }
 
 export async function handleDbOperation<T>(
@@ -15,7 +17,7 @@ export async function handleDbOperation<T>(
 ): Promise<DbServiceResponse<T>> {
   try {
     const data = await operation();
-    return { data, error: null };
+    return { data, error: null, success: true };
   } catch (error) {
     console.error(`Database operation error: ${errorMessage}`, error);
     
@@ -29,7 +31,7 @@ export async function handleDbOperation<T>(
         context
       );
       showErrorToUser(appError);
-      return { data: null, error: appError };
+      return { data: null, error: appError, success: false, message: appError.message };
     }
     
     // Handle other error types
@@ -38,6 +40,6 @@ export async function handleDbOperation<T>(
       : new Error(errorMessage);
     
     showErrorToUser(finalError, errorMessage);
-    return { data: null, error: finalError };
+    return { data: null, error: finalError, success: false, message: finalError.message };
   }
 }

@@ -50,7 +50,7 @@ export function convertToTeamMember(dbMember: DBTeamMember): TeamMember {
   return {
     id: parseInt(dbMember.id),
     name: dbMember.name,
-    image: dbMember.image_url,
+    image: dbMember.image_url || undefined,
     number: dbMember.jersey_number,
     position: dbMember.position,
     role: dbMember.role,

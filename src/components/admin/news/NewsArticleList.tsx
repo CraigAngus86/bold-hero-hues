@@ -43,8 +43,8 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
     // Handle both array format and object format with data property
     if (Array.isArray(responseData)) {
       return responseData;
-    } else if (responseData && 'data' in responseData) {
-      return responseData.data || [];
+    } else if (responseData && typeof responseData === 'object' && 'data' in responseData) {
+      return Array.isArray(responseData.data) ? responseData.data : [];
     }
     
     return [];
@@ -52,12 +52,14 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
 
   // Extract unique categories
   const categories = React.useMemo(() => {
-    if (articles.length === 0) return [];
+    if (!articles || articles.length === 0) return [];
     return [...new Set(articles.map(article => article.category))];
   }, [articles]);
 
   // Filter articles based on search term and category
   const filteredArticles = React.useMemo(() => {
+    if (!articles || articles.length === 0) return [];
+    
     return articles.filter(article => {
       const matchesSearch = searchTerm 
         ? article.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -228,8 +230,8 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">All Categories</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>{category}</SelectItem>
+                {categories && categories.map((category, index) => (
+                  <SelectItem key={index} value={category}>{category}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -260,10 +262,10 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
           emptyMessage="No articles found. Create your first article!"
         />
         
-        {filteredArticles.length > 0 && (
+        {filteredArticles && filteredArticles.length > 0 && (
           <div className="mt-4 text-right">
             <Small className="text-gray-500">
-              Showing {filteredArticles.length} of {articles.length || 0} articles
+              Showing {filteredArticles.length} of {articles && articles.length || 0} articles
             </Small>
           </div>
         )}

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import AdminLayout from '@/components/admin/layout/AdminLayout';
@@ -63,7 +64,7 @@ const recentActivities = [
 ];
 
 const quickActions = [
-  { title: 'Add News Article', icon: Newspaper, link: '/admin/news/new' },
+  { title: 'Add News Article', icon: Newspaper, link: '/admin/news' },
   { title: 'Add Fixture', icon: Calendar, link: '/admin/fixtures/new' },
   { title: 'Upload Media', icon: Image, link: '/admin/media/upload' },
   { title: 'Add Team Member', icon: Users, link: '/admin/team/new' },

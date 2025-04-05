@@ -1,23 +1,13 @@
 
 import { Card, CardContent } from '@/components/ui/card';
-import { Link } from 'react-router-dom';
 import { Calendar } from 'lucide-react';
-import { Match } from './types';
+import { Match, formatDate } from './types';
 
 interface UpcomingFixturesProps {
   matches: Match[];
 }
 
 const UpcomingFixtures = ({ matches }: UpcomingFixturesProps) => {
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-GB', {
-      weekday: 'short',
-      day: 'numeric',
-      month: 'short'
-    });
-  };
-  
   const isBanksODee = (team: string) => {
     return team.toLowerCase().includes('banks') && team.toLowerCase().includes('dee');
   };
@@ -30,10 +20,10 @@ const UpcomingFixtures = ({ matches }: UpcomingFixturesProps) => {
       </div>
       <CardContent className="p-3 flex-1">
         {matches.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {matches.map(match => (
-              <div key={match.id} className="border-b border-gray-100 last:border-0 pb-3 last:pb-0">
-                <div className="text-xs text-gray-500 mb-1.5">
+              <div key={match.id} className="border-b border-gray-100 last:border-0 pb-2 last:pb-0">
+                <div className="text-xs text-gray-500 mb-1">
                   {formatDate(match.date)} • {match.time} • {match.competition}
                 </div>
                 

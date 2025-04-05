@@ -1,5 +1,5 @@
+
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/services/news/utils';
@@ -32,16 +32,6 @@ const HeroSection: React.FC = () => {
     };
   }, [currentSlide, articles, isHovering]);
   
-  const navigateSlide = (direction: 'prev' | 'next') => {
-    if (!articles || articles.length === 0) return;
-    
-    if (direction === 'prev') {
-      setCurrentSlide(prev => (prev === 0 ? articles.length - 1 : prev - 1));
-    } else {
-      setCurrentSlide(prev => (prev + 1) % articles.length);
-    }
-  };
-  
   const selectSlide = (index: number) => {
     setCurrentSlide(index);
   };
@@ -59,9 +49,9 @@ const HeroSection: React.FC = () => {
     
     if (Math.abs(diff) > 50) {
       if (diff > 0) {
-        navigateSlide('next');
+        setCurrentSlide(prev => (prev + 1) % (articles?.length || 1));
       } else {
-        navigateSlide('prev');
+        setCurrentSlide(prev => prev === 0 ? (articles?.length || 1) - 1 : prev - 1);
       }
     }
     
@@ -156,36 +146,6 @@ const HeroSection: React.FC = () => {
           </div>
         );
       })}
-      
-      <div className={cn(
-        "absolute top-1/2 left-4 -translate-y-1/2 z-20 transition-opacity duration-300",
-        isHovering ? "opacity-100" : "opacity-0 sm:opacity-50"
-      )}>
-        <Button 
-          variant="outline" 
-          size="icon"
-          className="rounded-full bg-black/30 border-white/20 text-white hover:bg-black/50"
-          onClick={() => navigateSlide('prev')}
-          aria-label="Previous slide"
-        >
-          <ChevronLeft className="h-6 w-6" />
-        </Button>
-      </div>
-      
-      <div className={cn(
-        "absolute top-1/2 right-4 -translate-y-1/2 z-20 transition-opacity duration-300",
-        isHovering ? "opacity-100" : "opacity-0 sm:opacity-50"
-      )}>
-        <Button 
-          variant="outline" 
-          size="icon"
-          className="rounded-full bg-black/30 border-white/20 text-white hover:bg-black/50"
-          onClick={() => navigateSlide('next')}
-          aria-label="Next slide"
-        >
-          <ChevronRight className="h-6 w-6" />
-        </Button>
-      </div>
       
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex space-x-2">
         {articles.map((_, index) => (

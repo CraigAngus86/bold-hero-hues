@@ -2,22 +2,13 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { Clock } from 'lucide-react';
-import { Match } from './types';
+import { Match, formatDate } from './types';
 
 interface RecentResultsProps {
   matches: Match[];
 }
 
 const RecentResults = ({ matches }: RecentResultsProps) => {
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-GB', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
-    });
-  };
-  
   const isBanksODee = (team: string) => {
     return team.toLowerCase().includes('banks') && team.toLowerCase().includes('dee');
   };
@@ -30,10 +21,10 @@ const RecentResults = ({ matches }: RecentResultsProps) => {
       </div>
       <CardContent className="p-3 flex-1">
         {matches.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {matches.map(match => (
-              <div key={match.id} className="border-b border-gray-100 last:border-0 pb-3 last:pb-0">
-                <div className="text-xs text-gray-500 mb-1.5">
+              <div key={match.id} className="border-b border-gray-100 last:border-0 pb-2 last:pb-0">
+                <div className="text-xs text-gray-500 mb-1">
                   {formatDate(match.date)} • {match.competition}
                 </div>
                 
@@ -61,8 +52,12 @@ const RecentResults = ({ matches }: RecentResultsProps) => {
                   </div>
                 </div>
                 
+                <div className="text-xs text-gray-500 mt-1 text-center">
+                  {match.venue}
+                </div>
+                
                 {match.hasMatchPhotos && (
-                  <div className="mt-1.5 text-center">
+                  <div className="mt-1 text-center">
                     <Link 
                       to={`/match/${match.id}/photos`} 
                       className="text-xs text-team-blue hover:underline"

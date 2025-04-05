@@ -27,8 +27,32 @@ const NewsCard: React.FC<NewsCardProps> = ({
   size = 'medium',
   className,
 }) => {
+  // Use local images from public folder as fallbacks
+  const getImageSrc = (src: string): string => {
+    // Check if the image is already a local path
+    if (src.startsWith('/')) return src;
+    
+    // If external URL fails, use a fallback image based on category
+    const fallbackImage = getFallbackImageByCategory(category);
+    
+    return src || fallbackImage;
+  };
+  
+  // Provide fallback images based on category
+  const getFallbackImageByCategory = (category: string): string => {
+    const categoryMap: Record<string, string> = {
+      'Match Report': '/lovable-uploads/73ac703f-7365-4abb-811e-159280ad234b.png',
+      'Community': '/lovable-uploads/0617ed5b-43b8-449c-870e-5bba374f7cb4.png',
+      'Club News': '/lovable-uploads/9cecca5c-daf2-4f52-a6ca-06e02ca9ea44.png',
+      'Youth Academy': '/lovable-uploads/940ac3a1-b89d-40c9-957e-217a64371120.png',
+      'Fixtures': '/lovable-uploads/8f2cd33f-1e08-494a-9aaa-65792ee9418a.png',
+    };
+    
+    return categoryMap[category] || '/lovable-uploads/587f8bd1-4140-4179-89f8-dc2ac1b2e072.png';
+  };
+
   return (
-    <Link to={`/news/${slug}`}>
+    <Link to={`/news/${slug}`} className="block h-full">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -43,8 +67,8 @@ const NewsCard: React.FC<NewsCardProps> = ({
       >
         <div className={cn(
           "overflow-hidden relative",
-          size === 'small' ? "h-44" : "h-56",
-          size === 'large' ? "h-72" : ""
+          size === 'small' ? "h-48" : "h-56",
+          size === 'large' ? "h-64" : ""
         )}>
           <div className="absolute top-0 left-0 z-10 m-4">
             <Badge className="bg-team-lightBlue hover:bg-team-lightBlue/90 text-team-blue text-xs font-semibold">
@@ -52,9 +76,14 @@ const NewsCard: React.FC<NewsCardProps> = ({
             </Badge>
           </div>
           <img 
-            src={image} 
+            src={getImageSrc(image)} 
             alt={title}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.onerror = null;
+              target.src = getFallbackImageByCategory(category);
+            }}
           />
         </div>
         

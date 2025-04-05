@@ -42,18 +42,40 @@ const NewsSection: React.FC<NewsSectionProps> = ({
       .slice(0, initialCount);
   }, [data, excludeIds, initialCount]);
 
+  // Get a local image fallback based on article index
+  const getLocalImageFallback = (index: number) => {
+    const localImages = [
+      '/lovable-uploads/02654c64-77bc-4a05-ae93-7c8173d0dc3c.png',
+      '/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png',
+      '/lovable-uploads/587f8bd1-4140-4179-89f8-dc2ac1b2e072.png',
+      '/lovable-uploads/73ac703f-7365-4abb-811e-159280ad234b.png',
+      '/lovable-uploads/940ac3a1-b89d-40c9-957e-217a64371120.png',
+      '/lovable-uploads/9cecca5c-daf2-4f52-a6ca-06e02ca9ea44.png',
+      '/lovable-uploads/b937e144-e94f-4e75-881f-1e560c6b520a.png'
+    ];
+    return localImages[index % localImages.length];
+  };
+
   // Memoized render function for NewsCard to prevent unnecessary rerenders
   const renderNewsCard = useCallback((article: NewsArticle, index: number) => {
+    // Process excerpt - strip HTML and limit length
+    const plainTextExcerpt = article.content
+      .replace(/<[^>]*>?/gm, '')
+      .substring(0, 150) + '...';
+      
+    // Use image_url if available, otherwise use local fallback
+    const imageUrl = article.image_url || getLocalImageFallback(index);
+    
     return (
       <div key={article.id} className="col-span-12 sm:col-span-6 lg:col-span-4">
         <NewsCard
           title={article.title}
-          excerpt={article.content.substring(0, 120).replace(/<[^>]*>?/gm, '')}
-          image={article.image_url || '/placeholder.svg'}
+          excerpt={plainTextExcerpt}
+          image={imageUrl}
           date={formatDate(article.publish_date)}
           category={article.category}
           slug={article.slug}
-          size={index === 0 ? 'medium' : 'small'}
+          size="medium"
         />
       </div>
     );

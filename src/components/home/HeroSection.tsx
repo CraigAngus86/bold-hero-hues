@@ -12,16 +12,13 @@ const HeroSection: React.FC = () => {
   const [isHovering, setIsHovering] = useState(false);
   const slideIntervalRef = useRef<number | null>(null);
   
-  // Fetch featured news articles using our custom hook
   const { data: articles, isLoading, error } = useFeaturedArticles(4);
   
-  // Reset interval when current slide changes
   useEffect(() => {
     if (slideIntervalRef.current) {
       window.clearInterval(slideIntervalRef.current);
     }
     
-    // Only setup interval if we have articles and not hovering
     if (articles && articles.length > 0 && !isHovering) {
       slideIntervalRef.current = window.setInterval(() => {
         setCurrentSlide(prev => (prev + 1) % articles.length);
@@ -49,7 +46,6 @@ const HeroSection: React.FC = () => {
     setCurrentSlide(index);
   };
   
-  // Touch handling for swipe support
   const touchStartX = useRef<number | null>(null);
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
@@ -61,7 +57,6 @@ const HeroSection: React.FC = () => {
     const touchEndX = e.changedTouches[0].clientX;
     const diff = touchStartX.current - touchEndX;
     
-    // Swipe threshold of 50px
     if (Math.abs(diff) > 50) {
       if (diff > 0) {
         navigateSlide('next');
@@ -73,12 +68,22 @@ const HeroSection: React.FC = () => {
     touchStartX.current = null;
   };
   
-  // Render loading state
+  const getLocalImageFallback = (index: number) => {
+    const heroImages = [
+      '/lovable-uploads/0c8edeaf-c67c-403f-90f0-61b390e5e89a.png',
+      '/lovable-uploads/4651b18c-bc2e-4e02-96ab-8993f8dfc145.png',
+      '/lovable-uploads/7f997ef4-9019-4660-9e9e-4e230d7b1eb3.png',
+      '/lovable-uploads/ba4e2b09-12ed-48ad-a4ba-1162ab87ad70.png',
+      '/lovable-uploads/banks-o-dee-dark-logo.png',
+      '/lovable-uploads/cb95b9fb-0f2d-42ef-9788-10509a80ed6e.png'
+    ];
+    return heroImages[index % heroImages.length];
+  };
+  
   if (isLoading) {
     return <HeroSkeleton />;
   }
   
-  // Render error state
   if (error || !articles || articles.length === 0) {
     return (
       <div className="w-full h-[60vh] md:h-[60vh] sm:h-[40vh] relative bg-team-navy flex items-center justify-center">
@@ -101,57 +106,64 @@ const HeroSection: React.FC = () => {
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Slides */}
-      {articles.map((article, index) => (
-        <div 
-          key={article.id}
-          className={cn(
-            "absolute inset-0 transition-opacity duration-1000",
-            currentSlide === index ? "opacity-100 z-10" : "opacity-0 z-0"
-          )}
-        >
-          {/* Background Image */}
+      {articles.map((article, index) => {
+        const imageUrl = article.image_url || getLocalImageFallback(index);
+        
+        return (
           <div 
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ 
-              backgroundImage: `url(${article.image_url || '/placeholder.svg'})`,
-              transition: 'transform 6s ease-in-out',
-              transform: currentSlide === index ? 'scale(1.05)' : 'scale(1)'
-            }}
-          />
-          
-          {/* Gradient Overlay for text readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-          
-          {/* Content Overlay */}
-          <div className="absolute bottom-0 left-0 p-4 md:p-8 w-full md:w-2/3 text-white">
-            <div className="animate-fade-in">
-              <div className="mb-2">
-                <span className="bg-team-blue text-white px-2 py-1 text-xs font-medium rounded">
-                  {article.category}
-                </span>
-                <span className="ml-2 text-sm text-gray-300">{formatDate(article.publish_date)}</span>
+            key={article.id}
+            className={cn(
+              "absolute inset-0 transition-opacity duration-1000",
+              currentSlide === index ? "opacity-100 z-10" : "opacity-0 z-0"
+            )}
+          >
+            <div className="absolute inset-0">
+              <img
+                src={imageUrl}
+                alt={article.title}
+                className="w-full h-full object-cover object-center"
+                style={{ 
+                  transition: 'transform 6s ease-in-out',
+                  transform: currentSlide === index ? 'scale(1.05)' : 'scale(1)'
+                }}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.onerror = null;
+                  target.src = getLocalImageFallback(index);
+                }}
+              />
+            </div>
+            
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+            
+            <div className="absolute bottom-0 left-0 p-4 md:p-8 w-full md:w-2/3 text-white">
+              <div className="animate-fade-in">
+                <div className="mb-2">
+                  <span className="bg-team-blue text-white px-2 py-1 text-xs font-medium rounded">
+                    {article.category}
+                  </span>
+                  <span className="ml-2 text-sm text-gray-300">{formatDate(article.publish_date)}</span>
+                </div>
+                
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 line-clamp-2">
+                  {article.title}
+                </h2>
+                
+                <p className="text-sm md:text-base mb-4 line-clamp-2 text-gray-200">
+                  {article.content.replace(/<[^>]*>?/gm, '').substring(0, 120)}...
+                </p>
+                
+                <Button asChild size="sm" className="bg-team-blue hover:bg-team-navy">
+                  <Link to={`/news/${article.slug}`}>
+                    Read More
+                  </Link>
+                </Button>
               </div>
-              
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 line-clamp-2">
-                {article.title}
-              </h2>
-              
-              <p className="text-sm md:text-base mb-4 line-clamp-2 text-gray-200">
-                {article.content.replace(/<[^>]*>?/gm, '').substring(0, 120)}...
-              </p>
-              
-              <Button asChild size="sm" className="bg-team-blue hover:bg-team-navy">
-                <Link to={`/news/${article.slug}`}>
-                  Read More
-                </Link>
-              </Button>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
       
-      {/* Navigation Arrows (visible on hover) */}
       <div className={cn(
         "absolute top-1/2 left-4 -translate-y-1/2 z-20 transition-opacity duration-300",
         isHovering ? "opacity-100" : "opacity-0 sm:opacity-50"
@@ -182,7 +194,6 @@ const HeroSection: React.FC = () => {
         </Button>
       </div>
       
-      {/* Navigation Dots */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex space-x-2">
         {articles.map((_, index) => (
           <button

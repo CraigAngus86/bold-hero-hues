@@ -1,6 +1,6 @@
 
 import { supabase } from '@/services/supabase/supabaseClient';
-import { DBSponsor, Sponsor, convertToSponsor } from '@/types/sponsors';
+import { DBSponsor, Sponsor, convertToSponsor } from '@/types';
 import { showErrorToUser } from '@/utils/errorHandling';
 
 /**
@@ -11,8 +11,7 @@ export async function getAllSponsors(): Promise<Sponsor[]> {
     const { data, error } = await supabase
       .from('sponsors')
       .select('*')
-      .eq('is_active', true)
-      .order('tier', { ascending: false });
+      .order('name');
 
     if (error) throw error;
 
@@ -33,7 +32,6 @@ export async function getSponsorsByTier(tier: 'platinum' | 'gold' | 'silver' | '
       .from('sponsors')
       .select('*')
       .eq('tier', tier)
-      .eq('is_active', true)
       .order('name');
 
     if (error) throw error;
@@ -42,6 +40,27 @@ export async function getSponsorsByTier(tier: 'platinum' | 'gold' | 'silver' | '
   } catch (error) {
     console.error(`Error fetching ${tier} sponsors:`, error);
     showErrorToUser(error, `Failed to load ${tier} sponsors`);
+    return [];
+  }
+}
+
+/**
+ * Get active sponsors
+ */
+export async function getActiveSponsors(): Promise<Sponsor[]> {
+  try {
+    const { data, error } = await supabase
+      .from('sponsors')
+      .select('*')
+      .eq('is_active', true)
+      .order('name');
+
+    if (error) throw error;
+
+    return (data as DBSponsor[]).map(convertToSponsor);
+  } catch (error) {
+    console.error('Error fetching active sponsors:', error);
+    showErrorToUser(error, 'Failed to load active sponsors');
     return [];
   }
 }
@@ -111,29 +130,29 @@ export async function updateSponsor(id: string, updates: Partial<DBSponsor>): Pr
 }
 
 /**
- * Delete sponsor (soft delete by setting is_active to false)
+ * Toggle sponsor active status
  */
-export async function deleteSponsor(id: string): Promise<boolean> {
+export async function toggleSponsorStatus(id: string, isActive: boolean): Promise<boolean> {
   try {
     const { error } = await supabase
       .from('sponsors')
-      .update({ is_active: false })
+      .update({ is_active: isActive })
       .eq('id', id);
 
     if (error) throw error;
 
     return true;
   } catch (error) {
-    console.error('Error deleting sponsor:', error);
-    showErrorToUser(error, 'Failed to delete sponsor');
+    console.error('Error toggling sponsor status:', error);
+    showErrorToUser(error, 'Failed to update sponsor status');
     return false;
   }
 }
 
 /**
- * Permanently delete sponsor
+ * Delete sponsor
  */
-export async function permanentlyDeleteSponsor(id: string): Promise<boolean> {
+export async function deleteSponsor(id: string): Promise<boolean> {
   try {
     const { error } = await supabase
       .from('sponsors')
@@ -144,8 +163,8 @@ export async function permanentlyDeleteSponsor(id: string): Promise<boolean> {
 
     return true;
   } catch (error) {
-    console.error('Error permanently deleting sponsor:', error);
-    showErrorToUser(error, 'Failed to permanently delete sponsor');
+    console.error('Error deleting sponsor:', error);
+    showErrorToUser(error, 'Failed to delete sponsor');
     return false;
   }
 }

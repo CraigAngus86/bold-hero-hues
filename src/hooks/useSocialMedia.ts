@@ -85,7 +85,80 @@ const fetchSocialMedia = async (platforms: string[] = ['twitter', 'instagram', '
         shares: 12,
         profileImage: "/lovable-uploads/banks-o-dee-dark-logo.png",
         url: "https://www.facebook.com/banksodeejfc/posts/123456789"
-      }
+      },
+      {
+        id: "4",
+        platform: "twitter",
+        username: "banksodee_fc", 
+        content: "📣 NEW SIGNING | We're delighted to announce the signing of midfielder Jack Henderson from Cove Rangers on a two-year deal. Welcome to Spain Park, Jack! #BODTransfer",
+        date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        likes: 92,
+        comments: 13,
+        shares: 21,
+        mediaUrl: "/lovable-uploads/4651b18c-bc2e-4e02-96ab-8993f8dfc145.png",
+        profileImage: "/lovable-uploads/banks-o-dee-dark-logo.png",
+        url: "https://x.com/banksodee_fc/status/0987654321"
+      },
+      {
+        id: "5",
+        platform: "instagram",
+        username: "banksodeefc",
+        content: "💙 Supporting our local community! Players from Banks o' Dee visited Aberdeen Children's Hospital yesterday to donate signed merchandise and spend time with the young patients. #CommunitySpirit",
+        date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        likes: 145,
+        comments: 12,
+        mediaUrl: "/lovable-uploads/cb95b9fb-0f2d-42ef-9788-10509a80ed6e.png",
+        profileImage: "/lovable-uploads/banks-o-dee-dark-logo.png",
+        url: "https://www.instagram.com/p/ghijkl/"
+      },
+      {
+        id: "6",
+        platform: "facebook",
+        username: "banksodeejfc",
+        content: "🏆 THROWBACK | On this day in 2022, Banks o' Dee lifted the Evening Express Aberdeenshire Cup after a thrilling 3-2 victory against Buckie Thistle at Harlaw Park. What a day for the club!",
+        date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+        likes: 123,
+        comments: 18,
+        shares: 15,
+        profileImage: "/lovable-uploads/banks-o-dee-dark-logo.png",
+        url: "https://www.facebook.com/banksodeejfc/posts/123456789"
+      },
+      {
+        id: "7",
+        platform: "twitter",
+        username: "banksodee_fc",
+        content: "🔵 Banks o' Dee XI v Turriff United: A.Coutts, Byrne, Hay, Paton, Angus, Forbes, Duguid (C), Dalling, Bugeja, Peters, Logan. Subs: Yunus, Antoniazzi, Phillip, Ritchie, Mair, Watson, T.Coutts.",
+        date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        likes: 19,
+        comments: 0,
+        shares: 4,
+        profileImage: "/lovable-uploads/banks-o-dee-dark-logo.png",
+        url: "https://x.com/banksodee_fc/status/1234567890"
+      },
+      {
+        id: "8",
+        platform: "instagram",
+        username: "banksodeefc",
+        content: "NEXT MATCH | Banks o' Dee v Brechin City. Saturday 17th April, 3PM at Spain Park. Adults £15, Concessions £10 & U16s FREE.",
+        date: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
+        likes: 64,
+        comments: 3,
+        mediaUrl: "/lovable-uploads/4651b18c-bc2e-4e02-96ab-8993f8dfc145.png",
+        profileImage: "/lovable-uploads/banks-o-dee-dark-logo.png",
+        url: "https://www.instagram.com/p/abcdef/"
+      },
+      {
+        id: "9",
+        platform: "facebook",
+        username: "banksodeejfc",
+        content: "🎫 SEASON TICKETS | 2025/26 season tickets are now available to purchase online. Secure your seat for all home Highland League matches! Visit our website for more information.",
+        date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        likes: 87,
+        comments: 11,
+        shares: 23,
+        profileImage: "/lovable-uploads/banks-o-dee-dark-logo.png",
+        url: "https://www.facebook.com/banksodeejfc/posts/123456789"
+      },
     ];
   }
 };

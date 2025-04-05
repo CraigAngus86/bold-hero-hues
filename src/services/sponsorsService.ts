@@ -1,109 +1,25 @@
-import { supabase } from '@/services/supabase/supabaseClient';
-import { DBSponsor, Sponsor, convertToSponsor } from '@/types';
-import { handleDbOperation, DbServiceResponse } from './utils/dbService';
-import { create } from 'zustand';
 
-export interface Sponsor {
-  id: number;
+import { supabase } from '@/services/supabase/supabaseClient';
+import { Sponsor as SponsorType } from '@/types/sponsors';
+import { handleDbOperation, DbServiceResponse } from './utils/dbService';
+
+// Use a different name to avoid conflict with imported type
+export type DBSponsor = {
+  id: string;
   name: string;
-  logoUrl: string;
-  website?: string;
+  logo_url: string;
+  website_url?: string;
   tier?: 'platinum' | 'gold' | 'silver' | 'bronze';
   description?: string;
-}
-
-interface SponsorsState {
-  sponsors: Sponsor[];
-  isLoading: boolean;
-  error: string | null;
-  fetchSponsors: () => Promise<void>;
-  addSponsor: (sponsor: Sponsor) => void;
-  updateSponsor: (sponsor: Sponsor) => void;
-  deleteSponsor: (id: number) => void;
-}
-
-export const useSponsorsStore = create<SponsorsState>((set) => ({
-  sponsors: [
-    {
-      id: 1,
-      name: 'McIntosh Plant Hire',
-      logoUrl: '/lovable-uploads/sponsors/mcintosh.png',
-      website: 'https://www.mcintoshplanthire.co.uk/',
-      tier: 'gold'
-    },
-    {
-      id: 2,
-      name: 'Texo Group',
-      logoUrl: '/lovable-uploads/sponsors/texo.png',
-      website: 'https://www.texo.co.uk/',
-      tier: 'gold'
-    },
-    {
-      id: 3,
-      name: 'Saltire Energy',
-      logoUrl: '/lovable-uploads/sponsors/saltire.png',
-      website: 'https://www.saltire.com/',
-      tier: 'silver'
-    },
-    {
-      id: 4,
-      name: 'Anderson Construction',
-      logoUrl: '/lovable-uploads/sponsors/anderson.png',
-      website: 'https://www.andersonconstruction.co.uk/',
-      tier: 'silver'
-    },
-    {
-      id: 5,
-      name: 'STATS Group',
-      logoUrl: '/lovable-uploads/sponsors/stats.png',
-      website: 'https://www.statsgroup.com/',
-      tier: 'bronze'
-    }
-  ],
-  isLoading: false,
-  error: null,
-  fetchSponsors: async () => {
-    // This is a placeholder for when we eventually fetch sponsors from an API
-    set({ isLoading: true, error: null });
-    
-    try {
-      // In the future, this will be replaced with an actual API call
-      // For now, we'll just simulate a delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // The data is already set in the initial state, so we don't need to update it
-      set({ isLoading: false });
-    } catch (error) {
-      console.error('Error fetching sponsors:', error);
-      set({ 
-        error: error instanceof Error ? error.message : 'An unknown error occurred', 
-        isLoading: false 
-      });
-    }
-  },
-  addSponsor: (sponsor: Sponsor) => {
-    set((state) => ({
-      sponsors: [...state.sponsors, sponsor]
-    }));
-  },
-  updateSponsor: (updatedSponsor: Sponsor) => {
-    set((state) => ({
-      sponsors: state.sponsors.map(sponsor => 
-        sponsor.id === updatedSponsor.id ? updatedSponsor : sponsor
-      )
-    }));
-  },
-  deleteSponsor: (id: number) => {
-    set((state) => ({
-      sponsors: state.sponsors.filter(sponsor => sponsor.id !== id)
-    }));
-  }
-}));
+  created_at?: string;
+  updated_at?: string;
+  is_active: boolean;
+};
 
 /**
  * Get all sponsors
  */
-export async function getAllSponsors(): Promise<DbServiceResponse<Sponsor[]>> {
+export async function getAllSponsors(): Promise<DbServiceResponse<SponsorType[]>> {
   return handleDbOperation(
     async () => {
       const { data, error } = await supabase
@@ -113,7 +29,17 @@ export async function getAllSponsors(): Promise<DbServiceResponse<Sponsor[]>> {
 
       if (error) throw error;
 
-      return (data as DBSponsor[]).map(convertToSponsor);
+      // Convert from DB format to the Sponsor type defined in types/sponsors.ts
+      const sponsors: SponsorType[] = data.map(item => ({
+        id: parseInt(item.id),
+        name: item.name,
+        logoUrl: item.logo_url,
+        website: item.website_url,
+        tier: item.tier,
+        description: item.description
+      }));
+
+      return sponsors;
     },
     'Failed to load sponsors'
   );
@@ -122,7 +48,7 @@ export async function getAllSponsors(): Promise<DbServiceResponse<Sponsor[]>> {
 /**
  * Get sponsors by tier
  */
-export async function getSponsorsByTier(tier: 'platinum' | 'gold' | 'silver' | 'bronze'): Promise<DbServiceResponse<Sponsor[]>> {
+export async function getSponsorsByTier(tier: 'platinum' | 'gold' | 'silver' | 'bronze'): Promise<DbServiceResponse<SponsorType[]>> {
   return handleDbOperation(
     async () => {
       const { data, error } = await supabase
@@ -133,7 +59,17 @@ export async function getSponsorsByTier(tier: 'platinum' | 'gold' | 'silver' | '
 
       if (error) throw error;
 
-      return (data as DBSponsor[]).map(convertToSponsor);
+      // Convert from DB format to the Sponsor type defined in types/sponsors.ts
+      const sponsors: SponsorType[] = data.map(item => ({
+        id: parseInt(item.id),
+        name: item.name,
+        logoUrl: item.logo_url,
+        website: item.website_url,
+        tier: item.tier,
+        description: item.description
+      }));
+
+      return sponsors;
     },
     `Failed to load ${tier} sponsors`
   );
@@ -142,7 +78,7 @@ export async function getSponsorsByTier(tier: 'platinum' | 'gold' | 'silver' | '
 /**
  * Get active sponsors
  */
-export async function getActiveSponsors(): Promise<DbServiceResponse<Sponsor[]>> {
+export async function getActiveSponsors(): Promise<DbServiceResponse<SponsorType[]>> {
   return handleDbOperation(
     async () => {
       const { data, error } = await supabase
@@ -153,7 +89,17 @@ export async function getActiveSponsors(): Promise<DbServiceResponse<Sponsor[]>>
 
       if (error) throw error;
 
-      return (data as DBSponsor[]).map(convertToSponsor);
+      // Convert from DB format to the Sponsor type defined in types/sponsors.ts
+      const sponsors: SponsorType[] = data.map(item => ({
+        id: parseInt(item.id),
+        name: item.name,
+        logoUrl: item.logo_url,
+        website: item.website_url,
+        tier: item.tier,
+        description: item.description
+      }));
+
+      return sponsors;
     },
     'Failed to load active sponsors'
   );
@@ -162,7 +108,7 @@ export async function getActiveSponsors(): Promise<DbServiceResponse<Sponsor[]>>
 /**
  * Get sponsor by ID
  */
-export async function getSponsorById(id: string): Promise<DbServiceResponse<Sponsor>> {
+export async function getSponsorById(id: string): Promise<DbServiceResponse<SponsorType>> {
   return handleDbOperation(
     async () => {
       const { data, error } = await supabase
@@ -173,7 +119,17 @@ export async function getSponsorById(id: string): Promise<DbServiceResponse<Spon
 
       if (error) throw error;
 
-      return convertToSponsor(data as DBSponsor);
+      // Convert from DB format to the Sponsor type defined in types/sponsors.ts
+      const sponsor: SponsorType = {
+        id: parseInt(data.id),
+        name: data.name,
+        logoUrl: data.logo_url,
+        website: data.website_url,
+        tier: data.tier,
+        description: data.description
+      };
+
+      return sponsor;
     },
     'Failed to load sponsor details'
   );
@@ -182,7 +138,7 @@ export async function getSponsorById(id: string): Promise<DbServiceResponse<Spon
 /**
  * Create sponsor
  */
-export async function createSponsor(sponsor: Omit<DBSponsor, 'id' | 'created_at' | 'updated_at'>): Promise<DbServiceResponse<Sponsor>> {
+export async function createSponsor(sponsor: Omit<DBSponsor, 'id' | 'created_at' | 'updated_at'>): Promise<DbServiceResponse<SponsorType>> {
   return handleDbOperation(
     async () => {
       const { data, error } = await supabase
@@ -193,7 +149,17 @@ export async function createSponsor(sponsor: Omit<DBSponsor, 'id' | 'created_at'
 
       if (error) throw error;
 
-      return convertToSponsor(data as DBSponsor);
+      // Convert from DB format to the Sponsor type defined in types/sponsors.ts
+      const newSponsor: SponsorType = {
+        id: parseInt(data.id),
+        name: data.name,
+        logoUrl: data.logo_url,
+        website: data.website_url,
+        tier: data.tier,
+        description: data.description
+      };
+
+      return newSponsor;
     },
     'Failed to create sponsor'
   );
@@ -202,7 +168,7 @@ export async function createSponsor(sponsor: Omit<DBSponsor, 'id' | 'created_at'
 /**
  * Update sponsor
  */
-export async function updateSponsor(id: string, updates: Partial<DBSponsor>): Promise<DbServiceResponse<Sponsor>> {
+export async function updateSponsor(id: string, updates: Partial<DBSponsor>): Promise<DbServiceResponse<SponsorType>> {
   return handleDbOperation(
     async () => {
       const { data, error } = await supabase
@@ -214,7 +180,17 @@ export async function updateSponsor(id: string, updates: Partial<DBSponsor>): Pr
 
       if (error) throw error;
 
-      return convertToSponsor(data as DBSponsor);
+      // Convert from DB format to the Sponsor type defined in types/sponsors.ts
+      const sponsor: SponsorType = {
+        id: parseInt(data.id),
+        name: data.name,
+        logoUrl: data.logo_url,
+        website: data.website_url,
+        tier: data.tier,
+        description: data.description
+      };
+
+      return sponsor;
     },
     'Failed to update sponsor'
   );
@@ -268,4 +244,16 @@ export async function getSponsorTiers(): Promise<DbServiceResponse<string[]>> {
     },
     'Failed to load sponsor tiers'
   );
+}
+
+// Create a function to convert Sponsor to DBSponsor
+export function convertToDBSponsor(sponsor: SponsorType): Partial<DBSponsor> {
+  return {
+    name: sponsor.name,
+    logo_url: sponsor.logoUrl,
+    website_url: sponsor.website,
+    tier: sponsor.tier,
+    description: sponsor.description,
+    is_active: true
+  };
 }

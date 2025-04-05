@@ -1,4 +1,3 @@
-
 import { useCallback, useMemo } from 'react';
 import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/home/HeroSection';
@@ -14,7 +13,12 @@ import { Container } from '@/components/ui';
 
 const Index = () => {
   // Get featured articles IDs to exclude from news section
-  const { articleIds: featuredArticleIds } = useFeaturedArticles(4);
+  const { articleIds: featuredArticleIds, isError, error } = useFeaturedArticles(4);
+  
+  // Log any errors to help with debugging
+  if (isError) {
+    console.error('Error in useFeaturedArticles:', error);
+  }
   
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -40,7 +44,7 @@ const Index = () => {
       <ErrorBoundary>
         <div className="py-12 md:py-16 bg-white">
           <Container>
-            <NewsSection excludeIds={featuredArticleIds} initialCount={9} />
+            <NewsSection excludeIds={featuredArticleIds || []} initialCount={9} />
           </Container>
         </div>
       </ErrorBoundary>
@@ -74,7 +78,7 @@ const Index = () => {
         <div 
           className="absolute -bottom-10 left-0 right-0 h-24 transform skew-y-2 z-30 opacity-20"
           style={{
-            backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2300105a' fill-opacity='0.4'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2V0h2v20h2V0h2v20h2V0h2v20h2V0h2v20h2v2H20v-1.5zM0 20h2v20H0V20zm4 0h2v20H4V20zm4 0h2v20H8V20zm4 0h2v20h-2V20zm4 0h2v20h-2V20zm4 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2z'/%3E%3C/g%3E%3C/svg%3E\")",
+            backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2300105a' fill-opacity='0.4'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2V0h2v20h2V0h2v20h2V0h2v20h2V0h2v20h2V0h2v20h2v2H20v-1.5zM0 20h2v20H0V20zm4 0h2v20H4V20zm4 0h2v20H8V20zm4 0h2v20h-2V20zm4 0h2v20h-2V20zm4 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2z'/%3E%3C/g%3E%3C/svg%3E\")",
             backgroundSize: "40px 40px"
           }}
         ></div>

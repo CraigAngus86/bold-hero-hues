@@ -15,7 +15,9 @@ export const useFeaturedArticles = (limit: number = 4) => {
         console.error('Error fetching featured articles:', error);
         throw error;
       }
-    }
+    },
+    // Add retry:false to prevent excessive retries when QueryClient isn't available yet
+    retry: false
   });
 
   // Extract article IDs for excluding from other components

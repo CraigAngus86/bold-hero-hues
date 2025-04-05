@@ -6,7 +6,7 @@ import { DropZone } from './DropZone';
 import { ImagePreview } from './ImagePreview';
 import { getAspectRatioClass } from './utils';
 import { ImageUploaderProps } from './types';
-import { ImageUploaderProvider } from './ImageUploaderContext';
+import { ImageUploaderProvider, useImageUploaderContext } from './ImageUploaderContext';
 
 export function ImageUploader({
   type = 'general',
@@ -70,12 +70,7 @@ const ImageUploaderContent: React.FC<ImageUploaderContentProps> = ({
   aspectRatioClass,
   allowMetadata 
 }) => {
-  const { 
-    previewUrl,
-    dragActive,
-    setDragActive,
-    handleFileSelection
-  } = useImageUploaderContext();
+  const { previewUrl } = useImageUploaderContext();
 
   return !previewUrl ? (
     <DropZone

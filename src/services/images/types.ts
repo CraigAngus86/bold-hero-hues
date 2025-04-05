@@ -1,7 +1,7 @@
 
 import { BucketType } from './config';
 
-export { BucketType };
+export type { BucketType };
 
 // Image metadata interface
 export interface ImageMetadata {

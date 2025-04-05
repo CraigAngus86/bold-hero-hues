@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { toast } from 'sonner';
 import { useImageUpload } from '@/services/images';
-import { ImageOptimizationOptions } from '@/services/images/types';
+import { BucketType, ImageOptimizationOptions } from '@/services/images/types';
 
 interface ImageUploaderContextType {
   previewUrl: string | null;
@@ -21,6 +21,7 @@ interface ImageUploaderContextType {
   setDragActive: (active: boolean) => void;
   isUploading: boolean;
   progress: number;
+  acceptedTypes: string;
   handleFileSelection: (file: File) => void;
   clearSelection: () => void;
   handleAddTag: () => void;
@@ -35,7 +36,7 @@ interface ImageUploaderProviderProps {
   acceptedTypes: string;
   maxSizeMB: number;
   onUploadComplete?: (imageUrl: string) => void;
-  bucket: string;
+  bucket: BucketType;
   folderPath?: string;
   optimizationOptions: ImageOptimizationOptions;
   initialAlt?: string;
@@ -163,6 +164,7 @@ export const ImageUploaderProvider: React.FC<ImageUploaderProviderProps> = ({
     setDragActive,
     isUploading,
     progress,
+    acceptedTypes,
     handleFileSelection,
     clearSelection,
     handleAddTag,

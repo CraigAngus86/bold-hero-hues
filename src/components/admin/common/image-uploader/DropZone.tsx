@@ -11,7 +11,8 @@ export const DropZone: React.FC<DropZoneProps> = ({ inputId }) => {
   const {
     dragActive,
     setDragActive,
-    handleFileSelection
+    handleFileSelection,
+    acceptedTypes
   } = useImageUploaderContext();
   
   const handleDrag = useCallback((e: React.DragEvent<HTMLDivElement>) => {
@@ -65,7 +66,7 @@ export const DropZone: React.FC<DropZoneProps> = ({ inputId }) => {
           Drag & drop or click to upload image
         </p>
         <p className="text-xs text-gray-500 mt-1">
-          Supported formats up to {useImageUploaderContext().maxSizeMB}MB
+          Supported formats: {acceptedTypes.replace(/,/g, ', ')}
         </p>
       </div>
     </div>

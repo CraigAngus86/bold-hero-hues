@@ -36,33 +36,45 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
     queryFn: () => getNewsArticles({ orderBy: 'publish_date', orderDirection: 'desc' }),
   });
 
-  // Extract articles array from response data (which might be an array or an object with data & count)
-  const articles = Array.isArray(responseData) 
-    ? responseData 
-    : (responseData?.data || []);
+  // Process the articles data, ensuring it's in the correct format
+  const articles = React.useMemo(() => {
+    if (!responseData) return [];
+    
+    // Handle both array format and object format with data property
+    if (Array.isArray(responseData)) {
+      return responseData;
+    } else if (responseData && 'data' in responseData) {
+      return responseData.data || [];
+    }
+    
+    return [];
+  }, [responseData]);
 
   // Extract unique categories
-  const categories = articles.length > 0
-    ? [...new Set(articles.map(article => article.category))]
-    : [];
+  const categories = React.useMemo(() => {
+    if (articles.length === 0) return [];
+    return [...new Set(articles.map(article => article.category))];
+  }, [articles]);
 
   // Filter articles based on search term and category
-  const filteredArticles = articles.filter(article => {
-    const matchesSearch = searchTerm 
-      ? article.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        article.content.toLowerCase().includes(searchTerm.toLowerCase())
-      : true;
-      
-    const matchesCategory = selectedCategory 
-      ? article.category === selectedCategory 
-      : true;
-      
-    const matchesFeatured = featuredFilter !== undefined 
-      ? article.is_featured === featuredFilter 
-      : true;
-      
-    return matchesSearch && matchesCategory && matchesFeatured;
-  });
+  const filteredArticles = React.useMemo(() => {
+    return articles.filter(article => {
+      const matchesSearch = searchTerm 
+        ? article.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+          article.content.toLowerCase().includes(searchTerm.toLowerCase())
+        : true;
+        
+      const matchesCategory = selectedCategory 
+        ? article.category === selectedCategory 
+        : true;
+        
+      const matchesFeatured = featuredFilter !== undefined 
+        ? article.is_featured === featuredFilter 
+        : true;
+        
+      return matchesSearch && matchesCategory && matchesFeatured;
+    });
+  }, [articles, searchTerm, selectedCategory, featuredFilter]);
 
   // Delete article mutation
   const deleteMutation = useMutation({

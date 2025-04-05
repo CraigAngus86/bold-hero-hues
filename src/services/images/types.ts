@@ -1,6 +1,6 @@
 
-// Define BucketType here instead of importing it
-export type BucketType = 'news' | 'players' | 'sponsors' | 'general';
+// Define BucketType with all required bucket types
+export type BucketType = 'news' | 'players' | 'sponsors' | 'general' | 'news_images' | 'player_images';
 
 // Image metadata interface
 export interface ImageMetadata {

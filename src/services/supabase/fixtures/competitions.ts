@@ -1,51 +1,78 @@
 
-import { supabase } from '@/services/supabase/supabaseClient';
+/**
+ * This file handles competitions-related functions for fixtures
+ */
 
-// Fetch competitions
-export const fetchCompetitionsFromSupabase = async (): Promise<string[]> => {
-  try {
-    // First try to get from the competitions table
-    const { data, error } = await supabase
-      .from('competitions')
-      .select('name')
-      .eq('active', true)
-      .order('name');
+import { supabase } from '@/integrations/supabase/client';
 
-    if (error) {
-      console.error('Error fetching competitions from Supabase:', error);
-      // Fall back to getting unique values from matches
-      return fetchUniqueCompetitions();
-    }
-
-    if (data && data.length > 0) {
-      return data.map(comp => comp.name);
-    } else {
-      // If competitions table is empty, get distinct values from matches
-      return fetchUniqueCompetitions();
-    }
-  } catch (error) {
-    console.error('Error in fetchCompetitionsFromSupabase:', error);
-    return fetchUniqueCompetitions();
-  }
-};
-
-// Helper to fetch unique competitions from matches table
-export const fetchUniqueCompetitions = async (): Promise<string[]> => {
+// Get unique competitions from fixtures table
+export const getUniqueCompetitions = async (): Promise<string[]> => {
   try {
     const { data, error } = await supabase
-      .from('matches')
-      .select('competition');
+      .from('fixtures')
+      .select('competition')
+      .order('competition');
 
     if (error) {
-      console.error('Error fetching unique competitions:', error);
+      console.error('Error fetching competitions:', error);
       return [];
     }
 
     // Extract unique competition names
-    const uniqueCompetitions = [...new Set(data.map(match => match.competition))];
-    return uniqueCompetitions.sort();
+    const competitions = Array.from(new Set(
+      data
+        .filter(item => item.competition)
+        .map(item => item.competition)
+    ));
+
+    return competitions;
   } catch (error) {
-    console.error('Error in fetchUniqueCompetitions:', error);
+    console.error('Error in getUniqueCompetitions:', error);
     return [];
   }
 };
+
+// Get counts of matches by competition
+export const getCompetitionCounts = async (): Promise<Record<string, number>> => {
+  try {
+    const { data, error } = await supabase
+      .from('fixtures')
+      .select('competition');
+
+    if (error) {
+      console.error('Error fetching competition counts:', error);
+      return {};
+    }
+
+    // Count occurrences of each competition
+    const counts: Record<string, number> = {};
+    data.forEach(item => {
+      if (item.competition) {
+        counts[item.competition] = (counts[item.competition] || 0) + 1;
+      }
+    });
+
+    return counts;
+  } catch (error) {
+    console.error('Error in getCompetitionCounts:', error);
+    return {};
+  }
+};
+
+// Export competition-related constants
+export const HIGHLAND_LEAGUE = 'Highland League';
+export const SCOTTISH_CUP = 'Scottish Cup';
+export const LEAGUE_CUP = 'League Cup';
+export const ABERDEENSHIRE_CUP = 'Aberdeenshire Cup';
+export const ABERDEENSHIRE_SHIELD = 'Aberdeenshire Shield';
+export const FRIENDLY = 'Friendly';
+
+// All supported competitions
+export const ALL_COMPETITIONS = [
+  HIGHLAND_LEAGUE,
+  SCOTTISH_CUP,
+  LEAGUE_CUP, 
+  ABERDEENSHIRE_CUP,
+  ABERDEENSHIRE_SHIELD,
+  FRIENDLY
+];

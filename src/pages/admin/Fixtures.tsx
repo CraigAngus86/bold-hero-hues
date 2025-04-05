@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import FixturesScraper from '@/components/admin/fixtures/FixturesScraper';
+import FixturesImporter from '@/components/admin/fixtures/FixturesImporter';
 import { fetchMatchesFromSupabase } from '@/services/supabase/fixturesService';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
@@ -56,7 +57,10 @@ export default function FixturesAdmin() {
           </TabsList>
           
           <TabsContent value="import">
-            <FixturesScraper />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <FixturesScraper />
+              <FixturesImporter />
+            </div>
           </TabsContent>
           
           <TabsContent value="manage">
@@ -75,4 +79,4 @@ export default function FixturesAdmin() {
       </div>
     </AdminLayout>
   );
-}
+};

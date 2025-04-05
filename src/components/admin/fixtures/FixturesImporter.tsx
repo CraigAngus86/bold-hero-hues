@@ -38,7 +38,7 @@ const FixturesImporter = () => {
       const fileContent = await file.text();
       
       // Parse the JSON
-      let fixtures: ScrapedFixture[];
+      let fixtures: any[];
       try {
         fixtures = JSON.parse(fileContent);
         
@@ -51,22 +51,17 @@ const FixturesImporter = () => {
         return;
       }
 
-      // Validate fixtures
-      const invalidFixtures = fixtures.filter(fixture => 
-        !fixture.homeTeam || 
-        !fixture.awayTeam || 
-        !fixture.date || 
-        !fixture.time || 
-        !fixture.competition
-      );
-
-      if (invalidFixtures.length > 0) {
-        setError(`${invalidFixtures.length} fixtures are invalid. Each fixture must have homeTeam, awayTeam, date, time, and competition.`);
+      // Basic validation - we now support both our format and Claude's format
+      const isStandardFormat = fixtures.some(fixture => fixture.homeTeam || fixture.home_team);
+      const isClaudeFormat = fixtures.some(fixture => fixture.opposition && fixture.location);
+      
+      if (!isStandardFormat && !isClaudeFormat) {
+        setError(`Invalid fixture format. Each fixture must have either homeTeam/awayTeam fields or opposition/location fields.`);
         setIsLoading(false);
         return;
       }
 
-      // Import fixtures - fix here: remove the second argument
+      // Import fixtures - uses a single argument now
       const success = await importHistoricFixtures(fixtures);
       
       if (success) {
@@ -129,28 +124,42 @@ const FixturesImporter = () => {
               className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
             />
             <p className="mt-1 text-xs text-gray-500">
-              The JSON file should contain an array of fixture objects with homeTeam, awayTeam, date, time, and competition fields.
+              The JSON file should contain an array of fixture objects. Both standard and Claude formats are supported.
             </p>
           </div>
           
           <div className="flex flex-col space-y-2">
-            <h4 className="text-sm font-medium">Example JSON Structure:</h4>
-            <pre className="bg-gray-50 p-3 rounded-md text-xs overflow-auto">
+            <h4 className="text-sm font-medium">Supported JSON Formats:</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <h5 className="text-xs font-semibold mb-1">Standard Format:</h5>
+                <pre className="bg-gray-50 p-3 rounded-md text-xs overflow-auto">
 {`[
   {
     "homeTeam": "Team A",
     "awayTeam": "Team B",
     "date": "2023-08-15",
     "time": "15:00",
-    "competition": "Highland League",
-    "venue": "Stadium Name",
-    "isCompleted": true,
-    "homeScore": 2,
-    "awayScore": 1
-  },
-  ...
+    "competition": "Highland League"
+  }
 ]`}
-            </pre>
+                </pre>
+              </div>
+              <div>
+                <h5 className="text-xs font-semibold mb-1">Claude Format:</h5>
+                <pre className="bg-gray-50 p-3 rounded-md text-xs overflow-auto">
+{`[
+  {
+    "date": "2023-08-15",
+    "opposition": "Team B",
+    "location": "Home",
+    "kickOffTime": "15:00",
+    "competition": "Highland League"
+  }
+]`}
+                </pre>
+              </div>
+            </div>
           </div>
         </div>
       </CardContent>

@@ -10,18 +10,45 @@ import { toast } from 'sonner';
  * @param jsonData The parsed JSON data containing fixtures array
  * @returns Promise with operation result
  */
-export const importHistoricFixtures = async (jsonData: ScrapedFixture[]): Promise<boolean> => {
+export const importHistoricFixtures = async (jsonData: ScrapedFixture[] | any[]): Promise<boolean> => {
   try {
     if (!Array.isArray(jsonData)) {
       toast.error('Invalid JSON format');
       return false;
     }
     
+    // Convert the data if it's in the Claude script format
+    const fixtures: ScrapedFixture[] = jsonData.map(fixture => {
+      // Check if this is our standard format or Claude's format
+      if ('homeTeam' in fixture || 'home_team' in fixture) {
+        // It's already in our format or close to it
+        return fixture as ScrapedFixture;
+      } else {
+        // It's in Claude's format, convert it
+        return {
+          homeTeam: "Banks O' Dee FC",
+          awayTeam: fixture.opposition || '',
+          date: fixture.date || '',
+          time: fixture.kickOffTime || fixture.kick_off_time || '',
+          competition: fixture.competition || '',
+          venue: fixture.location === 'Home' ? "Spain Park" : fixture.location || '',
+          isCompleted: fixture.isCompleted || fixture.is_completed || false,
+          homeScore: fixture.location === 'Home' ? 
+            (fixture.score ? parseInt(fixture.score.split('-')[0]) : null) : 
+            (fixture.score ? parseInt(fixture.score.split('-')[1]) : null),
+          awayScore: fixture.location === 'Home' ? 
+            (fixture.score ? parseInt(fixture.score.split('-')[1]) : null) : 
+            (fixture.score ? parseInt(fixture.score.split('-')[0]) : null),
+          source: 'manual-import'
+        };
+      }
+    });
+    
     const source = 'manual-import';
-    const result = await storeFixtures(jsonData, source);
+    const result = await storeFixtures(fixtures, source);
     
     if (result.success) {
-      toast.success(`Successfully imported ${jsonData.length} fixtures`);
+      toast.success(`Successfully imported ${fixtures.length} fixtures`);
       return true;
     } else {
       toast.error(`Failed to import fixtures: ${result.message}`);

@@ -13,6 +13,10 @@ import TicketsPage from './pages/Tickets';
 import StyleGuide from './pages/StyleGuide';
 import { Toaster } from './components/ui/sonner';
 
+// Admin pages
+import Admin from './pages/Admin';
+import AdminDashboard from './pages/admin/Dashboard';
+
 // Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,6 +43,10 @@ function App() {
             <Route path="/stadium" element={<StadiumPage />} />
             <Route path="/tickets" element={<TicketsPage />} />
             <Route path="/styleguide" element={<StyleGuide />} />
+            
+            {/* Admin routes */}
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/*" element={<Admin />} />
           </Routes>
         </BrowserRouter>
       </ThemeProvider>

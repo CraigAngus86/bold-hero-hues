@@ -8,9 +8,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Typography } from '@/components/ui';
 import { Award, Calendar, Check, Clock, Home, Mail, MessageSquare, User } from 'lucide-react';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 
 const { H1, H2, H3, H4, Body, Small } = Typography;
@@ -317,22 +314,22 @@ const StyleGuide = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Text Input</Label>
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700">Text Input</label>
                     <Input id="name" placeholder="Enter your name" />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email Input</Label>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email Input</label>
                     <Input id="email" type="email" placeholder="Enter your email" />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="disabled">Disabled Input</Label>
+                    <label htmlFor="disabled" className="block text-sm font-medium text-gray-700">Disabled Input</label>
                     <Input id="disabled" disabled placeholder="Disabled input" />
                   </div>
                   
                   <div className="space-y-3">
-                    <Label htmlFor="textarea">Text Area</Label>
+                    <label htmlFor="textarea" className="block text-sm font-medium text-gray-700">Text Area</label>
                     <Textarea id="textarea" placeholder="Enter your message" className="min-h-[100px]" />
                   </div>
                 </CardContent>
@@ -340,28 +337,59 @@ const StyleGuide = () => {
               
               <Card>
                 <CardHeader>
-                  <CardTitle>Selection & Toggle Controls</CardTitle>
+                  <CardTitle>Selection Controls</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-3">
-                    <H4>Radio Group</H4>
-                    <RadioGroup defaultValue="option-one">
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="option-one" id="option-one" />
-                        <Label htmlFor="option-one">Option One</Label>
+                    <H4>Radio Example</H4>
+                    <div className="space-y-2">
+                      <div className="flex items-center">
+                        <input
+                          id="radio-1"
+                          name="radio-group"
+                          type="radio"
+                          defaultChecked
+                          className="h-4 w-4 text-primary-800 border-gray-300 focus:ring-primary-500"
+                        />
+                        <label htmlFor="radio-1" className="ml-2 block text-sm text-gray-700">
+                          Option One
+                        </label>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="option-two" id="option-two" />
-                        <Label htmlFor="option-two">Option Two</Label>
+                      <div className="flex items-center">
+                        <input
+                          id="radio-2"
+                          name="radio-group"
+                          type="radio"
+                          className="h-4 w-4 text-primary-800 border-gray-300 focus:ring-primary-500"
+                        />
+                        <label htmlFor="radio-2" className="ml-2 block text-sm text-gray-700">
+                          Option Two
+                        </label>
                       </div>
-                    </RadioGroup>
+                    </div>
                   </div>
                   
                   <div className="space-y-3">
-                    <H4>Toggle Switch</H4>
+                    <H4>Toggle Example</H4>
                     <div className="flex items-center space-x-2">
-                      <Switch id="airplane-mode" />
-                      <Label htmlFor="airplane-mode">Toggle feature</Label>
+                      <div className="relative inline-block w-10 mr-2 align-middle select-none">
+                        <input 
+                          type="checkbox" 
+                          id="toggle" 
+                          className="sr-only"
+                          defaultChecked 
+                        />
+                        <label 
+                          htmlFor="toggle" 
+                          className="block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"
+                        >
+                          <span className={`
+                            block h-6 w-6 rounded-full bg-white shadow transform transition-transform duration-200 ease-in-out
+                            translate-x-4
+                          `}></span>
+                        </label>
+                      </div>
+                      <label htmlFor="toggle" className="text-sm text-gray-700">Toggle feature</label>
                     </div>
                   </div>
                 </CardContent>

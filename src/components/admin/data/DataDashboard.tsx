@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { toast } from "sonner";
 import ServerMonitor from './ServerMonitor';
 import CacheSettingsCard from './CacheSettingsCard';
@@ -11,7 +11,7 @@ import { clearLeagueDataCache } from '@/services/leagueDataService';
 import { Button } from "@/components/ui/button";
 
 const DataDashboard = () => {
-  const { config, updateConfig } = useApiConfig();
+  const { config, handleConfigChange, handleSwitchChange, saveConfig } = useApiConfig();
   
   const handleClearCache = () => {
     clearLeagueDataCache();
@@ -22,13 +22,19 @@ const DataDashboard = () => {
     <div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
         <ServerMonitor config={config} />
-        <CacheSettingsCard onClearCache={handleClearCache} />
+        <CacheSettingsCard 
+          config={config}
+          handleConfigChange={handleConfigChange}
+          handleSwitchChange={handleSwitchChange}
+          onClearCache={handleClearCache}
+        />
       </div>
       
       <div className="mb-6">
         <ProxySettingsCard 
           config={config} 
-          updateConfig={updateConfig} 
+          handleConfigChange={handleConfigChange}
+          handleSwitchChange={handleSwitchChange}
         />
       </div>
       

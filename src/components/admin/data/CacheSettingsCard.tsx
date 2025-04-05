@@ -4,18 +4,21 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 import { ApiConfig } from '@/services/config/apiConfig';
 
 interface CacheSettingsCardProps {
   config: ApiConfig;
   handleConfigChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleSwitchChange: (name: string, checked: boolean) => void;
+  onClearCache: () => void;
 }
 
 const CacheSettingsCard: React.FC<CacheSettingsCardProps> = ({
   config,
   handleConfigChange,
-  handleSwitchChange
+  handleSwitchChange,
+  onClearCache
 }) => {
   return (
     <Card>
@@ -57,6 +60,12 @@ const CacheSettingsCard: React.FC<CacheSettingsCardProps> = ({
             />
           </div>
         )}
+        
+        <div className="pt-2">
+          <Button onClick={onClearCache} variant="outline" size="sm">
+            Clear Cache
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

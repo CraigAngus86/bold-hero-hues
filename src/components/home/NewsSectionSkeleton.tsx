@@ -4,9 +4,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 interface NewsSectionSkeletonProps {
   count?: number;
+  featured?: boolean;
 }
 
-const NewsSectionSkeleton: React.FC<NewsSectionSkeletonProps> = ({ count = 3 }) => {
+const NewsSectionSkeleton: React.FC<NewsSectionSkeletonProps> = ({ 
+  count = 3,
+  featured = false 
+}) => {
   return (
     <section className="py-16 bg-white">
       <div className="container mx-auto px-4">
@@ -16,6 +20,24 @@ const NewsSectionSkeleton: React.FC<NewsSectionSkeletonProps> = ({ count = 3 }) 
         </div>
         
         <div className="grid grid-cols-12 gap-6">
+          {/* Featured Article Skeleton */}
+          {featured && (
+            <div className="col-span-12 mb-6">
+              <div className="rounded-lg overflow-hidden shadow-md bg-white h-full">
+                <Skeleton className="w-full h-64" />
+                <div className="p-6">
+                  <Skeleton className="h-4 w-24 mb-3" />
+                  <Skeleton className="h-8 w-full mb-3" />
+                  <Skeleton className="h-4 w-5/6 mb-1" />
+                  <Skeleton className="h-4 w-4/5 mb-1" />
+                  <Skeleton className="h-4 w-3/4 mb-4" />
+                  <Skeleton className="h-4 w-28 mt-4" />
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Regular Articles Skeletons */}
           {Array.from({ length: count }).map((_, index) => (
             <div key={index} className="col-span-12 sm:col-span-6 lg:col-span-4">
               <div className="rounded-lg overflow-hidden shadow-md bg-white h-full">

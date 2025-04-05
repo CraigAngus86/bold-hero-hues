@@ -70,15 +70,14 @@ const NewsCard: React.FC<NewsCardProps> = ({
         transition={{ duration: 0.5, ease: "easeOut" }}
         className={cn(
           "group rounded-lg overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl bg-white h-full flex flex-col",
-          size === 'large' ? "lg:col-span-2" : "",
-          size === 'small' ? "lg:col-span-1" : "",
+          size === 'large' ? "md:col-span-2" : "",
           className
         )}
       >
         <div className={cn(
           "overflow-hidden relative",
           size === 'small' ? "h-48" : "h-56",
-          size === 'large' ? "h-64" : ""
+          size === 'large' ? "h-72 md:h-80" : ""
         )}>
           <div className="absolute top-0 left-0 z-10 m-4">
             <Badge className="bg-team-lightBlue hover:bg-team-lightBlue/90 text-team-blue text-xs font-semibold">
@@ -99,7 +98,7 @@ const NewsCard: React.FC<NewsCardProps> = ({
         
         <div className={cn(
           "p-6 flex-1 flex flex-col",
-          size === 'large' ? "p-8" : "",
+          size === 'large' ? "p-6 md:p-8" : "",
           size === 'small' ? "p-4" : ""
         )}>
           <div className="flex items-center mb-3 text-sm text-gray-500">
@@ -108,17 +107,18 @@ const NewsCard: React.FC<NewsCardProps> = ({
           </div>
           
           <h3 className={cn(
-            "font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-team-blue transition-colors",
-            size === 'large' ? "text-2xl" : "text-xl",
-            size === 'small' ? "text-lg" : ""
+            "font-bold text-gray-900 mb-3 group-hover:text-team-blue transition-colors",
+            size === 'large' ? "text-xl md:text-2xl line-clamp-2" : "text-lg line-clamp-2",
+            size === 'small' ? "text-base line-clamp-2" : ""
           )}>
             {title}
           </h3>
           
           <p className={cn(
             "text-gray-600 mb-4 flex-1",
-            size === 'small' ? "line-clamp-2" : "line-clamp-3",
-            size === 'large' ? "text-lg" : ""
+            size === 'small' ? "text-sm line-clamp-2" : "",
+            size === 'medium' ? "line-clamp-3" : "",
+            size === 'large' ? "md:text-lg line-clamp-3 md:line-clamp-4" : ""
           )}>
             {excerpt}
           </p>

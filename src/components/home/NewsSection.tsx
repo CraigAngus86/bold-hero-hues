@@ -19,13 +19,16 @@ const NewsSection: React.FC<NewsSectionProps> = ({
   excludeIds = [], 
   initialCount = 6 
 }) => {
+  // Increase the fetch count to account for the featured article
+  const fetchCount = initialCount + 1;
+
   // Fetch latest news articles
   const { data, isLoading, error } = useQuery({
-    queryKey: ['latestNews', initialCount, excludeIds],
+    queryKey: ['latestNews', fetchCount, excludeIds],
     queryFn: async () => {
       const response = await getArticles({
         page: 1,
-        pageSize: initialCount + excludeIds.length, // Fetch extra to account for excluded items
+        pageSize: fetchCount + excludeIds.length, // Fetch extra to account for excluded items
         orderBy: 'publish_date',
         orderDirection: 'desc'
       });
@@ -33,13 +36,24 @@ const NewsSection: React.FC<NewsSectionProps> = ({
     }
   });
 
-  // Filter out excluded articles and limit to initialCount
-  const articles = useMemo(() => {
-    if (!data?.data || !Array.isArray(data.data)) return [];
+  // Separate featured article and regular articles
+  const { featuredArticle, regularArticles } = useMemo(() => {
+    if (!data?.data || !Array.isArray(data.data)) {
+      return { featuredArticle: null, regularArticles: [] };
+    }
     
-    return data.data
-      .filter(article => !excludeIds.includes(article.id))
-      .slice(0, initialCount);
+    const filteredArticles = data.data
+      .filter(article => !excludeIds.includes(article.id));
+    
+    // If we have at least one article, use the first (most recent) as featured
+    const featured = filteredArticles.length > 0 ? filteredArticles[0] : null;
+    
+    // The rest are regular articles
+    const regular = featured 
+      ? filteredArticles.slice(1, initialCount) 
+      : filteredArticles.slice(0, initialCount);
+    
+    return { featuredArticle: featured, regularArticles: regular };
   }, [data, excludeIds, initialCount]);
 
   // Get a local image fallback based on article index
@@ -56,15 +70,41 @@ const NewsSection: React.FC<NewsSectionProps> = ({
     return localImages[index % localImages.length];
   };
 
-  // Memoized render function for NewsCard to prevent unnecessary rerenders
-  const renderNewsCard = useCallback((article: NewsArticle, index: number) => {
-    // Process excerpt - strip HTML and limit length
-    const plainTextExcerpt = article.content
+  // Process excerpt - strip HTML and limit length
+  const processExcerpt = (content: string, isFeature: boolean = false) => {
+    const maxLength = isFeature ? 250 : 150;
+    return content
       .replace(/<[^>]*>?/gm, '')
-      .substring(0, 150) + '...';
-      
-    // Use image_url if available, otherwise use local fallback
-    const imageUrl = article.image_url || getLocalImageFallback(index);
+      .substring(0, maxLength) + '...';
+  };
+
+  // Render featured article
+  const renderFeaturedArticle = useCallback(() => {
+    if (!featuredArticle) return null;
+
+    const imageUrl = featuredArticle.image_url || getLocalImageFallback(0);
+    const plainTextExcerpt = processExcerpt(featuredArticle.content, true);
+
+    return (
+      <div className="col-span-12 mb-6">
+        <NewsCard
+          title={featuredArticle.title}
+          excerpt={plainTextExcerpt}
+          image={imageUrl}
+          date={formatDate(featuredArticle.publish_date)}
+          category={featuredArticle.category}
+          slug={featuredArticle.slug}
+          size="large"
+          className="h-full"
+        />
+      </div>
+    );
+  }, [featuredArticle]);
+
+  // Memoized render function for regular NewsCard to prevent unnecessary rerenders
+  const renderNewsCard = useCallback((article: NewsArticle, index: number) => {
+    const plainTextExcerpt = processExcerpt(article.content);
+    const imageUrl = article.image_url || getLocalImageFallback(index + 1); // +1 because index 0 is for featured
     
     return (
       <div key={article.id} className="col-span-12 sm:col-span-6 lg:col-span-4">
@@ -76,6 +116,7 @@ const NewsSection: React.FC<NewsSectionProps> = ({
           category={article.category}
           slug={article.slug}
           size="medium"
+          className="h-full"
         />
       </div>
     );
@@ -83,11 +124,11 @@ const NewsSection: React.FC<NewsSectionProps> = ({
 
   // Loading state
   if (isLoading) {
-    return <NewsSectionSkeleton count={initialCount} />;
+    return <NewsSectionSkeleton count={initialCount} featured={true} />;
   }
 
   // Error state
-  if (error || !articles) {
+  if (error || !regularArticles) {
     return (
       <div className="py-16 bg-white">
         <div className="container mx-auto px-4">
@@ -101,7 +142,7 @@ const NewsSection: React.FC<NewsSectionProps> = ({
   }
 
   // Empty state
-  if (articles.length === 0) {
+  if (regularArticles.length === 0 && !featuredArticle) {
     return (
       <div className="py-16 bg-white">
         <div className="container mx-auto px-4">
@@ -128,7 +169,11 @@ const NewsSection: React.FC<NewsSectionProps> = ({
         </div>
         
         <div className="grid grid-cols-12 gap-6">
-          {articles.map((article, index) => renderNewsCard(article, index))}
+          {/* Featured Article */}
+          {featuredArticle && renderFeaturedArticle()}
+          
+          {/* Regular Articles */}
+          {regularArticles.map((article, index) => renderNewsCard(article, index))}
         </div>
       </div>
     </section>

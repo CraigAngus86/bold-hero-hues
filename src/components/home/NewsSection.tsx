@@ -17,7 +17,7 @@ interface NewsSectionProps {
 
 const NewsSection: React.FC<NewsSectionProps> = ({ 
   excludeIds = [], 
-  initialCount = 7 // Increased to support the new layout (1 featured + 6 standard)
+  initialCount = 7 // Adjust the number based on the new grid layout (1 featured + 6 standard)
 }) => {
   // Increase the fetch count to ensure we have enough articles
   const fetchCount = initialCount + 4; // Fetch extra to account for filtering
@@ -125,9 +125,9 @@ const NewsSection: React.FC<NewsSectionProps> = ({
         </div>
         
         <div className="grid grid-cols-12 gap-6">
-          {/* Featured Article - 8 columns on desktop, full width on tablet/mobile */}
+          {/* Featured Article - 6 columns on desktop */}
           {featuredArticle && (
-            <div className="col-span-12 lg:col-span-8">
+            <div className="col-span-12 md:col-span-6">
               <NewsCard
                 title={featuredArticle.title}
                 excerpt={processExcerpt(featuredArticle.content, true)}
@@ -141,25 +141,46 @@ const NewsSection: React.FC<NewsSectionProps> = ({
             </div>
           )}
           
-          {/* Secondary Articles - Stack to the right of featured article on large screens */}
-          {regularArticles.slice(0, 2).map((article, index) => (
-            <div key={article.id} className="col-span-12 md:col-span-6 lg:col-span-4">
-              <NewsCard
-                title={article.title}
-                excerpt={processExcerpt(article.content)}
-                image={article.image_url || getLocalImageFallback(index + 1)}
-                date={formatDate(article.publish_date)}
-                category={article.category}
-                slug={article.slug}
-                size="medium"
-                className="h-full"
-              />
+          {/* Right side stacked articles - 2 articles of 3 columns each */}
+          <div className="col-span-12 md:col-span-6">
+            <div className="grid grid-cols-12 gap-6 h-full">
+              {/* Top right article */}
+              {regularArticles[0] && (
+                <div className="col-span-12 sm:col-span-6 md:col-span-12 lg:col-span-6 xl:col-span-6 h-[calc(50%-0.75rem)]">
+                  <NewsCard
+                    title={regularArticles[0].title}
+                    excerpt={processExcerpt(regularArticles[0].content)}
+                    image={regularArticles[0].image_url || getLocalImageFallback(1)}
+                    date={formatDate(regularArticles[0].publish_date)}
+                    category={regularArticles[0].category}
+                    slug={regularArticles[0].slug}
+                    size="medium"
+                    className="h-full"
+                  />
+                </div>
+              )}
+              
+              {/* Bottom right article */}
+              {regularArticles[1] && (
+                <div className="col-span-12 sm:col-span-6 md:col-span-12 lg:col-span-6 xl:col-span-6 h-[calc(50%-0.75rem)]">
+                  <NewsCard
+                    title={regularArticles[1].title}
+                    excerpt={processExcerpt(regularArticles[1].content)}
+                    image={regularArticles[1].image_url || getLocalImageFallback(2)}
+                    date={formatDate(regularArticles[1].publish_date)}
+                    category={regularArticles[1].category}
+                    slug={regularArticles[1].slug}
+                    size="medium"
+                    className="h-full"
+                  />
+                </div>
+              )}
             </div>
-          ))}
+          </div>
           
-          {/* Additional Articles - Row of 3 below on large screens */}
-          {regularArticles.slice(2).map((article, index) => (
-            <div key={article.id} className="col-span-12 sm:col-span-6 md:col-span-6 lg:col-span-4">
+          {/* Bottom row - 4 articles of 3 columns each */}
+          {regularArticles.slice(2, 6).map((article, index) => (
+            <div key={article.id} className="col-span-12 sm:col-span-6 md:col-span-6 lg:col-span-3">
               <NewsCard
                 title={article.title}
                 excerpt={processExcerpt(article.content)}
@@ -167,7 +188,7 @@ const NewsSection: React.FC<NewsSectionProps> = ({
                 date={formatDate(article.publish_date)}
                 category={article.category}
                 slug={article.slug}
-                size="medium"
+                size="small"
                 className="h-full"
               />
             </div>

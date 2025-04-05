@@ -5,6 +5,13 @@ import { supabase } from '@/services/supabase/supabaseClient';
 // Define your known tables as a type
 type KnownTables = 'fixtures' | 'highland_league_table' | 'image_folders' | 'scrape_logs' | 'settings';
 
+// Explicitly define return types to prevent excessive type instantiation
+interface FetchResult<T> {
+  data: T[];
+  loading: boolean;
+  error: Error | null;
+}
+
 // Generic version of the hook for strictly typed tables
 export function useSupabaseFetch<T>(
   table: KnownTables,
@@ -13,7 +20,7 @@ export function useSupabaseFetch<T>(
     match?: Record<string, any>;
     order?: { column: string; ascending: boolean };
   }
-) {
+): FetchResult<T> {
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
@@ -42,7 +49,8 @@ export function useSupabaseFetch<T>(
         
         if (queryError) throw queryError;
         
-        setData((result || []) as T[]);
+        // Use type assertion to help TypeScript understand the type
+        setData(result as T[] || []);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Unknown error occurred'));
       } finally {
@@ -53,10 +61,12 @@ export function useSupabaseFetch<T>(
     fetchData();
   }, [table, options]);
 
-  return { data, loading, error };
+  // Return with explicit type to help TypeScript
+  return { data, loading, error } as FetchResult<T>;
 }
 
 // Alternative version for dynamic table names (less type-safe)
+// Break the type recursion with explicit return type
 export function useDynamicSupabaseFetch<T>(
   table: string,
   options?: {
@@ -64,7 +74,7 @@ export function useDynamicSupabaseFetch<T>(
     match?: Record<string, any>;
     order?: { column: string; ascending: boolean };
   }
-) {
+): FetchResult<T> {
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
@@ -74,8 +84,8 @@ export function useDynamicSupabaseFetch<T>(
       try {
         setLoading(true);
         
-        // Using type assertion to bypass TypeScript's strict checking
-        const baseQuery = supabase.from(table as any);
+        // Cast to any to break potential type recursion issues
+        const baseQuery = (supabase.from(table as any) as any);
         let query = baseQuery.select(options?.select || '*');
         
         if (options?.match) {
@@ -94,7 +104,8 @@ export function useDynamicSupabaseFetch<T>(
         
         if (queryError) throw queryError;
         
-        setData((result || []) as T[]);
+        // Use type assertion to help TypeScript understand the type
+        setData(result as T[] || []);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Unknown error occurred'));
       } finally {

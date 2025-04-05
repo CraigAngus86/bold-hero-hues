@@ -1,133 +1,121 @@
 
-import React, { useState } from 'react';
-import { cn } from '@/lib/utils';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import * as React from "react"
 
-export interface TableColumn<T> {
-  key: string;
-  title: string;
-  render?: (item: T) => React.ReactNode;
-  sortable?: boolean;
+import { cn } from "@/lib/utils"
+
+const Table = React.forwardRef<
+  HTMLTableElement,
+  React.HTMLAttributes<HTMLTableElement>
+>(({ className, ...props }, ref) => (
+  <div className="relative w-full overflow-auto">
+    <table
+      ref={ref}
+      className={cn("w-full caption-bottom text-sm", className)}
+      {...props}
+    />
+  </div>
+))
+Table.displayName = "Table"
+
+const TableHeader = React.forwardRef<
+  HTMLTableSectionElement,
+  React.HTMLAttributes<HTMLTableSectionElement>
+>(({ className, ...props }, ref) => (
+  <thead ref={ref} className={cn("[&_tr]:border-b", className)} {...props} />
+))
+TableHeader.displayName = "TableHeader"
+
+const TableBody = React.forwardRef<
+  HTMLTableSectionElement,
+  React.HTMLAttributes<HTMLTableSectionElement>
+>(({ className, ...props }, ref) => (
+  <tbody
+    ref={ref}
+    className={cn("[&_tr:last-child]:border-0", className)}
+    {...props}
+  />
+))
+TableBody.displayName = "TableBody"
+
+const TableFooter = React.forwardRef<
+  HTMLTableSectionElement,
+  React.HTMLAttributes<HTMLTableSectionElement>
+>(({ className, ...props }, ref) => (
+  <tfoot
+    ref={ref}
+    className={cn(
+      "border-t bg-muted/50 font-medium [&>tr]:last:border-b-0",
+      className
+    )}
+    {...props}
+  />
+))
+TableFooter.displayName = "TableFooter"
+
+const TableRow = React.forwardRef<
+  HTMLTableRowElement,
+  React.HTMLAttributes<HTMLTableRowElement>
+>(({ className, ...props }, ref) => (
+  <tr
+    ref={ref}
+    className={cn(
+      "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
+      className
+    )}
+    {...props}
+  />
+))
+TableRow.displayName = "TableRow"
+
+const TableHead = React.forwardRef<
+  HTMLTableCellElement,
+  React.ThHTMLAttributes<HTMLTableCellElement>
+>(({ className, ...props }, ref) => (
+  <th
+    ref={ref}
+    className={cn(
+      "h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0",
+      className
+    )}
+    {...props}
+  />
+))
+TableHead.displayName = "TableHead"
+
+const TableCell = React.forwardRef<
+  HTMLTableCellElement,
+  React.TdHTMLAttributes<HTMLTableCellElement>
+>(({ className, ...props }, ref) => (
+  <td
+    ref={ref}
+    className={cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className)}
+    {...props}
+  />
+))
+TableCell.displayName = "TableCell"
+
+const TableCaption = React.forwardRef<
+  HTMLTableCaptionElement,
+  React.HTMLAttributes<HTMLTableCaptionElement>
+>(({ className, ...props }, ref) => (
+  <caption
+    ref={ref}
+    className={cn("mt-4 text-sm text-muted-foreground", className)}
+    {...props}
+  />
+))
+TableCaption.displayName = "TableCaption"
+
+export {
+  Table,
+  TableHeader,
+  TableBody,
+  TableFooter,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableCaption,
 }
 
-interface TableProps<T> {
-  data: T[];
-  columns: TableColumn<T>[];
-  className?: string;
-  onRowClick?: (item: T) => void;
-  isLoading?: boolean;
-  noDataMessage?: string;
-  initialSortKey?: string;
-  initialSortDirection?: 'asc' | 'desc';
-}
-
-function Table<T extends Record<string, any>>({
-  data,
-  columns,
-  className,
-  onRowClick,
-  isLoading = false,
-  noDataMessage = "No data available",
-  initialSortKey,
-  initialSortDirection = 'asc',
-}: TableProps<T>) {
-  const [sortKey, setSortKey] = useState<string | undefined>(initialSortKey);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(initialSortDirection);
-
-  const handleSort = (key: string) => {
-    if (sortKey === key) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortKey(key);
-      setSortDirection('asc');
-    }
-  };
-
-  const sortedData = React.useMemo(() => {
-    if (!sortKey) return data;
-
-    return [...data].sort((a, b) => {
-      const aValue = a[sortKey];
-      const bValue = b[sortKey];
-
-      if (aValue === bValue) return 0;
-      
-      if (aValue === null || aValue === undefined) return 1;
-      if (bValue === null || bValue === undefined) return -1;
-
-      const comparison = aValue > bValue ? 1 : -1;
-      return sortDirection === 'asc' ? comparison : -comparison;
-    });
-  }, [data, sortKey, sortDirection]);
-
-  return (
-    <div className={cn("w-full overflow-x-auto", className)}>
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            {columns.map((column) => (
-              <th
-                key={column.key}
-                scope="col"
-                className={cn(
-                  "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider",
-                  column.sortable && "cursor-pointer hover:bg-gray-100"
-                )}
-                onClick={column.sortable ? () => handleSort(column.key) : undefined}
-              >
-                <div className="flex items-center space-x-1">
-                  <span>{column.title}</span>
-                  {column.sortable && sortKey === column.key && (
-                    <span className="inline-block">
-                      {sortDirection === 'asc' ? (
-                        <ChevronUp className="h-4 w-4" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4" />
-                      )}
-                    </span>
-                  )}
-                </div>
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {isLoading ? (
-            <tr>
-              <td colSpan={columns.length} className="px-6 py-4 text-center">
-                <div className="flex justify-center">
-                  <div className="animate-spin h-6 w-6 border-2 border-team-blue border-t-transparent rounded-full" />
-                </div>
-              </td>
-            </tr>
-          ) : sortedData.length === 0 ? (
-            <tr>
-              <td colSpan={columns.length} className="px-6 py-4 text-center text-gray-500">
-                {noDataMessage}
-              </td>
-            </tr>
-          ) : (
-            sortedData.map((item, rowIndex) => (
-              <tr
-                key={rowIndex}
-                className={cn(
-                  "hover:bg-gray-50",
-                  onRowClick && "cursor-pointer"
-                )}
-                onClick={onRowClick ? () => onRowClick(item) : undefined}
-              >
-                {columns.map((column, colIndex) => (
-                  <td key={`${rowIndex}-${colIndex}`} className="px-6 py-4 whitespace-nowrap">
-                    {column.render ? column.render(item) : item[column.key]}
-                  </td>
-                ))}
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
+// Add a default export to fix the import issue
 export default Table;

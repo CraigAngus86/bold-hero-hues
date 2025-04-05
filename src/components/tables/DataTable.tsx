@@ -1,7 +1,7 @@
 
 import React from 'react';
-import Table from '@/components/ui/Table';
-import type { TableColumn } from '@/components/ui/Table';
+import { CustomTable } from '@/components/ui';
+import type { TableColumn } from '@/components/ui/CustomTable';
 
 interface DataTableProps<T> {
   data: T[];
@@ -33,7 +33,7 @@ function DataTable<T extends Record<string, any>>({
         </div>
       )}
       <div className="rounded-md border">
-        <Table
+        <CustomTable
           data={data}
           columns={columns}
           isLoading={isLoading}

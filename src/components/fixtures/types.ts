@@ -10,6 +10,7 @@ export interface Match {
   isCompleted: boolean;
   homeScore?: number;
   awayScore?: number;
+  hasMatchPhotos?: boolean;
 }
 
 export interface MatchGroup {
@@ -44,4 +45,21 @@ export function groupMatchesByMonth(matches: Match[]): MatchGroup[] {
     month,
     matches
   }));
+}
+
+export function getAvailableMonths(matches: Match[]): string[] {
+  const months = new Set<string>();
+  
+  matches.forEach(match => {
+    const date = new Date(match.date);
+    const monthYear = date.toLocaleDateString('en-GB', { year: 'numeric', month: 'long' });
+    months.add(monthYear);
+  });
+  
+  return Array.from(months).sort((a, b) => {
+    // Convert to Date objects for comparison
+    const dateA = new Date(a.split(' ')[0] + ' 1, ' + a.split(' ')[1]);
+    const dateB = new Date(b.split(' ')[0] + ' 1, ' + b.split(' ')[1]);
+    return dateA.getTime() - dateB.getTime();
+  });
 }

@@ -1,115 +1,112 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import { ScrapedFixture } from '@/types/fixtures';
-import { logScrapeOperation } from './loggingService';
-import { storeFixtures } from './storeService';
+import { Match } from '@/components/fixtures/types';
+import { Fixture } from '@/types/fixtures';
+import { toast } from 'sonner';
 
-export const importHistoricFixtures = async (
-  fixturesData: any
-): Promise<boolean> => {
+// Function to insert or update fixtures in Supabase
+export const insertOrUpdateFixtures = async (fixtures: Fixture[], source: string): Promise<boolean> => {
   try {
-    // Check if the data is already in the expected format or if it's in the special Claude format
-    let fixtures: ScrapedFixture[] = [];
-    
-    if (Array.isArray(fixturesData)) {
-      if (fixturesData[0] && 'opposition' in fixturesData[0]) {
-        // Convert from Claude's format to our standard format
-        fixtures = fixturesData.map(item => {
-          const isHome = item.location === 'Home';
-          const [homeScore, awayScore] = item.score?.split('-').map(Number) || [null, null];
-          
-          return {
-            date: item.date,
-            time: item.kickOffTime || '15:00',
-            homeTeam: isHome ? "Banks o' Dee" : item.opposition,
-            awayTeam: isHome ? item.opposition : "Banks o' Dee",
-            competition: item.competition || 'Highland League',
-            venue: isHome ? "Spain Park" : `${item.opposition} Ground`,
-            isCompleted: !!item.isCompleted,
-            homeScore: homeScore !== null ? homeScore : undefined,
-            awayScore: awayScore !== null ? awayScore : undefined,
-            source: 'manual-import'
-          };
-        });
-      } else {
-        // Assuming it's already in our standard format
-        fixtures = fixturesData;
-      }
+    if (!fixtures || fixtures.length === 0) {
+      console.warn('No fixtures to insert or update.');
+      return true;
     }
-    
-    // Add source tag to all fixtures
-    fixtures = fixtures.map(fixture => ({
-      ...fixture,
-      source: fixture.source || 'manual-import'
-    }));
-    
-    // Store the fixtures
-    const result = await storeFixtures(fixtures);
-    
-    // Log the operation
-    await logScrapeOperation(
-      'manual-import',
-      result.success ? 'success' : 'error',
-      fixtures.length,
-      result.added,
-      result.updated,
-      result.success ? null : result.message
-    );
-    
-    return result.success;
+
+    const { data, error } = await supabase
+      .from('fixtures')
+      .upsert(
+        fixtures,
+        { onConflict: 'id', returning: 'minimal' }
+      );
+
+    if (error) {
+      console.error('Error inserting/updating fixtures:', error);
+      toast.error(`Failed to ${source} fixtures: ${error.message}`);
+      return false;
+    }
+
+    console.log(`Successfully ${source} ${fixtures.length} fixtures.`);
+    toast.success(`Successfully ${source} ${fixtures.length} fixtures.`);
+    return true;
   } catch (error) {
-    console.error('Error importing fixtures:', error);
+    console.error('Error during fixtures upsert operation:', error);
+    toast.error(`Error during fixtures ${source}: ${error}`);
     return false;
   }
 };
 
-// Function to scrape fixtures from remote sources and store them
-export const scrapeAndStoreFixtures = async (
-  fixtures: ScrapedFixture[],
-  source: string
-): Promise<{
-  success: boolean;
-  added: number;
-  updated: number;
-  message: string;
-}> => {
+// Function to import fixtures from JSON
+export const importFixturesFromJson = async (jsonData: string): Promise<boolean> => {
   try {
-    // Add source tag to all fixtures
-    const taggedFixtures = fixtures.map(fixture => ({
-      ...fixture,
-      source
-    }));
+    const fixtures: Fixture[] = JSON.parse(jsonData);
     
-    // Store the fixtures
-    const result = await storeFixtures(taggedFixtures);
-    
-    // Log the operation
-    await logScrapeOperation(
-      source,
-      result.success ? 'success' : 'error',
-      fixtures.length,
-      result.added,
-      result.updated,
-      result.success ? null : result.message
-    );
-    
+    // Add a second argument as requried by the function signature
+    const result = await insertOrUpdateFixtures(fixtures, 'import');
     return result;
   } catch (error) {
-    console.error('Error scraping and storing fixtures:', error);
-    await logScrapeOperation(
-      source,
-      'error',
-      fixtures.length,
-      0,
-      0,
-      error instanceof Error ? error.message : 'Unknown error'
-    );
+    console.error('Error importing fixtures from JSON:', error);
+    toast.error('Failed to import fixtures from JSON');
+    return false;
+  }
+};
+
+// Function to validate fixtures before importing
+export const validateFixtures = (fixtures: Fixture[]): Fixture[] => {
+  const validFixtures: Fixture[] = [];
+
+  for (const fixture of fixtures) {
+    if (
+      fixture.id &&
+      fixture.date &&
+      fixture.time &&
+      fixture.homeTeam &&
+      fixture.awayTeam &&
+      fixture.competition &&
+      fixture.venue !== undefined &&
+      fixture.isCompleted !== undefined
+    ) {
+      validFixtures.push(fixture);
+    } else {
+      console.warn('Invalid fixture found:', fixture);
+    }
+  }
+
+  return validFixtures;
+};
+
+// Function to import and validate fixtures from JSON
+export const importAndValidateFixturesFromJson = async (jsonData: string): Promise<boolean> => {
+  try {
+    const fixtures: Fixture[] = JSON.parse(jsonData);
+    const validFixtures = validateFixtures(fixtures);
     
-    return {
-      success: false,
-      added: 0,
-      updated: 0,
-      message: error instanceof Error ? error.message : 'Unknown error'
-    };
+    // Add a second argument as requried by the function signature
+    const result = await insertOrUpdateFixtures(validFixtures, 'import');
+    return result;
+  } catch (error) {
+    console.error('Error importing and validating fixtures from JSON:', error);
+    toast.error('Failed to import and validate fixtures from JSON');
+    return false;
+  }
+};
+
+// Function to export fixtures to JSON
+export const exportFixturesToJson = async (): Promise<string | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('fixtures')
+      .select('*');
+
+    if (error) {
+      console.error('Error fetching fixtures:', error);
+      toast.error('Failed to export fixtures to JSON');
+      return null;
+    }
+
+    const jsonData = JSON.stringify(data, null, 2);
+    return jsonData;
+  } catch (error) {
+    console.error('Error exporting fixtures to JSON:', error);
+    toast.error('Failed to export fixtures to JSON');
+    return null;
   }
 };

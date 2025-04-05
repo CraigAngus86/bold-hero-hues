@@ -1,76 +1,69 @@
 
 import { useState, useMemo } from 'react';
-import { Match, groupMatchesByMonth, getAvailableMonths } from '@/components/fixtures/types';
+import { Match, groupMatchesByMonth, getAvailableMonths, MatchGroup } from '@/components/fixtures/types';
 
 interface UseFixturesFilterProps {
-  matches: Match[];
-  competitions: string[];
+  allMatches: Match[];
+  initialCompetition?: string;
+  initialMonth?: string;
 }
 
-interface UseFixturesFilterReturn {
-  filteredMatches: Record<string, Match[]>;
-  selectedCompetition: string;
-  setSelectedCompetition: (value: string) => void;
-  selectedMonth: string;
-  setSelectedMonth: (value: string) => void;
-  showPast: boolean;
-  setShowPast: (value: boolean) => void;
-  showUpcoming: boolean;
-  setShowUpcoming: (value: boolean) => void;
-  availableMonths: string[];
-  clearFilters: () => void;
-}
+export const useFixturesFilter = ({
+  allMatches, 
+  initialCompetition = 'All Competitions', 
+  initialMonth = 'All Months'
+}: UseFixturesFilterProps) => {
+  const [selectedCompetition, setSelectedCompetition] = useState<string>(initialCompetition);
+  const [selectedMonth, setSelectedMonth] = useState<string>(initialMonth);
+  
+  // Get unique competitions
+  const competitions = useMemo(() => {
+    const uniqueCompetitions = new Set<string>(allMatches.map(match => match.competition));
+    return ['All Competitions', ...Array.from(uniqueCompetitions)];
+  }, [allMatches]);
+  
+  // Get available months
+  const months = useMemo(() => {
+    const availableMonths = getAvailableMonths(allMatches);
+    return ['All Months', ...availableMonths];
+  }, [allMatches]);
 
-export const useFixturesFilter = ({ matches, competitions }: UseFixturesFilterProps): UseFixturesFilterReturn => {
-  const [selectedCompetition, setSelectedCompetition] = useState("All Competitions");
-  const [selectedMonth, setSelectedMonth] = useState("All Months");
-  const [showPast, setShowPast] = useState(true);
-  const [showUpcoming, setShowUpcoming] = useState(true);
-  
-  const availableMonths = useMemo(() => getAvailableMonths(matches), [matches]);
-  
+  // Filter matches based on selected filters
   const filteredMatches = useMemo(() => {
-    // Get current date once for consistent comparison
-    const today = new Date();
+    let result = [...allMatches];
     
-    const filtered = matches.filter(match => {
-      const competitionMatch = selectedCompetition === "All Competitions" || match.competition === selectedCompetition;
-      
-      // Check both isCompleted flag and date for more consistent filtering
-      const matchDate = new Date(match.date);
-      const isPastMatch = match.isCompleted || matchDate < today;
-      const isUpcomingMatch = !match.isCompleted && matchDate >= today;
-      
-      // Apply the filter based on user selection
-      const timeframeMatch = (showPast && isPastMatch) || (showUpcoming && isUpcomingMatch);
-      
-      const matchMonth = matchDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
-      const monthMatch = selectedMonth === "All Months" || matchMonth === selectedMonth;
-      
-      return competitionMatch && timeframeMatch && monthMatch;
-    });
+    // Filter by competition
+    if (selectedCompetition !== 'All Competitions') {
+      result = result.filter(match => match.competition === selectedCompetition);
+    }
     
-    return groupMatchesByMonth(filtered);
-  }, [matches, selectedCompetition, selectedMonth, showPast, showUpcoming]);
+    // Filter by month
+    if (selectedMonth !== 'All Months') {
+      result = result.filter(match => {
+        const date = new Date(match.date);
+        const monthYear = date.toLocaleDateString('en-GB', { year: 'numeric', month: 'long' });
+        return monthYear === selectedMonth;
+      });
+    }
+    
+    return result;
+  }, [allMatches, selectedCompetition, selectedMonth]);
   
-  const clearFilters = () => {
-    setSelectedCompetition("All Competitions");
-    setSelectedMonth("All Months");
-    setShowPast(true);
-    setShowUpcoming(true);
-  };
+  // Group matches by month
+  const groupedMatches = useMemo((): MatchGroup[] => {
+    return groupMatchesByMonth(filteredMatches);
+  }, [filteredMatches]);
   
   return {
-    filteredMatches,
+    competitions,
+    months,
     selectedCompetition,
-    setSelectedCompetition,
     selectedMonth,
+    setSelectedCompetition,
     setSelectedMonth,
-    showPast,
-    setShowPast,
-    showUpcoming,
-    setShowUpcoming,
-    availableMonths,
-    clearFilters
+    filteredMatches,
+    groupedMatches
   };
 };
+
+export default useFixturesFilter;

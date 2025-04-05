@@ -1,6 +1,4 @@
-
-import { TeamStats } from '@/components/league/types';
-import { mockLeagueData } from '@/components/league/types';
+import { TeamStats, mockLeagueData, fullMockLeagueData } from '@/components/league/types';
 import { mockMatches } from '@/components/fixtures/fixturesMockData';
 import { getApiConfig } from './config/apiConfig';
 import { convertToMatches } from '@/types/fixtures';

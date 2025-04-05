@@ -51,6 +51,16 @@ const NewsCard: React.FC<NewsCardProps> = ({
     return categoryMap[category] || '/lovable-uploads/587f8bd1-4140-4179-89f8-dc2ac1b2e072.png';
   };
 
+  // Format date to be more user-friendly (e.g., "11 June 2025")
+  const formatUserFriendlyDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+
   return (
     <Link to={`/news/${slug}`} className="block h-full">
       <motion.div 
@@ -94,7 +104,7 @@ const NewsCard: React.FC<NewsCardProps> = ({
         )}>
           <div className="flex items-center mb-3 text-sm text-gray-500">
             <CalendarIcon className="w-4 h-4 mr-2" />
-            <span>{date}</span>
+            <span>{formatUserFriendlyDate(date)}</span>
           </div>
           
           <h3 className={cn(

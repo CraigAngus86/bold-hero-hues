@@ -138,13 +138,6 @@ const HeroSection: React.FC = () => {
             
             <div className="absolute bottom-0 left-0 p-4 md:p-8 w-full md:w-2/3 text-white">
               <div className="animate-fade-in">
-                <div className="mb-2">
-                  <span className="bg-team-blue text-white px-2 py-1 text-xs font-medium rounded">
-                    {article.category}
-                  </span>
-                  <span className="ml-2 text-sm text-gray-300">{formatDate(article.publish_date)}</span>
-                </div>
-                
                 <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 line-clamp-2">
                   {article.title}
                 </h2>

@@ -1,28 +1,19 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { getFeaturedArticles } from '@/services/news/db/listing';
-import { NewsArticle } from '@/types';
 import { formatDate } from '@/services/news/utils';
 import { Link } from 'react-router-dom';
+import { useFeaturedArticles } from '@/hooks/useFeaturedArticles';
+import HeroSkeleton from './HeroSkeleton';
 
 const HeroSection: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
   const slideIntervalRef = useRef<number | null>(null);
   
-  // Fetch featured news articles
-  const { data: articles, isLoading, error } = useQuery({
-    queryKey: ['featuredNews'],
-    queryFn: async () => {
-      const featuredArticles = await getFeaturedArticles(4);
-      return featuredArticles;
-    }
-  });
+  // Fetch featured news articles using our custom hook
+  const { data: articles, isLoading, error } = useFeaturedArticles(4);
   
   // Reset interval when current slide changes
   useEffect(() => {
@@ -84,15 +75,7 @@ const HeroSection: React.FC = () => {
   
   // Render loading state
   if (isLoading) {
-    return (
-      <div className="w-full h-[60vh] md:h-[60vh] sm:h-[40vh] relative bg-gray-100">
-        <div className="absolute inset-0 flex flex-col justify-end p-8">
-          <Skeleton className="h-10 w-3/4 mb-4" />
-          <Skeleton className="h-5 w-1/2 mb-6" />
-          <Skeleton className="h-10 w-40" />
-        </div>
-      </div>
-    );
+    return <HeroSkeleton />;
   }
   
   // Render error state
@@ -119,7 +102,7 @@ const HeroSection: React.FC = () => {
       onTouchEnd={handleTouchEnd}
     >
       {/* Slides */}
-      {articles.map((article: NewsArticle, index) => (
+      {articles.map((article, index) => (
         <div 
           key={article.id}
           className={cn(

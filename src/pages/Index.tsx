@@ -3,8 +3,8 @@ import { useCallback, useMemo } from 'react';
 import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/home/HeroSection';
 import NewsSection from '@/components/home/NewsSection';
+import FixturesSection from '@/components/home/FixturesSection';
 import SponsorsCarousel from '@/components/SponsorsCarousel';
-import FixturesSection from '@/components/FixturesSection';
 import SocialMediaFeed from '@/components/SocialMediaFeed';
 import Footer from '@/components/Footer';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -28,12 +28,12 @@ const Index = () => {
         <NewsSection excludeIds={featuredArticleIds} initialCount={6} />
       </ErrorBoundary>
       
-      {/* Fixtures, Results & Table Section */}
+      {/* Fixtures & Results Section */}
       <ErrorBoundary>
         <FixturesSection />
       </ErrorBoundary>
       
-      {/* Social Media Feed Section - moved below fixtures */}
+      {/* Social Media Feed Section */}
       <ErrorBoundary>
         <SocialMediaFeed />
       </ErrorBoundary>

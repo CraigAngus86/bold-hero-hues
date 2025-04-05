@@ -31,12 +31,13 @@ const Index = () => {
       <ErrorBoundary>
         <div className="relative">
           {/* Background pattern overlay */}
-          <div className="absolute inset-0 opacity-5 pointer-events-none" 
-               style={{
-                 backgroundImage: "url('data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300105a' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")",
-                 backgroundSize: "60px 60px"
-               }}>
-          </div>
+          <div 
+            className="absolute inset-0 opacity-5 pointer-events-none" 
+            style={{
+              backgroundImage: "url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%2300105a\" fill-opacity=\"0.4\"%3E%3Cpath d=\"M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')",
+              backgroundSize: "60px 60px"
+            }}
+          ></div>
           <NewsSection excludeIds={featuredArticleIds} initialCount={9} />
         </div>
       </ErrorBoundary>
@@ -51,12 +52,13 @@ const Index = () => {
       <ErrorBoundary>
         <div className="relative bg-team-navy text-white py-8">
           {/* Background pattern overlay */}
-          <div className="absolute inset-0 opacity-5 pointer-events-none" 
-               style={{
-                 backgroundImage: "url('data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")",
-                 backgroundSize: "60px 60px"
-               }}>
-          </div>
+          <div 
+            className="absolute inset-0 opacity-5 pointer-events-none" 
+            style={{
+              backgroundImage: "url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.4\"%3E%3Cpath d=\"M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')",
+              backgroundSize: "60px 60px"
+            }}
+          ></div>
           <FixturesSection />
         </div>
       </ErrorBoundary>
@@ -71,12 +73,13 @@ const Index = () => {
       <ErrorBoundary>
         <div className="relative">
           {/* Background pattern overlay */}
-          <div className="absolute inset-0 opacity-5 pointer-events-none" 
-               style={{
-                 backgroundImage: "url('data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2300105a' fill-opacity='0.4'%3E%3Cpath d='M0 0h10v10H0V0zm10 10h10v10H10V10z'/%3E%3C/g%3E%3C/svg%3E")",
-                 backgroundSize: "20px 20px"
-               }}>
-          </div>
+          <div 
+            className="absolute inset-0 opacity-5 pointer-events-none" 
+            style={{
+              backgroundImage: "url('data:image/svg+xml,%3Csvg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"%2300105a\" fill-opacity=\"0.4\"%3E%3Cpath d=\"M0 0h10v10H0V0zm10 10h10v10H10V10z\"/%3E%3C/g%3E%3C/svg%3E')",
+              backgroundSize: "20px 20px"
+            }}
+          ></div>
           <SocialFanSection />
         </div>
       </ErrorBoundary>
@@ -92,12 +95,13 @@ const Index = () => {
       <ErrorBoundary>
         <div className="relative bg-team-blue text-white">
           {/* Background pattern overlay */}
-          <div className="absolute inset-0 opacity-5 pointer-events-none" 
-               style={{
-                 backgroundImage: "url('data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2V0h2v20h2V0h2v20h2V0h2v20h2V0h2v20h2v2H20v-1.5zM0 20h2v20H0V20zm4 0h2v20H4V20zm4 0h2v20H8V20zm4 0h2v20h-2V20zm4 0h2v20h-2V20zm4 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2z'/%3E%3C/g%3E%3C/svg%3E")",
-                 backgroundSize: "40px 40px"
-               }}>
-          </div>
+          <div 
+            className="absolute inset-0 opacity-5 pointer-events-none" 
+            style={{
+              backgroundImage: "url('data:image/svg+xml,%3Csvg width=\"40\" height=\"40\" viewBox=\"0 0 40 40\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.4\"%3E%3Cpath d=\"M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2V0h2v20h2V0h2v20h2V0h2v20h2V0h2v20h2v2H20v-1.5zM0 20h2v20H0V20zm4 0h2v20H4V20zm4 0h2v20H8V20zm4 0h2v20h-2V20zm4 0h2v20h-2V20zm4 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2z\"/%3E%3C/g%3E%3C/svg%3E')",
+              backgroundSize: "40px 40px"
+            }}
+          ></div>
           <MediaGalleryModern />
         </div>
       </ErrorBoundary>

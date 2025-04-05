@@ -2,7 +2,6 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { TeamStats } from '@/components/league/types';
-import { AlertTriangle } from "lucide-react";
 import { TeamDataRow } from './TeamDataRow';
 
 interface LeagueDataTableProps {

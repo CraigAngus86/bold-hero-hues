@@ -1,4 +1,6 @@
-
+import { supabase } from '@/services/supabase/supabaseClient';
+import { DBSponsor, Sponsor, convertToSponsor } from '@/types';
+import { handleDbOperation, DbServiceResponse } from './utils/dbService';
 import { create } from 'zustand';
 
 export interface Sponsor {
@@ -97,3 +99,173 @@ export const useSponsorsStore = create<SponsorsState>((set) => ({
     }));
   }
 }));
+
+/**
+ * Get all sponsors
+ */
+export async function getAllSponsors(): Promise<DbServiceResponse<Sponsor[]>> {
+  return handleDbOperation(
+    async () => {
+      const { data, error } = await supabase
+        .from('sponsors')
+        .select('*')
+        .order('name');
+
+      if (error) throw error;
+
+      return (data as DBSponsor[]).map(convertToSponsor);
+    },
+    'Failed to load sponsors'
+  );
+}
+
+/**
+ * Get sponsors by tier
+ */
+export async function getSponsorsByTier(tier: 'platinum' | 'gold' | 'silver' | 'bronze'): Promise<DbServiceResponse<Sponsor[]>> {
+  return handleDbOperation(
+    async () => {
+      const { data, error } = await supabase
+        .from('sponsors')
+        .select('*')
+        .eq('tier', tier)
+        .order('name');
+
+      if (error) throw error;
+
+      return (data as DBSponsor[]).map(convertToSponsor);
+    },
+    `Failed to load ${tier} sponsors`
+  );
+}
+
+/**
+ * Get active sponsors
+ */
+export async function getActiveSponsors(): Promise<DbServiceResponse<Sponsor[]>> {
+  return handleDbOperation(
+    async () => {
+      const { data, error } = await supabase
+        .from('sponsors')
+        .select('*')
+        .eq('is_active', true)
+        .order('name');
+
+      if (error) throw error;
+
+      return (data as DBSponsor[]).map(convertToSponsor);
+    },
+    'Failed to load active sponsors'
+  );
+}
+
+/**
+ * Get sponsor by ID
+ */
+export async function getSponsorById(id: string): Promise<DbServiceResponse<Sponsor>> {
+  return handleDbOperation(
+    async () => {
+      const { data, error } = await supabase
+        .from('sponsors')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+
+      return convertToSponsor(data as DBSponsor);
+    },
+    'Failed to load sponsor details'
+  );
+}
+
+/**
+ * Create sponsor
+ */
+export async function createSponsor(sponsor: Omit<DBSponsor, 'id' | 'created_at' | 'updated_at'>): Promise<DbServiceResponse<Sponsor>> {
+  return handleDbOperation(
+    async () => {
+      const { data, error } = await supabase
+        .from('sponsors')
+        .insert([sponsor])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return convertToSponsor(data as DBSponsor);
+    },
+    'Failed to create sponsor'
+  );
+}
+
+/**
+ * Update sponsor
+ */
+export async function updateSponsor(id: string, updates: Partial<DBSponsor>): Promise<DbServiceResponse<Sponsor>> {
+  return handleDbOperation(
+    async () => {
+      const { data, error } = await supabase
+        .from('sponsors')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return convertToSponsor(data as DBSponsor);
+    },
+    'Failed to update sponsor'
+  );
+}
+
+/**
+ * Toggle sponsor active status
+ */
+export async function toggleSponsorStatus(id: string, isActive: boolean): Promise<DbServiceResponse<boolean>> {
+  return handleDbOperation(
+    async () => {
+      const { error } = await supabase
+        .from('sponsors')
+        .update({ is_active: isActive })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      return true;
+    },
+    'Failed to update sponsor status'
+  );
+}
+
+/**
+ * Delete sponsor
+ */
+export async function deleteSponsor(id: string): Promise<DbServiceResponse<boolean>> {
+  return handleDbOperation(
+    async () => {
+      const { error } = await supabase
+        .from('sponsors')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      return true;
+    },
+    'Failed to delete sponsor'
+  );
+}
+
+/**
+ * Get all sponsor tiers
+ */
+export async function getSponsorTiers(): Promise<DbServiceResponse<string[]>> {
+  return handleDbOperation(
+    async () => {
+      return ['platinum', 'gold', 'silver', 'bronze'];
+    },
+    'Failed to load sponsor tiers'
+  );
+}

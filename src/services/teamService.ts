@@ -1,3 +1,6 @@
+import { supabase } from '@/services/supabase/supabaseClient';
+import { DBTeamMember, TeamMember, convertToTeamMember } from '@/types/team';
+import { handleDbOperation, DbServiceResponse } from './utils/dbService';
 import { create } from 'zustand';
 
 export interface TeamMember {
@@ -378,3 +381,181 @@ export const useTeamStore = create<TeamState>((set, get) => ({
     });
   }
 }));
+
+/**
+ * Get all team members
+ */
+export async function getAllTeamMembers(): Promise<DbServiceResponse<TeamMember[]>> {
+  return handleDbOperation(
+    async () => {
+      const { data, error } = await supabase
+        .from('team_members')
+        .select('*')
+        .order('name');
+
+      if (error) throw error;
+
+      return (data as DBTeamMember[]).map(convertToTeamMember);
+    },
+    'Failed to load team members'
+  );
+}
+
+/**
+ * Get team members by type
+ */
+export async function getTeamMembersByType(type: 'player' | 'management' | 'official'): Promise<DbServiceResponse<TeamMember[]>> {
+  return handleDbOperation(
+    async () => {
+      const { data, error } = await supabase
+        .from('team_members')
+        .select('*')
+        .eq('member_type', type)
+        .order('name');
+
+      if (error) throw error;
+
+      return (data as DBTeamMember[]).map(convertToTeamMember);
+    },
+    `Failed to load ${type} members`
+  );
+}
+
+/**
+ * Get active players by position
+ */
+export async function getPlayersByPosition(position: string): Promise<DbServiceResponse<TeamMember[]>> {
+  return handleDbOperation(
+    async () => {
+      const { data, error } = await supabase
+        .from('team_members')
+        .select('*')
+        .eq('member_type', 'player')
+        .eq('position', position)
+        .eq('is_active', true)
+        .order('jersey_number');
+
+      if (error) throw error;
+
+      return (data as DBTeamMember[]).map(convertToTeamMember);
+    },
+    `Failed to load players with position: ${position}`
+  );
+}
+
+/**
+ * Get team member by ID
+ */
+export async function getTeamMemberById(id: string): Promise<DbServiceResponse<TeamMember>> {
+  return handleDbOperation(
+    async () => {
+      const { data, error } = await supabase
+        .from('team_members')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+
+      return convertToTeamMember(data as DBTeamMember);
+    },
+    'Failed to load team member details'
+  );
+}
+
+/**
+ * Create team member
+ */
+export async function createTeamMember(member: Omit<DBTeamMember, 'id' | 'created_at' | 'updated_at'>): Promise<DbServiceResponse<TeamMember>> {
+  return handleDbOperation(
+    async () => {
+      const { data, error } = await supabase
+        .from('team_members')
+        .insert([member])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return convertToTeamMember(data as DBTeamMember);
+    },
+    'Failed to create team member'
+  );
+}
+
+/**
+ * Update team member
+ */
+export async function updateTeamMember(id: string, updates: Partial<DBTeamMember>): Promise<DbServiceResponse<TeamMember>> {
+  return handleDbOperation(
+    async () => {
+      const { data, error } = await supabase
+        .from('team_members')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return convertToTeamMember(data as DBTeamMember);
+    },
+    'Failed to update team member'
+  );
+}
+
+/**
+ * Toggle team member active status
+ */
+export async function toggleTeamMemberStatus(id: string, isActive: boolean): Promise<DbServiceResponse<boolean>> {
+  return handleDbOperation(
+    async () => {
+      const { error } = await supabase
+        .from('team_members')
+        .update({ is_active: isActive })
+        .eq('id', id);
+
+      if (error) throw error;
+      return true;
+    },
+    'Failed to update team member status'
+  );
+}
+
+/**
+ * Delete team member
+ */
+export async function deleteTeamMember(id: string): Promise<DbServiceResponse<boolean>> {
+  return handleDbOperation(
+    async () => {
+      const { error } = await supabase
+        .from('team_members')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return true;
+    },
+    'Failed to delete team member'
+  );
+}
+
+/**
+ * Get all available positions
+ */
+export async function getPositions(): Promise<DbServiceResponse<string[]>> {
+  return handleDbOperation(
+    async () => {
+      const { data, error } = await supabase
+        .from('team_members')
+        .select('position')
+        .eq('member_type', 'player');
+
+      if (error) throw error;
+
+      const positions = [...new Set(data.map(item => item.position).filter(Boolean))];
+      return positions as string[];
+    },
+    'Failed to load positions'
+  );
+}

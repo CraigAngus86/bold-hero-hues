@@ -1,8 +1,7 @@
 
-// Re-export all types
-export * from './fixtures';
-export * from './team';
-export * from './sponsors';
-// Export from News.ts (capital N)
+// Re-export all types for easier imports
 export * from './News';
-// Add other type definitions as needed
+export * from './team';
+export * from './fixtures';
+export * from './sponsors';
+export * from './services';

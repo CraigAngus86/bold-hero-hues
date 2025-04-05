@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
@@ -8,7 +7,7 @@ import {
   Send, 
   ThumbsUp, 
   MessageCircle, 
-  Poll,
+  BarChart2,
   Calendar,
   RefreshCw,
   Heart
@@ -25,14 +24,13 @@ const SocialFanSection = () => {
   const [postContent, setPostContent] = useState('');
   const [votingOption, setVotingOption] = useState<number | null>(null);
   
-  // For the sake of having dummy data while design is in progress
   const dummySocialMedia = [
     {
       id: "1",
       platform: "twitter",
       username: "banksodee_fc",
       content: "𝗙𝗧 | Banks o' Dee 1-0 Turriff United. Craig Duguid's free-kick is enough to secure all three points at Spain Park. #BODHIGHL",
-      date: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 minutes ago
+      date: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
       likes: 28,
       comments: 5,
       shares: 8,
@@ -44,7 +42,7 @@ const SocialFanSection = () => {
       platform: "instagram",
       username: "banksodeefc",
       content: "Full Time | Banks o' Dee 1-0 Turriff United. Craig Duguid's stunning free-kick is enough to secure all three points at Spain Park! ⚽️",
-      date: new Date(Date.now() - 1000 * 60 * 45).toISOString(), // 45 minutes ago
+      date: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
       likes: 82,
       comments: 7,
       mediaUrl: "/lovable-uploads/0c8edeaf-c67c-403f-90f0-61b390e5e89a.png",
@@ -56,7 +54,7 @@ const SocialFanSection = () => {
       platform: "facebook",
       username: "banksodeejfc",
       content: "🎟️ TICKETS | Tickets for our upcoming Highland League match against Brechin City are now available online. Get yours early to avoid queues on matchday!",
-      date: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
+      date: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
       likes: 38,
       comments: 5,
       shares: 12,
@@ -68,7 +66,7 @@ const SocialFanSection = () => {
       platform: "twitter",
       username: "banksodee_fc", 
       content: "📣 NEW SIGNING | We're delighted to announce the signing of midfielder Jack Henderson from Cove Rangers on a two-year deal. Welcome to Spain Park, Jack! #BODTransfer",
-      date: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(), // 3 hours ago
+      date: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
       likes: 92,
       comments: 13,
       shares: 21,
@@ -81,7 +79,7 @@ const SocialFanSection = () => {
       platform: "instagram",
       username: "banksodeefc",
       content: "💙 Supporting our local community! Players from Banks o' Dee visited Aberdeen Children's Hospital yesterday to donate signed merchandise and spend time with the young patients. #CommunitySpirit",
-      date: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(), // 5 hours ago
+      date: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
       likes: 145,
       comments: 12,
       mediaUrl: "/lovable-uploads/cb95b9fb-0f2d-42ef-9788-10509a80ed6e.png",
@@ -93,7 +91,7 @@ const SocialFanSection = () => {
       platform: "facebook",
       username: "banksodeejfc",
       content: "🏆 THROWBACK | On this day in 2022, Banks o' Dee lifted the Evening Express Aberdeenshire Cup after a thrilling 3-2 victory against Buckie Thistle at Harlaw Park. What a day for the club!",
-      date: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(), // 8 hours ago
+      date: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(),
       likes: 123,
       comments: 18,
       shares: 15,
@@ -101,13 +99,12 @@ const SocialFanSection = () => {
       url: "https://www.facebook.com/banksodeejfc/posts/123456789"
     }
   ];
-  
-  // Fan posts dummy data
+
   const dummyFanPosts = [
     {
       id: "fan1",
       name: "Jamie K.",
-      profileImage: "/lovable-uploads/banks-o-dee-dark-logo.png", // Placeholder
+      profileImage: "/lovable-uploads/banks-o-dee-dark-logo.png",
       content: "Great win yesterday lads! That free kick was world class!",
       date: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
       likes: 12,
@@ -116,7 +113,7 @@ const SocialFanSection = () => {
     {
       id: "fan2",
       name: "Sarah M.",
-      profileImage: "/lovable-uploads/banks-o-dee-dark-logo.png", // Placeholder
+      profileImage: "/lovable-uploads/banks-o-dee-dark-logo.png",
       content: "Anyone got a spare ticket for the Brechin game? My son's desperate to go!",
       date: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
       likes: 8,
@@ -125,7 +122,7 @@ const SocialFanSection = () => {
     {
       id: "fan3",
       name: "David T.",
-      profileImage: "/lovable-uploads/banks-o-dee-dark-logo.png", // Placeholder
+      profileImage: "/lovable-uploads/banks-o-dee-dark-logo.png",
       content: "The new away kit looks amazing. Just ordered mine, can't wait for it to arrive!",
       date: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
       likes: 24,
@@ -134,7 +131,7 @@ const SocialFanSection = () => {
     {
       id: "fan4",
       name: "Moira A.",
-      profileImage: "/lovable-uploads/banks-o-dee-dark-logo.png", // Placeholder
+      profileImage: "/lovable-uploads/banks-o-dee-dark-logo.png",
       content: "Photos from Saturday's match are up on the website now. Some great shots of Duguid's free kick!",
       date: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
       likes: 31,
@@ -142,7 +139,6 @@ const SocialFanSection = () => {
     }
   ];
 
-  // Poll data
   const pollQuestion = "Who will win the Highland League this season?";
   const pollOptions = [
     { id: 1, text: "Banks o' Dee", votes: 127 },
@@ -150,16 +146,14 @@ const SocialFanSection = () => {
     { id: 3, text: "Brechin City", votes: 94 },
     { id: 4, text: "Someone else", votes: 56 }
   ];
-  
+
   const totalVotes = pollOptions.reduce((sum, option) => sum + option.votes, 0);
-  
-  // Calculate days until next home game for countdown
+
   const nextHomeGameDate = new Date("2025-04-12T15:00:00");
   const timeUntilGame = nextHomeGameDate.getTime() - Date.now();
   const daysUntilGame = Math.floor(timeUntilGame / (1000 * 60 * 60 * 24));
   const hoursUntilGame = Math.floor((timeUntilGame % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  
-  // Platform icon component
+
   const PlatformIcon = ({ platform }: { platform: string }) => {
     switch (platform) {
       case 'twitter':
@@ -175,7 +169,6 @@ const SocialFanSection = () => {
 
   const handleSubmitPost = () => {
     if (postContent.trim()) {
-      // In a real app, this would submit to a backend
       alert("Your post has been submitted for moderation!");
       setPostContent('');
     }
@@ -183,7 +176,6 @@ const SocialFanSection = () => {
 
   const handleVote = (optionId: number) => {
     setVotingOption(optionId);
-    // In a real app, this would submit the vote to a backend
   };
 
   return (
@@ -311,11 +303,10 @@ const SocialFanSection = () => {
               </div>
               
               <div className="md:col-span-1 space-y-4">
-                {/* Fan Poll Card */}
                 <Card className="overflow-hidden border-none shadow-lg">
                   <CardContent className="p-5">
                     <div className="flex items-center mb-4">
-                      <Poll className="w-5 h-5 text-team-blue mr-2" />
+                      <BarChart2 className="w-5 h-5 text-team-blue mr-2" />
                       <h3 className="font-bold text-lg text-team-blue">Fan Poll</h3>
                     </div>
                     
@@ -337,7 +328,6 @@ const SocialFanSection = () => {
                               {option.text}
                             </button>
                             
-                            {/* Progress bar */}
                             <div className="mt-1 flex items-center">
                               <div className="flex-1 bg-gray-200 rounded-full h-1.5 mr-2">
                                 <div 
@@ -358,7 +348,6 @@ const SocialFanSection = () => {
                   </CardContent>
                 </Card>
                 
-                {/* Next Home Game Countdown Card */}
                 <Card className="overflow-hidden border-none shadow-lg bg-team-blue text-white">
                   <CardContent className="p-5">
                     <div className="flex items-center mb-4">
@@ -396,7 +385,6 @@ const SocialFanSection = () => {
           <TabsContent value="fans" className="mt-0">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="md:col-span-3 h-[500px] overflow-y-auto px-1 space-y-4">
-                {/* Fan Posts */}
                 {dummyFanPosts.map(post => (
                   <motion.div
                     key={post.id}

@@ -44,8 +44,8 @@ const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
               >
                 <div className="col-span-1 font-medium">{team.position}</div>
                 <div className="col-span-5 font-medium truncate">
-                  <span className={isBanksODee(team.name) ? 'text-team-blue font-bold' : ''}>
-                    {team.name}
+                  <span className={isBanksODee(team.team) ? 'text-team-blue font-bold' : ''}>
+                    {team.team}
                   </span>
                 </div>
                 <div className="col-span-2 text-center">{team.played}</div>

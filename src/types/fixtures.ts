@@ -15,6 +15,7 @@ export interface Fixture {
   homeScore?: number;
   awayScore?: number;
   source?: string;
+  ticketLink?: string; // Adding ticket link field
 }
 
 export interface ScrapedFixture {
@@ -29,6 +30,7 @@ export interface ScrapedFixture {
   homeScore?: number;
   awayScore?: number;
   source?: string;
+  ticketLink?: string; // Adding ticket link field
 }
 
 export interface DBFixture {
@@ -45,6 +47,7 @@ export interface DBFixture {
   source?: string;
   created_at?: string;
   updated_at?: string;
+  ticket_link?: string; // Adding ticket link field
 }
 
 // This function converts database fixtures to the Match type used in the UI components
@@ -59,6 +62,7 @@ export function convertToMatches(fixtures: DBFixture[]): Match[] {
     venue: fixture.venue || 'TBD',
     isCompleted: fixture.is_completed,
     homeScore: fixture.home_score,
-    awayScore: fixture.away_score
+    awayScore: fixture.away_score,
+    ticketLink: fixture.ticket_link // Include ticket link in the converted data
   }));
 }

@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -60,10 +61,6 @@ export default {
 					darkGray: '#333333', // Darker gray for text
 					red: '#CF142B',      // Red accent for warnings/important info
 					white: '#FFFFFF'     // White for text contrast
-				},
-				navy: {
-					800: '#1e3a8a',
-					700: '#1e40af',
 				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',

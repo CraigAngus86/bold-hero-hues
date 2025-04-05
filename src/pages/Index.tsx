@@ -3,7 +3,7 @@ import { useCallback, useMemo } from 'react';
 import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/home/HeroSection';
 import NewsSection from '@/components/home/NewsSection';
-import FixturesSectionContainer from '@/components/home/FixturesSectionContainer';
+import FixturesSection from '@/components/FixturesSection';
 import SocialHub from '@/components/home/SocialHub';
 import MediaGallery from '@/components/home/MediaGallery';
 import SponsorsSection from '@/components/home/SponsorsSection';
@@ -31,7 +31,7 @@ const Index = () => {
       
       {/* Fixtures, Results & League Table Section */}
       <ErrorBoundary>
-        <FixturesSectionContainer />
+        <FixturesSection />
       </ErrorBoundary>
       
       {/* Social Hub & Fan Zone */}

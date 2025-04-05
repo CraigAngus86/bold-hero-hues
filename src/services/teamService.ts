@@ -1,36 +1,12 @@
-
 import { supabase } from '@/services/supabase/supabaseClient';
-import { TeamMember as TeamMemberType } from '@/types/team';
+import { TeamMember, DBTeamMember, convertToTeamMember } from '@/types/team';
 import { handleDbOperation, DbServiceResponse } from './utils/dbService';
-
-// Use a different name to avoid conflict with imported type
-export type DBTeamMember = {
-  id: string;
-  name: string;
-  image_url?: string | null;
-  position?: string;
-  number?: number;
-  member_type: 'player' | 'management' | 'official';
-  role?: string;
-  bio?: string;
-  experience?: string;
-  nationality?: string;
-  previous_clubs?: string[];
-  created_at?: string;
-  updated_at?: string;
-  is_active?: boolean;
-  stats?: {
-    appearances?: number;
-    goals?: number;
-    assists?: number;
-    clean_sheets?: number;
-  };
-};
+import { create } from 'zustand';
 
 /**
  * Get all team members
  */
-export async function getAllTeamMembers(): Promise<DbServiceResponse<TeamMemberType[]>> {
+export async function getAllTeamMembers(): Promise<DbServiceResponse<TeamMember[]>> {
   return handleDbOperation(
     async () => {
       const { data, error } = await supabase
@@ -41,20 +17,7 @@ export async function getAllTeamMembers(): Promise<DbServiceResponse<TeamMemberT
       if (error) throw error;
 
       // Convert from DB format to the TeamMember type defined in types/team.ts
-      const teamMembers: TeamMemberType[] = data.map(item => ({
-        id: parseInt(item.id),
-        name: item.name,
-        image: item.image_url,
-        number: item.number,
-        position: item.position,
-        role: item.role,
-        bio: item.bio,
-        experience: item.experience,
-        nationality: item.nationality,
-        previousClubs: item.previous_clubs,
-        type: item.member_type,
-        stats: item.stats
-      }));
+      const teamMembers: TeamMember[] = data.map(item => convertToTeamMember(item as DBTeamMember));
 
       return teamMembers;
     },
@@ -65,7 +28,7 @@ export async function getAllTeamMembers(): Promise<DbServiceResponse<TeamMemberT
 /**
  * Get team members by type
  */
-export async function getTeamMembersByType(type: 'player' | 'management' | 'official'): Promise<DbServiceResponse<TeamMemberType[]>> {
+export async function getTeamMembersByType(type: 'player' | 'management' | 'official'): Promise<DbServiceResponse<TeamMember[]>> {
   return handleDbOperation(
     async () => {
       const { data, error } = await supabase
@@ -78,20 +41,7 @@ export async function getTeamMembersByType(type: 'player' | 'management' | 'offi
       if (error) throw error;
 
       // Convert from DB format to the TeamMember type defined in types/team.ts
-      const teamMembers: TeamMemberType[] = data.map(item => ({
-        id: parseInt(item.id),
-        name: item.name,
-        image: item.image_url,
-        number: item.number,
-        position: item.position,
-        role: item.role,
-        bio: item.bio,
-        experience: item.experience,
-        nationality: item.nationality,
-        previousClubs: item.previous_clubs,
-        type: item.member_type,
-        stats: item.stats
-      }));
+      const teamMembers: TeamMember[] = data.map(item => convertToTeamMember(item as DBTeamMember));
 
       return teamMembers;
     },
@@ -102,7 +52,7 @@ export async function getTeamMembersByType(type: 'player' | 'management' | 'offi
 /**
  * Get team member by ID
  */
-export async function getTeamMemberById(id: string): Promise<DbServiceResponse<TeamMemberType>> {
+export async function getTeamMemberById(id: string): Promise<DbServiceResponse<TeamMember>> {
   return handleDbOperation(
     async () => {
       const { data, error } = await supabase
@@ -114,20 +64,7 @@ export async function getTeamMemberById(id: string): Promise<DbServiceResponse<T
       if (error) throw error;
 
       // Convert from DB format to the TeamMember type defined in types/team.ts
-      const teamMember: TeamMemberType = {
-        id: parseInt(data.id),
-        name: data.name,
-        image: data.image_url,
-        number: data.number,
-        position: data.position,
-        role: data.role,
-        bio: data.bio,
-        experience: data.experience,
-        nationality: data.nationality,
-        previousClubs: data.previous_clubs,
-        type: data.member_type,
-        stats: data.stats
-      };
+      const teamMember: TeamMember = convertToTeamMember(data as DBTeamMember);
 
       return teamMember;
     },
@@ -266,7 +203,7 @@ export async function updateTeamMemberStats(id: string, stats: Record<string, nu
 }
 
 // Create a function to convert TeamMember to DBTeamMember
-export function convertToDBTeamMember(member: TeamMemberType): Partial<DBTeamMember> {
+export function convertToDBTeamMember(member: TeamMember): Partial<DBTeamMember> {
   return {
     name: member.name,
     image_url: member.image,
@@ -281,3 +218,68 @@ export function convertToDBTeamMember(member: TeamMemberType): Partial<DBTeamMem
     stats: member.stats
   };
 }
+
+// Create a Zustand store for team members
+interface TeamState {
+  teamMembers: TeamMember[];
+  loading: boolean;
+  error: Error | null;
+  fetchTeamMembers: () => Promise<void>;
+  getPlayersByPosition: (position: string) => TeamMember[];
+  getManagementStaff: () => TeamMember[];
+  getClubOfficials: () => TeamMember[];
+  addTeamMember: (member: TeamMember) => void;
+  updateTeamMember: (member: TeamMember) => void;
+  deleteTeamMember: (id: number) => void;
+}
+
+export const useTeamStore = create<TeamState>((set, get) => ({
+  teamMembers: [],
+  loading: false,
+  error: null,
+  fetchTeamMembers: async () => {
+    set({ loading: true, error: null });
+    try {
+      const response = await getAllTeamMembers();
+      if (response.success) {
+        set({ teamMembers: response.data });
+      } else {
+        set({ error: new Error(response.message) });
+      }
+    } catch (error) {
+      set({ error: error instanceof Error ? error : new Error('Unknown error') });
+    } finally {
+      set({ loading: false });
+    }
+  },
+  getPlayersByPosition: (position: string) => {
+    const { teamMembers } = get();
+    const players = teamMembers.filter(m => m.type === 'player');
+    if (position === 'All') return players;
+    return players.filter(p => p.position === position);
+  },
+  getManagementStaff: () => {
+    const { teamMembers } = get();
+    return teamMembers.filter(m => m.type === 'management');
+  },
+  getClubOfficials: () => {
+    const { teamMembers } = get();
+    return teamMembers.filter(m => m.type === 'official');
+  },
+  addTeamMember: (member: TeamMember) => {
+    const { teamMembers } = get();
+    set({ teamMembers: [...teamMembers, member] });
+  },
+  updateTeamMember: (member: TeamMember) => {
+    const { teamMembers } = get();
+    set({
+      teamMembers: teamMembers.map(m => m.id === member.id ? member : m)
+    });
+  },
+  deleteTeamMember: (id: number) => {
+    const { teamMembers } = get();
+    set({
+      teamMembers: teamMembers.filter(m => m.id !== id)
+    });
+  }
+}));

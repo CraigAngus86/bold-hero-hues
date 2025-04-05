@@ -34,3 +34,15 @@ export function convertToSponsor(dbSponsor: DBSponsor): Sponsor {
     description: dbSponsor.description
   };
 }
+
+// Conversion function from UI format to DB format
+export function convertToDBSponsor(sponsor: Sponsor): Partial<DBSponsor> {
+  return {
+    name: sponsor.name,
+    logo_url: sponsor.logoUrl,
+    website_url: sponsor.website,
+    tier: sponsor.tier,
+    description: sponsor.description,
+    is_active: true
+  };
+}

@@ -1,25 +1,12 @@
-
 import { supabase } from '@/services/supabase/supabaseClient';
-import { Sponsor as SponsorType } from '@/types/sponsors';
+import { Sponsor, DBSponsor, convertToSponsor, convertToDBSponsor } from '@/types/sponsors';
 import { handleDbOperation, DbServiceResponse } from './utils/dbService';
-
-// Use a different name to avoid conflict with imported type
-export type DBSponsor = {
-  id: string;
-  name: string;
-  logo_url: string;
-  website_url?: string;
-  tier?: 'platinum' | 'gold' | 'silver' | 'bronze';
-  description?: string;
-  created_at?: string;
-  updated_at?: string;
-  is_active: boolean;
-};
+import { create } from 'zustand';
 
 /**
  * Get all sponsors
  */
-export async function getAllSponsors(): Promise<DbServiceResponse<SponsorType[]>> {
+export async function getAllSponsors(): Promise<DbServiceResponse<Sponsor[]>> {
   return handleDbOperation(
     async () => {
       const { data, error } = await supabase
@@ -30,14 +17,7 @@ export async function getAllSponsors(): Promise<DbServiceResponse<SponsorType[]>
       if (error) throw error;
 
       // Convert from DB format to the Sponsor type defined in types/sponsors.ts
-      const sponsors: SponsorType[] = data.map(item => ({
-        id: parseInt(item.id),
-        name: item.name,
-        logoUrl: item.logo_url,
-        website: item.website_url,
-        tier: item.tier,
-        description: item.description
-      }));
+      const sponsors: Sponsor[] = data.map(item => convertToSponsor(item as DBSponsor));
 
       return sponsors;
     },
@@ -48,7 +28,7 @@ export async function getAllSponsors(): Promise<DbServiceResponse<SponsorType[]>
 /**
  * Get sponsors by tier
  */
-export async function getSponsorsByTier(tier: 'platinum' | 'gold' | 'silver' | 'bronze'): Promise<DbServiceResponse<SponsorType[]>> {
+export async function getSponsorsByTier(tier: 'platinum' | 'gold' | 'silver' | 'bronze'): Promise<DbServiceResponse<Sponsor[]>> {
   return handleDbOperation(
     async () => {
       const { data, error } = await supabase
@@ -60,14 +40,7 @@ export async function getSponsorsByTier(tier: 'platinum' | 'gold' | 'silver' | '
       if (error) throw error;
 
       // Convert from DB format to the Sponsor type defined in types/sponsors.ts
-      const sponsors: SponsorType[] = data.map(item => ({
-        id: parseInt(item.id),
-        name: item.name,
-        logoUrl: item.logo_url,
-        website: item.website_url,
-        tier: item.tier,
-        description: item.description
-      }));
+      const sponsors: Sponsor[] = data.map(item => convertToSponsor(item as DBSponsor));
 
       return sponsors;
     },
@@ -78,7 +51,7 @@ export async function getSponsorsByTier(tier: 'platinum' | 'gold' | 'silver' | '
 /**
  * Get active sponsors
  */
-export async function getActiveSponsors(): Promise<DbServiceResponse<SponsorType[]>> {
+export async function getActiveSponsors(): Promise<DbServiceResponse<Sponsor[]>> {
   return handleDbOperation(
     async () => {
       const { data, error } = await supabase
@@ -90,14 +63,7 @@ export async function getActiveSponsors(): Promise<DbServiceResponse<SponsorType
       if (error) throw error;
 
       // Convert from DB format to the Sponsor type defined in types/sponsors.ts
-      const sponsors: SponsorType[] = data.map(item => ({
-        id: parseInt(item.id),
-        name: item.name,
-        logoUrl: item.logo_url,
-        website: item.website_url,
-        tier: item.tier,
-        description: item.description
-      }));
+      const sponsors: Sponsor[] = data.map(item => convertToSponsor(item as DBSponsor));
 
       return sponsors;
     },
@@ -108,7 +74,7 @@ export async function getActiveSponsors(): Promise<DbServiceResponse<SponsorType
 /**
  * Get sponsor by ID
  */
-export async function getSponsorById(id: string): Promise<DbServiceResponse<SponsorType>> {
+export async function getSponsorById(id: string): Promise<DbServiceResponse<Sponsor>> {
   return handleDbOperation(
     async () => {
       const { data, error } = await supabase
@@ -120,7 +86,7 @@ export async function getSponsorById(id: string): Promise<DbServiceResponse<Spon
       if (error) throw error;
 
       // Convert from DB format to the Sponsor type defined in types/sponsors.ts
-      const sponsor: SponsorType = {
+      const sponsor: Sponsor = {
         id: parseInt(data.id),
         name: data.name,
         logoUrl: data.logo_url,
@@ -138,7 +104,7 @@ export async function getSponsorById(id: string): Promise<DbServiceResponse<Spon
 /**
  * Create sponsor
  */
-export async function createSponsor(sponsor: Omit<DBSponsor, 'id' | 'created_at' | 'updated_at'>): Promise<DbServiceResponse<SponsorType>> {
+export async function createSponsor(sponsor: Omit<DBSponsor, 'id' | 'created_at' | 'updated_at'>): Promise<DbServiceResponse<Sponsor>> {
   return handleDbOperation(
     async () => {
       const { data, error } = await supabase
@@ -150,7 +116,7 @@ export async function createSponsor(sponsor: Omit<DBSponsor, 'id' | 'created_at'
       if (error) throw error;
 
       // Convert from DB format to the Sponsor type defined in types/sponsors.ts
-      const newSponsor: SponsorType = {
+      const newSponsor: Sponsor = {
         id: parseInt(data.id),
         name: data.name,
         logoUrl: data.logo_url,
@@ -168,7 +134,7 @@ export async function createSponsor(sponsor: Omit<DBSponsor, 'id' | 'created_at'
 /**
  * Update sponsor
  */
-export async function updateSponsor(id: string, updates: Partial<DBSponsor>): Promise<DbServiceResponse<SponsorType>> {
+export async function updateSponsor(id: string, updates: Partial<DBSponsor>): Promise<DbServiceResponse<Sponsor>> {
   return handleDbOperation(
     async () => {
       const { data, error } = await supabase
@@ -181,7 +147,7 @@ export async function updateSponsor(id: string, updates: Partial<DBSponsor>): Pr
       if (error) throw error;
 
       // Convert from DB format to the Sponsor type defined in types/sponsors.ts
-      const sponsor: SponsorType = {
+      const sponsor: Sponsor = {
         id: parseInt(data.id),
         name: data.name,
         logoUrl: data.logo_url,
@@ -247,7 +213,7 @@ export async function getSponsorTiers(): Promise<DbServiceResponse<string[]>> {
 }
 
 // Create a function to convert Sponsor to DBSponsor
-export function convertToDBSponsor(sponsor: SponsorType): Partial<DBSponsor> {
+export function convertToDBSponsor(sponsor: Sponsor): Partial<DBSponsor> {
   return {
     name: sponsor.name,
     logo_url: sponsor.logoUrl,
@@ -257,3 +223,51 @@ export function convertToDBSponsor(sponsor: SponsorType): Partial<DBSponsor> {
     is_active: true
   };
 }
+
+// Create a Zustand store for sponsors
+interface SponsorsState {
+  sponsors: Sponsor[];
+  loading: boolean;
+  error: Error | null;
+  fetchSponsors: () => Promise<void>;
+  addSponsor: (sponsor: Sponsor) => void;
+  updateSponsor: (sponsor: Sponsor) => void;
+  deleteSponsor: (id: number) => void;
+}
+
+export const useSponsorsStore = create<SponsorsState>((set, get) => ({
+  sponsors: [],
+  loading: false,
+  error: null,
+  fetchSponsors: async () => {
+    set({ loading: true, error: null });
+    try {
+      const response = await getActiveSponsors();
+      if (response.success) {
+        set({ sponsors: response.data });
+      } else {
+        set({ error: new Error(response.message) });
+      }
+    } catch (error) {
+      set({ error: error instanceof Error ? error : new Error('Unknown error') });
+    } finally {
+      set({ loading: false });
+    }
+  },
+  addSponsor: (sponsor: Sponsor) => {
+    const { sponsors } = get();
+    set({ sponsors: [...sponsors, sponsor] });
+  },
+  updateSponsor: (sponsor: Sponsor) => {
+    const { sponsors } = get();
+    set({
+      sponsors: sponsors.map(s => s.id === sponsor.id ? sponsor : s)
+    });
+  },
+  deleteSponsor: (id: number) => {
+    const { sponsors } = get();
+    set({
+      sponsors: sponsors.filter(s => s.id !== id)
+    });
+  }
+}));

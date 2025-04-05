@@ -1,7 +1,7 @@
 
 import { Briefcase, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import OfficialCard from './OfficialCard';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useTeamStore } from '@/services/teamService';
@@ -18,13 +18,17 @@ interface ClubOfficialsProps {
 
 const ClubOfficials = ({ officials: propOfficials }: ClubOfficialsProps = {}) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { getClubOfficials } = useTeamStore();
+  const { getClubOfficials, fetchTeamMembers, loading } = useTeamStore();
+  
+  useEffect(() => {
+    fetchTeamMembers();
+  }, [fetchTeamMembers]);
   
   // Use officials from props if provided, otherwise get from store
   const officials = propOfficials || getClubOfficials().map(official => ({
     name: official.name,
     role: official.role || '',
-    image: official.image,
+    image: official.image || '',
     bio: official.bio || '',
     experience: official.experience || ''
   }));
@@ -32,6 +36,14 @@ const ClubOfficials = ({ officials: propOfficials }: ClubOfficialsProps = {}) =>
   // Show only first 4 officials initially, then the rest in collapsible content
   const initialOfficials = officials.slice(0, 4);
   const remainingOfficials = officials.slice(4);
+
+  if (loading && !propOfficials) {
+    return (
+      <div className="mb-16 mt-16 text-center py-8">
+        <p>Loading club officials...</p>
+      </div>
+    );
+  }
 
   return (
     <motion.div 

@@ -1,8 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PlayerList from './team/PlayerList';
 import PositionFilter from './team/PositionFilter';
-import { useTeamStore, TeamMember } from '@/services/teamService';
+import { useTeamStore } from '@/services/teamService';
+import { TeamMember } from '@/types/team';
 
 // Adapter to convert TeamMember to the Player format expected by PlayerList
 const adaptTeamMemberToPlayer = (member: TeamMember) => {
@@ -17,7 +18,11 @@ const adaptTeamMemberToPlayer = (member: TeamMember) => {
 
 const TeamGrid = () => {
   const [selectedPosition, setSelectedPosition] = useState("All");
-  const { getPlayersByPosition } = useTeamStore();
+  const { getPlayersByPosition, fetchTeamMembers, loading } = useTeamStore();
+  
+  useEffect(() => {
+    fetchTeamMembers();
+  }, [fetchTeamMembers]);
   
   const positions = ["All", "Goalkeeper", "Defender", "Midfielder", "Forward"];
   
@@ -27,6 +32,10 @@ const TeamGrid = () => {
   
   // Get players by position and adapt them to the format expected by PlayerList
   const players = getPlayersByPosition(selectedPosition).map(adaptTeamMemberToPlayer);
+
+  if (loading) {
+    return <div className="text-center py-8">Loading players...</div>;
+  }
 
   return (
     <div>

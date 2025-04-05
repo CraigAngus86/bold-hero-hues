@@ -1,15 +1,29 @@
 
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import Autoplay from 'embla-carousel-autoplay';
 import { useSponsorsStore } from '@/services/sponsorsService';
 
 const SponsorsCarousel = () => {
-  const { sponsors } = useSponsorsStore();
+  const { sponsors, fetchSponsors, loading } = useSponsorsStore();
   const autoplayPlugin = useRef(
     Autoplay({ delay: 3000, stopOnInteraction: false })
   );
+  
+  useEffect(() => {
+    fetchSponsors();
+  }, [fetchSponsors]);
+  
+  if (loading) {
+    return (
+      <div className="py-10 bg-team-gray">
+        <div className="container mx-auto px-4 text-center">
+          <p>Loading sponsors...</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <section className="py-10 bg-team-gray">

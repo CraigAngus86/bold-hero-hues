@@ -6,6 +6,4 @@ export * from './fixtures';
 export * from './sponsors';
 export * from './services';
 
-// Re-export service types
-export * from '../services/teamService';
-export * from '../services/sponsorsService';
+// Re-export service types - removed since we're now using proper imports

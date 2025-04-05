@@ -1,7 +1,7 @@
 
 import { Users, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import StaffMemberCard from './StaffMemberCard';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useTeamStore } from '@/services/teamService';
@@ -18,13 +18,17 @@ interface ManagementTeamProps {
 
 const ManagementTeam = ({ staff: propStaff }: ManagementTeamProps = {}) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { getManagementStaff } = useTeamStore();
+  const { getManagementStaff, fetchTeamMembers, loading } = useTeamStore();
+  
+  useEffect(() => {
+    fetchTeamMembers();
+  }, [fetchTeamMembers]);
   
   // Use staff from props if provided, otherwise get from store
   const staff = propStaff || getManagementStaff().map(member => ({
     name: member.name,
     role: member.role || '',
-    image: member.image,
+    image: member.image || '',
     bio: member.bio || '',
     experience: member.experience || ''
   }));
@@ -32,6 +36,14 @@ const ManagementTeam = ({ staff: propStaff }: ManagementTeamProps = {}) => {
   // Show only first 4 staff members initially, then the rest in collapsible content
   const initialStaff = staff.slice(0, 4);
   const remainingStaff = staff.slice(4);
+
+  if (loading && !propStaff) {
+    return (
+      <div className="mb-16 text-center py-8">
+        <p>Loading management team...</p>
+      </div>
+    );
+  }
 
   return (
     <motion.div 

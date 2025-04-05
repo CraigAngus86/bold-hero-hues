@@ -10,8 +10,15 @@ interface LeagueTableContentProps {
 }
 
 const LeagueTableContent = ({ leagueData }: LeagueTableContentProps) => {
-  // Make sure leagueData is sorted by position
-  const sortedData = [...leagueData].sort((a, b) => a.position - b.position);
+  // Make sure leagueData is sorted by position and valid
+  const sortedData = [...leagueData].sort((a, b) => {
+    // Ensure we have valid positions to compare
+    const posA = a.position || 0;
+    const posB = b.position || 0;
+    return posA - posB;
+  });
+  
+  console.log('Rendering league table with data:', sortedData);
   
   return (
     <div className="overflow-x-auto">
@@ -26,7 +33,10 @@ const LeagueTableContent = ({ leagueData }: LeagueTableContentProps) => {
             </tr>
           ) : (
             sortedData.map((team) => (
-              <TeamRow key={team.position || team.id} team={team} />
+              <TeamRow 
+                key={team.id?.toString() || team.position?.toString() || team.team} 
+                team={team} 
+              />
             ))
           )}
         </TableBody>

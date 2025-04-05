@@ -1,4 +1,3 @@
-
 import { TeamStats } from '@/components/league/types';
 import { supabase } from '@/integrations/supabase/client';
 import { mockLeagueData } from '@/components/league/types';
@@ -26,8 +25,31 @@ export async function fetchLeagueTableFromSupabase(): Promise<TeamStats[]> {
       return await fetchFromLocalServer();
     }
     
-    console.log('Successfully fetched league table from Supabase');
-    return data as TeamStats[];
+    // Log the data to see what we're getting
+    console.log('Successfully fetched league table from Supabase:', data);
+    
+    // Verify the structure of the data
+    const processedData = data.map(item => {
+      // Ensure all fields are properly mapped to TeamStats interface
+      const teamStats: TeamStats = {
+        id: item.id,
+        position: item.position || 0,
+        team: item.team || '',
+        played: item.played || 0,
+        won: item.won || 0,
+        drawn: item.drawn || 0,
+        lost: item.lost || 0,
+        goalsFor: item.goalsFor || 0,
+        goalsAgainst: item.goalsAgainst || 0,
+        goalDifference: item.goalDifference || 0,
+        points: item.points || 0,
+        form: item.form || [],
+        logo: item.logo || ''
+      };
+      return teamStats;
+    });
+    
+    return processedData;
   } catch (error) {
     console.error('Error fetching league table from Supabase:', error);
     return await fetchFromLocalServer();
@@ -49,7 +71,7 @@ async function fetchFromLocalServer(): Promise<TeamStats[]> {
     }
     
     const data = await response.json();
-    console.log('Successfully fetched league table from local server');
+    console.log('Successfully fetched league table from local server:', data.leagueTable);
     return data.leagueTable;
   } catch (error) {
     console.error('Error fetching from local server, using mock data:', error);

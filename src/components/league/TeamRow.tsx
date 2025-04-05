@@ -9,11 +9,25 @@ interface TeamRowProps {
 }
 
 const TeamRow = ({ team }: TeamRowProps) => {
+  // Ensure we have valid data for display
+  const position = team.position || 0;
+  const played = team.played || 0;
+  const won = team.won || 0;
+  const drawn = team.drawn || 0;
+  const lost = team.lost || 0;
+  const goalsFor = team.goalsFor || 0;
+  const goalsAgainst = team.goalsAgainst || 0;
+  const goalDifference = team.goalDifference || 0;
+  const points = team.points || 0;
+  const form = team.form || [];
+
+  console.log('Rendering team row:', team);
+
   return (
     <TableRow 
       className={team.team === "Banks o' Dee" ? "bg-team-lightBlue/30" : ""}
     >
-      <TableCell className="font-medium text-center">{team.position}</TableCell>
+      <TableCell className="font-medium text-center">{position}</TableCell>
       <TableCell className="font-medium">
         <div className="flex items-center">
           <div className="w-10 h-10 flex items-center justify-center mr-2">
@@ -34,18 +48,18 @@ const TeamRow = ({ team }: TeamRowProps) => {
           <span>{team.team}</span>
         </div>
       </TableCell>
-      <TableCell className="text-center">{team.played}</TableCell>
-      <TableCell className="text-center">{team.won}</TableCell>
-      <TableCell className="text-center">{team.drawn}</TableCell>
-      <TableCell className="text-center">{team.lost}</TableCell>
-      <TableCell className="text-center">{team.goalsFor}</TableCell>
-      <TableCell className="text-center">{team.goalsAgainst}</TableCell>
-      <TableCell className="text-center">{team.goalDifference}</TableCell>
-      <TableCell className="text-center font-bold">{team.points}</TableCell>
+      <TableCell className="text-center">{played}</TableCell>
+      <TableCell className="text-center">{won}</TableCell>
+      <TableCell className="text-center">{drawn}</TableCell>
+      <TableCell className="text-center">{lost}</TableCell>
+      <TableCell className="text-center">{goalsFor}</TableCell>
+      <TableCell className="text-center">{goalsAgainst}</TableCell>
+      <TableCell className="text-center">{goalDifference}</TableCell>
+      <TableCell className="text-center font-bold">{points}</TableCell>
       <TableCell>
         <div className="flex items-center justify-center space-x-1">
-          {team.form && team.form.length > 0 ? (
-            team.form.map((result, idx) => (
+          {form.length > 0 ? (
+            form.map((result, idx) => (
               <FormIndicator key={idx} result={result} />
             ))
           ) : (

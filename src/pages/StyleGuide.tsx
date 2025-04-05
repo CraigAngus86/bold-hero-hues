@@ -31,9 +31,9 @@ const StyleGuide = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {/* Primary Colors */}
-              <Card variant="primary">
-                <CardHeader variant="primary">
-                  <H3 className="text-white">Primary Colors</H3>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Primary Colors</CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 space-y-3">
                   <div className="space-y-3">
@@ -45,7 +45,6 @@ const StyleGuide = () => {
                           <div className="flex gap-x-3">
                             <BaseText variant="small" className="font-mono">bg-primary-{shade}</BaseText>
                             <span className="text-xs text-gray-500">|</span>
-                            {/* Display hex values or use a map of actual values */}
                             <BaseText variant="small" className="font-mono">
                               {shade === 800 ? '#00105A' : 
                                shade === 300 ? '#7276AF' : 
@@ -60,9 +59,9 @@ const StyleGuide = () => {
               </Card>
               
               {/* Secondary Colors */}
-              <Card variant="secondary">
-                <CardHeader variant="secondary">
-                  <H3 className="text-primary-800">Secondary Colors</H3>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Secondary Colors</CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 space-y-3">
                   <div className="space-y-3">
@@ -74,7 +73,6 @@ const StyleGuide = () => {
                           <div className="flex gap-x-3">
                             <BaseText variant="small" className="font-mono">bg-secondary-{shade}</BaseText>
                             <span className="text-xs text-gray-500">|</span>
-                            {/* Display hex values */}
                             <BaseText variant="small" className="font-mono">
                               {shade === 300 ? '#C5E7FF' : 
                                shade === 800 ? '#0076EC' : 
@@ -89,9 +87,9 @@ const StyleGuide = () => {
               </Card>
               
               {/* Accent Colors */}
-              <Card variant="accent">
-                <CardHeader variant="accent">
-                  <H3 className="text-primary-800">Accent Colors</H3>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Accent Colors</CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 space-y-3">
                   <div className="space-y-3">
@@ -103,7 +101,6 @@ const StyleGuide = () => {
                           <div className="flex gap-x-3">
                             <BaseText variant="small" className="font-mono">bg-accent-{shade}</BaseText>
                             <span className="text-xs text-gray-500">|</span>
-                            {/* Display hex values */}
                             <BaseText variant="small" className="font-mono">
                               {shade === 500 ? '#FFD700' : 
                                shade === 400 ? '#FFD81A' : 
@@ -200,49 +197,49 @@ const StyleGuide = () => {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-2">
-                    <Button size="lg" variant="default">
+                    <Button variant="default">
                       Primary Button
                     </Button>
                     <BaseText variant="small" className="text-gray-500 font-mono">bg-primary-800 hover:bg-primary-700 text-white</BaseText>
                   </div>
                   
                   <div className="space-y-2">
-                    <Button size="lg" variant="secondary">
+                    <Button variant="secondary">
                       Secondary Button
                     </Button>
                     <BaseText variant="small" className="text-gray-500 font-mono">bg-secondary-300 text-primary-800 hover:bg-secondary-400</BaseText>
                   </div>
                   
                   <div className="space-y-2">
-                    <Button size="lg" variant="accent">
+                    <Button variant="accent">
                       Accent Button
                     </Button>
                     <BaseText variant="small" className="text-gray-500 font-mono">bg-accent-500 text-primary-800 hover:bg-accent-600</BaseText>
                   </div>
                   
                   <div className="space-y-2">
-                    <Button size="lg" variant="outline">
+                    <Button variant="outline">
                       Outline Button
                     </Button>
                     <BaseText variant="small" className="text-gray-500 font-mono">border border-primary-800 text-primary-800 hover:bg-primary-50</BaseText>
                   </div>
                   
                   <div className="space-y-2">
-                    <Button size="lg" variant="link">
+                    <Button variant="link">
                       Link Button
                     </Button>
                     <BaseText variant="small" className="text-gray-500 font-mono">text-primary-800 hover:underline</BaseText>
                   </div>
                   
                   <div className="space-y-2">
-                    <Button size="lg" disabled>
+                    <Button disabled>
                       Disabled Button
                     </Button>
                     <BaseText variant="small" className="text-gray-500 font-mono">opacity-70 cursor-not-allowed</BaseText>
                   </div>
                   
                   <div className="space-y-2">
-                    <Button size="lg" isLoading>
+                    <Button isLoading>
                       Loading Button
                     </Button>
                     <BaseText variant="small" className="text-gray-500 font-mono">With loading spinner</BaseText>
@@ -268,13 +265,13 @@ const StyleGuide = () => {
                     <H4>With Icons</H4>
                     <div className="flex flex-wrap gap-4 items-center">
                       <Button>
-                        <Mail /> Email
+                        <Mail className="mr-2 h-4 w-4" /> Email
                       </Button>
                       <Button variant="secondary">
-                        <Calendar /> Schedule
+                        <Calendar className="mr-2 h-4 w-4" /> Schedule
                       </Button>
                       <Button variant="accent">
-                        <Check /> Confirm
+                        <Check className="mr-2 h-4 w-4" /> Confirm
                       </Button>
                     </div>
                   </div>
@@ -283,13 +280,13 @@ const StyleGuide = () => {
                     <H4>Icon Only</H4>
                     <div className="flex flex-wrap gap-4 items-center">
                       <Button size="icon" aria-label="Home">
-                        <Home />
+                        <Home className="h-4 w-4" />
                       </Button>
                       <Button size="icon" variant="secondary" aria-label="User">
-                        <User />
+                        <User className="h-4 w-4" />
                       </Button>
                       <Button size="icon" variant="outline" aria-label="Message">
-                        <MessageSquare />
+                        <MessageSquare className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
@@ -370,26 +367,29 @@ const StyleGuide = () => {
                   </div>
                   
                   <div className="space-y-3">
-                    <H4>Toggle Example</H4>
-                    <div className="flex items-center space-x-2">
-                      <div className="relative inline-block w-10 mr-2 align-middle select-none">
-                        <input 
-                          type="checkbox" 
-                          id="toggle" 
-                          className="sr-only"
-                          defaultChecked 
+                    <H4>Checkbox Example</H4>
+                    <div className="space-y-2">
+                      <div className="flex items-center">
+                        <input
+                          id="checkbox-1"
+                          type="checkbox"
+                          defaultChecked
+                          className="h-4 w-4 text-primary-800 border-gray-300 rounded focus:ring-primary-500"
                         />
-                        <label 
-                          htmlFor="toggle" 
-                          className="block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"
-                        >
-                          <span className={`
-                            block h-6 w-6 rounded-full bg-white shadow transform transition-transform duration-200 ease-in-out
-                            translate-x-4
-                          `}></span>
+                        <label htmlFor="checkbox-1" className="ml-2 block text-sm text-gray-700">
+                          Remember me
                         </label>
                       </div>
-                      <label htmlFor="toggle" className="text-sm text-gray-700">Toggle feature</label>
+                      <div className="flex items-center">
+                        <input
+                          id="checkbox-2"
+                          type="checkbox"
+                          className="h-4 w-4 text-primary-800 border-gray-300 rounded focus:ring-primary-500"
+                        />
+                        <label htmlFor="checkbox-2" className="ml-2 block text-sm text-gray-700">
+                          Subscribe to newsletter
+                        </label>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -402,44 +402,44 @@ const StyleGuide = () => {
             <H2 className="mb-6">Cards</H2>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card variant="primary">
-                <CardHeader variant="primary">
+              <Card>
+                <CardHeader>
                   <div className="flex items-center">
                     <Award className="w-5 h-5 mr-2" />
-                    <H4 className="text-white mb-0">Primary Card</H4>
+                    <CardTitle>Standard Card</CardTitle>
                   </div>
                 </CardHeader>
-                <CardContent className="p-4">
+                <CardContent>
                   <Body>
-                    This is a primary card with a dark blue header. It's ideal for important information or featured content.
+                    This is a standard card with a header. Cards provide a flexible and extensible content container with multiple variants.
                   </Body>
                 </CardContent>
               </Card>
               
-              <Card variant="secondary">
-                <CardHeader variant="secondary">
+              <Card className="border-t-4 border-primary-800">
+                <CardHeader>
                   <div className="flex items-center">
                     <Clock className="w-5 h-5 mr-2" />
-                    <H4 className="text-primary-800 mb-0">Secondary Card</H4>
+                    <CardTitle>Bordered Card</CardTitle>
                   </div>
                 </CardHeader>
-                <CardContent className="p-4">
+                <CardContent>
                   <Body>
-                    This is a secondary card with a light blue header. It's good for secondary information or supporting content.
+                    This card has a primary colored top border to help it stand out. Use this for important information or highlighted content.
                   </Body>
                 </CardContent>
               </Card>
               
-              <Card variant="accent">
-                <CardHeader variant="accent">
+              <Card className="border-t-4 border-accent-500">
+                <CardHeader>
                   <div className="flex items-center">
                     <Calendar className="w-5 h-5 mr-2" />
-                    <H4 className="text-primary-800 mb-0">Accent Card</H4>
+                    <CardTitle>Accent Card</CardTitle>
                   </div>
                 </CardHeader>
-                <CardContent className="p-4">
+                <CardContent>
                   <Body>
-                    This is an accent card with a gold header. It's perfect for highlighting special events or promotions.
+                    This card uses our accent color for its top border. Great for notifications, important dates, or promotional content.
                   </Body>
                 </CardContent>
               </Card>

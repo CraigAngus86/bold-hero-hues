@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +9,7 @@ import { Users, UserPlus, Edit, Trash } from 'lucide-react';
 import { toast } from 'sonner';
 import { TeamMember } from '@/types/team';
 import { getAllTeamMembers, createTeamMember, updateTeamMember, deleteTeamMember } from '@/services/teamDbService';
+import { convertToDBTeamMember } from '@/types/team';
 
 const TeamMembersManager = () => {
   const [members, setMembers] = useState<TeamMember[]>([]);
@@ -26,8 +26,13 @@ const TeamMembersManager = () => {
   const fetchTeamMembers = async () => {
     setLoading(true);
     try {
-      const data = await getAllTeamMembers();
-      setMembers(data);
+      const response = await getAllTeamMembers();
+      if (response.success && response.data) {
+        setMembers(response.data);
+      } else {
+        console.error('Error fetching team members:', response.error);
+        toast.error('Failed to load team members');
+      }
     } catch (error) {
       console.error('Error fetching team members:', error);
       toast.error('Failed to load team members');
@@ -60,8 +65,8 @@ const TeamMembersManager = () => {
     if (!memberToDelete) return;
 
     try {
-      const success = await deleteTeamMember(memberToDelete.id.toString());
-      if (success) {
+      const response = await deleteTeamMember(memberToDelete.id.toString());
+      if (response.success) {
         setMembers(members.filter(m => m.id !== memberToDelete.id));
         toast.success(`${memberToDelete.name} has been removed`);
       }
@@ -76,33 +81,23 @@ const TeamMembersManager = () => {
     if (!currentMember) return;
 
     try {
-      const dbMember = {
-        name: currentMember.name || '',
-        image_url: currentMember.image,
-        position: currentMember.position,
-        number: currentMember.number,
-        member_type: currentMember.type || 'player',
-        role: currentMember.role,
-        bio: currentMember.bio,
-        experience: currentMember.experience,
-        nationality: currentMember.nationality,
-      };
+      const dbMember = convertToDBTeamMember(currentMember as TeamMember);
 
-      let updatedMember;
+      let response;
       
       if (currentMember.id) {
         // Update existing member
-        updatedMember = await updateTeamMember(currentMember.id.toString(), dbMember);
-        if (updatedMember) {
-          setMembers(members.map(m => m.id === updatedMember?.id ? updatedMember : m));
-          toast.success(`${updatedMember.name} has been updated`);
+        response = await updateTeamMember(currentMember.id.toString(), dbMember);
+        if (response.success && response.data) {
+          setMembers(members.map(m => m.id === response.data?.id ? response.data : m));
+          toast.success(`${response.data.name} has been updated`);
         }
       } else {
         // Create new member
-        updatedMember = await createTeamMember(dbMember as any);
-        if (updatedMember) {
-          setMembers([...members, updatedMember]);
-          toast.success(`${updatedMember.name} has been added`);
+        response = await createTeamMember(dbMember as any);
+        if (response.success && response.data) {
+          setMembers([...members, response.data]);
+          toast.success(`${response.data.name} has been added`);
         }
       }
       
@@ -113,7 +108,6 @@ const TeamMembersManager = () => {
     }
   };
 
-  // Group by type for better management
   const playerMembers = members.filter(m => m.type === 'player');
   const managementMembers = members.filter(m => m.type === 'management');
   const officialMembers = members.filter(m => m.type === 'official');
@@ -128,7 +122,6 @@ const TeamMembersManager = () => {
         </Button>
       </div>
 
-      {/* Tabs for different member types */}
       <div className="mb-6 border-b border-gray-200">
         <nav className="flex -mb-px space-x-8" aria-label="Tabs">
           {['Players', 'Management', 'Officials'].map((tab) => (

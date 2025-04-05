@@ -1,3 +1,4 @@
+
 import { supabase } from '@/services/supabase/supabaseClient';
 import { Sponsor, DBSponsor, convertToSponsor } from '@/types/sponsors';
 import { handleDbOperation, DbServiceResponse } from './utils/dbService';
@@ -91,7 +92,7 @@ export async function getSponsorById(id: string): Promise<DbServiceResponse<Spon
         name: data.name,
         logoUrl: data.logo_url,
         website: data.website_url,
-        tier: data.tier,
+        tier: data.tier as 'platinum' | 'gold' | 'silver' | 'bronze',
         description: data.description
       };
 
@@ -121,7 +122,7 @@ export async function createSponsor(sponsor: Omit<DBSponsor, 'id' | 'created_at'
         name: data.name,
         logoUrl: data.logo_url,
         website: data.website_url,
-        tier: data.tier,
+        tier: data.tier as 'platinum' | 'gold' | 'silver' | 'bronze',
         description: data.description
       };
 
@@ -152,7 +153,7 @@ export async function updateSponsor(id: string, updates: Partial<DBSponsor>): Pr
         name: data.name,
         logoUrl: data.logo_url,
         website: data.website_url,
-        tier: data.tier,
+        tier: data.tier as 'platinum' | 'gold' | 'silver' | 'bronze',
         description: data.description
       };
 

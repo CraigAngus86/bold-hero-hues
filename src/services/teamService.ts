@@ -1,5 +1,5 @@
 import { supabase } from '@/services/supabase/supabaseClient';
-import { TeamMember, DBTeamMember, convertToTeamMember } from '@/types/team';
+import { TeamMember, DBTeamMember, convertToTeamMember, convertToDBTeamMember } from '@/types/team';
 import { handleDbOperation, DbServiceResponse } from './utils/dbService';
 import { create } from 'zustand';
 
@@ -73,7 +73,7 @@ export async function getTeamMemberById(id: string): Promise<DbServiceResponse<T
 /**
  * Create team member
  */
-export async function createTeamMember(member: Omit<DBTeamMember, 'id' | 'created_at' | 'updated_at'>): Promise<DbServiceResponse<TeamMemberType>> {
+export async function createTeamMember(member: Omit<DBTeamMember, 'id' | 'created_at' | 'updated_at'>): Promise<DbServiceResponse<TeamMember>> {
   return handleDbOperation(
     async () => {
       const { data, error } = await supabase
@@ -84,23 +84,7 @@ export async function createTeamMember(member: Omit<DBTeamMember, 'id' | 'create
 
       if (error) throw error;
 
-      // Convert from DB format to the TeamMember type defined in types/team.ts
-      const teamMember: TeamMemberType = {
-        id: parseInt(data.id),
-        name: data.name,
-        image: data.image_url,
-        number: data.number,
-        position: data.position,
-        role: data.role,
-        bio: data.bio,
-        experience: data.experience,
-        nationality: data.nationality,
-        previousClubs: data.previous_clubs,
-        type: data.member_type,
-        stats: data.stats
-      };
-
-      return teamMember;
+      return convertToTeamMember(data as DBTeamMember);
     },
     'Failed to create team member'
   );
@@ -109,7 +93,7 @@ export async function createTeamMember(member: Omit<DBTeamMember, 'id' | 'create
 /**
  * Update team member
  */
-export async function updateTeamMember(id: string, updates: Partial<DBTeamMember>): Promise<DbServiceResponse<TeamMemberType>> {
+export async function updateTeamMember(id: string, updates: Partial<DBTeamMember>): Promise<DbServiceResponse<TeamMember>> {
   return handleDbOperation(
     async () => {
       const { data, error } = await supabase
@@ -121,23 +105,7 @@ export async function updateTeamMember(id: string, updates: Partial<DBTeamMember
 
       if (error) throw error;
 
-      // Convert from DB format to the TeamMember type defined in types/team.ts
-      const teamMember: TeamMemberType = {
-        id: parseInt(data.id),
-        name: data.name,
-        image: data.image_url,
-        number: data.number,
-        position: data.position,
-        role: data.role,
-        bio: data.bio,
-        experience: data.experience,
-        nationality: data.nationality,
-        previousClubs: data.previous_clubs,
-        type: data.member_type,
-        stats: data.stats
-      };
-
-      return teamMember;
+      return convertToTeamMember(data as DBTeamMember);
     },
     'Failed to update team member'
   );
@@ -225,6 +193,7 @@ interface TeamState {
   fetchTeamMembers: () => Promise<void>;
   getPlayersByPosition: (position: string) => TeamMember[];
   getManagementStaff: () => TeamMember[];
+  getClubOfficials: () => TeamMember[];
   addTeamMember: (member: TeamMember) => void;
   updateTeamMember: (member: TeamMember) => void;
   deleteTeamMember: (id: number) => void;
@@ -261,6 +230,10 @@ export const useTeamStore = create<TeamState>((set, get) => ({
   getManagementStaff: () => {
     const { teamMembers } = get();
     return teamMembers.filter(member => member.type === 'management');
+  },
+  getClubOfficials: () => {
+    const { teamMembers } = get();
+    return teamMembers.filter(member => member.type === 'official');
   },
   addTeamMember: (member: TeamMember) => {
     const { teamMembers } = get();

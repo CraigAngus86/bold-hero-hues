@@ -1,4 +1,3 @@
-
 import { Briefcase, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
@@ -18,20 +17,23 @@ interface ClubOfficialsProps {
 
 const ClubOfficials = ({ officials: propOfficials }: ClubOfficialsProps = {}) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { getClubOfficials, fetchTeamMembers, loading } = useTeamStore();
+  const { teamMembers, fetchTeamMembers, loading } = useTeamStore();
   
   useEffect(() => {
     fetchTeamMembers();
   }, [fetchTeamMembers]);
   
-  // Use officials from props if provided, otherwise get from store
-  const officials = propOfficials || getClubOfficials().map(official => ({
-    name: official.name,
-    role: official.role || '',
-    image: official.image || '',
-    bio: official.bio || '',
-    experience: official.experience || ''
-  }));
+  // Get officials from team members store if not provided via props
+  const officials = propOfficials || 
+    teamMembers
+      .filter(member => member.type === 'official')
+      .map(official => ({
+        name: official.name,
+        role: official.role || '',
+        image: official.image || '',
+        bio: official.bio || '',
+        experience: official.experience || ''
+      }));
   
   // Show only first 4 officials initially, then the rest in collapsible content
   const initialOfficials = officials.slice(0, 4);

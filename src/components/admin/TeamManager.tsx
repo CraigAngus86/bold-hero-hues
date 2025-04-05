@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PlusCircle, Edit, Trash, Filter } from 'lucide-react';
+import { PlusCircle, Edit, Trash } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { TeamMember, useTeamStore } from '@/services/teamService';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -31,8 +31,7 @@ const TeamManager = () => {
       role: activeTab !== 'player' ? '' : undefined,
       number: activeTab === 'player' ? 0 : undefined,
       image: '',
-      biography: activeTab === 'player' ? '' : undefined,
-      bio: activeTab !== 'player' ? '' : undefined,
+      bio: '',
       type: activeTab,
       stats: activeTab === 'player' ? { appearances: 0, goals: 0, assists: 0 } : undefined,
       experience: activeTab !== 'player' ? '' : undefined
@@ -266,42 +265,29 @@ const TeamManager = () => {
                 />
               </div>
               
-              {activeTab === 'player' ? (
-                <div className="grid grid-cols-4 items-start gap-4">
-                  <label htmlFor="biography" className="text-right text-sm font-medium">Biography</label>
-                  <Textarea
-                    id="biography"
-                    value={currentMember?.biography || ''}
-                    onChange={(e) => setCurrentMember(prev => prev ? {...prev, biography: e.target.value} : null)}
+              <div className="grid grid-cols-4 items-start gap-4">
+                <label htmlFor="bio" className="text-right text-sm font-medium">Biography</label>
+                <Textarea
+                  id="bio"
+                  value={currentMember?.bio || ''}
+                  onChange={(e) => setCurrentMember(prev => prev ? {...prev, bio: e.target.value} : null)}
+                  className="col-span-3"
+                  rows={3}
+                  required
+                />
+              </div>
+              
+              {activeTab !== 'player' && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <label htmlFor="experience" className="text-right text-sm font-medium">Experience</label>
+                  <Input
+                    id="experience"
+                    value={currentMember?.experience || ''}
+                    onChange={(e) => setCurrentMember(prev => prev ? {...prev, experience: e.target.value} : null)}
                     className="col-span-3"
-                    rows={3}
                     required
                   />
                 </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-4 items-start gap-4">
-                    <label htmlFor="bio" className="text-right text-sm font-medium">Biography</label>
-                    <Textarea
-                      id="bio"
-                      value={currentMember?.bio || ''}
-                      onChange={(e) => setCurrentMember(prev => prev ? {...prev, bio: e.target.value} : null)}
-                      className="col-span-3"
-                      rows={3}
-                      required
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <label htmlFor="experience" className="text-right text-sm font-medium">Experience</label>
-                    <Input
-                      id="experience"
-                      value={currentMember?.experience || ''}
-                      onChange={(e) => setCurrentMember(prev => prev ? {...prev, experience: e.target.value} : null)}
-                      className="col-span-3"
-                      required
-                    />
-                  </div>
-                </>
               )}
             </div>
             <DialogFooter>

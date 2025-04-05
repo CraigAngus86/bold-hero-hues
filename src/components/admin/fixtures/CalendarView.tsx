@@ -16,7 +16,7 @@ interface CalendarViewProps {
   onFilterChange?: (filters: any) => void;
 }
 
-export const CalendarView: React.FC<CalendarViewProps> = ({ 
+const CalendarView: React.FC<CalendarViewProps> = ({ 
   matches = [], 
   onFilterChange 
 }) => {

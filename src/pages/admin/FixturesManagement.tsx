@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/admin/layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -18,20 +17,20 @@ import {
 } from 'lucide-react';
 import { FixturesList } from '@/components/admin/fixtures/FixturesList';
 import { DateRange } from '@/components/admin/fixtures/DateRange';
-import CalendarView from '@/components/admin/fixtures/CalendarView';
-import FixturesScraper from '@/components/admin/fixtures/FixturesScraper';
-import FixturesImporter from '@/components/admin/fixtures/FixturesImporter';
-import ScraperDocumentation from '@/components/admin/fixtures/ScraperDocumentation';
-import FixturesManager from '@/components/admin/fixtures/FixturesManager';
+import { CalendarView } from '@/components/admin/fixtures/index';
+import { FixturesScraper } from '@/components/admin/fixtures/index';
+import { FixturesImporter } from '@/components/admin/fixtures/index';
+import { ScraperDocumentation } from '@/components/admin/fixtures/index';
+import { FixturesManager } from '@/components/admin/fixtures/index';
 import { ScraperLogs } from '@/components/admin/fixtures/ScraperLogs';
+import { VenueManager } from '@/components/admin/fixtures/VenueManager';
+import { CompetitionManager } from '@/components/admin/fixtures/CompetitionManager';
 import { fetchMatchesFromSupabase } from '@/services/supabase/fixturesService';
 import { toast } from 'sonner';
 import { convertToMatches } from '@/types/fixtures';
 import { Match } from '@/components/fixtures/types';
 import { Fixture } from '@/types/fixtures';
 import { generateFixturesExport } from '@/services/supabase/fixtures/testUtils';
-import { VenueManager } from '@/components/admin/fixtures/VenueManager';
-import { CompetitionManager } from '@/components/admin/fixtures/CompetitionManager';
 
 const FixturesManagement = () => {
   const [loading, setLoading] = useState(false);
@@ -123,7 +122,6 @@ const FixturesManagement = () => {
             </TabsTrigger>
           </TabsList>
           
-          {/* Calendar View Tab */}
           <TabsContent value="calendar" className="mt-4">
             <CalendarView 
               matches={matches}
@@ -131,7 +129,6 @@ const FixturesManagement = () => {
             />
           </TabsContent>
           
-          {/* Fixture List Tab */}
           <TabsContent value="list" className="mt-4">
             <Card className="p-4 mb-6">
               <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
@@ -221,7 +218,6 @@ const FixturesManagement = () => {
             </Tabs>
           </TabsContent>
           
-          {/* Import & Scrape Tab */}
           <TabsContent value="import" className="mt-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <FixturesScraper />
@@ -233,17 +229,14 @@ const FixturesManagement = () => {
             </div>
           </TabsContent>
           
-          {/* Venues Tab */}
           <TabsContent value="venues" className="mt-4">
             <VenueManager />
           </TabsContent>
           
-          {/* Competitions Tab */}
           <TabsContent value="competitions" className="mt-4">
             <CompetitionManager />
           </TabsContent>
           
-          {/* Logs Tab */}
           <TabsContent value="logs" className="mt-4">
             <Card>
               <CardHeader>

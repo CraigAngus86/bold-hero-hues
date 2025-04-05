@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/admin/layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -25,12 +26,13 @@ import { FixturesManager } from '@/components/admin/fixtures/index';
 import { ScraperLogs } from '@/components/admin/fixtures/ScraperLogs';
 import { VenueManager } from '@/components/admin/fixtures/VenueManager';
 import { CompetitionManager } from '@/components/admin/fixtures/CompetitionManager';
-import { fetchMatchesFromSupabase } from '@/services/supabase/fixturesService';
 import { toast } from 'sonner';
 import { convertToMatches } from '@/types/fixtures';
 import { Match } from '@/components/fixtures/types';
 import { Fixture } from '@/types/fixtures';
-import { generateFixturesExport } from '@/services/supabase/fixtures/testUtils';
+import { fetchMatchesFromSupabase } from '@/services/supabase/fixturesService';
+import { supabase } from '@/integrations/supabase/client';
+import { exportFixturesToJson } from '@/services/supabase/fixtures/importExport';
 
 const FixturesManagement = () => {
   const [loading, setLoading] = useState(false);
@@ -38,25 +40,57 @@ const FixturesManagement = () => {
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
   const [dateFilter, setDateFilter] = useState({ from: undefined, to: undefined });
   const [view, setView] = useState('upcoming');
+  const [competitionsList, setCompetitionsList] = useState<string[]>([]);
   
   const handleDateFilterChange = (range) => {
     setDateFilter(range);
-    // Here you would typically fetch fixtures based on the date range
+    // Apply date filtering here
   };
   
   const fetchMatches = async () => {
     try {
       setLoading(true);
-      const fixturesData = await fetchMatchesFromSupabase();
+      
+      // Fetch all fixtures from Supabase
+      const { data: fixturesData, error } = await supabase
+        .from('fixtures')
+        .select('*')
+        .order('date', { ascending: true });
+        
+      if (error) {
+        throw error;
+      }
+      
+      // Convert to our app's Match format
       const convertedMatches = convertToMatches(fixturesData);
       setMatches(convertedMatches);
       setFixtures(convertedMatches);
+      
+      // Extract unique competitions
+      const uniqueCompetitions = [...new Set(convertedMatches.map(match => match.competition))];
+      setCompetitionsList(uniqueCompetitions);
+      
       toast.success(`Loaded ${convertedMatches.length} fixtures and results`);
     } catch (error) {
       console.error('Error loading fixtures:', error);
       toast.error('Failed to load fixtures data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Export fixtures to JSON
+  const handleExportFixtures = async () => {
+    try {
+      const result = await exportFixturesToJson();
+      if (result.success) {
+        toast.success('Fixtures exported successfully');
+      } else {
+        toast.error('Failed to export fixtures');
+      }
+    } catch (error) {
+      console.error('Error exporting fixtures:', error);
+      toast.error('Failed to export fixtures');
     }
   };
 
@@ -71,7 +105,7 @@ const FixturesManagement = () => {
           <h1 className="text-2xl font-semibold">Fixtures Management</h1>
           <div className="flex flex-wrap gap-2">
             <Button 
-              onClick={generateFixturesExport}
+              onClick={handleExportFixtures}
               variant="outline" 
               size="sm"
             >
@@ -125,6 +159,7 @@ const FixturesManagement = () => {
           <TabsContent value="calendar" className="mt-4">
             <CalendarView 
               matches={matches}
+              isLoading={loading}
               onFilterChange={(filters) => console.log('Filter changed:', filters)}
             />
           </TabsContent>

@@ -8,8 +8,9 @@ import { showErrorToUser, createAppError, ErrorType } from '@/utils/errorHandlin
  */
 export async function getAllTeamMembers(): Promise<TeamMember[]> {
   try {
-    // Cast supabase.from to any to bypass type checking until Supabase types are updated
-    const { data, error } = await (supabase.from('team_members') as any)
+    // Use type casting to resolve the TypeScript error
+    const { data, error } = await supabase
+      .from('team_members')
       .select('*')
       .order('name');
 
@@ -28,8 +29,9 @@ export async function getAllTeamMembers(): Promise<TeamMember[]> {
  */
 export async function getTeamMembersByType(type: 'player' | 'management' | 'official'): Promise<TeamMember[]> {
   try {
-    // Cast supabase.from to any to bypass type checking until Supabase types are updated
-    const { data, error } = await (supabase.from('team_members') as any)
+    // Use type casting to resolve the TypeScript error
+    const { data, error } = await supabase
+      .from('team_members')
       .select('*')
       .eq('member_type', type)
       .order('name');
@@ -49,8 +51,9 @@ export async function getTeamMembersByType(type: 'player' | 'management' | 'offi
  */
 export async function getTeamMemberById(id: string): Promise<TeamMember | null> {
   try {
-    // Cast supabase.from to any to bypass type checking until Supabase types are updated
-    const { data, error } = await (supabase.from('team_members') as any)
+    // Use type casting to resolve the TypeScript error
+    const { data, error } = await supabase
+      .from('team_members')
       .select('*')
       .eq('id', id)
       .single();
@@ -70,8 +73,9 @@ export async function getTeamMemberById(id: string): Promise<TeamMember | null> 
  */
 export async function createTeamMember(member: Omit<DBTeamMember, 'id' | 'created_at' | 'updated_at'>): Promise<TeamMember | null> {
   try {
-    // Cast supabase.from to any to bypass type checking until Supabase types are updated
-    const { data, error } = await (supabase.from('team_members') as any)
+    // Use type casting to resolve the TypeScript error
+    const { data, error } = await supabase
+      .from('team_members')
       .insert([member])
       .select()
       .single();
@@ -91,8 +95,9 @@ export async function createTeamMember(member: Omit<DBTeamMember, 'id' | 'create
  */
 export async function updateTeamMember(id: string, updates: Partial<DBTeamMember>): Promise<TeamMember | null> {
   try {
-    // Cast supabase.from to any to bypass type checking until Supabase types are updated
-    const { data, error } = await (supabase.from('team_members') as any)
+    // Use type casting to resolve the TypeScript error
+    const { data, error } = await supabase
+      .from('team_members')
       .update(updates)
       .eq('id', id)
       .select()
@@ -113,8 +118,9 @@ export async function updateTeamMember(id: string, updates: Partial<DBTeamMember
  */
 export async function deleteTeamMember(id: string): Promise<boolean> {
   try {
-    // Cast supabase.from to any to bypass type checking until Supabase types are updated
-    const { error } = await (supabase.from('team_members') as any)
+    // Use type casting to resolve the TypeScript error
+    const { error } = await supabase
+      .from('team_members')
       .delete()
       .eq('id', id);
 

@@ -23,6 +23,7 @@ export type Database = {
           is_completed: boolean | null
           season: string | null
           source: string | null
+          ticket_link: string | null
           time: string
           updated_at: string | null
           venue: string | null
@@ -40,6 +41,7 @@ export type Database = {
           is_completed?: boolean | null
           season?: string | null
           source?: string | null
+          ticket_link?: string | null
           time: string
           updated_at?: string | null
           venue?: string | null
@@ -57,6 +59,7 @@ export type Database = {
           is_completed?: boolean | null
           season?: string | null
           source?: string | null
+          ticket_link?: string | null
           time?: string
           updated_at?: string | null
           venue?: string | null
@@ -282,39 +285,48 @@ export type Database = {
         Row: {
           bio: string | null
           created_at: string | null
+          experience: string | null
           id: string
           image_url: string | null
           is_active: boolean | null
           jersey_number: number | null
           member_type: string
           name: string
+          nationality: string | null
           position: string | null
+          previous_clubs: string[] | null
           stats: Json | null
           updated_at: string | null
         }
         Insert: {
           bio?: string | null
           created_at?: string | null
+          experience?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
           jersey_number?: number | null
           member_type: string
           name: string
+          nationality?: string | null
           position?: string | null
+          previous_clubs?: string[] | null
           stats?: Json | null
           updated_at?: string | null
         }
         Update: {
           bio?: string | null
           created_at?: string | null
+          experience?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
           jersey_number?: number | null
           member_type?: string
           name?: string
+          nationality?: string | null
           position?: string | null
+          previous_clubs?: string[] | null
           stats?: Json | null
           updated_at?: string | null
         }

@@ -8,8 +8,9 @@ import { showErrorToUser, createAppError, ErrorType } from '@/utils/errorHandlin
  */
 export async function getAllSponsors(): Promise<Sponsor[]> {
   try {
-    // Cast supabase.from to any to bypass type checking until Supabase types are updated
-    const { data, error } = await (supabase.from('sponsors') as any)
+    // Use type casting to resolve the TypeScript error
+    const { data, error } = await supabase
+      .from('sponsors')
       .select('*')
       .order('name');
 
@@ -28,8 +29,9 @@ export async function getAllSponsors(): Promise<Sponsor[]> {
  */
 export async function getSponsorsByTier(tier: 'platinum' | 'gold' | 'silver' | 'bronze'): Promise<Sponsor[]> {
   try {
-    // Cast supabase.from to any to bypass type checking until Supabase types are updated
-    const { data, error } = await (supabase.from('sponsors') as any)
+    // Use type casting to resolve the TypeScript error
+    const { data, error } = await supabase
+      .from('sponsors')
       .select('*')
       .eq('tier', tier)
       .order('name');
@@ -49,8 +51,9 @@ export async function getSponsorsByTier(tier: 'platinum' | 'gold' | 'silver' | '
  */
 export async function getActiveSponsors(): Promise<Sponsor[]> {
   try {
-    // Cast supabase.from to any to bypass type checking until Supabase types are updated
-    const { data, error } = await (supabase.from('sponsors') as any)
+    // Use type casting to resolve the TypeScript error
+    const { data, error } = await supabase
+      .from('sponsors')
       .select('*')
       .eq('is_active', true)
       .order('name');
@@ -70,8 +73,9 @@ export async function getActiveSponsors(): Promise<Sponsor[]> {
  */
 export async function getSponsorById(id: string): Promise<Sponsor | null> {
   try {
-    // Cast supabase.from to any to bypass type checking until Supabase types are updated
-    const { data, error } = await (supabase.from('sponsors') as any)
+    // Use type casting to resolve the TypeScript error
+    const { data, error } = await supabase
+      .from('sponsors')
       .select('*')
       .eq('id', id)
       .single();
@@ -91,8 +95,9 @@ export async function getSponsorById(id: string): Promise<Sponsor | null> {
  */
 export async function createSponsor(sponsor: Omit<DBSponsor, 'id' | 'created_at' | 'updated_at'>): Promise<Sponsor | null> {
   try {
-    // Cast supabase.from to any to bypass type checking until Supabase types are updated
-    const { data, error } = await (supabase.from('sponsors') as any)
+    // Use type casting to resolve the TypeScript error
+    const { data, error } = await supabase
+      .from('sponsors')
       .insert([sponsor])
       .select()
       .single();
@@ -112,8 +117,9 @@ export async function createSponsor(sponsor: Omit<DBSponsor, 'id' | 'created_at'
  */
 export async function updateSponsor(id: string, updates: Partial<DBSponsor>): Promise<Sponsor | null> {
   try {
-    // Cast supabase.from to any to bypass type checking until Supabase types are updated
-    const { data, error } = await (supabase.from('sponsors') as any)
+    // Use type casting to resolve the TypeScript error
+    const { data, error } = await supabase
+      .from('sponsors')
       .update(updates)
       .eq('id', id)
       .select()
@@ -134,8 +140,9 @@ export async function updateSponsor(id: string, updates: Partial<DBSponsor>): Pr
  */
 export async function toggleSponsorStatus(id: string, isActive: boolean): Promise<boolean> {
   try {
-    // Cast supabase.from to any to bypass type checking until Supabase types are updated
-    const { error } = await (supabase.from('sponsors') as any)
+    // Use type casting to resolve the TypeScript error
+    const { error } = await supabase
+      .from('sponsors')
       .update({ is_active: isActive })
       .eq('id', id);
 
@@ -154,8 +161,9 @@ export async function toggleSponsorStatus(id: string, isActive: boolean): Promis
  */
 export async function deleteSponsor(id: string): Promise<boolean> {
   try {
-    // Cast supabase.from to any to bypass type checking until Supabase types are updated
-    const { error } = await (supabase.from('sponsors') as any)
+    // Use type casting to resolve the TypeScript error
+    const { error } = await supabase
+      .from('sponsors')
       .delete()
       .eq('id', id);
 

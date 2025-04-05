@@ -23,6 +23,7 @@ export function useSupabaseFetch<T>(
       try {
         setLoading(true);
         
+        // Using a simpler approach to build the query
         let query = supabase.from(table).select(options?.select || '*');
         
         if (options?.match) {

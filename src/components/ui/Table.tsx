@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { cn } from '@/utils/cn';
+import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
 export interface TableColumn<T> {

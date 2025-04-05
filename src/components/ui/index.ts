@@ -34,6 +34,6 @@ export * from './toggle-group';
 export * from './tooltip';
 export * from './use-toast';
 
-// Export new UI components
-export { default as Table } from './Table';
+// Export custom UI components - using new PascalCase names
+export { default as Table } from './table'; // Keep the import path lowercase to match existing file
 export { default as Loading } from './Loading';

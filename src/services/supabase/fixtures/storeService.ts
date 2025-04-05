@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ScrapedFixture } from '@/types/fixtures';
 import { logScrapeOperation } from './loggingService';

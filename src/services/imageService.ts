@@ -1,4 +1,3 @@
-
 import { supabase } from '@/services/supabase/supabaseClient';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
@@ -50,6 +49,14 @@ interface StoredImageMetadata {
   };
 }
 
+// Define RPC function types to help TypeScript understand our function calls
+type SupabaseRpcFunction = 
+  | 'store_image_metadata' 
+  | 'get_image_metadata' 
+  | 'update_image_metadata' 
+  | 'delete_image_metadata'
+  | 'move_image_metadata';
+
 /**
  * Upload an image to a specific bucket
  */
@@ -91,16 +98,17 @@ export async function uploadImage(
       
       // Store metadata using stored procedure function
       if (metadata || dimensions) {
-        // Using Supabase's rpc method to store metadata
-        const { error: metadataError } = await supabase.rpc('store_image_metadata', {
-          bucket_id: bucketId,
-          storage_path: data.path,
-          file_name: fileName,
-          alt_text: metadata?.alt_text || file.name.split('.')[0],
-          description: metadata?.description,
-          tags: metadata?.tags,
-          dimensions: dimensions ? JSON.stringify(dimensions) : null
-        } as any); // Type assertion to bypass TypeScript error
+        // Using Supabase's rpc method to store metadata with proper typing
+        const { error: metadataError } = await supabase
+          .rpc<any, SupabaseRpcFunction>('store_image_metadata', {
+            bucket_id: bucketId,
+            storage_path: data.path,
+            file_name: fileName,
+            alt_text: metadata?.alt_text || file.name.split('.')[0],
+            description: metadata?.description,
+            tags: metadata?.tags,
+            dimensions: dimensions ? JSON.stringify(dimensions) : null
+          });
         
         if (metadataError) throw metadataError;
       }
@@ -153,12 +161,12 @@ export async function getImages(
             .from(bucketId)
             .getPublicUrl(filePath);
             
-          // Get metadata using rpc function
+          // Get metadata using rpc function with proper typing
           const { data: metadataData, error: metadataError } = await supabase
-            .rpc('get_image_metadata', { 
+            .rpc<StoredImageMetadata, SupabaseRpcFunction>('get_image_metadata', { 
               p_bucket_id: bucketId,
               p_storage_path: filePath
-            } as any); // Type assertion to bypass TypeScript error
+            });
             
           if (metadataError) console.error('Error fetching metadata:', metadataError);
 
@@ -195,11 +203,12 @@ export async function deleteImage(
 ): Promise<DbServiceResponse<boolean>> {
   return handleDbOperation(
     async () => {
-      // Delete metadata using rpc function
-      await supabase.rpc('delete_image_metadata', {
-        p_bucket_id: bucketId,
-        p_storage_path: path
-      } as any); // Type assertion to bypass TypeScript error
+      // Delete metadata using rpc function with proper typing
+      await supabase
+        .rpc<any, SupabaseRpcFunction>('delete_image_metadata', {
+          p_bucket_id: bucketId,
+          p_storage_path: path
+        });
       
       // Then delete the image
       const { error } = await supabase
@@ -260,13 +269,14 @@ export async function moveImage(
 
       if (uploadError) throw uploadError;
 
-      // Update metadata using rpc function
-      const { error: moveError } = await supabase.rpc('move_image_metadata', {
-        p_source_bucket_id: sourceBucketId,
-        p_source_path: sourcePath,
-        p_dest_bucket_id: destinationBucketId,
-        p_dest_path: destinationPath
-      } as any); // Type assertion to bypass TypeScript error
+      // Update metadata using rpc function with proper typing
+      const { error: moveError } = await supabase
+        .rpc<any, SupabaseRpcFunction>('move_image_metadata', {
+          p_source_bucket_id: sourceBucketId,
+          p_source_path: sourcePath,
+          p_dest_bucket_id: destinationBucketId,
+          p_dest_path: destinationPath
+        });
       
       if (moveError) throw moveError;
 
@@ -323,14 +333,15 @@ export async function updateImageMetadata(
 ): Promise<DbServiceResponse<boolean>> {
   return handleDbOperation(
     async () => {
-      // Update metadata using rpc function
-      const { error } = await supabase.rpc('update_image_metadata', {
-        p_bucket_id: bucketId,
-        p_storage_path: path,
-        p_alt_text: metadata.alt_text,
-        p_description: metadata.description,
-        p_tags: metadata.tags
-      } as any); // Type assertion to bypass TypeScript error
+      // Update metadata using rpc function with proper typing
+      const { error } = await supabase
+        .rpc<any, SupabaseRpcFunction>('update_image_metadata', {
+          p_bucket_id: bucketId,
+          p_storage_path: path,
+          p_alt_text: metadata.alt_text,
+          p_description: metadata.description,
+          p_tags: metadata.tags
+        });
         
       if (error) throw error;
       return true;
@@ -348,11 +359,12 @@ export async function getImageMetadata(
 ): Promise<DbServiceResponse<StoredImageMetadata>> {
   return handleDbOperation(
     async () => {
-      // Get metadata using rpc function
-      const { data, error } = await supabase.rpc('get_image_metadata', {
-        p_bucket_id: bucketId,
-        p_storage_path: path
-      } as any); // Type assertion to bypass TypeScript error
+      // Get metadata using rpc function with proper typing
+      const { data, error } = await supabase
+        .rpc<StoredImageMetadata, SupabaseRpcFunction>('get_image_metadata', {
+          p_bucket_id: bucketId,
+          p_storage_path: path
+        });
         
       if (error) throw error;
       return data as StoredImageMetadata; // Type assertion for the returned data

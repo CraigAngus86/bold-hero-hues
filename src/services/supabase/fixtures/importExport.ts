@@ -25,18 +25,21 @@ export const importHistoricFixtures = async (jsonData: ScrapedFixture[] | any[])
         return fixture as ScrapedFixture;
       } else {
         // It's in Claude's format, convert it
+        // Banks O' Dee is always one of the teams, the other team is the opposition
+        const isHome = fixture.location === 'Home';
+        
         return {
-          homeTeam: "Banks O' Dee FC",
-          awayTeam: fixture.opposition || '',
+          homeTeam: isHome ? "Banks o' Dee FC" : fixture.opposition || '',
+          awayTeam: isHome ? fixture.opposition || '' : "Banks o' Dee FC",
           date: fixture.date || '',
           time: fixture.kickOffTime || fixture.kick_off_time || '',
           competition: fixture.competition || '',
-          venue: fixture.location === 'Home' ? "Spain Park" : fixture.location || '',
+          venue: isHome ? "Spain Park" : fixture.location || '',
           isCompleted: fixture.isCompleted || fixture.is_completed || false,
-          homeScore: fixture.location === 'Home' ? 
+          homeScore: isHome ? 
             (fixture.score ? parseInt(fixture.score.split('-')[0]) : null) : 
             (fixture.score ? parseInt(fixture.score.split('-')[1]) : null),
-          awayScore: fixture.location === 'Home' ? 
+          awayScore: isHome ? 
             (fixture.score ? parseInt(fixture.score.split('-')[1]) : null) : 
             (fixture.score ? parseInt(fixture.score.split('-')[0]) : null),
           source: 'manual-import'

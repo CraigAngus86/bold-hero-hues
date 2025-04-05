@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Check, Upload, Loader2 } from "lucide-react";
-import { importHistoricFixtures } from '@/services/supabase/fixtures/importExport';
+import { importHistoricFixtures } from '@/services/supabase/fixturesService';
 import { ScrapedFixture } from '@/types/fixtures';
 import { toast } from 'sonner';
 
@@ -61,7 +61,7 @@ const FixturesImporter = () => {
         return;
       }
 
-      // Import fixtures - uses a single argument now
+      // Fix: Now importHistoricFixtures expects only one argument
       const success = await importHistoricFixtures(fixtures);
       
       if (success) {

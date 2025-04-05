@@ -40,11 +40,22 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
   const articles = React.useMemo(() => {
     if (!responseData) return [];
     
-    // Handle both array format and object format with data property
+    // Handle different response formats
     if (Array.isArray(responseData)) {
       return responseData;
-    } else if (responseData && typeof responseData === 'object' && 'data' in responseData) {
-      return Array.isArray(responseData.data) ? responseData.data : [];
+    } else if (responseData && typeof responseData === 'object') {
+      // Handle DbServiceResponse format
+      if ('success' in responseData && responseData.data) {
+        if (Array.isArray(responseData.data)) {
+          return responseData.data;
+        } else if (responseData.data.data && Array.isArray(responseData.data.data)) {
+          return responseData.data.data;
+        }
+      }
+      // Handle simple object with data property
+      else if ('data' in responseData) {
+        return Array.isArray(responseData.data) ? responseData.data : [];
+      }
     }
     
     return [];

@@ -16,7 +16,7 @@ import StyleGuide from './pages/StyleGuide';
 import Admin from './pages/Admin';
 import Dashboard from './pages/admin/Dashboard';
 import TeamManagement from './pages/admin/TeamManagement';
-import Fixtures as AdminFixtures from './pages/admin/Fixtures';
+import { default as AdminFixtures } from './pages/admin/Fixtures';
 import FixturesManagement from './pages/admin/FixturesManagement';
 import NewsManagement from './pages/admin/NewsManagement';
 

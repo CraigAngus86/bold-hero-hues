@@ -1,4 +1,3 @@
-
 import { supabase } from '@/services/supabase/supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
 import { BucketType } from './config';
@@ -49,7 +48,7 @@ export async function uploadImage(
       if (metadata || dimensions) {
         // Using Supabase's rpc method to store metadata
         const { error: metadataError } = await supabase
-          .rpc('store_image_metadata' as unknown as string, {
+          .rpc('store_image_metadata' as any, {
             bucket_id: bucketId,
             storage_path: data.path,
             file_name: fileName,
@@ -112,7 +111,7 @@ export async function getImages(
             
           // Get metadata using rpc function
           const { data: metadataData, error: metadataError } = await supabase
-            .rpc('get_image_metadata' as unknown as string, { 
+            .rpc('get_image_metadata' as any, { 
               p_bucket_id: bucketId,
               p_storage_path: filePath
             });
@@ -154,7 +153,7 @@ export async function deleteImage(
     async () => {
       // Delete metadata using rpc function
       await supabase
-        .rpc('delete_image_metadata' as unknown as string, {
+        .rpc('delete_image_metadata' as any, {
           p_bucket_id: bucketId,
           p_storage_path: path
         });
@@ -220,7 +219,7 @@ export async function moveImage(
 
       // Update metadata using rpc function
       const { error: moveError } = await supabase
-        .rpc('move_image_metadata' as unknown as string, {
+        .rpc('move_image_metadata' as any, {
           p_source_bucket_id: sourceBucketId,
           p_source_path: sourcePath,
           p_dest_bucket_id: destinationBucketId,
@@ -284,7 +283,7 @@ export async function updateImageMetadata(
     async () => {
       // Update metadata using rpc function
       const { error } = await supabase
-        .rpc('update_image_metadata' as unknown as string, {
+        .rpc('update_image_metadata' as any, {
           p_bucket_id: bucketId,
           p_storage_path: path,
           p_alt_text: metadata.alt_text,
@@ -310,7 +309,7 @@ export async function getImageMetadata(
     async () => {
       // Get metadata using rpc function
       const { data, error } = await supabase
-        .rpc('get_image_metadata' as unknown as string, {
+        .rpc('get_image_metadata' as any, {
           p_bucket_id: bucketId,
           p_storage_path: path
         });

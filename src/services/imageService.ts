@@ -1,10 +1,20 @@
 
 // This file is kept for backward compatibility, but all functionality has been moved to the images/ directory
-import { 
+import type { 
   BucketType,
   ImageMetadata,
   ImageOptimizationOptions,
-  StoredImageMetadata,
+  StoredImageMetadata 
+} from './images/types';
+
+export type { 
+  BucketType,
+  ImageMetadata,
+  ImageOptimizationOptions,
+  StoredImageMetadata 
+};
+
+import { 
   uploadImage,
   getImages,
   deleteImage,
@@ -13,17 +23,19 @@ import {
   createFolder,
   updateImageMetadata,
   getImageMetadata,
-  optimizeImage,
+} from './images/api';
+
+import {
+  optimizeImage
+} from './images/utils';
+
+import {
   useImageUpload,
   imageUploadConfigs
 } from './images';
 
 // Re-export everything to maintain backwards compatibility
 export {
-  BucketType,
-  ImageMetadata,
-  ImageOptimizationOptions,
-  StoredImageMetadata,
   uploadImage,
   getImages,
   deleteImage,

@@ -1,54 +1,32 @@
 
-import { lazy, Suspense } from 'react';
-import { Route, Routes } from 'react-router-dom';
-import { Toaster } from '@/components/ui/sonner';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { HelmetProvider } from 'react-helmet-async';
-import { LoadingSpinner } from './components/ui/Loading';
-
-// Import pages
-const Index = lazy(() => import('./pages/Index'));
-const News = lazy(() => import('./pages/News'));
-const Team = lazy(() => import('./pages/Team'));
-const Fixtures = lazy(() => import('./pages/Fixtures'));
-const LeagueTable = lazy(() => import('./pages/LeagueTable'));
-const Stadium = lazy(() => import('./pages/Stadium'));
-const Tickets = lazy(() => import('./pages/Tickets'));
-const NotFound = lazy(() => import('./pages/NotFound'));
-const Gallery = lazy(() => import('./pages/Gallery'));
-const Admin = lazy(() => import('./pages/Admin'));
-
-// Create a client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Index from './pages/Index';
+import NewsArticle from './pages/NewsArticle';
+import NewsPage from './pages/News';
+import TeamPage from './pages/Team';
+import FixturesPage from './pages/Fixtures';
+import LeagueTable from './pages/LeagueTable';
+import StadiumPage from './pages/Stadium';
+import TicketsPage from './pages/Tickets';
+import StyleGuide from './pages/StyleGuide';
+import { Toaster } from './components/ui/sonner';
 
 function App() {
   return (
-    <HelmetProvider>
-      <QueryClientProvider client={queryClient}>
-        <Suspense fallback={<div className="flex items-center justify-center h-screen"><LoadingSpinner size="lg" /></div>}>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/news/*" element={<News />} />
-            <Route path="/team" element={<Team />} />
-            <Route path="/fixtures" element={<Fixtures />} />
-            <Route path="/table" element={<LeagueTable />} />
-            <Route path="/stadium" element={<Stadium />} />
-            <Route path="/tickets" element={<Tickets />} />
-            <Route path="/gallery" element={<Gallery />} />
-            <Route path="/admin/*" element={<Admin />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
-        <Toaster position="top-right" />
-      </QueryClientProvider>
-    </HelmetProvider>
+    <BrowserRouter>
+      <Toaster />
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/news" element={<NewsPage />} />
+        <Route path="/news/:id" element={<NewsArticle />} />
+        <Route path="/team" element={<TeamPage />} />
+        <Route path="/fixtures" element={<FixturesPage />} />
+        <Route path="/table" element={<LeagueTable />} />
+        <Route path="/stadium" element={<StadiumPage />} />
+        <Route path="/tickets" element={<TicketsPage />} />
+        <Route path="/styleguide" element={<StyleGuide />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

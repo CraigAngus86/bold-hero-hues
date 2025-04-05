@@ -1,9 +1,10 @@
 
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Table } from 'lucide-react';
 import { TeamStats } from '@/components/league/types';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import BaseText from '@/components/ui/BaseText';
 
 interface LeagueTablePreviewProps {
   leagueData: TeamStats[] | null;
@@ -19,12 +20,12 @@ const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
   
   return (
     <Card className="overflow-hidden border-none shadow-lg hover:shadow-xl transition-shadow bg-white flex flex-col h-full rounded-lg">
-      <div className="bg-team-blue text-white font-bold py-4 px-4 flex items-center justify-center border-b-4 border-team-lightBlue">
+      <div className="bg-primary-800 text-white font-bold py-4 px-4 flex items-center justify-center border-b-4 border-secondary-300">
         <Table className="w-5 h-5 mr-2" />
-        <h3 className="text-xl">League Table</h3>
+        <BaseText variant="h3" className="text-white mb-0">League Table</BaseText>
       </div>
       
-      <CardContent className="p-5 flex-1">
+      <div className="p-5 flex-1">
         {displayTeams.length > 0 ? (
           <div className="space-y-1">
             {/* Table header */}
@@ -44,7 +45,7 @@ const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
               >
                 <div className="col-span-1 font-medium">{team.position}</div>
                 <div className="col-span-5 font-medium truncate">
-                  <span className={isBanksODee(team.team) ? 'text-team-blue font-bold' : ''}>
+                  <span className={isBanksODee(team.team) ? 'text-primary-800 font-bold' : ''}>
                     {team.team}
                   </span>
                 </div>
@@ -66,11 +67,11 @@ const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
         )}
         
         <div className="mt-4 text-center">
-          <Button asChild variant="outline" className="text-team-blue border-team-blue hover:bg-team-blue hover:text-white">
+          <Button asChild variant="outline" className="text-primary-800 border-primary-800 hover:bg-primary-800 hover:text-white">
             <Link to="/table">View Full Table</Link>
           </Button>
         </div>
-      </CardContent>
+      </div>
     </Card>
   );
 };

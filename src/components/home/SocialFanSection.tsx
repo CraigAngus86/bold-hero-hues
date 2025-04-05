@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
@@ -18,6 +19,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useSocialMedia, formatRelativeTime, type SocialPost } from '@/hooks/useSocialMedia';
+import BaseText from '@/components/ui/BaseText';
+import Container from '@/components/ui/Container';
 
 const SocialFanSection = () => {
   const [activeTab, setActiveTab] = useState('social');
@@ -179,24 +182,25 @@ const SocialFanSection = () => {
   };
 
   return (
-    <section className="py-16">
-      <div className="container mx-auto px-4">
+    <section className="py-16 bg-gray-50">
+      <Container>
         <div className="flex justify-between items-center mb-8">
-          <motion.h2 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="text-3xl font-bold text-team-blue"
           >
-            Fan Zone & Social Media
-          </motion.h2>
+            <BaseText variant="h2" className="text-primary-800">
+              Fan Zone & Social Media
+            </BaseText>
+          </motion.div>
           
           <div className="flex space-x-3">
             <a 
               href="https://x.com/banksodee_fc" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="bg-team-blue text-white p-2 rounded-full hover:bg-team-lightBlue hover:text-team-blue transition-colors shadow-md"
+              className="bg-primary-800 text-white p-2 rounded-full hover:bg-secondary-300 hover:text-primary-800 transition-colors shadow-md"
               aria-label="Twitter/X"
             >
               <Twitter className="w-5 h-5" />
@@ -205,7 +209,7 @@ const SocialFanSection = () => {
               href="https://www.instagram.com/banksodeefc/" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="bg-team-blue text-white p-2 rounded-full hover:bg-team-lightBlue hover:text-team-blue transition-colors shadow-md"
+              className="bg-primary-800 text-white p-2 rounded-full hover:bg-secondary-300 hover:text-primary-800 transition-colors shadow-md"
               aria-label="Instagram"
             >
               <Instagram className="w-5 h-5" />
@@ -214,7 +218,7 @@ const SocialFanSection = () => {
               href="https://www.facebook.com/banksodeejfc/" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="bg-team-blue text-white p-2 rounded-full hover:bg-team-lightBlue hover:text-team-blue transition-colors shadow-md"
+              className="bg-primary-800 text-white p-2 rounded-full hover:bg-secondary-300 hover:text-primary-800 transition-colors shadow-md"
               aria-label="Facebook"
             >
               <Facebook className="w-5 h-5" />
@@ -226,13 +230,13 @@ const SocialFanSection = () => {
           <TabsList className="grid grid-cols-2 w-full max-w-md mx-auto mb-6 bg-gray-100">
             <TabsTrigger 
               value="social" 
-              className="text-base data-[state=active]:bg-team-blue data-[state=active]:text-white"
+              className="text-base data-[state=active]:bg-primary-800 data-[state=active]:text-white"
             >
               Official Social
             </TabsTrigger>
             <TabsTrigger 
               value="fans" 
-              className="text-base data-[state=active]:bg-team-blue data-[state=active]:text-white"
+              className="text-base data-[state=active]:bg-primary-800 data-[state=active]:text-white"
             >
               Fan Wall
             </TabsTrigger>
@@ -306,8 +310,8 @@ const SocialFanSection = () => {
                 <Card className="overflow-hidden border-none shadow-lg">
                   <CardContent className="p-5">
                     <div className="flex items-center mb-4">
-                      <BarChart2 className="w-5 h-5 text-team-blue mr-2" />
-                      <h3 className="font-bold text-lg text-team-blue">Fan Poll</h3>
+                      <BarChart2 className="w-5 h-5 text-primary-800 mr-2" />
+                      <BaseText variant="h4" className="text-primary-800 mb-0">Fan Poll</BaseText>
                     </div>
                     
                     <p className="font-medium text-base mb-4">{pollQuestion}</p>
@@ -321,7 +325,7 @@ const SocialFanSection = () => {
                               onClick={() => handleVote(option.id)}
                               className={`w-full text-left px-4 py-2 rounded-md text-sm ${
                                 votingOption === option.id
-                                  ? 'bg-team-blue text-white font-medium'
+                                  ? 'bg-primary-800 text-white font-medium'
                                   : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
                               }`}
                             >
@@ -331,7 +335,7 @@ const SocialFanSection = () => {
                             <div className="mt-1 flex items-center">
                               <div className="flex-1 bg-gray-200 rounded-full h-1.5 mr-2">
                                 <div 
-                                  className="bg-team-blue h-1.5 rounded-full" 
+                                  className="bg-primary-800 h-1.5 rounded-full" 
                                   style={{ width: `${percentage}%` }}
                                 ></div>
                               </div>
@@ -348,7 +352,7 @@ const SocialFanSection = () => {
                   </CardContent>
                 </Card>
                 
-                <Card className="overflow-hidden border-none shadow-lg bg-team-blue text-white">
+                <Card className="overflow-hidden border-none shadow-lg bg-primary-800 text-white">
                   <CardContent className="p-5">
                     <div className="flex items-center mb-4">
                       <Calendar className="w-5 h-5 mr-2" />
@@ -357,22 +361,22 @@ const SocialFanSection = () => {
                     
                     <div className="text-center">
                       <p className="font-medium mb-2">Banks o' Dee vs Brechin City</p>
-                      <p className="text-sm text-team-lightBlue mb-4">Highland League • Spain Park</p>
+                      <p className="text-sm text-secondary-300 mb-4">Highland League • Spain Park</p>
                       
-                      <div className="bg-team-navy/30 rounded-lg p-4 mb-4">
+                      <div className="bg-primary-900/30 rounded-lg p-4 mb-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div className="text-center">
                             <p className="text-3xl font-bold">{daysUntilGame}</p>
-                            <p className="text-xs text-team-lightBlue uppercase">Days</p>
+                            <p className="text-xs text-secondary-300 uppercase">Days</p>
                           </div>
                           <div className="text-center">
                             <p className="text-3xl font-bold">{hoursUntilGame}</p>
-                            <p className="text-xs text-team-lightBlue uppercase">Hours</p>
+                            <p className="text-xs text-secondary-300 uppercase">Hours</p>
                           </div>
                         </div>
                       </div>
                       
-                      <Button className="w-full bg-team-lightBlue text-team-blue hover:bg-white">
+                      <Button className="w-full bg-secondary-300 text-primary-800 hover:bg-white">
                         Get Tickets
                       </Button>
                     </div>
@@ -416,7 +420,7 @@ const SocialFanSection = () => {
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="text-team-blue hover:text-team-navy hover:bg-team-lightBlue/30"
+                        className="text-primary-800 hover:text-primary-700 hover:bg-secondary-300/30"
                       >
                         Reply
                       </Button>
@@ -429,7 +433,7 @@ const SocialFanSection = () => {
                 <div className="sticky top-4">
                   <Card>
                     <CardContent className="p-5">
-                      <h3 className="font-bold text-lg text-team-blue mb-4 flex items-center">
+                      <h3 className="font-bold text-lg text-primary-800 mb-4 flex items-center">
                         <MessageCircle className="w-5 h-5 mr-2" />
                         Join the Conversation
                       </h3>
@@ -437,14 +441,14 @@ const SocialFanSection = () => {
                       <div className="space-y-4">
                         <Textarea 
                           placeholder="Share your thoughts about Banks o' Dee FC..." 
-                          className="min-h-[120px] border-team-blue/20"
+                          className="min-h-[120px] border-primary-800/20"
                           value={postContent}
                           onChange={(e) => setPostContent(e.target.value)}
                         />
                         
                         <Button 
                           onClick={handleSubmitPost} 
-                          className="w-full bg-team-blue hover:bg-team-navy flex items-center justify-center"
+                          className="w-full bg-primary-800 hover:bg-primary-700 flex items-center justify-center"
                           disabled={!postContent.trim()}
                         >
                           <Send className="w-4 h-4 mr-2" /> Post to Fan Wall
@@ -452,7 +456,7 @@ const SocialFanSection = () => {
                         
                         <p className="text-xs text-gray-500 text-center">
                           All posts are moderated before appearing on the fan wall. 
-                          Please follow our <a href="#" className="text-team-blue hover:underline">community guidelines</a>.
+                          Please follow our <a href="#" className="text-primary-800 hover:underline">community guidelines</a>.
                         </p>
                       </div>
                     </CardContent>
@@ -462,7 +466,7 @@ const SocialFanSection = () => {
             </div>
           </TabsContent>
         </Tabs>
-      </div>
+      </Container>
     </section>
   );
 };

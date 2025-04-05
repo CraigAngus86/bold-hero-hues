@@ -49,6 +49,8 @@ function App() {
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/news" element={<NewsManagement />} />
+            
+            {/* Catch-all for other admin routes */}
             <Route path="/admin/*" element={<Admin />} />
           </Routes>
         </BrowserRouter>

@@ -23,7 +23,7 @@ import FixturesScraper from '@/components/admin/fixtures/FixturesScraper';
 import FixturesImporter from '@/components/admin/fixtures/FixturesImporter';
 import ScraperDocumentation from '@/components/admin/fixtures/ScraperDocumentation';
 import FixturesManager from '@/components/admin/fixtures/FixturesManager';
-import ScraperLogs from '@/components/admin/fixtures/ScraperLogs';
+import { ScraperLogs } from '@/components/admin/fixtures/ScraperLogs';
 import { fetchMatchesFromSupabase } from '@/services/supabase/fixturesService';
 import { toast } from 'sonner';
 import { convertToMatches } from '@/types/fixtures';

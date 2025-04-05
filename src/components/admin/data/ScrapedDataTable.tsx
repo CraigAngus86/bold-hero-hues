@@ -1,15 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
-import { Button } from "@/components/ui/button";
-import { TeamStats } from '@/components/league/types';
-import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, Download, RefreshCw } from "lucide-react";
-import { fetchLeagueTableFromSupabase, getLastUpdateTime, triggerLeagueDataScrape } from '@/services/supabase/leagueDataService';
 import { toast } from "sonner";
+import { fetchLeagueTableFromSupabase, getLastUpdateTime, triggerLeagueDataScrape } from '@/services/supabase/leagueDataService';
+import { TeamStats } from '@/components/league/types';
+import { DataActions } from './table-components/DataActions';
+import { DataWarningAlert } from './table-components/DataWarningAlert';
+import { LastUpdatedInfo } from './table-components/LastUpdatedInfo';
+import { LeagueDataTable } from './table-components/LeagueDataTable';
 
+/**
+ * Component for displaying and managing scraped league data
+ */
 const ScrapedDataTable: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [leagueTable, setLeagueTable] = useState<TeamStats[]>([]);
@@ -141,101 +143,20 @@ const ScrapedDataTable: React.FC = () => {
             Displaying {leagueTable.length} teams from Supabase
           </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <Badge variant="default">Supabase Data</Badge>
-          <Button size="sm" variant="outline" onClick={handleExport}>
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-          <Button size="sm" onClick={handleRefreshData}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-        </div>
+        
+        <DataActions 
+          onExport={handleExport} 
+          onRefresh={handleRefreshData}
+        />
       </CardHeader>
       <CardContent>
-        {lastUpdated && (
-          <div className="text-sm text-muted-foreground mb-4">
-            Last updated: {new Date(lastUpdated).toLocaleString()}
-          </div>
-        )}
+        <LastUpdatedInfo lastUpdated={lastUpdated} />
         
-        {hasInvalidData && (
-          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
-            <div className="flex items-center">
-              <AlertTriangle className="h-5 w-5 text-yellow-400 mr-2" />
-              <p className="font-medium text-yellow-800">Data Quality Warning</p>
-            </div>
-            <p className="text-sm text-yellow-700 mt-1">
-              Some team names appear to be invalid (numeric or missing). Try refreshing the data or check the scraper configuration.
-            </p>
-          </div>
-        )}
+        {hasInvalidData && <DataWarningAlert />}
         
-        <div className="border rounded-md overflow-auto max-h-96">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12">Pos</TableHead>
-                <TableHead>Team</TableHead>
-                <TableHead className="w-12">P</TableHead>
-                <TableHead className="w-12">W</TableHead>
-                <TableHead className="w-12">D</TableHead>
-                <TableHead className="w-12">L</TableHead>
-                <TableHead className="w-12">GF</TableHead>
-                <TableHead className="w-12">GA</TableHead>
-                <TableHead className="w-12">GD</TableHead>
-                <TableHead className="w-12">Pts</TableHead>
-                <TableHead className="w-24">Form</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {leagueTable.map((team, index) => (
-                <TableRow key={index} className={!isNaN(Number(team.team)) ? "bg-yellow-50" : ""}>
-                  <TableCell>{team.position}</TableCell>
-                  <TableCell className="font-medium">
-                    {!isNaN(Number(team.team)) ? (
-                      <span className="text-yellow-600 flex items-center">
-                        <AlertTriangle className="h-4 w-4 mr-1" />
-                        {team.team} (Invalid)
-                      </span>
-                    ) : (
-                      team.team
-                    )}
-                  </TableCell>
-                  <TableCell>{team.played}</TableCell>
-                  <TableCell>{team.won}</TableCell>
-                  <TableCell>{team.drawn}</TableCell>
-                  <TableCell>{team.lost}</TableCell>
-                  <TableCell>{team.goalsFor}</TableCell>
-                  <TableCell>{team.goalsAgainst}</TableCell>
-                  <TableCell>{team.goalDifference}</TableCell>
-                  <TableCell className="font-bold">{team.points}</TableCell>
-                  <TableCell>
-                    <div className="flex space-x-1">
-                      {team.form?.map((result, i) => (
-                        <span 
-                          key={i} 
-                          className={`inline-block w-5 h-5 text-xs text-center leading-5 rounded-full
-                            ${result === 'W' ? 'bg-green-500 text-white' : 
-                              result === 'D' ? 'bg-yellow-500 text-white' : 
-                              'bg-red-500 text-white'}`}
-                        >
-                          {result}
-                        </span>
-                      ))}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {leagueTable.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={11} className="text-center py-4">No data found. Try refreshing.</TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+        <LeagueDataTable 
+          leagueTable={leagueTable}
+        />
       </CardContent>
     </Card>
   );

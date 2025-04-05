@@ -17,13 +17,16 @@ export const importHistoricFixtures = async (jsonData: ScrapedFixture[] | any[])
       return false;
     }
     
-    // Convert the data if it's in the Claude script format
+    // Convert the data if it's in a different format
     const fixtures: ScrapedFixture[] = jsonData.map(fixture => {
-      // Check if this is our standard format or Claude's format
+      // Check if this is our standard format
       if ('homeTeam' in fixture || 'home_team' in fixture) {
         // It's already in our format or close to it
         return fixture as ScrapedFixture;
-      } else {
+      }
+      
+      // Check if it's in Claude's format
+      if ('opposition' in fixture || 'location' in fixture) {
         // It's in Claude's format, convert it
         // Banks O' Dee is always one of the teams, the other team is the opposition
         const isHome = fixture.location === 'Home';
@@ -45,6 +48,20 @@ export const importHistoricFixtures = async (jsonData: ScrapedFixture[] | any[])
           source: 'manual-import'
         };
       }
+
+      // Neither format - try to guess
+      return {
+        homeTeam: fixture.homeTeam || fixture.home_team || fixture.home || '',
+        awayTeam: fixture.awayTeam || fixture.away_team || fixture.away || '',
+        date: fixture.date || '',
+        time: fixture.time || fixture.kick_off_time || fixture.kickOffTime || '',
+        competition: fixture.competition || '',
+        venue: fixture.venue || '',
+        isCompleted: fixture.isCompleted || fixture.is_completed || false,
+        homeScore: fixture.homeScore || fixture.home_score || null,
+        awayScore: fixture.awayScore || fixture.away_score || null,
+        source: 'manual-import'
+      };
     });
     
     const source = 'manual-import';

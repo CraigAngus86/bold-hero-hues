@@ -30,7 +30,7 @@ export default function FixturesScraper() {
       <CardContent className="space-y-4">
         <ScraperStatusAlerts 
           error={error} 
-          success={success} 
+          success={!!success} 
           resultsCount={results.length} 
         />
         
@@ -49,7 +49,7 @@ export default function FixturesScraper() {
           onTestFetch={handleTestFetch}
           onFetchFromBBC={handleFetchFromBBC}
           onFetchFromHFL={handleFetchFromHFL}
-          success={success}
+          success={!!success}
         />
       </CardFooter>
     </Card>

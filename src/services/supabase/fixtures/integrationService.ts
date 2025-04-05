@@ -1,61 +1,28 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { fetchFixturesFromSupabase, fetchResultsFromSupabase, fetchMatchesFromSupabase } from './fetchService';
-import { scrapeAndStoreFixtures } from './importExport';
-import { logScrapeOperation } from './loggingService';
-import { convertToMatches } from '@/types/fixtures';
 import { Match } from '@/components/fixtures/types';
+import { convertToMatches, ScrapedFixture, DBFixture } from '@/types/fixtures';
+import { ImportResult } from './types';
 import { toast } from 'sonner';
 
-/**
- * Checks if data update is needed based on last update time
- * @param forceUpdate Force update regardless of time
- * @param updateInterval Update interval in minutes (default: 60)
- * @returns Promise with boolean indicating if update is needed
- */
-export const checkIfUpdateNeeded = async (
-  forceUpdate = false, 
-  updateInterval = 60
-): Promise<boolean> => {
-  // If force update is requested, return true immediately
-  if (forceUpdate) return true;
-
-  try {
-    // Get last update time from settings table
-    const { data, error } = await supabase
-      .from('settings')
-      .select('value')
-      .eq('key', 'fixtures_last_update')
-      .single();
-
-    // If error or no data, we need to update
-    if (error || !data) return true;
-    
-    // Check if it's been more than the interval since last update
-    const lastUpdate = new Date(data.value).getTime();
-    const currentTime = new Date().getTime();
-    const intervalInMs = updateInterval * 60 * 1000;
-    
-    return (currentTime - lastUpdate) > intervalInMs;
-  } catch (error) {
-    console.error('Error checking if update needed:', error);
-    // If error, default to needing update
-    return true;
-  }
-};
+interface GetFixturesOptions {
+  forceUpdate?: boolean;
+  upcomingLimit?: number;
+  recentLimit?: number;
+  showToasts?: boolean;
+}
 
 /**
- * Updates the last update time in settings table
- * @returns Promise with success boolean
+ * Updates the last fixtures update timestamp in Supabase
  */
 export const updateLastUpdateTime = async (): Promise<boolean> => {
-  const now = new Date().toISOString();
-  
   try {
+    const now = new Date().toISOString();
+    
     const { error } = await supabase
       .from('settings')
       .upsert({ 
-        key: 'fixtures_last_update',
+        key: 'last_fixture_update',
         value: now
       }, { onConflict: 'key' });
     
@@ -72,131 +39,197 @@ export const updateLastUpdateTime = async (): Promise<boolean> => {
 };
 
 /**
- * Get the last update time from settings table
- * @returns Promise with last update time string or null
+ * Gets the last fixtures update timestamp from Supabase
  */
 export const getLastUpdateTime = async (): Promise<string | null> => {
   try {
     const { data, error } = await supabase
       .from('settings')
       .select('value')
-      .eq('key', 'fixtures_last_update')
+      .eq('key', 'last_fixture_update')
       .single();
     
-    if (error || !data) {
+    if (error) {
+      console.error('Error retrieving last update time:', error);
       return null;
     }
     
-    return data.value;
+    return data?.value || null;
   } catch (error) {
-    console.error('Error getting last update time:', error);
+    console.error('Error retrieving last update time:', error);
     return null;
   }
 };
 
 /**
- * Get fixtures for Lovable with optional update check
- * @param options Options for fixtures retrieval
- * @returns Promise with grouped fixtures data
+ * Check if we need to update data from sources
+ * Updates every hour by default
  */
-export const getFixturesForLovable = async (options: {
-  forceUpdate?: boolean;
-  updateInterval?: number;
-  upcomingLimit?: number;
-  recentLimit?: number;
-} = {}): Promise<{
+export const checkIfUpdateNeeded = async (): Promise<boolean> => {
+  const lastUpdate = await getLastUpdateTime();
+  
+  // If no last update time, we definitely need to update
+  if (!lastUpdate) return true;
+  
+  // Check if it's been more than an hour since the last update
+  const lastUpdateTime = new Date(lastUpdate).getTime();
+  const currentTime = new Date().getTime();
+  const hourInMs = 60 * 60 * 1000;
+  
+  return (currentTime - lastUpdateTime) > hourInMs;
+};
+
+/**
+ * Get fixtures for Lovable app display
+ */
+export const getFixturesForLovable = async (options: GetFixturesOptions = {}): Promise<{
   success: boolean;
   data?: {
     upcoming: Match[];
     recent: Match[];
     all: Match[];
   };
-  lastUpdated?: string | null;
   error?: string;
+  lastUpdated?: string | null;
 }> => {
-  const {
+  const { 
     forceUpdate = false,
-    updateInterval = 60,
     upcomingLimit = 10,
-    recentLimit = 10
+    recentLimit = 5,
+    showToasts = false
   } = options;
-
+  
   try {
-    // Check if update is needed
-    const shouldUpdate = await checkIfUpdateNeeded(forceUpdate, updateInterval);
+    // Check if we need to update data from sources
+    const shouldUpdate = forceUpdate || await checkIfUpdateNeeded();
     
     if (shouldUpdate) {
-      console.log('Update needed: Fetching new fixture data');
-      // TODO: Implement scraping - would call the edge function here
-      // For now just update timestamp
-      await updateLastUpdateTime();
+      if (showToasts) {
+        toast.info('Updating fixtures data from sources...');
+      }
+      
+      // This could trigger the scraping process
+      // Currently not implemented, as we rely on manual triggers
+      // We could add automated scraping in the future
     } else {
-      console.log('Using cached fixture data from Supabase');
+      if (showToasts) {
+        toast.info('Using cached fixtures data');
+      }
     }
     
-    // Get data from Supabase for display
-    const [fixturesData, resultsData, allData] = await Promise.all([
-      fetchFixturesFromSupabase(),
-      fetchResultsFromSupabase(),
-      fetchMatchesFromSupabase()
-    ]);
+    // Get upcoming fixtures (not completed)
+    const { data: upcomingData, error: upcomingError } = await supabase
+      .from('fixtures')
+      .select('*')
+      .eq('is_completed', false)
+      .order('date', { ascending: true })
+      .limit(upcomingLimit);
     
-    // Convert to Match format and limit results
-    const upcoming = convertToMatches(fixturesData).slice(0, upcomingLimit);
-    const recent = convertToMatches(resultsData).slice(0, recentLimit);
-    const all = convertToMatches(allData);
+    if (upcomingError) {
+      throw new Error(`Error fetching upcoming fixtures: ${upcomingError.message}`);
+    }
     
-    // Get last updated time
+    // Get recent results (completed)
+    const { data: recentData, error: recentError } = await supabase
+      .from('fixtures')
+      .select('*')
+      .eq('is_completed', true)
+      .order('date', { ascending: false })
+      .limit(recentLimit);
+    
+    if (recentError) {
+      throw new Error(`Error fetching recent results: ${recentError.message}`);
+    }
+    
+    // Get all fixtures
+    const { data: allData, error: allError } = await supabase
+      .from('fixtures')
+      .select('*')
+      .order('date', { ascending: false })
+      .limit(100);
+    
+    if (allError) {
+      throw new Error(`Error fetching all fixtures: ${allError.message}`);
+    }
+    
+    // Convert DB format to Match format
+    const upcoming = convertToMatches(upcomingData || []);
+    const recent = convertToMatches(recentData || []);
+    const all = convertToMatches(allData || []);
+    
+    // Get last update time
     const lastUpdated = await getLastUpdateTime();
     
     return {
       success: true,
-      data: {
-        upcoming,
-        recent,
-        all
-      },
+      data: { upcoming, recent, all },
       lastUpdated
     };
   } catch (error) {
-    console.error('Error in fixtures integration:', error);
+    console.error('Error in getFixturesForLovable:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-      lastUpdated: await getLastUpdateTime()
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 };
 
 /**
- * Trigger a fixtures update from various sources
- * @param source Source of the fixtures data
- * @returns Promise with operation result
+ * Trigger fixture update from a specific source
  */
-export const triggerFixturesUpdate = async (source: 'bbc' | 'manual' = 'bbc'): Promise<{
+export const triggerFixturesUpdate = async (source: string): Promise<{
   success: boolean;
   message: string;
   fixtures?: Match[];
 }> => {
   try {
-    // Would call the edge function to scrape data
-    // For now, just update timestamp
-    await updateLastUpdateTime();
-    
-    // Get updated fixtures
-    const data = await fetchMatchesFromSupabase();
-    const fixtures = convertToMatches(data);
-    
-    return {
-      success: true,
-      message: `Successfully updated fixtures from ${source}`,
-      fixtures
-    };
+    if (source === 'bbc') {
+      // Call the Supabase edge function to scrape fixture data from BBC Sport
+      const { data, error } = await supabase.functions.invoke('scrape-bbc-fixtures', {
+        body: { 
+          url: 'https://www.bbc.com/sport/football/scottish-highland-league/scores-fixtures'
+        }
+      });
+      
+      if (error) {
+        throw new Error(`Edge function error: ${error.message}`);
+      }
+      
+      if (!data || !data.success || !data.data || data.data.length === 0) {
+        return {
+          success: false,
+          message: 'No fixtures found from BBC Sport'
+        };
+      }
+      
+      // Update last update time
+      await updateLastUpdateTime();
+      
+      // Convert to Match objects
+      const fixtures = convertToMatches(data.data);
+      
+      return {
+        success: true,
+        message: `Successfully fetched ${fixtures.length} fixtures from BBC Sport`,
+        fixtures
+      };
+    } else if (source === 'highland-league') {
+      // This would call the Highland League scraper
+      return {
+        success: false,
+        message: 'Highland League scraper not implemented yet'
+      };
+    } else {
+      return {
+        success: false,
+        message: `Unknown source: ${source}`
+      };
+    }
   } catch (error) {
     console.error('Error triggering fixtures update:', error);
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
     };
   }
 };

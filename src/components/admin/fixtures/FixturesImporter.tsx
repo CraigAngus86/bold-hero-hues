@@ -1,119 +1,104 @@
 
 import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Check, Upload, Loader2 } from "lucide-react";
-import { importHistoricFixtures } from '@/services/supabase/fixturesService';
-import { ScrapedFixture } from '@/types/fixtures';
+import { FileUp, Loader2 } from "lucide-react";
+import { importHistoricFixtures } from '@/services/supabase/fixtures/importExport';
 import { toast } from 'sonner';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
-const FixturesImporter = () => {
+export default function FixturesImporter() {
   const [isLoading, setIsLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-  const [fixturesCount, setFixturesCount] = useState(0);
-
+  
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setError(null);
-    }
+    const selectedFile = e.target.files?.[0] || null;
+    setFile(selectedFile);
+    setError(null);
   };
-
+  
   const handleImport = async () => {
     if (!file) {
-      setError('Please select a file to import');
+      setError('Please select a JSON file to import');
       return;
     }
-
+    
     try {
       setIsLoading(true);
-      setError(null);
-      setSuccess(false);
-
+      
       // Read the file
-      const fileContent = await file.text();
+      const text = await file.text();
       
       // Parse the JSON
-      let fixtures: any[];
+      let jsonData;
       try {
-        fixtures = JSON.parse(fileContent);
+        jsonData = JSON.parse(text);
+      } catch (parseError) {
+        throw new Error('Failed to parse JSON file. Please ensure it is valid JSON.');
+      }
+      
+      // Validate minimal structure
+      if (!Array.isArray(jsonData)) {
+        throw new Error('Invalid JSON structure. Expected an array of fixtures.');
+      }
+      
+      // Check if it has at least one item with key properties
+      if (jsonData.length > 0) {
+        const firstItem = jsonData[0];
+        const hasClaudeFormat = 'opposition' in firstItem && 'location' in firstItem;
+        const hasStandardFormat = ('homeTeam' in firstItem || 'home_team' in firstItem) && 
+                                ('awayTeam' in firstItem || 'away_team' in firstItem);
         
-        if (!Array.isArray(fixtures)) {
-          throw new Error('The file does not contain a valid array of fixtures');
+        if (!hasClaudeFormat && !hasStandardFormat) {
+          throw new Error('Invalid fixture data format. Expected either standard format (homeTeam/awayTeam) or Claude format (opposition/location).');
         }
-      } catch (err) {
-        setError('Invalid JSON format. Please ensure the file contains a valid array of fixtures.');
-        setIsLoading(false);
-        return;
       }
-
-      // Basic validation - we now support both our format and Claude's format
-      const isStandardFormat = fixtures.some(fixture => fixture.homeTeam || fixture.home_team);
-      const isClaudeFormat = fixtures.some(fixture => fixture.opposition && fixture.location);
       
-      if (!isStandardFormat && !isClaudeFormat) {
-        setError(`Invalid fixture format. Each fixture must have either homeTeam/awayTeam fields or opposition/location fields.`);
-        setIsLoading(false);
-        return;
-      }
-
-      // Fix: Now importHistoricFixtures expects only one argument
-      const success = await importHistoricFixtures(fixtures);
+      // Import the data
+      const result = await importHistoricFixtures(jsonData);
       
-      if (success) {
-        setSuccess(true);
-        setFixturesCount(fixtures.length);
+      if (result) {
+        toast.success(`Successfully imported fixtures from ${file.name}`);
         setFile(null);
+        setError(null);
+        
         // Reset the file input
         const fileInput = document.getElementById('fixture-file') as HTMLInputElement;
         if (fileInput) {
           fileInput.value = '';
         }
+      } else {
+        throw new Error('Failed to import fixtures. See console for details.');
       }
-    } catch (err) {
-      setError(`Error importing fixtures: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      console.error('Error importing fixtures:', err);
+    } catch (error) {
+      console.error('Error importing fixtures:', error);
+      setError(error instanceof Error ? error.message : 'Unknown error occurred');
       toast.error('Failed to import fixtures');
     } finally {
       setIsLoading(false);
     }
   };
-
+  
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Historic Fixtures Import</CardTitle>
+        <CardTitle>Import Historic Fixtures</CardTitle>
         <CardDescription>
-          Import historic fixtures from a JSON file to build your fixtures database
+          Import fixture data from a JSON file
         </CardDescription>
       </CardHeader>
       
       <CardContent className="space-y-4">
         {error && (
           <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
         
-        {success && (
-          <Alert variant="default" className="bg-green-50 border-green-200">
-            <Check className="h-4 w-4 text-green-600" />
-            <AlertTitle className="text-green-800">Success</AlertTitle>
-            <AlertDescription className="text-green-700">
-              Successfully imported {fixturesCount} fixtures
-            </AlertDescription>
-          </Alert>
-        )}
-        
-        <div className="flex flex-col space-y-4">
-          <div>
-            <label htmlFor="fixture-file" className="block text-sm font-medium text-gray-700 mb-1">
+        <div className="space-y-4">
+          <div className="grid w-full max-w-sm items-center gap-1.5">
+            <label htmlFor="fixture-file" className="text-sm font-medium">
               Select JSON File
             </label>
             <input
@@ -121,70 +106,38 @@ const FixturesImporter = () => {
               type="file"
               accept=".json"
               onChange={handleFileChange}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              className="cursor-pointer file:mr-4 file:rounded-md file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-primary/80"
             />
-            <p className="mt-1 text-xs text-gray-500">
-              The JSON file should contain an array of fixture objects. Both standard and Claude formats are supported.
+            <p className="text-xs text-muted-foreground">
+              Supports standard format or Claude's fixture format
             </p>
           </div>
           
-          <div className="flex flex-col space-y-2">
-            <h4 className="text-sm font-medium">Supported JSON Formats:</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <h5 className="text-xs font-semibold mb-1">Standard Format:</h5>
-                <pre className="bg-gray-50 p-3 rounded-md text-xs overflow-auto">
-{`[
-  {
-    "homeTeam": "Team A",
-    "awayTeam": "Team B",
-    "date": "2023-08-15",
-    "time": "15:00",
-    "competition": "Highland League"
-  }
-]`}
-                </pre>
-              </div>
-              <div>
-                <h5 className="text-xs font-semibold mb-1">Claude Format:</h5>
-                <pre className="bg-gray-50 p-3 rounded-md text-xs overflow-auto">
-{`[
-  {
-    "date": "2023-08-15",
-    "opposition": "Team B",
-    "location": "Home",
-    "kickOffTime": "15:00",
-    "competition": "Highland League"
-  }
-]`}
-                </pre>
-              </div>
-            </div>
-          </div>
+          <Button 
+            onClick={handleImport} 
+            disabled={isLoading || !file} 
+            className="w-full"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Importing...
+              </>
+            ) : (
+              <>
+                <FileUp className="mr-2 h-4 w-4" />
+                Import Fixtures
+              </>
+            )}
+          </Button>
+        </div>
+        
+        <div className="text-xs text-muted-foreground space-y-2 border-t pt-2">
+          <p>Supported formats:</p>
+          <p><strong>Standard format:</strong> Array of objects with homeTeam, awayTeam, date, time, competition, venue, isCompleted, homeScore, awayScore</p>
+          <p><strong>Claude format:</strong> Array of objects with opposition, location (Home/Away), date, kickOffTime, competition, score (e.g., "2-1"), isCompleted</p>
         </div>
       </CardContent>
-      
-      <CardFooter>
-        <Button 
-          onClick={handleImport} 
-          disabled={isLoading || !file}
-          className="w-full sm:w-auto"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Importing...
-            </>
-          ) : (
-            <>
-              <Upload className="mr-2 h-4 w-4" />
-              Import Fixtures
-            </>
-          )}
-        </Button>
-      </CardFooter>
     </Card>
   );
-};
-
-export default FixturesImporter;
+}

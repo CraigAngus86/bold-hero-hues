@@ -23,8 +23,8 @@ const TeamMembersManager: React.FC<TeamMembersManagerProps> = ({ onEditMember })
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [typeFilter, setTypeFilter] = useState<string>('');
-  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [typeFilter, setTypeFilter] = useState<string>('all-types');
+  const [statusFilter, setStatusFilter] = useState<string>('all-statuses');
   const [seeding, setSeeding] = useState(false);
   const { loadTeamMembers } = useTeamStore();
   
@@ -157,13 +157,13 @@ const TeamMembersManager: React.FC<TeamMembersManagerProps> = ({ onEditMember })
         (member.position?.toLowerCase().includes(searchTerm.toLowerCase()) || false)
       : true;
       
-    const matchesType = typeFilter 
-      ? member.member_type === typeFilter 
-      : true;
+    const matchesType = typeFilter === 'all-types'
+      ? true
+      : member.member_type === typeFilter;
       
-    const matchesStatus = statusFilter 
-      ? (statusFilter === 'active' ? member.is_active : !member.is_active)
-      : true;
+    const matchesStatus = statusFilter === 'all-statuses'
+      ? true
+      : (statusFilter === 'active' ? member.is_active : !member.is_active);
       
     return matchesSearch && matchesType && matchesStatus;
   });
@@ -219,7 +219,7 @@ const TeamMembersManager: React.FC<TeamMembersManagerProps> = ({ onEditMember })
               </Select>
             </div>
             <div className="flex gap-2">
-              <Button onClick={onEditMember ? openNewDialog : () => openNewDialog()} className="w-full sm:w-auto">
+              <Button onClick={() => openNewDialog()} className="w-full sm:w-auto">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Add Team Member
               </Button>

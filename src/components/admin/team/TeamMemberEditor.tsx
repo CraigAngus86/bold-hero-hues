@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ import { createTeamMember, updateTeamMember } from '@/services/teamDbService';
 import { useTeamStore } from '@/services/teamService';
 import { TeamMember, MemberType } from '@/types/team';
 import PlayerImageUploader from '@/components/admin/team/PlayerImageUploader';
+import { usePositionsStore, PositionCategory } from '@/services/positionsService';
 
 interface TeamMemberEditorProps {
   member?: TeamMember | null;
@@ -35,6 +36,7 @@ const defaultMember: Partial<TeamMember> = {
 
 const TeamMemberEditor: React.FC<TeamMemberEditorProps> = ({ member, onClose }) => {
   const { loadTeamMembers } = useTeamStore();
+  const { positions, loadPositions } = usePositionsStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageUrl, setImageUrl] = useState(member?.image_url || '');
   
@@ -45,6 +47,14 @@ const TeamMemberEditor: React.FC<TeamMemberEditorProps> = ({ member, onClose }) 
   });
   
   const memberType = form.watch('member_type');
+  
+  useEffect(() => {
+    loadPositions();
+  }, [loadPositions]);
+  
+  const filteredPositions = positions.filter(
+    position => position.category === memberType as PositionCategory
+  );
   
   const handleSubmit = async (data: TeamMember) => {
     try {
@@ -111,7 +121,11 @@ const TeamMemberEditor: React.FC<TeamMemberEditorProps> = ({ member, onClose }) 
                     <FormItem>
                       <FormLabel>Type</FormLabel>
                       <Select 
-                        onValueChange={field.onChange} 
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          // Reset position when member type changes
+                          form.setValue("position", "");
+                        }} 
                         defaultValue={field.value}
                       >
                         <FormControl>
@@ -136,9 +150,27 @@ const TeamMemberEditor: React.FC<TeamMemberEditorProps> = ({ member, onClose }) 
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Position</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Position or role" {...field} />
-                      </FormControl>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        value={field.value || ""}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select position" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {filteredPositions.length === 0 ? (
+                            <SelectItem value="no-positions">No positions available</SelectItem>
+                          ) : (
+                            filteredPositions.map((position) => (
+                              <SelectItem key={position.id} value={position.name}>
+                                {position.name}
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}

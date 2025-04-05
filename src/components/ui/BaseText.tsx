@@ -2,6 +2,14 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 
+/**
+ * BaseText component for consistent text styling across the application
+ * @param variant - The text style variant to apply
+ * @param children - The content to display
+ * @param className - Additional CSS classes to apply
+ * @param color - Optional color override
+ * @param as - Optional component to render as
+ */
 interface BaseTextProps {
   variant: 'h1' | 'h2' | 'h3' | 'h4' | 'subtitle' | 'body' | 'small';
   children: React.ReactNode;

@@ -1,153 +1,135 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import BaseText from '@/components/ui/BaseText';
 import Container from '@/components/ui/Container';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import { Typography } from '@/components/ui';
 import { Award, Calendar, Check, Clock, Home, Mail, MessageSquare, User } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
+
+const { H1, H2, H3, H4, Body, Small } = Typography;
 
 const StyleGuide = () => {
   return (
-    <div className="min-h-screen bg-gray-50 py-20">
+    <div className="min-h-screen bg-gray-50 py-20 pb-28">
       <Container>
         <div className="space-y-12">
           {/* Introduction */}
           <div>
-            <BaseText variant="h1" className="mb-4">Banks o' Dee FC Design System</BaseText>
-            <BaseText variant="body" className="max-w-3xl">
+            <H1 className="mb-4">Banks o' Dee FC Design System</H1>
+            <Body className="max-w-3xl">
               This style guide documents the design system used across the Banks o' Dee FC website to ensure visual consistency and a professional appearance.
-            </BaseText>
+            </Body>
           </div>
           
           {/* Color Palette */}
           <div>
-            <BaseText variant="h2" className="mb-6">Color Palette</BaseText>
+            <H2 className="mb-6">Color Palette</H2>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {/* Primary Colors */}
-              <Card>
-                <CardHeader className="bg-primary-800 text-white">
-                  <BaseText variant="h3" className="text-white">Primary Colors</BaseText>
+              <Card variant="primary">
+                <CardHeader variant="primary">
+                  <H3 className="text-white">Primary Colors</H3>
                 </CardHeader>
-                <CardContent className="p-4 space-y-2">
-                  <div className="space-y-2">
-                    <div className="flex items-center">
-                      <div className="w-12 h-12 rounded bg-primary-800 mr-4"></div>
-                      <div>
-                        <BaseText variant="subtitle" className="mb-0">Primary Blue</BaseText>
-                        <BaseText variant="small" className="text-gray-500">#00105A</BaseText>
+                <CardContent className="p-4 space-y-3">
+                  <div className="space-y-3">
+                    {[900, 800, 700, 600, 500, 400, 300, 200, 100, 50].map((shade) => (
+                      <div key={`primary-${shade}`} className="flex items-center">
+                        <div className={`w-12 h-12 rounded bg-primary-${shade} mr-4 shadow-sm`}></div>
+                        <div>
+                          <BaseText variant="subtitle" className="mb-0">Primary {shade}</BaseText>
+                          <div className="flex gap-x-3">
+                            <BaseText variant="small" className="font-mono">bg-primary-{shade}</BaseText>
+                            <span className="text-xs text-gray-500">|</span>
+                            {/* Display hex values or use a map of actual values */}
+                            <BaseText variant="small" className="font-mono">
+                              {shade === 800 ? '#00105A' : 
+                               shade === 300 ? '#7276AF' : 
+                               shade === 500 ? '#232984' : ''}
+                            </BaseText>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    
-                    <div className="flex items-center">
-                      <div className="w-12 h-12 rounded bg-primary-700 mr-4"></div>
-                      <div>
-                        <BaseText variant="subtitle" className="mb-0">Primary Blue - Dark</BaseText>
-                        <BaseText variant="small" className="text-gray-500">#111866</BaseText>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center">
-                      <div className="w-12 h-12 rounded bg-primary-600 mr-4"></div>
-                      <div>
-                        <BaseText variant="subtitle" className="mb-0">Primary Blue - Medium</BaseText>
-                        <BaseText variant="small" className="text-gray-500">#1A2075</BaseText>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center">
-                      <div className="w-12 h-12 rounded bg-primary-400 mr-4"></div>
-                      <div>
-                        <BaseText variant="subtitle" className="mb-0">Primary Blue - Light</BaseText>
-                        <BaseText variant="small" className="text-gray-500">#4A509A</BaseText>
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
               
               {/* Secondary Colors */}
-              <Card>
-                <CardHeader className="bg-secondary-300 text-primary-800">
-                  <BaseText variant="h3" className="text-primary-800">Secondary Colors</BaseText>
+              <Card variant="secondary">
+                <CardHeader variant="secondary">
+                  <H3 className="text-primary-800">Secondary Colors</H3>
                 </CardHeader>
-                <CardContent className="p-4 space-y-2">
-                  <div className="space-y-2">
-                    <div className="flex items-center">
-                      <div className="w-12 h-12 rounded bg-secondary-300 mr-4"></div>
-                      <div>
-                        <BaseText variant="subtitle" className="mb-0">Secondary Blue</BaseText>
-                        <BaseText variant="small" className="text-gray-500">#C5E7FF</BaseText>
+                <CardContent className="p-4 space-y-3">
+                  <div className="space-y-3">
+                    {[900, 800, 700, 600, 500, 400, 300, 200, 100, 50].map((shade) => (
+                      <div key={`secondary-${shade}`} className="flex items-center">
+                        <div className={`w-12 h-12 rounded bg-secondary-${shade} mr-4 shadow-sm`}></div>
+                        <div>
+                          <BaseText variant="subtitle" className="mb-0">Secondary {shade}</BaseText>
+                          <div className="flex gap-x-3">
+                            <BaseText variant="small" className="font-mono">bg-secondary-{shade}</BaseText>
+                            <span className="text-xs text-gray-500">|</span>
+                            {/* Display hex values */}
+                            <BaseText variant="small" className="font-mono">
+                              {shade === 300 ? '#C5E7FF' : 
+                               shade === 800 ? '#0076EC' : 
+                               shade === 500 ? '#75BEFF' : ''}
+                            </BaseText>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    
-                    <div className="flex items-center">
-                      <div className="w-12 h-12 rounded bg-secondary-400 mr-4"></div>
-                      <div>
-                        <BaseText variant="subtitle" className="mb-0">Secondary Blue - Medium</BaseText>
-                        <BaseText variant="small" className="text-gray-500">#A3D5FF</BaseText>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center">
-                      <div className="w-12 h-12 rounded bg-secondary-200 mr-4"></div>
-                      <div>
-                        <BaseText variant="subtitle" className="mb-0">Secondary Blue - Light</BaseText>
-                        <BaseText variant="small" className="text-gray-500">#DCEEFF</BaseText>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center">
-                      <div className="w-12 h-12 rounded bg-secondary-800 mr-4"></div>
-                      <div>
-                        <BaseText variant="subtitle" className="mb-0">Secondary Blue - Dark</BaseText>
-                        <BaseText variant="small" className="text-gray-500">#0076EC</BaseText>
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
               
               {/* Accent Colors */}
-              <Card>
-                <CardHeader className="bg-accent-500 text-primary-800">
-                  <BaseText variant="h3" className="text-primary-800">Accent Colors</BaseText>
+              <Card variant="accent">
+                <CardHeader variant="accent">
+                  <H3 className="text-primary-800">Accent Colors</H3>
                 </CardHeader>
-                <CardContent className="p-4 space-y-2">
-                  <div className="space-y-2">
-                    <div className="flex items-center">
-                      <div className="w-12 h-12 rounded bg-accent-500 mr-4"></div>
-                      <div>
-                        <BaseText variant="subtitle" className="mb-0">Gold Accent</BaseText>
-                        <BaseText variant="small" className="text-gray-500">#FFD700</BaseText>
+                <CardContent className="p-4 space-y-3">
+                  <div className="space-y-3">
+                    {[700, 600, 500, 400, 300].map((shade) => (
+                      <div key={`accent-${shade}`} className="flex items-center">
+                        <div className={`w-12 h-12 rounded bg-accent-${shade} mr-4 shadow-sm`}></div>
+                        <div>
+                          <BaseText variant="subtitle" className="mb-0">Accent {shade}</BaseText>
+                          <div className="flex gap-x-3">
+                            <BaseText variant="small" className="font-mono">bg-accent-{shade}</BaseText>
+                            <span className="text-xs text-gray-500">|</span>
+                            {/* Display hex values */}
+                            <BaseText variant="small" className="font-mono">
+                              {shade === 500 ? '#FFD700' : 
+                               shade === 400 ? '#FFD81A' : 
+                               shade === 600 ? '#E6C200' : ''}
+                            </BaseText>
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    ))}
                     
-                    <div className="flex items-center">
-                      <div className="w-12 h-12 rounded bg-accent-400 mr-4"></div>
-                      <div>
-                        <BaseText variant="subtitle" className="mb-0">Gold Accent - Light</BaseText>
-                        <BaseText variant="small" className="text-gray-500">#FFD81A</BaseText>
-                      </div>
-                    </div>
+                    {/* Gray colors */}
+                    <Separator className="my-4" />
+                    <H4>Gray Scale</H4>
                     
-                    <div className="flex items-center">
-                      <div className="w-12 h-12 rounded bg-accent-600 mr-4"></div>
-                      <div>
-                        <BaseText variant="subtitle" className="mb-0">Gold Accent - Dark</BaseText>
-                        <BaseText variant="small" className="text-gray-500">#E6C200</BaseText>
+                    {[900, 800, 700, 600, 500, 400, 300, 200, 100, 50].map((shade) => (
+                      <div key={`gray-${shade}`} className="flex items-center">
+                        <div className={`w-12 h-12 rounded bg-gray-${shade} mr-4 shadow-sm`}></div>
+                        <div>
+                          <BaseText variant="subtitle" className="mb-0">Gray {shade}</BaseText>
+                          <BaseText variant="small" className="font-mono">bg-gray-{shade}</BaseText>
+                        </div>
                       </div>
-                    </div>
-                    
-                    <div className="flex items-center">
-                      <div className="w-12 h-12 rounded bg-gray-800 mr-4"></div>
-                      <div>
-                        <BaseText variant="subtitle" className="mb-0">Dark Gray</BaseText>
-                        <BaseText variant="small" className="text-gray-500">#1F2937</BaseText>
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
@@ -156,54 +138,54 @@ const StyleGuide = () => {
           
           {/* Typography */}
           <div>
-            <BaseText variant="h2" className="mb-6">Typography</BaseText>
+            <H2 className="mb-6">Typography</H2>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <Card>
                 <CardHeader>
-                  <BaseText variant="h3">Headings</BaseText>
+                  <CardTitle>Headings</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <BaseText variant="h1">Heading 1</BaseText>
-                    <BaseText variant="small" className="text-gray-500">3xl/4xl font-bold text-primary-800</BaseText>
+                    <H1>Heading 1 (H1)</H1>
+                    <BaseText variant="small" className="text-gray-500 font-mono">text-3xl/4xl font-bold text-primary-800</BaseText>
                   </div>
                   
                   <div>
-                    <BaseText variant="h2">Heading 2</BaseText>
-                    <BaseText variant="small" className="text-gray-500">2xl/3xl font-bold text-primary-800</BaseText>
+                    <H2>Heading 2 (H2)</H2>
+                    <BaseText variant="small" className="text-gray-500 font-mono">text-2xl/3xl font-bold text-primary-800</BaseText>
                   </div>
                   
                   <div>
-                    <BaseText variant="h3">Heading 3</BaseText>
-                    <BaseText variant="small" className="text-gray-500">xl/2xl font-semibold text-primary-800</BaseText>
+                    <H3>Heading 3 (H3)</H3>
+                    <BaseText variant="small" className="text-gray-500 font-mono">text-xl/2xl font-semibold text-primary-800</BaseText>
                   </div>
                   
                   <div>
-                    <BaseText variant="h4">Heading 4</BaseText>
-                    <BaseText variant="small" className="text-gray-500">lg/xl font-semibold text-primary-800</BaseText>
+                    <H4>Heading 4 (H4)</H4>
+                    <BaseText variant="small" className="text-gray-500 font-mono">text-lg/xl font-semibold text-primary-800</BaseText>
                   </div>
                 </CardContent>
               </Card>
               
               <Card>
                 <CardHeader>
-                  <BaseText variant="h3">Body Text</BaseText>
+                  <CardTitle>Body Text</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <BaseText variant="subtitle">Subtitle</BaseText>
-                    <BaseText variant="small" className="text-gray-500">text-lg font-medium text-primary-600</BaseText>
+                    <Typography.Subtitle>Subtitle</Typography.Subtitle>
+                    <BaseText variant="small" className="text-gray-500 font-mono">text-lg font-medium text-primary-600</BaseText>
                   </div>
                   
                   <div>
-                    <BaseText variant="body">Body Text</BaseText>
-                    <BaseText variant="small" className="text-gray-500">text-base text-gray-700</BaseText>
+                    <Body>Body Text - This is a paragraph of text that shows the default body styling used across the Banks o' Dee FC website. It should be easy to read with proper line height and spacing.</Body>
+                    <BaseText variant="small" className="text-gray-500 font-mono mt-2">text-base text-gray-700</BaseText>
                   </div>
                   
                   <div>
-                    <BaseText variant="small">Small Text</BaseText>
-                    <BaseText variant="small" className="text-gray-500">text-sm text-gray-500</BaseText>
+                    <Small>Small Text - Used for captions, metadata, and other secondary information that doesn't need to stand out prominently.</Small>
+                    <BaseText variant="small" className="text-gray-500 font-mono mt-2">text-sm text-gray-500</BaseText>
                   </div>
                 </CardContent>
               </Card>
@@ -212,83 +194,112 @@ const StyleGuide = () => {
           
           {/* Buttons */}
           <div>
-            <BaseText variant="h2" className="mb-6">Buttons</BaseText>
+            <H2 className="mb-6">Buttons</H2>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <Card>
                 <CardHeader>
-                  <BaseText variant="h3">Button Variants</BaseText>
+                  <CardTitle>Button Variants</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-2">
-                    <Button size="lg" className="bg-primary-800 hover:bg-primary-700">
+                    <Button size="lg" variant="default">
                       Primary Button
                     </Button>
-                    <BaseText variant="small" className="text-gray-500">bg-primary-800 hover:bg-primary-700 text-white</BaseText>
+                    <BaseText variant="small" className="text-gray-500 font-mono">bg-primary-800 hover:bg-primary-700 text-white</BaseText>
                   </div>
                   
                   <div className="space-y-2">
-                    <Button size="lg" variant="outline" className="border-primary-800 text-primary-800 hover:bg-primary-800 hover:text-white">
+                    <Button size="lg" variant="secondary">
                       Secondary Button
                     </Button>
-                    <BaseText variant="small" className="text-gray-500">border-primary-800 text-primary-800 hover:bg-primary-800</BaseText>
+                    <BaseText variant="small" className="text-gray-500 font-mono">bg-secondary-300 text-primary-800 hover:bg-secondary-400</BaseText>
                   </div>
                   
                   <div className="space-y-2">
-                    <Button size="lg" className="bg-secondary-300 text-primary-800 hover:bg-secondary-400 border-none">
-                      Light Button
-                    </Button>
-                    <BaseText variant="small" className="text-gray-500">bg-secondary-300 text-primary-800 hover:bg-secondary-400</BaseText>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Button size="lg" className="bg-accent-500 text-primary-800 hover:bg-accent-600">
+                    <Button size="lg" variant="accent">
                       Accent Button
                     </Button>
-                    <BaseText variant="small" className="text-gray-500">bg-accent-500 text-primary-800 hover:bg-accent-600</BaseText>
+                    <BaseText variant="small" className="text-gray-500 font-mono">bg-accent-500 text-primary-800 hover:bg-accent-600</BaseText>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Button size="lg" variant="outline">
+                      Outline Button
+                    </Button>
+                    <BaseText variant="small" className="text-gray-500 font-mono">border border-primary-800 text-primary-800 hover:bg-primary-50</BaseText>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Button size="lg" variant="link">
+                      Link Button
+                    </Button>
+                    <BaseText variant="small" className="text-gray-500 font-mono">text-primary-800 hover:underline</BaseText>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Button size="lg" disabled>
+                      Disabled Button
+                    </Button>
+                    <BaseText variant="small" className="text-gray-500 font-mono">opacity-70 cursor-not-allowed</BaseText>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Button size="lg" isLoading>
+                      Loading Button
+                    </Button>
+                    <BaseText variant="small" className="text-gray-500 font-mono">With loading spinner</BaseText>
                   </div>
                 </CardContent>
               </Card>
               
               <Card>
                 <CardHeader>
-                  <BaseText variant="h3">Button Sizes</BaseText>
+                  <CardTitle>Button Sizes & States</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="flex flex-wrap gap-4 items-center">
-                    <Button size="lg">Large</Button>
-                    <Button>Default</Button>
-                    <Button size="sm">Small</Button>
+                  <div className="space-y-3">
+                    <H4>Button Sizes</H4>
+                    <div className="flex flex-wrap gap-4 items-center">
+                      <Button size="lg">Large</Button>
+                      <Button size="default">Default</Button>
+                      <Button size="sm">Small</Button>
+                    </div>
                   </div>
                   
                   <div className="space-y-3">
-                    <BaseText variant="h4">With Icons</BaseText>
+                    <H4>With Icons</H4>
                     <div className="flex flex-wrap gap-4 items-center">
                       <Button>
-                        <Mail className="mr-2 h-4 w-4" /> Email
+                        <Mail /> Email
                       </Button>
-                      <Button>
-                        <Calendar className="mr-2 h-4 w-4" /> Schedule
+                      <Button variant="secondary">
+                        <Calendar /> Schedule
                       </Button>
-                      <Button>
-                        <Check className="mr-2 h-4 w-4" /> Confirm
+                      <Button variant="accent">
+                        <Check /> Confirm
                       </Button>
                     </div>
                   </div>
                   
                   <div className="space-y-3">
-                    <BaseText variant="h4">Icon Only</BaseText>
+                    <H4>Icon Only</H4>
                     <div className="flex flex-wrap gap-4 items-center">
-                      <Button size="icon">
-                        <Home className="h-4 w-4" />
+                      <Button size="icon" aria-label="Home">
+                        <Home />
                       </Button>
-                      <Button size="icon" variant="outline">
-                        <User className="h-4 w-4" />
+                      <Button size="icon" variant="secondary" aria-label="User">
+                        <User />
                       </Button>
-                      <Button size="icon" variant="ghost">
-                        <MessageSquare className="h-4 w-4" />
+                      <Button size="icon" variant="outline" aria-label="Message">
+                        <MessageSquare />
                       </Button>
                     </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <H4>Full Width</H4>
+                    <Button fullWidth={true}>Full Width Button</Button>
                   </div>
                 </CardContent>
               </Card>
@@ -297,39 +308,61 @@ const StyleGuide = () => {
           
           {/* Form Elements */}
           <div>
-            <BaseText variant="h2" className="mb-6">Form Elements</BaseText>
+            <H2 className="mb-6">Form Elements</H2>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <Card>
                 <CardHeader>
-                  <BaseText variant="h3">Input Fields</BaseText>
+                  <CardTitle>Input Fields</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Text Input</label>
-                    <Input placeholder="Enter your name" />
+                    <Label htmlFor="name">Text Input</Label>
+                    <Input id="name" placeholder="Enter your name" />
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Email Input</label>
-                    <Input type="email" placeholder="Enter your email" />
+                    <Label htmlFor="email">Email Input</Label>
+                    <Input id="email" type="email" placeholder="Enter your email" />
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Password Input</label>
-                    <Input type="password" placeholder="Enter your password" />
+                    <Label htmlFor="disabled">Disabled Input</Label>
+                    <Input id="disabled" disabled placeholder="Disabled input" />
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <Label htmlFor="textarea">Text Area</Label>
+                    <Textarea id="textarea" placeholder="Enter your message" className="min-h-[100px]" />
                   </div>
                 </CardContent>
               </Card>
               
               <Card>
                 <CardHeader>
-                  <BaseText variant="h3">Text Area</BaseText>
+                  <CardTitle>Selection & Toggle Controls</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Message</label>
-                    <Textarea placeholder="Enter your message" className="min-h-[120px]" />
+                <CardContent className="space-y-6">
+                  <div className="space-y-3">
+                    <H4>Radio Group</H4>
+                    <RadioGroup defaultValue="option-one">
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="option-one" id="option-one" />
+                        <Label htmlFor="option-one">Option One</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="option-two" id="option-two" />
+                        <Label htmlFor="option-two">Option Two</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <H4>Toggle Switch</H4>
+                    <div className="flex items-center space-x-2">
+                      <Switch id="airplane-mode" />
+                      <Label htmlFor="airplane-mode">Toggle feature</Label>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -338,48 +371,48 @@ const StyleGuide = () => {
           
           {/* Cards */}
           <div>
-            <BaseText variant="h2" className="mb-6">Cards</BaseText>
+            <H2 className="mb-6">Cards</H2>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="rounded-lg shadow-md hover:shadow-lg transition-shadow">
-                <CardHeader className="bg-primary-800 text-white p-4">
+              <Card variant="primary">
+                <CardHeader variant="primary">
                   <div className="flex items-center">
                     <Award className="w-5 h-5 mr-2" />
-                    <BaseText variant="h4" className="text-white mb-0">Primary Card</BaseText>
+                    <H4 className="text-white mb-0">Primary Card</H4>
                   </div>
                 </CardHeader>
                 <CardContent className="p-4">
-                  <BaseText variant="body">
+                  <Body>
                     This is a primary card with a dark blue header. It's ideal for important information or featured content.
-                  </BaseText>
+                  </Body>
                 </CardContent>
               </Card>
               
-              <Card className="rounded-lg shadow-md hover:shadow-lg transition-shadow">
-                <CardHeader className="bg-secondary-300 text-primary-800 p-4">
+              <Card variant="secondary">
+                <CardHeader variant="secondary">
                   <div className="flex items-center">
                     <Clock className="w-5 h-5 mr-2" />
-                    <BaseText variant="h4" className="text-primary-800 mb-0">Secondary Card</BaseText>
+                    <H4 className="text-primary-800 mb-0">Secondary Card</H4>
                   </div>
                 </CardHeader>
                 <CardContent className="p-4">
-                  <BaseText variant="body">
+                  <Body>
                     This is a secondary card with a light blue header. It's good for secondary information or supporting content.
-                  </BaseText>
+                  </Body>
                 </CardContent>
               </Card>
               
-              <Card className="rounded-lg shadow-md hover:shadow-lg transition-shadow">
-                <CardHeader className="bg-accent-500 text-primary-800 p-4">
+              <Card variant="accent">
+                <CardHeader variant="accent">
                   <div className="flex items-center">
                     <Calendar className="w-5 h-5 mr-2" />
-                    <BaseText variant="h4" className="text-primary-800 mb-0">Accent Card</BaseText>
+                    <H4 className="text-primary-800 mb-0">Accent Card</H4>
                   </div>
                 </CardHeader>
                 <CardContent className="p-4">
-                  <BaseText variant="body">
+                  <Body>
                     This is an accent card with a gold header. It's perfect for highlighting special events or promotions.
-                  </BaseText>
+                  </Body>
                 </CardContent>
               </Card>
             </div>
@@ -387,42 +420,47 @@ const StyleGuide = () => {
           
           {/* Spacing */}
           <div>
-            <BaseText variant="h2" className="mb-6">Spacing System</BaseText>
+            <H2 className="mb-6">Spacing System</H2>
             
             <Card>
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div>
-                    <BaseText variant="h4" className="mb-4">Section Spacing</BaseText>
-                    <div className="space-y-2">
+                    <H4 className="mb-4">Section Spacing</H4>
+                    <div className="space-y-3">
                       <div className="flex items-center">
                         <div className="w-32 h-8 bg-primary-800 opacity-30 mr-4"></div>
-                        <BaseText variant="small">py-8 md:py-12 (Section padding)</BaseText>
+                        <BaseText variant="small" className="font-mono">section (2rem)</BaseText>
                       </div>
                       
                       <div className="flex items-center">
                         <div className="w-20 h-8 bg-primary-800 opacity-30 mr-4"></div>
-                        <BaseText variant="small">my-8 (Margin between sections)</BaseText>
+                        <BaseText variant="small" className="font-mono">card (1rem)</BaseText>
+                      </div>
+                      
+                      <div className="flex items-center">
+                        <div className="w-10 h-8 bg-primary-800 opacity-30 mr-4"></div>
+                        <BaseText variant="small" className="font-mono">element (0.5rem)</BaseText>
                       </div>
                     </div>
                   </div>
                   
                   <div>
-                    <BaseText variant="h4" className="mb-4">Component Spacing</BaseText>
-                    <div className="space-y-2">
+                    <H4 className="mb-4">Component Spacing</H4>
+                    <div className="space-y-3">
                       <div className="flex items-center">
                         <div className="w-16 h-8 bg-primary-800 opacity-30 mr-4"></div>
-                        <BaseText variant="small">p-4 (Card padding)</BaseText>
+                        <BaseText variant="small" className="font-mono">p-4 (Card padding)</BaseText>
                       </div>
                       
                       <div className="flex items-center">
                         <div className="w-12 h-8 bg-primary-800 opacity-30 mr-4"></div>
-                        <BaseText variant="small">gap-4 (Grid gap)</BaseText>
+                        <BaseText variant="small" className="font-mono">gap-4 (Grid gap)</BaseText>
                       </div>
                       
                       <div className="flex items-center">
                         <div className="w-8 h-8 bg-primary-800 opacity-30 mr-4"></div>
-                        <BaseText variant="small">mb-4 (Margin bottom)</BaseText>
+                        <BaseText variant="small" className="font-mono">mb-4 (Margin bottom)</BaseText>
                       </div>
                     </div>
                   </div>

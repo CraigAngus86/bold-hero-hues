@@ -2,6 +2,14 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 
+/**
+ * Container component for consistent layout and spacing across the application
+ * @param children - The content to display
+ * @param className - Additional CSS classes to apply
+ * @param size - Container width size
+ * @param padding - Container padding size
+ * @param as - Optional component to render as
+ */
 interface ContainerProps {
   children: React.ReactNode;
   className?: string;

@@ -34,7 +34,13 @@ export * from './toggle-group';
 export * from './tooltip';
 export * from './use-toast';
 
+// Export typography components
+export { default as Typography } from './Typography';
+export { H1, H2, H3, H4, Subtitle, Body, Small } from './Typography';
+
 // Export custom UI components
+export { default as BaseText } from './BaseText';
+export { default as Container } from './Container';
 export { default as Table } from './Table';
 export { default as CustomTable } from './CustomTable';
 export { default as Loading } from './Loading';

@@ -5,29 +5,56 @@ import { cn } from "@/lib/utils"
 
 const Card = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "rounded-lg border bg-card text-card-foreground shadow-sm",
-      className
-    )}
-    {...props}
-  />
-))
+  React.HTMLAttributes<HTMLDivElement> & {
+    variant?: "default" | "primary" | "secondary" | "accent";
+  }
+>(({ className, variant = "default", ...props }, ref) => {
+  const variantClasses = {
+    default: "bg-card text-card-foreground",
+    primary: "bg-white border-t-4 border-primary-800",
+    secondary: "bg-white border-t-4 border-secondary-300",
+    accent: "bg-white border-t-4 border-accent-500"
+  };
+
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "rounded-lg border bg-card shadow-sm transition-shadow hover:shadow-md",
+        variantClasses[variant],
+        className
+      )}
+      {...props}
+    />
+  );
+});
 Card.displayName = "Card"
 
 const CardHeader = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("flex flex-col space-y-1.5 p-6", className)}
-    {...props}
-  />
-))
+  React.HTMLAttributes<HTMLDivElement> & {
+    variant?: "default" | "primary" | "secondary" | "accent";
+  }
+>(({ className, variant = "default", ...props }, ref) => {
+  const variantClasses = {
+    default: "",
+    primary: "bg-primary-800 text-white",
+    secondary: "bg-secondary-300 text-primary-800",
+    accent: "bg-accent-500 text-primary-800"
+  };
+
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "flex flex-col space-y-1.5 p-6",
+        variantClasses[variant],
+        className
+      )}
+      {...props}
+    />
+  );
+});
 CardHeader.displayName = "CardHeader"
 
 const CardTitle = React.forwardRef<

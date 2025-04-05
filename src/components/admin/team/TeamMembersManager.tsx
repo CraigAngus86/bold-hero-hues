@@ -186,7 +186,7 @@ const TeamMembersManager: React.FC<TeamMembersManagerProps> = ({ onEditMember })
                   <SelectValue placeholder="Filter by type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Types</SelectItem>
+                  <SelectItem value="all-types">All Types</SelectItem>
                   <SelectItem value="player">Players</SelectItem>
                   <SelectItem value="management">Management</SelectItem>
                   <SelectItem value="official">Officials</SelectItem>
@@ -197,7 +197,7 @@ const TeamMembersManager: React.FC<TeamMembersManagerProps> = ({ onEditMember })
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Statuses</SelectItem>
+                  <SelectItem value="all-status">All Statuses</SelectItem>
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="inactive">Inactive</SelectItem>
                 </SelectContent>

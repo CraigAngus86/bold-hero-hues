@@ -159,9 +159,9 @@ const SquadsManager: React.FC = () => {
                           <select 
                             className="text-xs border rounded px-2 py-1"
                             onChange={(e) => handleAddMemberToSquad(e.target.value, member.id)}
-                            value=""
+                            value="placeholder"
                           >
-                            <option value="" disabled>Add to squad...</option>
+                            <option value="placeholder" disabled>Add to squad...</option>
                             {squads.map(squad => (
                               <option key={squad.id} value={squad.id}>
                                 {squad.name}

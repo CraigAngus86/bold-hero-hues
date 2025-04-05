@@ -117,5 +117,4 @@ export {
   TableCaption,
 }
 
-// Add a default export to fix the import issue
 export default Table;

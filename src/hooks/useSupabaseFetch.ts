@@ -2,24 +2,29 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/services/supabase/supabaseClient';
 
-// Define your known tables as a type
-type KnownTables = 'fixtures' | 'highland_league_table' | 'image_folders' | 'scrape_logs' | 'settings';
+// Define specific known tables as a union type
+export type TableName = 'fixtures' | 'highland_league_table' | 'image_folders' | 'scrape_logs' | 'settings';
 
-// Explicitly define return types to prevent excessive type instantiation
-interface FetchResult<T> {
+// Simplified options interface
+export interface QueryOptions {
+  select?: string;
+  match?: Record<string, any>;
+  order?: { column: string; ascending: boolean };
+}
+
+// Specific return type to avoid recursion
+export interface FetchResult<T> {
   data: T[];
   loading: boolean;
   error: Error | null;
 }
 
-// Generic version of the hook for strictly typed tables
+/**
+ * Hook to fetch data from Supabase tables
+ */
 export function useSupabaseFetch<T>(
-  table: KnownTables,
-  options?: {
-    select?: string;
-    match?: Record<string, any>;
-    order?: { column: string; ascending: boolean };
-  }
+  table: TableName,
+  options?: QueryOptions
 ): FetchResult<T> {
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -30,26 +35,32 @@ export function useSupabaseFetch<T>(
       try {
         setLoading(true);
         
-        // Using a simpler approach to build the query
-        let query = supabase.from(table).select(options?.select || '*');
+        // Start query with the table
+        let query = supabase.from(table);
         
+        // Select columns
+        query = query.select(options?.select || '*');
+        
+        // Apply filters if any
         if (options?.match) {
           Object.entries(options.match).forEach(([key, value]) => {
             query = query.eq(key, value);
           });
         }
         
+        // Apply ordering if specified
         if (options?.order) {
           query = query.order(options.order.column, { 
             ascending: options.order.ascending 
           });
         }
         
+        // Execute the query
         const { data: result, error: queryError } = await query;
         
         if (queryError) throw queryError;
         
-        // Use type assertion to help TypeScript understand the type
+        // Use explicit type assertion to help TypeScript
         setData(result as T[] || []);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Unknown error occurred'));
@@ -59,21 +70,16 @@ export function useSupabaseFetch<T>(
     };
 
     fetchData();
-  }, [table, options]);
+  // Use JSON.stringify for object dependencies
+  }, [table, JSON.stringify(options)]);
 
-  // Return with explicit type to help TypeScript
-  return { data, loading, error } as FetchResult<T>;
+  return { data, loading, error };
 }
 
-// Alternative version for dynamic table names (less type-safe)
-// Break the type recursion with explicit return type
+// Optional dynamic version for non-standard tables
 export function useDynamicSupabaseFetch<T>(
-  table: string,
-  options?: {
-    select?: string;
-    match?: Record<string, any>;
-    order?: { column: string; ascending: boolean };
-  }
+  table: string, // Any table name
+  options?: QueryOptions
 ): FetchResult<T> {
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -84,27 +90,31 @@ export function useDynamicSupabaseFetch<T>(
       try {
         setLoading(true);
         
-        // Cast to any to break potential type recursion issues
-        const baseQuery = (supabase.from(table as any) as any);
-        let query = baseQuery.select(options?.select || '*');
+        // Use any to break potential recursion in type checking
+        let query: any = supabase.from(table);
         
+        // Select columns
+        query = query.select(options?.select || '*');
+        
+        // Apply filters if any
         if (options?.match) {
           Object.entries(options.match).forEach(([key, value]) => {
             query = query.eq(key, value);
           });
         }
         
+        // Apply ordering if specified
         if (options?.order) {
           query = query.order(options.order.column, { 
             ascending: options.order.ascending 
           });
         }
         
+        // Execute the query
         const { data: result, error: queryError } = await query;
         
         if (queryError) throw queryError;
         
-        // Use type assertion to help TypeScript understand the type
         setData(result as T[] || []);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Unknown error occurred'));
@@ -114,7 +124,7 @@ export function useDynamicSupabaseFetch<T>(
     };
 
     fetchData();
-  }, [table, options]);
+  }, [table, JSON.stringify(options)]);
 
   return { data, loading, error };
 }

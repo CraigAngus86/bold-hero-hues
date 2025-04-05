@@ -35,6 +35,6 @@ export * from './tooltip';
 export * from './use-toast';
 
 // Export custom UI components
-export { default as Table } from './Table'; // Now using proper PascalCase
-export { default as CustomTable } from './CustomTable'; // New renamed component
+export { default as Table } from './Table';
+export { default as CustomTable } from './CustomTable';
 export { default as Loading } from './Loading';

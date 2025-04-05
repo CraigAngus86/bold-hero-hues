@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -85,7 +84,6 @@ export const ScraperLogs: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   
-  // Filter logs based on search and status filter
   const filteredLogs = logs.filter(log => {
     const matchesSearch = 
       log.source.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -96,27 +94,20 @@ export const ScraperLogs: React.FC = () => {
     return matchesSearch && matchesStatus;
   });
   
-  // Pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentLogs = filteredLogs.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
   
-  // View log details
   const handleViewLog = (log: ScraperLog) => {
     setSelectedLog(log);
     setIsDialogOpen(true);
   };
   
-  // Refresh logs
   const handleRefreshLogs = async () => {
     setIsLoading(true);
     try {
-      // Mock API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // In a real app, would fetch logs from API
-      // For now, just simulate by reversing the current logs
       setLogs([...logs].reverse());
     } catch (error) {
       console.error('Error refreshing logs:', error);
@@ -132,7 +123,7 @@ export const ScraperLogs: React.FC = () => {
       case 'error':
         return <Badge variant="destructive">Error</Badge>;
       case 'warning':
-        return <Badge variant="warning">Warning</Badge>;
+        return <Badge variant="outline">Warning</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }
@@ -272,7 +263,6 @@ export const ScraperLogs: React.FC = () => {
         </div>
       )}
       
-      {/* Log Details Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>

@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { useFixtureScraping } from '@/hooks/useFixtureScraping';
 import ScraperStatusAlerts from './ScraperStatusAlerts';
-import FixturesList from './FixturesList';
+import { FixturesList } from './FixturesList';
 import ScraperActionButtons from './ScraperActionButtons';
 
 export default function FixturesScraper() {

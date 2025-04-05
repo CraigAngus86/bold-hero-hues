@@ -1,6 +1,6 @@
 
 export { default as FixturesImporter } from './FixturesImporter';
-export { default as FixturesList } from './FixturesList';
+export { FixturesList } from './FixturesList';
 export { default as FixturesScraper } from './FixturesScraper';
 export { default as ScraperActionButtons } from './ScraperActionButtons';
 export { default as ScraperDocumentation } from './ScraperDocumentation';

@@ -1,61 +1,80 @@
-
-import { useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
-import Autoplay from 'embla-carousel-autoplay';
-import { useSponsorsStore } from '@/services/sponsorsService';
+import { Sponsor } from '@/types/sponsors';
+import { useSponsorStore } from '@/services/sponsorsService';
 
 const SponsorsCarousel = () => {
-  const { sponsors, fetchSponsors, loading } = useSponsorsStore();
-  const autoplayPlugin = useRef(
-    Autoplay({ delay: 3000, stopOnInteraction: false })
-  );
+  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
+  const [loading, setLoading] = useState(true);
+  const getActiveSponsors = useSponsorStore((state) => state.getActiveSponsors);
+  
+  const placeholder = '/placeholder.svg';
   
   useEffect(() => {
+    const fetchSponsors = async () => {
+      try {
+        const activeSponsors = await getActiveSponsors();
+        setSponsors(activeSponsors);
+      } catch (error) {
+        console.error("Error fetching sponsors:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
     fetchSponsors();
-  }, [fetchSponsors]);
+  }, [getActiveSponsors]);
   
   if (loading) {
-    return (
-      <div className="py-10 bg-team-gray">
-        <div className="container mx-auto px-4 text-center">
-          <p>Loading sponsors...</p>
-        </div>
-      </div>
-    );
+    return <div className="text-center py-10">Loading sponsors...</div>;
+  }
+  
+  if (sponsors.length === 0) {
+    return <div className="text-center py-10">No active sponsors found.</div>;
   }
   
   return (
-    <section className="py-10 bg-team-gray">
-      <div className="container mx-auto px-4">
-        <h2 className="text-2xl font-semibold text-team-blue mb-6 text-center">Our Sponsors</h2>
+    <section className="py-6 bg-team-gray">
+      <div className="container mx-auto px-3">
+        <div className="text-center mb-4">
+          <h2 className="text-2xl font-semibold text-team-blue mb-1">Our Sponsors</h2>
+          <p className="text-gray-600 max-w-2xl mx-auto text-sm">
+            We are proud to partner with these amazing sponsors.
+          </p>
+        </div>
         
-        <Carousel 
-          opts={{
-            align: "start",
-            loop: true,
-          }}
-          plugins={[autoplayPlugin.current]}
-          className="w-full"
-        >
-          <CarouselContent className="-ml-2 md:-ml-4">
-            {sponsors.map((sponsor) => (
-              <CarouselItem key={sponsor.id} className="pl-2 md:pl-4 basis-1/2 md:basis-1/3 lg:basis-1/5">
-                <motion.div 
-                  className="h-24 p-2 rounded-md bg-white shadow-sm flex items-center justify-center hover:shadow-md transition-shadow"
-                  whileHover={{ y: -5 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <img 
-                    src={sponsor.logoUrl} 
-                    alt={`${sponsor.name} logo`} 
-                    className="max-h-full max-w-full object-contain"
-                  />
-                </motion.div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-        </Carousel>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {sponsors.map((sponsor) => (
+            <motion.a
+              key={sponsor.id}
+              href={sponsor.website_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              viewport={{ once: true }}
+              className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow group block"
+            >
+              {/* Card content */}
+              <div className="relative h-40 flex items-center justify-center p-6 overflow-hidden">
+                <img 
+                  src={sponsor.logo_url || placeholder}
+                  alt={`${sponsor.name} logo`}
+                  className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-110"
+                  onError={(e) => {
+                    e.currentTarget.src = placeholder;
+                  }}
+                />
+              </div>
+              
+              {/* Footer */}
+              <div className="p-3 border-t border-gray-100">
+                <p className="text-sm font-medium text-gray-700 text-center line-clamp-1">{sponsor.name}</p>
+              </div>
+            </motion.a>
+          ))}
+        </div>
       </div>
     </section>
   );

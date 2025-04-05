@@ -1,4 +1,3 @@
-
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import TeamGrid from '@/components/TeamGrid';
@@ -86,8 +85,12 @@ const Team = () => {
           {/* Team Stats Section */}
           <TeamStats />
           
-          {/* Management Section */}
-          <ManagementTeam staff={managementTeam} />
+          {/* Management Team Section */}
+          <section className="py-10 bg-gray-50">
+            <div className="container mx-auto px-4">
+              <ManagementTeam />
+            </div>
+          </section>
           
           {/* Player Squad Section */}
           <TeamGrid />

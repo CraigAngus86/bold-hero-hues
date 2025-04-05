@@ -1,158 +1,126 @@
 
 import { create } from 'zustand';
-import { toast } from 'sonner';
 import { TeamMember, MemberType } from '@/types/team';
-import {
-  fetchAllTeamMembers,
-  fetchTeamMembersByType,
-  createTeamMember as dbCreateTeamMember,
-  updateTeamMember as dbUpdateTeamMember,
-  deleteTeamMember as dbDeleteTeamMember,
-  fetchManagementTeam as dbFetchManagementTeam,
-  getAllTeamMembers as dbGetAllTeamMembers
-} from './teamDbService';
+import { fetchTeamMembers, addTeamMember, updateTeamMember, deleteTeamMember } from './teamDbService';
+import { toast } from 'sonner';
 
-// Re-export database functions for direct use
-export const createTeamMember = dbCreateTeamMember;
-export const updateTeamMember = dbUpdateTeamMember;
-export const deleteTeamMember = dbDeleteTeamMember;
-export const getAllTeamMembers = dbGetAllTeamMembers;
+export { type TeamMember, type MemberType } from '@/types/team';
 
-interface TeamStore {
+export interface TeamStore {
   players: TeamMember[];
-  managementStaff: TeamMember[];
+  management: TeamMember[];
   officials: TeamMember[];
-  loading: boolean;
-  fetchTeamMembers: () => Promise<void>;
-  fetchPlayersByPosition: (position: string) => TeamMember[];
+  teamMembers: TeamMember[];
+  isLoading: boolean;
+  getPlayersByPosition: (position: string) => TeamMember[];
   getManagementStaff: () => Promise<TeamMember[]>;
-  addTeamMember: (member: Omit<TeamMember, 'id'>) => Promise<void>;
-  updateTeamMember: (member: TeamMember) => Promise<void>;
-  deleteTeamMember: (id: string) => Promise<void>;
+  getOfficials: () => Promise<TeamMember[]>;
+  getPlayerById: (id: string) => TeamMember | undefined;
+  addPlayer: (player: Omit<TeamMember, 'id'>) => Promise<void>;
+  updatePlayer: (id: string, player: Partial<TeamMember>) => Promise<void>;
+  deletePlayer: (id: string) => Promise<void>;
+  loadTeamMembers: () => Promise<void>;
 }
 
 export const useTeamStore = create<TeamStore>((set, get) => ({
   players: [],
-  managementStaff: [],
+  management: [],
   officials: [],
-  loading: false,
-  
-  fetchTeamMembers: async () => {
-    set({ loading: true });
-    try {
-      // Fetch players
-      const playersResult = await fetchTeamMembersByType('player');
-      // Fetch management
-      const managementResult = await fetchTeamMembersByType('management');
-      // Fetch officials
-      const officialsResult = await fetchTeamMembersByType('official');
-      
-      if (playersResult.success && managementResult.success && officialsResult.success) {
-        set({ 
-          players: playersResult.data || [],
-          managementStaff: managementResult.data || [],
-          officials: officialsResult.data || []
-        });
-      } else {
-        toast.error('Failed to fetch team data');
-      }
-    } catch (error) {
-      console.error('Error fetching team data:', error);
-      toast.error('Failed to fetch team data');
-    } finally {
-      set({ loading: false });
-    }
+  teamMembers: [],
+  isLoading: false,
+
+  getPlayersByPosition: (position) => {
+    return get().players.filter(player => 
+      player.position?.toLowerCase() === position.toLowerCase()
+    );
   },
-  
-  fetchPlayersByPosition: (position: string) => {
-    const { players } = get();
-    return players.filter(player => player.position === position);
-  },
-  
+
   getManagementStaff: async () => {
-    const { managementStaff } = get();
-    if (managementStaff.length > 0) {
-      return managementStaff;
-    }
-    
-    // If not loaded yet, fetch from DB
-    const result = await dbFetchManagementTeam();
-    if (result.success && result.data) {
-      set({ managementStaff: result.data });
-      return result.data;
-    }
-    return [];
-  },
-  
-  addTeamMember: async (member) => {
     try {
-      const result = await dbCreateTeamMember(member);
-      if (result.success && result.data) {
-        // Update the appropriate state array based on member type
-        set((state) => {
-          const newMember = result.data;
-          if (newMember.member_type === 'player') {
-            return { players: [...state.players, newMember] };
-          } else if (newMember.member_type === 'management') {
-            return { managementStaff: [...state.managementStaff, newMember] };
-          } else if (newMember.member_type === 'official') {
-            return { officials: [...state.officials, newMember] };
-          }
-          return state;
-        });
-        toast.success('Team member added successfully');
-      } else {
-        toast.error('Failed to add team member');
-      }
+      const management = get().teamMembers.filter(member => member.member_type === 'management');
+      return management;
     } catch (error) {
-      console.error('Error adding team member:', error);
-      toast.error('Failed to add team member');
+      console.error("Error fetching management staff:", error);
+      return [];
     }
   },
-  
-  updateTeamMember: async (member) => {
+
+  getOfficials: async () => {
     try {
-      const { id, ...memberData } = member;
-      const result = await dbUpdateTeamMember(id, memberData);
-      if (result.success) {
-        // Update the appropriate state array based on member type
-        set((state) => {
-          if (member.member_type === 'player') {
-            return { players: state.players.map(p => p.id === member.id ? member : p) };
-          } else if (member.member_type === 'management') {
-            return { managementStaff: state.managementStaff.map(m => m.id === member.id ? member : m) };
-          } else if (member.member_type === 'official') {
-            return { officials: state.officials.map(o => o.id === member.id ? member : o) };
-          }
-          return state;
-        });
-        toast.success('Team member updated successfully');
-      } else {
-        toast.error('Failed to update team member');
-      }
+      const officials = get().teamMembers.filter(member => member.member_type === 'official');
+      return officials;
     } catch (error) {
-      console.error('Error updating team member:', error);
-      toast.error('Failed to update team member');
+      console.error("Error fetching officials:", error);
+      return [];
     }
   },
-  
-  deleteTeamMember: async (id) => {
+
+  getPlayerById: (id) => {
+    return get().players.find(player => player.id === id);
+  },
+
+  addPlayer: async (player) => {
     try {
-      const result = await dbDeleteTeamMember(id);
-      if (result.success) {
-        // Remove from all arrays since we don't know which type it was
-        set((state) => ({
-          players: state.players.filter(p => p.id !== id),
-          managementStaff: state.managementStaff.filter(m => m.id !== id),
-          officials: state.officials.filter(o => o.id !== id)
-        }));
-        toast.success('Team member deleted successfully');
-      } else {
-        toast.error('Failed to delete team member');
-      }
+      set({ isLoading: true });
+      await addTeamMember({ ...player, member_type: 'player' });
+      await get().loadTeamMembers();
+      toast.success(`${player.name} added to the squad`);
     } catch (error) {
-      console.error('Error deleting team member:', error);
-      toast.error('Failed to delete team member');
+      console.error("Error adding player:", error);
+      toast.error("Failed to add player");
+    } finally {
+      set({ isLoading: false });
     }
-  }
+  },
+
+  updatePlayer: async (id, player) => {
+    try {
+      set({ isLoading: true });
+      await updateTeamMember(id, player);
+      await get().loadTeamMembers();
+      toast.success("Player updated successfully");
+    } catch (error) {
+      console.error("Error updating player:", error);
+      toast.error("Failed to update player");
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  deletePlayer: async (id) => {
+    try {
+      set({ isLoading: true });
+      await deleteTeamMember(id);
+      await get().loadTeamMembers();
+      toast.success("Player removed from squad");
+    } catch (error) {
+      console.error("Error deleting player:", error);
+      toast.error("Failed to delete player");
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  loadTeamMembers: async () => {
+    try {
+      set({ isLoading: true });
+      const members = await fetchTeamMembers();
+      
+      const players = members.filter(member => member.member_type === 'player');
+      const management = members.filter(member => member.member_type === 'management');
+      const officials = members.filter(member => member.member_type === 'official');
+      
+      set({ 
+        players,
+        management,
+        officials,
+        teamMembers: members
+      });
+    } catch (error) {
+      console.error("Error loading team members:", error);
+      toast.error("Failed to load team data");
+    } finally {
+      set({ isLoading: false });
+    }
+  },
 }));

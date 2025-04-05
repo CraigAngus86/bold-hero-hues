@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -275,12 +274,12 @@ export default function SponsorsManager() {
               />
             </div>
             
-            <div className="grid grid-cols-4 items-start gap-4">
-              <label className="text-right text-sm font-medium pt-2">Logo</label>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="logo" className="text-right text-sm font-medium">Logo</label>
               <div className="col-span-3">
                 <SponsorLogoUploader 
-                  currentLogo={currentSponsor.logo_url} 
-                  onUpload={handleLogoUploaded} 
+                  initialImageUrl={currentSponsor?.logo_url || ''}
+                  onUpload={(url) => setCurrentSponsor(prev => prev ? {...prev, logo_url: url} : null)}
                 />
               </div>
             </div>

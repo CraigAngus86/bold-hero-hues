@@ -1,372 +1,231 @@
-
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { toast } from 'sonner';
-import { LastUpdatedInfo } from '@/components/admin/data/table-components/LastUpdatedInfo';
-import { PlayerImageUploader } from '@/components/admin/common/PlayerImageUploader';
-import { TeamMember, MemberType } from '@/types/team';
-import { getAllTeamMembers, createTeamMember, updateTeamMember, deleteTeamMember } from '@/services/teamService';
+import { PlusCircle, Edit, Trash } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
+import { useTeamStore, TeamMember, MemberType } from '@/services/teamService';
+import { addTeamMember, updateTeamMember, deleteTeamMember, fetchTeamMembers } from '@/services/teamDbService';
+import PlayerImageUploader from './PlayerImageUploader';
 
-export default function TeamMembersManager() {
-  const [members, setMembers] = useState<TeamMember[]>([]);
-  const [loading, setLoading] = useState(true);
+const TeamMembersManager = () => {
+  const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [currentMember, setCurrentMember] = useState<Partial<TeamMember>>({
-    name: '',
-    member_type: 'player',
-    position: '',
-    image_url: '',
-    is_active: true,
-    bio: '',
-    nationality: '',
-    jersey_number: undefined,
-    previous_clubs: []
-  });
-  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
-  const [previousClubs, setPreviousClubs] = useState<string>('');
+  const [currentMember, setCurrentMember] = useState<TeamMember | null>(null);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    fetchTeamMembers();
+    loadTeamMembers();
   }, []);
   
-  const fetchTeamMembers = async () => {
+  const loadTeamMembers = async () => {
     setLoading(true);
     try {
-      const result = await getAllTeamMembers();
-      if (result.success && result.data) {
-        setMembers(result.data);
-        
-        // Set the last updated timestamp from the most recently updated member
-        if (result.data.length > 0) {
-          const sortedByDate = [...result.data].sort((a, b) => {
-            return new Date(b.updated_at || 0).getTime() - new Date(a.updated_at || 0).getTime();
-          });
-          setLastUpdated(sortedByDate[0].updated_at || null);
-        }
-      } else {
-        toast.error('Failed to load team members');
-      }
+      const members = await fetchTeamMembers();
+      setTeamMembers(members);
     } catch (error) {
-      console.error('Error fetching team members:', error);
-      toast.error('Failed to load team data');
+      console.error("Error loading team members:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load team members."
+      });
     } finally {
       setLoading(false);
     }
   };
   
-  const handleOpenDialog = (member?: TeamMember) => {
-    if (member) {
-      setCurrentMember(member);
-      setPreviousClubs(member.previous_clubs?.join(', ') || '');
-    } else {
-      setCurrentMember({
-        name: '',
-        member_type: 'player',
-        position: '',
-        image_url: '',
-        is_active: true,
-        bio: '',
-        nationality: '',
-        jersey_number: undefined,
-        previous_clubs: []
-      });
-      setPreviousClubs('');
-    }
+  const openNewDialog = () => {
+    setCurrentMember({
+      id: '',
+      name: '',
+      member_type: 'player',
+      position: '',
+      image_url: '',
+      bio: '',
+      nationality: '',
+      jersey_number: 0,
+      previous_clubs: [],
+      experience: '',
+      is_active: true,
+      stats: {}
+    });
     setDialogOpen(true);
   };
   
-  const handleSave = async () => {
+  const openEditDialog = (member: TeamMember) => {
+    setCurrentMember(member);
+    setDialogOpen(true);
+  };
+  
+  const closeDialog = () => {
+    setDialogOpen(false);
+    setCurrentMember(null);
+  };
+  
+  // Function to handle member deletion
+  const handleDeleteMember = async (id: string) => {
     try {
-      if (!currentMember.name) {
-        toast.error('Name is required');
-        return;
-      }
-      
-      // Format previous clubs from comma-separated string to array
-      const formattedMember = {
-        ...currentMember,
-        previous_clubs: previousClubs ? previousClubs.split(',').map(club => club.trim()) : []
-      };
-      
-      let result;
-      if ('id' in formattedMember && formattedMember.id) {
-        result = await updateTeamMember(formattedMember as TeamMember);
-      } else {
-        result = await createTeamMember(formattedMember as Omit<TeamMember, 'id'>);
-      }
-      
-      if (result.success) {
-        toast.success(`Team member ${formattedMember.id ? 'updated' : 'created'} successfully`);
-        setDialogOpen(false);
-        fetchTeamMembers(); // Refresh the list
-      } else {
-        toast.error(`Failed to ${formattedMember.id ? 'update' : 'create'} team member`);
-      }
+      await deleteTeamMember(id);
+      loadTeamMembers();
+      toast.success("Team member deleted successfully");
     } catch (error) {
-      console.error('Error saving team member:', error);
-      toast.error(`Failed to ${currentMember.id ? 'update' : 'create'} team member`);
+      console.error("Error deleting team member:", error);
+      toast.error("Failed to delete team member");
     }
   };
   
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this team member?')) {
-      try {
-        const result = await deleteTeamMember(id);
-        if (result.success) {
-          toast.success('Team member deleted successfully');
-          fetchTeamMembers(); // Refresh the list
-        } else {
-          toast.error('Failed to delete team member');
-        }
-      } catch (error) {
-        console.error('Error deleting team member:', error);
-        toast.error('Failed to delete team member');
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!currentMember) return;
+    
+    try {
+      if (currentMember.id) {
+        // Update existing member
+        await updateTeamMember(currentMember.id, currentMember);
+        toast({
+          title: "Team member updated",
+          description: "The team member has been successfully updated."
+        });
+      } else {
+        // Add new member
+        await addTeamMember(currentMember);
+        toast({
+          title: "Team member added",
+          description: "A new team member has been successfully added."
+        });
       }
-    }
-  };
-  
-  const handleImageUploaded = (url: string) => {
-    setCurrentMember(prev => ({ ...prev, image_url: url }));
-  };
-  
-  const getMemberTypeLabel = (type: MemberType) => {
-    switch (type) {
-      case 'player': return 'Player';
-      case 'management': return 'Management';
-      case 'official': return 'Club Official';
-      default: return type;
+      
+      loadTeamMembers();
+      closeDialog();
+    } catch (error) {
+      console.error("Error saving team member:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save team member."
+      });
     }
   };
   
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Team Members</h2>
-        <Button onClick={() => handleOpenDialog()}>Add New Member</Button>
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-lg font-medium">Team Members</h3>
+        <Button onClick={openNewDialog} className="flex items-center">
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Add Member
+        </Button>
       </div>
       
-      <LastUpdatedInfo lastUpdated={lastUpdated} />
-      
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Photo</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Position</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {loading ? (
+      {loading ? (
+        <div className="text-center py-4">Loading team members...</div>
+      ) : (
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableCell colSpan={6} className="text-center py-10">Loading team members...</TableCell>
+              <TableHead>Name</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Position</TableHead>
+              <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
-          ) : members.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={6} className="text-center py-10">No team members found.</TableCell>
-            </TableRow>
-          ) : (
-            members.map((member) => (
+          </TableHeader>
+          <TableBody>
+            {teamMembers.map((member) => (
               <TableRow key={member.id}>
-                <TableCell className="font-medium">
-                  {member.name}
-                  {member.member_type === 'player' && member.jersey_number && (
-                    <span className="ml-2 text-xs bg-team-blue text-white px-1.5 py-0.5 rounded-sm">
-                      #{member.jersey_number}
-                    </span>
-                  )}
-                </TableCell>
+                <TableCell className="font-medium">{member.name}</TableCell>
+                <TableCell>{member.member_type}</TableCell>
+                <TableCell>{member.position}</TableCell>
                 <TableCell>
-                  {member.image_url ? (
-                    <img 
-                      src={member.image_url} 
-                      alt={member.name} 
-                      className="w-12 h-12 object-cover rounded-full"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                      <span className="text-gray-500 text-xs">No image</span>
-                    </div>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${
-                    member.member_type === 'player' ? 'bg-blue-100 text-blue-800' : 
-                    member.member_type === 'management' ? 'bg-green-100 text-green-800' :
-                    'bg-purple-100 text-purple-800'
-                  }`}>
-                    {getMemberTypeLabel(member.member_type)}
-                  </span>
-                </TableCell>
-                <TableCell>{member.position || '—'}</TableCell>
-                <TableCell>
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${
-                    member.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                  }`}>
-                    {member.is_active ? 'Active' : 'Inactive'}
-                  </span>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => handleOpenDialog(member)}
-                    className="mr-2"
-                  >
-                    Edit
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => handleDelete(member.id)}
-                    className="text-red-500"
-                  >
-                    Delete
-                  </Button>
+                  <div className="flex space-x-2">
+                    <Button variant="ghost" size="sm" onClick={() => openEditDialog(member)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleDeleteMember(member.id)}>
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+            ))}
+          </TableBody>
+        </Table>
+      )}
       
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[550px]">
           <DialogHeader>
-            <DialogTitle>{currentMember.id ? 'Edit Team Member' : 'Add New Team Member'}</DialogTitle>
+            <DialogTitle>{currentMember?.id ? 'Edit Team Member' : 'Add Team Member'}</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="name" className="text-right text-sm font-medium">Name</label>
-              <Input
-                id="name"
-                value={currentMember.name || ''}
-                onChange={(e) => setCurrentMember(prev => ({ ...prev, name: e.target.value }))}
-                className="col-span-3"
-                placeholder="Full name"
-              />
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="type" className="text-right text-sm font-medium">Type</label>
-              <Select 
-                value={currentMember.member_type || 'player'}
-                onValueChange={(value) => setCurrentMember(prev => ({ ...prev, member_type: value as MemberType }))}>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select member type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="player">Player</SelectItem>
-                  <SelectItem value="management">Management</SelectItem>
-                  <SelectItem value="official">Club Official</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="position" className="text-right text-sm font-medium">Position</label>
-              <Input
-                id="position"
-                value={currentMember.position || ''}
-                onChange={(e) => setCurrentMember(prev => ({ ...prev, position: e.target.value }))}
-                className="col-span-3"
-                placeholder="e.g. Forward, Manager, Chairman"
-              />
-            </div>
-            
-            {currentMember.member_type === 'player' && (
+          <form onSubmit={handleSave}>
+            <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="jersey" className="text-right text-sm font-medium">Jersey #</label>
+                <Label htmlFor="name" className="text-right text-sm font-medium">Name</Label>
                 <Input
-                  id="jersey"
-                  type="number"
-                  value={currentMember.jersey_number || ''}
-                  onChange={(e) => setCurrentMember(prev => ({ 
-                    ...prev, 
-                    jersey_number: e.target.value ? parseInt(e.target.value) : undefined 
-                  }))}
+                  id="name"
+                  value={currentMember?.name || ''}
+                  onChange={(e) => setCurrentMember(prev => prev ? {...prev, name: e.target.value} : null)}
                   className="col-span-3"
-                  placeholder="Jersey number"
+                  required
                 />
               </div>
-            )}
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="nationality" className="text-right text-sm font-medium">Nationality</label>
-              <Input
-                id="nationality"
-                value={currentMember.nationality || ''}
-                onChange={(e) => setCurrentMember(prev => ({ ...prev, nationality: e.target.value }))}
-                className="col-span-3"
-                placeholder="e.g. Scottish"
-              />
-            </div>
-            
-            {currentMember.member_type === 'player' && (
               <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="previous" className="text-right text-sm font-medium">Previous Clubs</label>
+                <Label htmlFor="type" className="text-right text-sm font-medium">Type</Label>
+                <Select onValueChange={(value) => setCurrentMember(prev => prev ? {...prev, member_type: value as MemberType} : null)} defaultValue={currentMember?.member_type || 'player'}>
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select a type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="player">Player</SelectItem>
+                    <SelectItem value="management">Management</SelectItem>
+                    <SelectItem value="official">Official</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="position" className="text-right text-sm font-medium">Position</Label>
                 <Input
-                  id="previous"
-                  value={previousClubs}
-                  onChange={(e) => setPreviousClubs(e.target.value)}
+                  id="position"
+                  value={currentMember?.position || ''}
+                  onChange={(e) => setCurrentMember(prev => prev ? {...prev, position: e.target.value} : null)}
                   className="col-span-3"
-                  placeholder="Comma-separated list of clubs"
                 />
               </div>
-            )}
-            
-            <div className="grid grid-cols-4 items-start gap-4">
-              <label htmlFor="bio" className="text-right text-sm font-medium pt-2">Bio</label>
-              <Textarea
-                id="bio"
-                value={currentMember.bio || ''}
-                onChange={(e) => setCurrentMember(prev => ({ ...prev, bio: e.target.value }))}
-                className="col-span-3"
-                placeholder="Brief biography or information"
-                rows={4}
-              />
-            </div>
-            
-            <div className="grid grid-cols-4 items-start gap-4">
-              <label className="text-right text-sm font-medium pt-2">Photo</label>
-              <div className="col-span-3">
-                <PlayerImageUploader
-                  currentImage={currentMember.image_url}
-                  onUpload={handleImageUploaded}
-                  playerName={currentMember.name || 'New Member'}
+              
+              {/* Player Image Upload */}
+              <div className="grid grid-cols-4 items-center gap-4">
+                <label htmlFor="image" className="text-right text-sm font-medium">Profile Photo</label>
+                <div className="col-span-3">
+                  <PlayerImageUploader 
+                    initialImageUrl={currentMember?.image_url || ''} 
+                    onUpload={(url) => setCurrentMember(prev => prev ? {...prev, image_url: url} : null)}
+                    playerName={currentMember?.name || 'Team Member'} 
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-4 items-start gap-4">
+                <Label htmlFor="bio" className="text-right text-sm font-medium">Bio</Label>
+                <Input
+                  id="bio"
+                  value={currentMember?.bio || ''}
+                  onChange={(e) => setCurrentMember(prev => prev ? {...prev, bio: e.target.value} : null)}
+                  className="col-span-3"
                 />
               </div>
             </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="status" className="text-right text-sm font-medium">Status</label>
-              <Select 
-                value={currentMember.is_active ? 'active' : 'inactive'}
-                onValueChange={(value) => setCurrentMember(prev => ({ ...prev, is_active: value === 'active' }))}>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button type="submit" onClick={handleSave}>Save</Button>
-          </DialogFooter>
+            <DialogFooter>
+              <Button variant="outline" type="button" onClick={closeDialog}>Cancel</Button>
+              <Button type="submit">Save</Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
   );
-}
+};
+
+export default TeamMembersManager;

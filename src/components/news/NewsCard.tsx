@@ -5,6 +5,7 @@ import { CalendarIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 interface NewsCardProps {
   title: string;
@@ -66,42 +67,40 @@ const NewsCard: React.FC<NewsCardProps> = ({
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-100px" }}
+        viewport={{ once: true, margin: "-50px" }}
         transition={{ duration: 0.5, ease: "easeOut" }}
         className={cn(
           "group rounded-lg overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl bg-white h-full flex flex-col",
-          size === 'large' ? "md:col-span-2" : "",
           className
         )}
       >
-        <div className={cn(
-          "overflow-hidden relative",
-          size === 'small' ? "h-48" : "h-56",
-          size === 'large' ? "h-72 md:h-80" : ""
-        )}>
-          <div className="absolute top-0 left-0 z-10 m-4">
-            <Badge className="bg-team-lightBlue hover:bg-team-lightBlue/90 text-team-blue text-xs font-semibold">
-              {category}
-            </Badge>
-          </div>
-          <img 
-            src={getImageSrc(image)} 
-            alt={title}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.onerror = null;
-              target.src = getFallbackImageByCategory(category);
-            }}
-          />
+        {/* Image container with consistent aspect ratio */}
+        <div className="overflow-hidden relative w-full">
+          <AspectRatio ratio={16 / 9} className="bg-gray-100">
+            <div className="absolute top-0 left-0 z-10 m-4">
+              <Badge className="bg-team-lightBlue hover:bg-team-lightBlue/90 text-team-blue text-xs font-semibold">
+                {category}
+              </Badge>
+            </div>
+            <img 
+              src={getImageSrc(image)} 
+              alt={title}
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.onerror = null;
+                target.src = getFallbackImageByCategory(category);
+              }}
+            />
+          </AspectRatio>
         </div>
         
         <div className={cn(
-          "p-6 flex-1 flex flex-col",
-          size === 'large' ? "p-6 md:p-8" : "",
+          "p-5 flex-1 flex flex-col",
+          size === 'large' ? "p-6 md:p-7" : "",
           size === 'small' ? "p-4" : ""
         )}>
-          <div className="flex items-center mb-3 text-sm text-gray-500">
+          <div className="flex items-center mb-2 text-sm text-gray-500">
             <CalendarIcon className="w-4 h-4 mr-2" />
             <span>{formatUserFriendlyDate(date)}</span>
           </div>
@@ -117,7 +116,7 @@ const NewsCard: React.FC<NewsCardProps> = ({
           <p className={cn(
             "text-gray-600 mb-4 flex-1",
             size === 'small' ? "text-sm line-clamp-2" : "",
-            size === 'medium' ? "line-clamp-3" : "",
+            size === 'medium' ? "line-clamp-2" : "",
             size === 'large' ? "md:text-lg line-clamp-3 md:line-clamp-4" : ""
           )}>
             {excerpt}

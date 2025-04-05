@@ -25,3 +25,12 @@ export const formatMonthYear = (dateString: string) => {
   };
   return new Date(dateString).toLocaleDateString('en-GB', options);
 };
+
+export const formatStandardDate = (dateString: string) => {
+  const options: Intl.DateTimeFormatOptions = { 
+    day: 'numeric', 
+    month: 'long', 
+    year: 'numeric'
+  };
+  return new Date(dateString).toLocaleDateString('en-GB', options);
+};

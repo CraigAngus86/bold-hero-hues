@@ -4,6 +4,7 @@ import { Route, Routes } from 'react-router-dom';
 import { Toaster } from '@/components/ui/sonner';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
+import { LoadingSpinner } from './components/ui/Loading';
 
 // Import pages
 const Index = lazy(() => import('./pages/Index'));
@@ -16,9 +17,6 @@ const Tickets = lazy(() => import('./pages/Tickets'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const Gallery = lazy(() => import('./pages/Gallery'));
 const Admin = lazy(() => import('./pages/Admin'));
-
-// Import UI components
-const Loading = lazy(() => import('./components/ui/Loading'));
 
 // Create a client
 const queryClient = new QueryClient({
@@ -34,7 +32,7 @@ function App() {
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
-        <Suspense fallback={<Loading />}>
+        <Suspense fallback={<div className="flex items-center justify-center h-screen"><LoadingSpinner size="lg" /></div>}>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/news/*" element={<News />} />

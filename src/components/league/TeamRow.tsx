@@ -44,9 +44,13 @@ const TeamRow = ({ team }: TeamRowProps) => {
       <TableCell className="text-center font-bold">{team.points}</TableCell>
       <TableCell>
         <div className="flex items-center justify-center space-x-1">
-          {team.form.map((result, idx) => (
-            <FormIndicator key={idx} result={result} />
-          ))}
+          {team.form && team.form.length > 0 ? (
+            team.form.map((result, idx) => (
+              <FormIndicator key={idx} result={result} />
+            ))
+          ) : (
+            <span className="text-xs text-gray-400">-</span>
+          )}
         </div>
       </TableCell>
     </TableRow>

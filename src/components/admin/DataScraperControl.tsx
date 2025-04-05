@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Database, RefreshCw, AlertTriangle, Server, Info, ExternalLink, Bug } from "lucide-react";
+import { Database, RefreshCw, AlertTriangle, Server, Info, ExternalLink, Bug, FileDown } from "lucide-react";
 import { toast } from "sonner";
 import { triggerLeagueDataScrape, getLastUpdateTime } from '@/services/supabase/leagueDataService';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -20,7 +19,6 @@ const DataScraperControl = () => {
   const [scrapeError, setScrapeError] = useState<string | null>(null);
   const [showDebugInfo, setShowDebugInfo] = useState(false);
 
-  // Load last update time on component mount and check Edge Function status
   useEffect(() => {
     checkLastUpdated();
     checkEdgeFunctionStatus();
@@ -41,44 +39,36 @@ const DataScraperControl = () => {
     }
   };
 
-  // Check if the Edge Function exists by attempting to invoke it with a status check
   const checkEdgeFunctionStatus = async () => {
     try {
       setEdgeFunctionStatus('checking');
       
-      // Try to invoke the function with a status check parameter
-      // This approach avoids using the listFunctions method which isn't available
       const { data, error } = await supabase.functions.invoke('scrape-highland-league', {
         body: { action: 'status-check' }
       });
       
       if (error) {
-        // If we get a 404 error, the function doesn't exist
         if (error.message && error.message.includes('404')) {
           console.log('Edge Function not found (404 error)');
           setEdgeFunctionStatus('not-deployed');
           return;
         }
         
-        // For other errors, the function might exist but has an issue
         console.warn('Edge Function exists but returned an error:', error);
         setEdgeFunctionStatus('deployed');
         return;
       }
       
-      // If we get a response, the function exists
       console.log('Edge Function status check response:', data);
       setEdgeFunctionStatus('deployed');
       
     } catch (error) {
       console.error('Error checking Edge Function status:', error);
       
-      // If we can't connect, we can't determine the status
       setEdgeFunctionStatus('unknown');
     }
   };
 
-  // Force refresh league data
   const handleForceRefresh = async () => {
     try {
       setIsScrapingData(true);
@@ -87,13 +77,16 @@ const DataScraperControl = () => {
       toast.info("Refreshing Highland League data...");
       
       try {
-        // Trigger a fresh scrape
-        await triggerLeagueDataScrape(true);
+        const result = await triggerLeagueDataScrape(true);
         
-        // Check for the updated time
+        if (result && Array.isArray(result) && result.length > 0) {
+          toast.success(`Successfully refreshed data for ${result.length} teams`);
+        } else {
+          toast.warning("Data refresh completed, but no teams were found");
+        }
+        
         await checkLastUpdated();
         
-        // Reload the page after a short delay to show new data
         setTimeout(() => {
           window.location.reload();
         }, 1500);
@@ -101,7 +94,6 @@ const DataScraperControl = () => {
         console.error('Failed to refresh data:', error);
         setHasError(true);
         
-        // Extract detailed error message if available
         let errorMessage = error?.message || "Unknown error occurred";
         if (error?.response?.data?.message) {
           errorMessage = error.response.data.message;
@@ -118,7 +110,44 @@ const DataScraperControl = () => {
     }
   };
 
-  // Render function deployment status
+  const handleDownloadData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('highland_league_table')
+        .select('*')
+        .order('position', { ascending: true });
+      
+      if (error) {
+        throw error;
+      }
+      
+      if (!data || data.length === 0) {
+        toast.warning("No data available to download");
+        return;
+      }
+      
+      const jsonString = JSON.stringify(data, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `highland-league-table-${new Date().toISOString().slice(0,10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
+      
+      toast.success("Downloaded league data successfully");
+    } catch (error) {
+      console.error('Error downloading data:', error);
+      toast.error("Failed to download league data");
+    }
+  };
+
   const renderEdgeFunctionStatus = () => {
     switch (edgeFunctionStatus) {
       case 'deployed':
@@ -214,7 +243,6 @@ const DataScraperControl = () => {
           </div>
         )}
 
-        {/* Edge Function Status */}
         <div className="border-t pt-4">
           <div className="font-medium mb-2">Edge Function Status:</div>
           {renderEdgeFunctionStatus()}
@@ -251,7 +279,7 @@ const DataScraperControl = () => {
                         
                         <p className="mt-3"><strong>Troubleshooting Steps:</strong></p>
                         <ul className="list-disc pl-5 space-y-1">
-                          <li>Check the <a href="https://supabase.com/dashboard/project/bbbxhwaixjjxgboeiktq/functions/scrape-highland-league/logs" target="_blank" className="text-blue-600 underline">Edge Function logs</a> for detailed error information</li>
+                          <li>Check the Edge Function logs for detailed error information</li>
                           <li>Verify if the BBC Sport website structure has changed</li>
                           <li>Try running the scraper again later</li>
                         </ul>
@@ -282,6 +310,15 @@ const DataScraperControl = () => {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
+          
+          <Button 
+            variant="outline" 
+            onClick={handleDownloadData}
+            className="w-full"
+          >
+            <FileDown className="h-4 w-4 mr-2" />
+            Download Current League Data
+          </Button>
           
           {edgeFunctionStatus === 'deployed' && (
             <Button 

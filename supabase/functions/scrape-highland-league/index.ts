@@ -110,6 +110,7 @@ function getScrapingHeaders() {
  * @returns The parsed integer or 0 if invalid
  */
 function safeParseInt(text) {
+  if (!text || typeof text !== 'string') return 0;
   const value = parseInt(text.trim() || '0', 10)
   return isNaN(value) ? 0 : value
 }
@@ -123,17 +124,27 @@ function safeParseInt(text) {
 function extractFormData($, formCell) {
   const form = []
   
-  // First try to find form icons by class names
-  formCell.find('[class*="gs-o-status-icon"], [class*="gel-icon"]').each((i, el) => {
+  // Debug the form cell structure
+  console.log('Edge Function: Form cell HTML:', $(formCell).html()?.substring(0, 200))
+  
+  // First try to find form icons by class names or specific elements
+  formCell.find('[class*="gs-o-status-icon"], [class*="gel-icon"], [class*="form"]').each((i, el) => {
     const className = $(el).attr('class') || ''
+    const text = $(el).text().trim()
+    
+    // Try to determine result from class name
     if (className.includes('win')) form.push('W')
     else if (className.includes('draw')) form.push('D')
     else if (className.includes('loss') || className.includes('defeat')) form.push('L')
+    // If class name doesn't work, try the text content
+    else if (text === 'W') form.push('W')
+    else if (text === 'D') form.push('D')
+    else if (text === 'L') form.push('L')
   })
   
-  // If no form icons found, try parsing text content
+  // If no form icons found, try parsing text content directly
   if (form.length === 0) {
-    const formText = formCell.text().trim()
+    const formText = $(formCell).text().trim()
     if (formText) {
       formText.split('').forEach(char => {
         if (char === 'W' || char === 'w') form.push('W')
@@ -143,7 +154,34 @@ function extractFormData($, formCell) {
     }
   }
   
+  console.log(`Edge Function: Extracted form data: ${form.join(', ')}`)
   return form
+}
+
+/**
+ * Extract team name from the cell
+ * @param $ Cheerio instance
+ * @param cell The cell containing team name
+ * @returns The extracted team name
+ */
+function extractTeamName($, cell) {
+  // Try getting the team name using different selectors
+  // First try common BBC Sport selectors
+  const teamNameEl = $(cell).find('.gs-o-table__cell--left .qa-full-team-name, .sp-c-fixture__team-name-trunc')
+  let teamName = teamNameEl.text().trim()
+  
+  if (!teamName) {
+    // Try alternative selectors
+    teamName = $(cell).find('.gs-o-table__cell--left, .sp-c-fixture__team-name').text().trim()
+  }
+  
+  if (!teamName) {
+    // Last resort - get all text content
+    teamName = $(cell).text().trim()
+  }
+  
+  console.log(`Edge Function: Extracted team name: ${teamName}`)
+  return teamName
 }
 
 /**
@@ -154,69 +192,109 @@ function extractFormData($, formCell) {
  * @returns Team data object or null if invalid
  */
 function processTableRow($, row, index) {
-  // Skip the header row
-  if (index === 0) return null
+  // Skip header rows
+  if (index === 0) {
+    console.log('Edge Function: Skipping header row')
+    return null
+  }
   
   try {
+    // Get all cells from the row
     const cells = $(row).find('td')
     
-    // Debug log
-    if (index === 1) {
-      console.log(`Edge Function: First row has ${cells.length} cells`)
+    // Debug info about the row
+    console.log(`Edge Function: Processing row ${index} with ${cells.length} cells`)
+    
+    // BBC Sport sometimes has additional hidden cells or different layouts
+    // We need at least 9 cells for position through points
+    if (cells.length < 9) {
+      console.log(`Edge Function: Not enough cells (${cells.length}) in row ${index}, skipping`)
+      return null
     }
     
-    if (cells.length < 9) return null // Must have at least position through points
+    // Extract position - usually the first cell but can vary
+    let position = 0
+    let positionText = $(cells[0]).text().trim()
+    position = safeParseInt(positionText)
     
-    // Position - first cell
-    const positionText = $(cells[0]).text().trim()
-    const position = parseInt(positionText, 10)
-    
-    if (isNaN(position)) {
-      console.log(`Edge Function: Invalid position value: "${positionText}"`)
-      return null // Skip if not a valid team row
+    if (isNaN(position) || position === 0) {
+      console.log(`Edge Function: Invalid position "${positionText}" in row ${index}, trying to detect position`)
+      
+      // Try to detect position from row attributes or other sources
+      const rowClasses = $(row).attr('class') || ''
+      if (rowClasses.includes('position-')) {
+        const match = rowClasses.match(/position-(\d+)/)
+        if (match && match[1]) {
+          position = parseInt(match[1], 10)
+          console.log(`Edge Function: Detected position ${position} from class`)
+        }
+      }
+      
+      // If still no valid position, skip this row
+      if (position === 0) {
+        console.log(`Edge Function: Could not determine position for row ${index}, skipping`)
+        return null
+      }
     }
     
-    // Extract team name - try different approaches
-    let teamName = ''
-    
-    // Try finding team name in different positions
-    const teamNameElement = $(cells[1]).find('.gs-o-table__cell--left .qa-full-team-name')
-    teamName = teamNameElement.text().trim()
+    // Extract team name
+    let teamCell = cells[1]
+    let teamName = extractTeamName($, teamCell)
     
     if (!teamName) {
-      // Alternative selector if the first one doesn't work
-      teamName = $(cells[1]).find('.gs-o-table__cell--left').text().trim()
+      console.log(`Edge Function: No team name found in row ${index}, skipping`)
+      return null
     }
     
-    // Last resort - try the team cell directly
-    if (!teamName) {
-      teamName = $(cells[1]).text().trim()
+    // Map data fields - account for possible variations in column order
+    let cellOffset = 0
+    // Some tables have a "promoted/relegated" column which offsets everything
+    if (cells.length > 11) {
+      const secondCellText = $(cells[2]).text().trim()
+      if (secondCellText.match(/^[PD]$/i) || !secondCellText.match(/^\d+$/)) {
+        cellOffset = 1
+        console.log(`Edge Function: Detected extra column, using offset ${cellOffset}`)
+      }
     }
     
-    if (!teamName) {
-      console.log(`Edge Function: Could not extract team name for row ${index}`)
-      return null // Skip if no team name found
+    const played = safeParseInt($(cells[2 + cellOffset]).text())
+    const won = safeParseInt($(cells[3 + cellOffset]).text())
+    const drawn = safeParseInt($(cells[4 + cellOffset]).text())
+    const lost = safeParseInt($(cells[5 + cellOffset]).text())
+    const goalsFor = safeParseInt($(cells[6 + cellOffset]).text())
+    const goalsAgainst = safeParseInt($(cells[7 + cellOffset]).text())
+    
+    // Some tables combine GD and Points, others have them separately
+    let goalDifference = 0
+    let points = 0
+    
+    // Try to parse goal difference from dedicated column
+    if (cells.length >= 9 + cellOffset) {
+      goalDifference = safeParseInt($(cells[8 + cellOffset]).text())
+      
+      // If we have another column, it's likely points
+      if (cells.length >= 10 + cellOffset) {
+        points = safeParseInt($(cells[9 + cellOffset]).text())
+      } else {
+        // Calculate points if not provided (3 for win, 1 for draw)
+        points = (won * 3) + drawn
+      }
+    } else {
+      // Calculate goal difference if not provided
+      goalDifference = goalsFor - goalsAgainst
+      // Calculate points
+      points = (won * 3) + drawn
     }
     
-    // Extract other stats
-    const played = safeParseInt($(cells[2]).text())
-    const won = safeParseInt($(cells[3]).text())
-    const drawn = safeParseInt($(cells[4]).text())
-    const lost = safeParseInt($(cells[5]).text())
-    const goalsFor = safeParseInt($(cells[6]).text())
-    const goalsAgainst = safeParseInt($(cells[7]).text())
-    const goalDifference = safeParseInt($(cells[8]).text())
-    const points = safeParseInt($(cells[9]).text())
-    
-    // Extract form if available
+    // Extract form if available (typically last column)
     const form = []
-    if (cells.length > 10) {
-      const formCell = $(cells[10])
+    if (cells.length > 10 + cellOffset) {
+      const formCell = $(cells[cells.length - 1]) // Last cell is usually form
       const extractedForm = extractFormData($, formCell)
       form.push(...extractedForm)
     }
     
-    console.log(`Edge Function: Extracted form for ${teamName}:`, form)
+    console.log(`Edge Function: Successfully extracted data for ${teamName} (P:${position}, Pts:${points})`)
     
     // Create a team stats object
     return {
@@ -238,6 +316,73 @@ function processTableRow($, row, index) {
     console.error(`Edge Function: Error parsing row ${index}:`, error)
     return null
   }
+}
+
+/**
+ * Find and extract the league table from HTML
+ * @param $ Cheerio instance
+ * @returns Array of team data objects
+ */
+function extractLeagueTable($) {
+  console.log('Edge Function: Extracting league table from HTML')
+  
+  // Try various selectors that might contain the league table
+  const tableSelectors = [
+    'table.gs-o-table', // Standard BBC table
+    'table.sp-c-table', // Another BBC sports table format
+    'table.league-table', // Generic league table
+    'table' // Last resort - any table
+  ]
+  
+  let tableRows = null
+  let selectorUsed = ''
+  
+  // Try each selector until we find a table
+  for (const selector of tableSelectors) {
+    const table = $(selector)
+    if (table.length > 0) {
+      tableRows = table.find('tr')
+      selectorUsed = selector
+      break
+    }
+  }
+  
+  // If no table found with our selectors, try to find any table-like structure
+  if (!tableRows || tableRows.length === 0) {
+    console.log('Edge Function: No table found with standard selectors, trying to find any table-like structure')
+    
+    // Look for elements with table-like class names
+    tableRows = $('[class*="table"] tr, [class*="league"] [class*="row"]')
+    selectorUsed = 'custom'
+  }
+  
+  if (!tableRows || tableRows.length === 0) {
+    throw new Error('Could not find any table rows in the HTML')
+  }
+  
+  console.log(`Edge Function: Found ${tableRows.length} rows using selector "${selectorUsed}"`)
+  
+  // Extract data from each row
+  const leagueData = []
+  let skippedRows = 0
+  
+  tableRows.each((index, row) => {
+    const teamData = processTableRow($, row, index)
+    if (teamData) {
+      leagueData.push(teamData)
+    } else {
+      skippedRows++
+    }
+  })
+  
+  console.log(`Edge Function: Extracted ${leagueData.length} teams, skipped ${skippedRows} rows`)
+  
+  if (leagueData.length === 0) {
+    throw new Error('Failed to extract any team data from the HTML')
+  }
+  
+  // Sort by position to ensure correct order
+  return leagueData.sort((a, b) => a.position - b.position)
 }
 
 /**
@@ -268,51 +413,17 @@ async function scrapeHighlandLeagueTable() {
     }
 
     const html = await response.text()
-    console.log('Edge Function: Successfully fetched BBC Sport page, extracting data')
+    console.log('Edge Function: Successfully fetched BBC Sport page, length:', html.length)
+    
+    if (html.length < 1000) {
+      console.error('Edge Function: HTML content suspiciously short, might be blocked')
+      throw new Error('Received incomplete or blocked response from BBC Sport')
+    }
     
     const $ = cheerio.load(html)
+    const leagueData = extractLeagueTable($)
     
-    // Try different selectors to find the table
-    let tableRows = $('.gs-o-table__row')
-    
-    // If first selector fails, try alternative selectors
-    if (!tableRows || tableRows.length === 0) {
-      console.log('Edge Function: First selector failed, trying alternative')
-      tableRows = $('table.gs-o-table tr')
-    }
-    
-    if (!tableRows || tableRows.length === 0) {
-      console.log('Edge Function: Second selector failed, trying generic table selector')
-      tableRows = $('table tr')
-    }
-    
-    if (!tableRows || tableRows.length === 0) {
-      // Save the HTML for debugging
-      console.error('Edge Function: Could not find any table rows in BBC Sport page')
-      console.log('Edge Function: HTML excerpt:', html.substring(0, 1000))
-      throw new Error('Could not find any table rows in BBC Sport page')
-    }
-    
-    console.log(`Edge Function: Found ${tableRows.length} rows in the table`)
-    
-    // Extract data from each row
-    const leagueData = []
-    
-    tableRows.each((index, row) => {
-      const teamData = processTableRow($, row, index)
-      if (teamData) {
-        leagueData.push(teamData)
-        console.log(`Edge Function: Extracted data for team: ${teamData.team}`)
-      }
-    })
-    
-    if (leagueData.length === 0) {
-      throw new Error('Failed to extract any team data from BBC Sport page')
-    }
-    
-    console.log(`Edge Function: Successfully extracted data for ${leagueData.length} teams`)
     return leagueData
-    
   } catch (error) {
     clearTimeout(timeoutId)
     console.error('Edge Function: Fetch error:', error)
@@ -335,12 +446,14 @@ async function storeDataInSupabase(supabase, leagueData, currentTime) {
 
   if (deleteError) {
     console.error('Edge Function: Error clearing existing data:', deleteError)
+    throw new Error(`Failed to clear existing data: ${deleteError.message}`)
   }
 
   // Insert new data
-  const { error: insertError } = await supabase
+  const { data: insertResult, error: insertError } = await supabase
     .from('highland_league_table')
     .insert(leagueData)
+    .select()
 
   if (insertError) {
     console.error('Edge Function: Error inserting data:', insertError)
@@ -352,7 +465,8 @@ async function storeDataInSupabase(supabase, leagueData, currentTime) {
     .from('settings')
     .upsert({ key: 'last_scrape_time', value: currentTime.toISOString() })
 
-  console.log('Edge Function: Successfully stored data in Supabase')
+  console.log(`Edge Function: Successfully stored ${leagueData.length} teams in Supabase`)
+  return insertResult
 }
 
 /**
@@ -394,6 +508,7 @@ serve(async (req) => {
     }
 
     console.log('Edge Function: Starting scrape operation')
+    console.log('Edge Function: Request data:', JSON.stringify(requestData))
     
     // Check if we should perform a fresh scrape
     const { shouldScrape, lastScrapeTime } = await shouldPerformScrape(supabase, forceRefresh)
@@ -406,11 +521,12 @@ serve(async (req) => {
     }
 
     // Scrape the BBC Sport Highland League table
+    console.log('Edge Function: Starting fresh scrape')
     const leagueData = await scrapeHighlandLeagueTable()
     const currentTime = new Date()
 
     // Store the scraped data in Supabase
-    await storeDataInSupabase(supabase, leagueData, currentTime)
+    const storedData = await storeDataInSupabase(supabase, leagueData, currentTime)
 
     return new Response(
       JSON.stringify({

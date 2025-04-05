@@ -19,7 +19,6 @@ const TeamRow = ({ team }: TeamRowProps) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      component={TableRow}
       className={isBanksODee ? "bg-team-lightBlue/20 hover:bg-team-lightBlue/30" : "hover:bg-gray-50"}
     >
       <TableCell className="py-2 text-center font-medium">

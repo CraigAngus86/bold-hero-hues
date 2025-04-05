@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import AdminLayout from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import NewsManager from '@/components/admin/NewsManager';
@@ -9,7 +8,7 @@ import SponsorsManager from '@/components/admin/SponsorsManager';
 import TeamManager from '@/components/admin/TeamManager';
 import LeagueTableManager from '@/components/admin/LeagueTableManager';
 import ImageManager from '@/components/admin/image-manager/ImageManager';
-import { Database, Globe, Server, Newspaper, Users, Award, Image, Calendar } from 'lucide-react';
+import { Database, Globe, Server, Newspaper, Users, Award, Image, Calendar, Settings } from 'lucide-react';
 import DataDashboard from '@/components/admin/data/DataDashboard';
 import { createInitialFolders } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
@@ -22,148 +21,104 @@ const Admin = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <Navbar />
-      
-      <div className="flex-1 pt-24 pb-20">
-        <div className="container mx-auto px-4">
-          <h1 className="text-3xl font-bold text-team-blue mb-2">Admin Dashboard</h1>
-          <p className="text-gray-600 mb-6">Manage website content and data</p>
-          
-          <div className="space-y-8">
-            <Tabs defaultValue="news">
-              <TabsList className="mb-4">
-                <TabsTrigger value="news" className="flex items-center">
-                  <Newspaper className="h-4 w-4 mr-2" />
-                  News
-                </TabsTrigger>
-                <TabsTrigger value="sponsors" className="flex items-center">
-                  <Award className="h-4 w-4 mr-2" />
-                  Sponsors
-                </TabsTrigger>
-                <TabsTrigger value="team" className="flex items-center">
-                  <Users className="h-4 w-4 mr-2" />
-                  Team
-                </TabsTrigger>
-                <TabsTrigger value="images" className="flex items-center">
-                  <Image className="h-4 w-4 mr-2" />
-                  Images
-                </TabsTrigger>
-                <TabsTrigger value="data" className="flex items-center">
-                  <Database className="h-4 w-4 mr-2" />
-                  Data
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="news">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>News Management</CardTitle>
-                    <CardDescription>
-                      Add, edit or remove news articles
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-2">
-                    <NewsManager />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="sponsors">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Sponsors Management</CardTitle>
-                    <CardDescription>
-                      Manage club sponsors and their logos
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-2">
-                    <SponsorsManager />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="team">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Team Management</CardTitle>
-                    <CardDescription>
-                      Manage player and staff information
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-2">
-                    <TeamManager />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="images">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Image Management</CardTitle>
-                    <CardDescription>
-                      Organize and upload match photos and sponsor logos
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-2">
-                    <ImageManager />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="data">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>League & Fixtures Data</CardTitle>
-                    <CardDescription>
-                      Manage league table and data scraping
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-2">
-                    <Tabs defaultValue="league">
-                      <TabsList className="mb-4">
-                        <TabsTrigger value="league">League Table</TabsTrigger>
-                        <TabsTrigger value="data">Data Management</TabsTrigger>
-                        <TabsTrigger value="fixtures">Fixtures & Results</TabsTrigger>
-                      </TabsList>
-                      
-                      <TabsContent value="league">
-                        <LeagueTableManager />
-                      </TabsContent>
-                      
-                      <TabsContent value="data">
-                        <DataDashboard />
-                      </TabsContent>
-                      
-                      <TabsContent value="fixtures">
-                        <div className="p-4 border rounded-md">
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <h3 className="text-lg font-medium mb-2">Fixtures Management</h3>
-                              <p className="text-gray-600">
-                                Import, scrape and manage fixtures and results
-                              </p>
-                            </div>
-                            <Button asChild>
-                              <Link to="/admin/fixtures">
-                                <Calendar className="h-4 w-4 mr-2" />
-                                Manage Fixtures
-                              </Link>
-                            </Button>
-                          </div>
-                        </div>
-                      </TabsContent>
-                    </Tabs>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </div>
+    <AdminLayout>
+      <div className="p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-semibold">Admin Dashboard</h1>
         </div>
+        
+        <Tabs defaultValue="news">
+          <TabsList className="mb-4">
+            <TabsTrigger value="news" className="flex items-center">
+              <Newspaper className="h-4 w-4 mr-2" />
+              News
+            </TabsTrigger>
+            <TabsTrigger value="sponsors" className="flex items-center">
+              <Award className="h-4 w-4 mr-2" />
+              Sponsors
+            </TabsTrigger>
+            <TabsTrigger value="team" className="flex items-center">
+              <Users className="h-4 w-4 mr-2" />
+              Team
+            </TabsTrigger>
+            <TabsTrigger value="fixtures" className="flex items-center">
+              <Calendar className="h-4 w-4 mr-2" />
+              Fixtures
+            </TabsTrigger>
+            <TabsTrigger value="league" className="flex items-center">
+              <Globe className="h-4 w-4 mr-2" />
+              League Table
+            </TabsTrigger>
+            <TabsTrigger value="images" className="flex items-center">
+              <Image className="h-4 w-4 mr-2" />
+              Images
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center">
+              <Settings className="h-4 w-4 mr-2" />
+              Settings
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="news">
+            <NewsManager />
+          </TabsContent>
+          
+          <TabsContent value="sponsors">
+            <SponsorsManager />
+          </TabsContent>
+          
+          <TabsContent value="team">
+            <TeamManager />
+          </TabsContent>
+
+          <TabsContent value="fixtures">
+            <div className="mb-4 flex justify-end">
+              <Button asChild>
+                <Link to="/admin/fixtures">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Manage Fixtures
+                </Link>
+              </Button>
+            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Fixtures Management</CardTitle>
+                <CardDescription>
+                  Import, scrape and manage fixtures and results
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 mb-4">
+                  Use the dedicated fixtures section to manage all match fixtures and results.
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="league">
+            <LeagueTableManager />
+          </TabsContent>
+          
+          <TabsContent value="images">
+            <ImageManager />
+          </TabsContent>
+          
+          <TabsContent value="settings">
+            <Card>
+              <CardHeader>
+                <CardTitle>System Settings</CardTitle>
+                <CardDescription>
+                  Configure system-wide settings and preferences
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <DataDashboard />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
-      
-      <Footer />
-    </div>
+    </AdminLayout>
   );
 };
 

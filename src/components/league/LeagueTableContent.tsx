@@ -7,6 +7,13 @@ import { TeamStats } from './types';
 import ErrorBoundary from '@/components/ErrorBoundary'; // Fixed: Changed from named import to default import
 
 /**
+ * Interface for LeagueTableContent component props
+ */
+interface LeagueTableContentProps {
+  leagueData: TeamStats[];
+}
+
+/**
  * Displays the league table with team standings
  */
 const LeagueTableContent: React.FC<LeagueTableContentProps> = ({ leagueData }) => {

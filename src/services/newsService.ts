@@ -1,4 +1,4 @@
-
-// This file is kept for backward compatibility
-// It re-exports everything from the new modular structure
+// Re-export all functions from the database service
+export * from './news/newsDbService';
+// Keep backward compatibility with existing utils and store
 export * from './news';

@@ -1,5 +1,6 @@
+
 import { supabase } from '@/services/supabase/supabaseClient';
-import { TeamMember, DBTeamMember, convertToTeamMember, convertToDBTeamMember } from '@/types/team';
+import { TeamMember, DBTeamMember, convertToTeamMember } from '@/types/team';
 import { handleDbOperation, DbServiceResponse } from './utils/dbService';
 import { create } from 'zustand';
 
@@ -169,12 +170,13 @@ export async function updateTeamMemberStats(id: string, stats: Record<string, nu
 }
 
 // Create a function to convert TeamMember to DBTeamMember
-export function convertToDBTeamMember(member: TeamMember): Partial<DBTeamMember> {
+// This replaces the duplicate function imported from types/team.ts
+function mapTeamMemberToDb(member: TeamMember): Partial<DBTeamMember> {
   return {
     name: member.name,
     image_url: member.image,
     position: member.position,
-    number: member.number,
+    jersey_number: member.number,
     member_type: member.type,
     role: member.role,
     bio: member.bio,
@@ -253,5 +255,5 @@ export const useTeamStore = create<TeamState>((set, get) => ({
   }
 }));
 
-// Export TeamMember type to be used in components that import from this file
-export type { TeamMember };
+// Export our local function to be used in other files when needed
+export { mapTeamMemberToDb as convertToDBTeamMember };

@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Match } from '@/components/fixtures/types';
-import { Fixture, DBFixture, ScrapedFixture } from '@/types/fixtures';
+import { DBFixture, ScrapedFixture } from '@/types/fixtures';
 import { toast } from 'sonner';
 
 // Function to insert or update fixtures in Supabase
@@ -140,7 +140,7 @@ export const scrapeAndStoreFixtures = async (source: string): Promise<{success: 
     
     // Convert scraped fixtures to DB format
     const dbFixtures = data.fixtures.map((fixture: ScrapedFixture) => ({
-      id: fixture.id || crypto.randomUUID(),
+      id: fixture.id || crypto.randomUUID(), // Use the id if available or generate a new one
       date: fixture.date,
       time: fixture.time,
       home_team: fixture.homeTeam,

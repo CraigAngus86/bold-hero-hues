@@ -34,11 +34,11 @@ export const getLastUpdateTime = async (): Promise<string | null> => {
 };
 
 // Function to trigger a scrape operation for league data
-export const triggerLeagueDataScrape = async (): Promise<TeamStats[]> => {
+export const triggerLeagueDataScrape = async (forceRefresh?: boolean): Promise<TeamStats[]> => {
   try {
     // Call the Supabase edge function to trigger a scrape
     const { data, error } = await supabase.functions.invoke('scrape-highland-league', {
-      body: { action: 'scrape-league-table' }
+      body: { action: 'scrape-league-table', forceRefresh: forceRefresh || false }
     });
     
     if (error) {

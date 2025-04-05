@@ -16,5 +16,9 @@ export {
 
 export {
   importHistoricFixtures,
-  scrapeAndStoreFixtures
+  scrapeAndStoreFixtures,
+  importFixturesFromJson,
+  exportFixturesToJson,
+  validateFixtures,
+  insertOrUpdateFixtures
 } from './fixtures/importExport';

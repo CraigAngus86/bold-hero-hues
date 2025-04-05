@@ -11,9 +11,16 @@ export interface TeamMember {
   nationality?: string;
   previousClubs?: string[];
   bio?: string;
+  biography?: string;
   role?: string;
   experience?: string;
   type: 'player' | 'management' | 'official';
+  stats?: {
+    appearances?: number;
+    goals?: number;
+    assists?: number;
+    cleanSheets?: number;
+  };
 }
 
 interface TeamState {
@@ -30,6 +37,7 @@ interface TeamState {
   getPlayers: () => TeamMember[];
   getManagementStaff: () => TeamMember[];
   getClubOfficials: () => TeamMember[];
+  getPlayersByPosition: (position: string) => TeamMember[];
 }
 
 export const useTeamStore = create<TeamState>((set, get) => ({
@@ -305,6 +313,13 @@ export const useTeamStore = create<TeamState>((set, get) => ({
   getPlayers: () => get().players,
   getManagementStaff: () => get().management,
   getClubOfficials: () => get().officials,
+  getPlayersByPosition: (position: string) => {
+    const players = get().players;
+    if (position === "All") {
+      return players;
+    }
+    return players.filter(player => player.position === position);
+  },
   addTeamMember: (member: TeamMember) => {
     set((state) => {
       if (member.type === 'player') {

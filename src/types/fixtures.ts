@@ -18,6 +18,7 @@ export interface Fixture {
 }
 
 export interface ScrapedFixture {
+  id?: string; // Make id optional as it might be generated later
   date: string;
   time: string;
   homeTeam: string;

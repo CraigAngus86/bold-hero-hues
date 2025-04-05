@@ -257,3 +257,6 @@ export const useTeamStore = create<TeamState>((set, get) => ({
 
 // Export our local function to be used in other files when needed
 export { mapTeamMemberToDb as convertToDBTeamMember };
+
+// Re-export TeamMember type to be used in components that import from this file
+export type { TeamMember };

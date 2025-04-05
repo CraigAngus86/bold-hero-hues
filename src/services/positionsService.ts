@@ -42,7 +42,7 @@ export const usePositionsStore = create<PositionsState>((set, get) => ({
         set({ positions: JSON.parse(storedPositions) });
       } else {
         // Default positions if none are stored
-        const defaultPositions = [
+        const defaultPositions: PositionItem[] = [
           // Player positions
           { id: '1', name: 'Goalkeeper', category: 'player' },
           { id: '2', name: 'Right Back', category: 'player' },

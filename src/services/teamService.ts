@@ -1,92 +1,105 @@
 
 import { create } from 'zustand';
-import { createTeamMember, deleteTeamMember, fetchTeamMembers, fetchTeamMembersByType, updateTeamMember } from './teamDbService';
 import { toast } from 'sonner';
+import { TeamMember, MemberType } from '@/types/team';
+import {
+  fetchAllTeamMembers,
+  fetchTeamMembersByType,
+  createTeamMember as dbCreateTeamMember,
+  updateTeamMember as dbUpdateTeamMember,
+  deleteTeamMember as dbDeleteTeamMember,
+  fetchManagementTeam as dbFetchManagementTeam,
+  getAllTeamMembers as dbGetAllTeamMembers
+} from './teamDbService';
 
-export interface TeamMember {
-  id: number;
-  name: string;
-  type: 'player' | 'management' | 'official';
-  position?: string;
-  role?: string;
-  number?: number;
-  image: string;
-  bio: string;
-  stats?: {
-    appearances: number;
-    goals: number;
-    assists: number;
-  };
-  experience?: string;
-}
+// Re-export database functions for direct use
+export const createTeamMember = dbCreateTeamMember;
+export const updateTeamMember = dbUpdateTeamMember;
+export const deleteTeamMember = dbDeleteTeamMember;
+export const getAllTeamMembers = dbGetAllTeamMembers;
 
 interface TeamStore {
-  teamMembers: TeamMember[];
+  players: TeamMember[];
+  managementStaff: TeamMember[];
+  officials: TeamMember[];
   loading: boolean;
   fetchTeamMembers: () => Promise<void>;
+  fetchPlayersByPosition: (position: string) => TeamMember[];
+  getManagementStaff: () => Promise<TeamMember[]>;
   addTeamMember: (member: Omit<TeamMember, 'id'>) => Promise<void>;
   updateTeamMember: (member: TeamMember) => Promise<void>;
-  deleteTeamMember: (id: number) => Promise<void>;
-  getPlayersByPosition: (position: string) => TeamMember[];
-  getManagementTeam: () => TeamMember[];
-  getClubOfficials: () => TeamMember[];
+  deleteTeamMember: (id: string) => Promise<void>;
 }
 
-// Adapter to convert from DB model to UI model
-const toUiModel = (dbModel: any): TeamMember => ({
-  id: dbModel.id,
-  name: dbModel.name,
-  type: dbModel.member_type,
-  position: dbModel.position,
-  role: dbModel.member_type !== 'player' ? dbModel.position : undefined,
-  number: dbModel.jersey_number,
-  image: dbModel.image_url || '',
-  bio: dbModel.bio || '',
-  stats: dbModel.stats,
-  experience: dbModel.experience
-});
-
-// Adapter to convert from UI model to DB model
-const toDbModel = (uiModel: Omit<TeamMember, 'id'>) => ({
-  name: uiModel.name,
-  member_type: uiModel.type,
-  position: uiModel.type === 'player' ? uiModel.position : uiModel.role,
-  jersey_number: uiModel.number,
-  image_url: uiModel.image,
-  bio: uiModel.bio,
-  stats: uiModel.stats,
-  experience: uiModel.experience,
-  is_active: true
-});
-
 export const useTeamStore = create<TeamStore>((set, get) => ({
-  teamMembers: [],
+  players: [],
+  managementStaff: [],
+  officials: [],
   loading: false,
   
   fetchTeamMembers: async () => {
     set({ loading: true });
     try {
-      const result = await fetchTeamMembers();
-      if (result.success && result.data) {
-        set({ teamMembers: result.data.map(toUiModel) });
+      // Fetch players
+      const playersResult = await fetchTeamMembersByType('player');
+      // Fetch management
+      const managementResult = await fetchTeamMembersByType('management');
+      // Fetch officials
+      const officialsResult = await fetchTeamMembersByType('official');
+      
+      if (playersResult.success && managementResult.success && officialsResult.success) {
+        set({ 
+          players: playersResult.data || [],
+          managementStaff: managementResult.data || [],
+          officials: officialsResult.data || []
+        });
       } else {
-        toast.error('Failed to fetch team members');
+        toast.error('Failed to fetch team data');
       }
     } catch (error) {
-      console.error('Error fetching team members:', error);
-      toast.error('Failed to fetch team members');
+      console.error('Error fetching team data:', error);
+      toast.error('Failed to fetch team data');
     } finally {
       set({ loading: false });
     }
   },
   
+  fetchPlayersByPosition: (position: string) => {
+    const { players } = get();
+    return players.filter(player => player.position === position);
+  },
+  
+  getManagementStaff: async () => {
+    const { managementStaff } = get();
+    if (managementStaff.length > 0) {
+      return managementStaff;
+    }
+    
+    // If not loaded yet, fetch from DB
+    const result = await dbFetchManagementTeam();
+    if (result.success && result.data) {
+      set({ managementStaff: result.data });
+      return result.data;
+    }
+    return [];
+  },
+  
   addTeamMember: async (member) => {
     try {
-      const result = await createTeamMember(toDbModel(member));
+      const result = await dbCreateTeamMember(member);
       if (result.success && result.data) {
-        set((state) => ({
-          teamMembers: [...state.teamMembers, toUiModel(result.data)]
-        }));
+        // Update the appropriate state array based on member type
+        set((state) => {
+          const newMember = result.data;
+          if (newMember.member_type === 'player') {
+            return { players: [...state.players, newMember] };
+          } else if (newMember.member_type === 'management') {
+            return { managementStaff: [...state.managementStaff, newMember] };
+          } else if (newMember.member_type === 'official') {
+            return { officials: [...state.officials, newMember] };
+          }
+          return state;
+        });
         toast.success('Team member added successfully');
       } else {
         toast.error('Failed to add team member');
@@ -99,13 +112,20 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
   
   updateTeamMember: async (member) => {
     try {
-      const result = await updateTeamMember(String(member.id), toDbModel(member));
+      const { id, ...memberData } = member;
+      const result = await dbUpdateTeamMember(id, memberData);
       if (result.success) {
-        set((state) => ({
-          teamMembers: state.teamMembers.map((m) => 
-            m.id === member.id ? member : m
-          )
-        }));
+        // Update the appropriate state array based on member type
+        set((state) => {
+          if (member.member_type === 'player') {
+            return { players: state.players.map(p => p.id === member.id ? member : p) };
+          } else if (member.member_type === 'management') {
+            return { managementStaff: state.managementStaff.map(m => m.id === member.id ? member : m) };
+          } else if (member.member_type === 'official') {
+            return { officials: state.officials.map(o => o.id === member.id ? member : o) };
+          }
+          return state;
+        });
         toast.success('Team member updated successfully');
       } else {
         toast.error('Failed to update team member');
@@ -118,10 +138,13 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
   
   deleteTeamMember: async (id) => {
     try {
-      const result = await deleteTeamMember(String(id));
+      const result = await dbDeleteTeamMember(id);
       if (result.success) {
+        // Remove from all arrays since we don't know which type it was
         set((state) => ({
-          teamMembers: state.teamMembers.filter((m) => m.id !== id)
+          players: state.players.filter(p => p.id !== id),
+          managementStaff: state.managementStaff.filter(m => m.id !== id),
+          officials: state.officials.filter(o => o.id !== id)
         }));
         toast.success('Team member deleted successfully');
       } else {
@@ -131,25 +154,5 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
       console.error('Error deleting team member:', error);
       toast.error('Failed to delete team member');
     }
-  },
-  
-  getPlayersByPosition: (position) => {
-    const { teamMembers } = get();
-    if (position === "All") {
-      return teamMembers.filter(member => member.type === 'player');
-    }
-    return teamMembers.filter(
-      member => member.type === 'player' && member.position === position
-    );
-  },
-  
-  getManagementTeam: () => {
-    const { teamMembers } = get();
-    return teamMembers.filter(member => member.type === 'management');
-  },
-  
-  getClubOfficials: () => {
-    const { teamMembers } = get();
-    return teamMembers.filter(member => member.type === 'official');
   }
 }));

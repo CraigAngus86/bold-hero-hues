@@ -1,16 +1,20 @@
 
 import { create } from 'zustand';
-import { createSponsor, deleteSponsor, fetchSponsors, fetchSponsorsByTier, updateSponsor } from './sponsorsDbService';
 import { toast } from 'sonner';
+import { Sponsor } from '@/types/sponsors';
+import { 
+  fetchSponsors, 
+  createSponsor as dbCreateSponsor, 
+  updateSponsor as dbUpdateSponsor, 
+  deleteSponsor as dbDeleteSponsor,
+  getAllSponsors as dbGetAllSponsors
+} from './sponsorsDbService';
 
-export interface Sponsor {
-  id: number;
-  name: string;
-  logoUrl: string;
-  website: string;
-  tier: 'platinum' | 'gold' | 'silver' | 'bronze';
-  description: string;
-}
+// Re-export database functions for direct use
+export const createSponsor = dbCreateSponsor;
+export const updateSponsor = dbUpdateSponsor;
+export const deleteSponsor = dbDeleteSponsor;
+export const getAllSponsors = dbGetAllSponsors;
 
 interface SponsorsStore {
   sponsors: Sponsor[];
@@ -18,28 +22,8 @@ interface SponsorsStore {
   fetchSponsors: () => Promise<void>;
   addSponsor: (sponsor: Omit<Sponsor, 'id'>) => Promise<void>;
   updateSponsor: (sponsor: Sponsor) => Promise<void>;
-  deleteSponsor: (id: number) => Promise<void>;
+  deleteSponsor: (id: string) => Promise<void>;
 }
-
-// Adapter to convert from DB model to UI model
-const toUiModel = (dbModel: any): Sponsor => ({
-  id: dbModel.id,
-  name: dbModel.name,
-  logoUrl: dbModel.logo_url || '',
-  website: dbModel.website_url || '',
-  tier: dbModel.tier || 'bronze',
-  description: dbModel.description || ''
-});
-
-// Adapter to convert from UI model to DB model
-const toDbModel = (uiModel: Omit<Sponsor, 'id'>) => ({
-  name: uiModel.name,
-  logo_url: uiModel.logoUrl,
-  website_url: uiModel.website,
-  tier: uiModel.tier,
-  description: uiModel.description,
-  is_active: true
-});
 
 export const useSponsorsStore = create<SponsorsStore>((set) => ({
   sponsors: [],
@@ -50,7 +34,7 @@ export const useSponsorsStore = create<SponsorsStore>((set) => ({
     try {
       const result = await fetchSponsors();
       if (result.success && result.data) {
-        set({ sponsors: result.data.map(toUiModel) });
+        set({ sponsors: result.data });
       } else {
         toast.error('Failed to fetch sponsors');
       }
@@ -64,10 +48,10 @@ export const useSponsorsStore = create<SponsorsStore>((set) => ({
   
   addSponsor: async (sponsor) => {
     try {
-      const result = await createSponsor(toDbModel(sponsor));
+      const result = await dbCreateSponsor(sponsor);
       if (result.success && result.data) {
         set((state) => ({
-          sponsors: [...state.sponsors, toUiModel(result.data)]
+          sponsors: [...state.sponsors, result.data]
         }));
         toast.success('Sponsor added successfully');
       } else {
@@ -81,7 +65,8 @@ export const useSponsorsStore = create<SponsorsStore>((set) => ({
   
   updateSponsor: async (sponsor) => {
     try {
-      const result = await updateSponsor(String(sponsor.id), toDbModel(sponsor));
+      const { id, ...sponsorData } = sponsor;
+      const result = await dbUpdateSponsor(id, sponsorData);
       if (result.success) {
         set((state) => ({
           sponsors: state.sponsors.map((s) => 
@@ -100,7 +85,7 @@ export const useSponsorsStore = create<SponsorsStore>((set) => ({
   
   deleteSponsor: async (id) => {
     try {
-      const result = await deleteSponsor(String(id));
+      const result = await dbDeleteSponsor(id);
       if (result.success) {
         set((state) => ({
           sponsors: state.sponsors.filter((s) => s.id !== id)

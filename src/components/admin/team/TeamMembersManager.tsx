@@ -1,291 +1,372 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Users, UserPlus, Edit, Trash } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { TeamMember } from '@/types/team';
-import { getAllTeamMembers, createTeamMember, updateTeamMember, deleteTeamMember } from '@/services/teamDbService';
-import { convertToDBTeamMember } from '@/types/team';
+import { LastUpdatedInfo } from '@/components/admin/data/table-components/LastUpdatedInfo';
+import { PlayerImageUploader } from '@/components/admin/common/PlayerImageUploader';
+import { TeamMember, MemberType } from '@/types/team';
+import { getAllTeamMembers, createTeamMember, updateTeamMember, deleteTeamMember } from '@/services/teamService';
 
-const TeamMembersManager = () => {
+export default function TeamMembersManager() {
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentMember, setCurrentMember] = useState<Partial<TeamMember> | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [memberToDelete, setMemberToDelete] = useState<TeamMember | null>(null);
-
+  const [currentMember, setCurrentMember] = useState<Partial<TeamMember>>({
+    name: '',
+    member_type: 'player',
+    position: '',
+    image_url: '',
+    is_active: true,
+    bio: '',
+    nationality: '',
+    jersey_number: undefined,
+    previous_clubs: []
+  });
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [previousClubs, setPreviousClubs] = useState<string>('');
+  
   useEffect(() => {
     fetchTeamMembers();
   }, []);
-
+  
   const fetchTeamMembers = async () => {
     setLoading(true);
     try {
-      const response = await getAllTeamMembers();
-      if (response.success && response.data) {
-        setMembers(response.data);
+      const result = await getAllTeamMembers();
+      if (result.success && result.data) {
+        setMembers(result.data);
+        
+        // Set the last updated timestamp from the most recently updated member
+        if (result.data.length > 0) {
+          const sortedByDate = [...result.data].sort((a, b) => {
+            return new Date(b.updated_at || 0).getTime() - new Date(a.updated_at || 0).getTime();
+          });
+          setLastUpdated(sortedByDate[0].updated_at || null);
+        }
       } else {
-        console.error('Error fetching team members:', response.error);
         toast.error('Failed to load team members');
       }
     } catch (error) {
       console.error('Error fetching team members:', error);
-      toast.error('Failed to load team members');
+      toast.error('Failed to load team data');
     } finally {
       setLoading(false);
     }
   };
-
-  const handleOpenAddDialog = () => {
-    setCurrentMember({
-      type: 'player',
-      name: '',
-      image: '',
-      position: '',
-    });
-    setDialogOpen(true);
-  };
-
-  const handleOpenEditDialog = (member: TeamMember) => {
-    setCurrentMember(member);
-    setDialogOpen(true);
-  };
-
-  const handleConfirmDelete = (member: TeamMember) => {
-    setMemberToDelete(member);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleDelete = async () => {
-    if (!memberToDelete) return;
-
-    try {
-      const response = await deleteTeamMember(memberToDelete.id.toString());
-      if (response.success) {
-        setMembers(members.filter(m => m.id !== memberToDelete.id));
-        toast.success(`${memberToDelete.name} has been removed`);
-      }
-      setDeleteDialogOpen(false);
-    } catch (error) {
-      console.error('Error deleting team member:', error);
-      toast.error('Failed to delete team member');
+  
+  const handleOpenDialog = (member?: TeamMember) => {
+    if (member) {
+      setCurrentMember(member);
+      setPreviousClubs(member.previous_clubs?.join(', ') || '');
+    } else {
+      setCurrentMember({
+        name: '',
+        member_type: 'player',
+        position: '',
+        image_url: '',
+        is_active: true,
+        bio: '',
+        nationality: '',
+        jersey_number: undefined,
+        previous_clubs: []
+      });
+      setPreviousClubs('');
     }
+    setDialogOpen(true);
   };
-
+  
   const handleSave = async () => {
-    if (!currentMember) return;
-
     try {
-      const dbMember = convertToDBTeamMember(currentMember as TeamMember);
-
-      let response;
-      
-      if (currentMember.id) {
-        // Update existing member
-        response = await updateTeamMember(currentMember.id.toString(), dbMember);
-        if (response.success && response.data) {
-          setMembers(members.map(m => m.id === response.data?.id ? response.data : m));
-          toast.success(`${response.data.name} has been updated`);
-        }
-      } else {
-        // Create new member
-        response = await createTeamMember(dbMember as any);
-        if (response.success && response.data) {
-          setMembers([...members, response.data]);
-          toast.success(`${response.data.name} has been added`);
-        }
+      if (!currentMember.name) {
+        toast.error('Name is required');
+        return;
       }
       
-      setDialogOpen(false);
+      // Format previous clubs from comma-separated string to array
+      const formattedMember = {
+        ...currentMember,
+        previous_clubs: previousClubs ? previousClubs.split(',').map(club => club.trim()) : []
+      };
+      
+      let result;
+      if ('id' in formattedMember && formattedMember.id) {
+        result = await updateTeamMember(formattedMember as TeamMember);
+      } else {
+        result = await createTeamMember(formattedMember as Omit<TeamMember, 'id'>);
+      }
+      
+      if (result.success) {
+        toast.success(`Team member ${formattedMember.id ? 'updated' : 'created'} successfully`);
+        setDialogOpen(false);
+        fetchTeamMembers(); // Refresh the list
+      } else {
+        toast.error(`Failed to ${formattedMember.id ? 'update' : 'create'} team member`);
+      }
     } catch (error) {
       console.error('Error saving team member:', error);
-      toast.error('Failed to save team member');
+      toast.error(`Failed to ${currentMember.id ? 'update' : 'create'} team member`);
     }
   };
-
-  const playerMembers = members.filter(m => m.type === 'player');
-  const managementMembers = members.filter(m => m.type === 'management');
-  const officialMembers = members.filter(m => m.type === 'official');
-
+  
+  const handleDelete = async (id: string) => {
+    if (confirm('Are you sure you want to delete this team member?')) {
+      try {
+        const result = await deleteTeamMember(id);
+        if (result.success) {
+          toast.success('Team member deleted successfully');
+          fetchTeamMembers(); // Refresh the list
+        } else {
+          toast.error('Failed to delete team member');
+        }
+      } catch (error) {
+        console.error('Error deleting team member:', error);
+        toast.error('Failed to delete team member');
+      }
+    }
+  };
+  
+  const handleImageUploaded = (url: string) => {
+    setCurrentMember(prev => ({ ...prev, image_url: url }));
+  };
+  
+  const getMemberTypeLabel = (type: MemberType) => {
+    switch (type) {
+      case 'player': return 'Player';
+      case 'management': return 'Management';
+      case 'official': return 'Club Official';
+      default: return type;
+    }
+  };
+  
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-medium">Team Members</h3>
-        <Button onClick={handleOpenAddDialog}>
-          <UserPlus className="mr-2 h-4 w-4" />
-          Add Team Member
-        </Button>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold">Team Members</h2>
+        <Button onClick={() => handleOpenDialog()}>Add New Member</Button>
       </div>
-
-      <div className="mb-6 border-b border-gray-200">
-        <nav className="flex -mb-px space-x-8" aria-label="Tabs">
-          {['Players', 'Management', 'Officials'].map((tab) => (
-            <button
-              key={tab}
-              className="px-1 py-4 text-sm font-medium border-b-2 border-blue-500"
-            >
-              {tab}
-            </button>
-          ))}
-        </nav>
-      </div>
-
+      
+      <LastUpdatedInfo lastUpdated={lastUpdated} />
+      
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
-            <TableHead>Position/Role</TableHead>
+            <TableHead>Photo</TableHead>
             <TableHead>Type</TableHead>
-            <TableHead className="w-[100px]">Actions</TableHead>
+            <TableHead>Position</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {members.length === 0 ? (
+          {loading ? (
             <TableRow>
-              <TableCell colSpan={4} className="text-center py-4 text-gray-500">
-                {loading ? 'Loading team members...' : 'No team members found'}
-              </TableCell>
+              <TableCell colSpan={6} className="text-center py-10">Loading team members...</TableCell>
+            </TableRow>
+          ) : members.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={6} className="text-center py-10">No team members found.</TableCell>
             </TableRow>
           ) : (
             members.map((member) => (
               <TableRow key={member.id}>
-                <TableCell className="font-medium">{member.name}</TableCell>
-                <TableCell>{member.position || member.role || '-'}</TableCell>
-                <TableCell className="capitalize">{member.type}</TableCell>
+                <TableCell className="font-medium">
+                  {member.name}
+                  {member.member_type === 'player' && member.jersey_number && (
+                    <span className="ml-2 text-xs bg-team-blue text-white px-1.5 py-0.5 rounded-sm">
+                      #{member.jersey_number}
+                    </span>
+                  )}
+                </TableCell>
                 <TableCell>
-                  <div className="flex space-x-2">
-                    <Button variant="ghost" size="sm" onClick={() => handleOpenEditDialog(member)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleConfirmDelete(member)}>
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  {member.image_url ? (
+                    <img 
+                      src={member.image_url} 
+                      alt={member.name} 
+                      className="w-12 h-12 object-cover rounded-full"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                      <span className="text-gray-500 text-xs">No image</span>
+                    </div>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${
+                    member.member_type === 'player' ? 'bg-blue-100 text-blue-800' : 
+                    member.member_type === 'management' ? 'bg-green-100 text-green-800' :
+                    'bg-purple-100 text-purple-800'
+                  }`}>
+                    {getMemberTypeLabel(member.member_type)}
+                  </span>
+                </TableCell>
+                <TableCell>{member.position || '—'}</TableCell>
+                <TableCell>
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${
+                    member.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                  }`}>
+                    {member.is_active ? 'Active' : 'Inactive'}
+                  </span>
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => handleOpenDialog(member)}
+                    className="mr-2"
+                  >
+                    Edit
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => handleDelete(member.id)}
+                    className="text-red-500"
+                  >
+                    Delete
+                  </Button>
                 </TableCell>
               </TableRow>
             ))
           )}
         </TableBody>
       </Table>
-
+      
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{currentMember?.id ? 'Edit' : 'Add'} Team Member</DialogTitle>
+            <DialogTitle>{currentMember.id ? 'Edit Team Member' : 'Add New Team Member'}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="name" className="text-right text-sm font-medium">Name</label>
+              <Input
+                id="name"
+                value={currentMember.name || ''}
+                onChange={(e) => setCurrentMember(prev => ({ ...prev, name: e.target.value }))}
+                className="col-span-3"
+                placeholder="Full name"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
               <label htmlFor="type" className="text-right text-sm font-medium">Type</label>
-              <Select
-                value={currentMember?.type}
-                onValueChange={(value) => setCurrentMember(prev => ({ ...prev, type: value as any }))}
-              >
+              <Select 
+                value={currentMember.member_type || 'player'}
+                onValueChange={(value) => setCurrentMember(prev => ({ ...prev, member_type: value as MemberType }))}>
                 <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue placeholder="Select member type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="player">Player</SelectItem>
                   <SelectItem value="management">Management</SelectItem>
-                  <SelectItem value="official">Official</SelectItem>
+                  <SelectItem value="official">Club Official</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
             <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="name" className="text-right text-sm font-medium">Name</label>
+              <label htmlFor="position" className="text-right text-sm font-medium">Position</label>
               <Input
-                id="name"
-                value={currentMember?.name || ''}
-                onChange={(e) => setCurrentMember(prev => ({ ...prev, name: e.target.value }))}
+                id="position"
+                value={currentMember.position || ''}
+                onChange={(e) => setCurrentMember(prev => ({ ...prev, position: e.target.value }))}
                 className="col-span-3"
+                placeholder="e.g. Forward, Manager, Chairman"
               />
             </div>
-
-            {currentMember?.type === 'player' && (
-              <>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="position" className="text-right text-sm font-medium">Position</label>
-                  <Input
-                    id="position"
-                    value={currentMember?.position || ''}
-                    onChange={(e) => setCurrentMember(prev => ({ ...prev, position: e.target.value }))}
-                    className="col-span-3"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="number" className="text-right text-sm font-medium">Number</label>
-                  <Input
-                    id="number"
-                    type="number"
-                    value={currentMember?.number || ''}
-                    onChange={(e) => setCurrentMember(prev => ({ ...prev, number: parseInt(e.target.value) || undefined }))}
-                    className="col-span-3"
-                  />
-                </div>
-              </>
-            )}
-
-            {(currentMember?.type === 'management' || currentMember?.type === 'official') && (
+            
+            {currentMember.member_type === 'player' && (
               <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="role" className="text-right text-sm font-medium">Role</label>
+                <label htmlFor="jersey" className="text-right text-sm font-medium">Jersey #</label>
                 <Input
-                  id="role"
-                  value={currentMember?.role || ''}
-                  onChange={(e) => setCurrentMember(prev => ({ ...prev, role: e.target.value }))}
+                  id="jersey"
+                  type="number"
+                  value={currentMember.jersey_number || ''}
+                  onChange={(e) => setCurrentMember(prev => ({ 
+                    ...prev, 
+                    jersey_number: e.target.value ? parseInt(e.target.value) : undefined 
+                  }))}
                   className="col-span-3"
+                  placeholder="Jersey number"
                 />
               </div>
             )}
-
+            
             <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="image" className="text-right text-sm font-medium">Image URL</label>
+              <label htmlFor="nationality" className="text-right text-sm font-medium">Nationality</label>
               <Input
-                id="image"
-                value={currentMember?.image || ''}
-                onChange={(e) => setCurrentMember(prev => ({ ...prev, image: e.target.value }))}
+                id="nationality"
+                value={currentMember.nationality || ''}
+                onChange={(e) => setCurrentMember(prev => ({ ...prev, nationality: e.target.value }))}
                 className="col-span-3"
+                placeholder="e.g. Scottish"
               />
             </div>
-
+            
+            {currentMember.member_type === 'player' && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <label htmlFor="previous" className="text-right text-sm font-medium">Previous Clubs</label>
+                <Input
+                  id="previous"
+                  value={previousClubs}
+                  onChange={(e) => setPreviousClubs(e.target.value)}
+                  className="col-span-3"
+                  placeholder="Comma-separated list of clubs"
+                />
+              </div>
+            )}
+            
             <div className="grid grid-cols-4 items-start gap-4">
-              <label htmlFor="bio" className="text-right text-sm font-medium">Bio</label>
+              <label htmlFor="bio" className="text-right text-sm font-medium pt-2">Bio</label>
               <Textarea
                 id="bio"
-                value={currentMember?.bio || ''}
+                value={currentMember.bio || ''}
                 onChange={(e) => setCurrentMember(prev => ({ ...prev, bio: e.target.value }))}
                 className="col-span-3"
-                rows={3}
+                placeholder="Brief biography or information"
+                rows={4}
               />
             </div>
+            
+            <div className="grid grid-cols-4 items-start gap-4">
+              <label className="text-right text-sm font-medium pt-2">Photo</label>
+              <div className="col-span-3">
+                <PlayerImageUploader
+                  currentImage={currentMember.image_url}
+                  onUpload={handleImageUploaded}
+                  playerName={currentMember.name || 'New Member'}
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="status" className="text-right text-sm font-medium">Status</label>
+              <Select 
+                value={currentMember.is_active ? 'active' : 'inactive'}
+                onValueChange={(value) => setCurrentMember(prev => ({ ...prev, is_active: value === 'active' }))}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+          
           <DialogFooter>
-            <Button variant="outline" type="button" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button type="button" onClick={handleSave}>Save</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
-          </DialogHeader>
-          <p className="py-4">
-            Are you sure you want to delete {memberToDelete?.name}? This action cannot be undone.
-          </p>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button type="submit" onClick={handleSave}>Save</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   );
-};
-
-export default TeamMembersManager;
+}

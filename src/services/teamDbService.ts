@@ -1,66 +1,51 @@
 
 import { supabase } from '@/services/supabase/supabaseClient';
 import { handleDbOperation, DbServiceResponse } from './utils/dbService';
-
-export interface TeamMember {
-  id?: string;
-  name: string;
-  member_type: 'player' | 'management' | 'official';
-  position?: string;
-  jersey_number?: number;
-  image_url?: string;
-  bio?: string;
-  nationality?: string;
-  previous_clubs?: string[];
-  experience?: string;
-  is_active?: boolean;
-  stats?: {
-    appearances?: number;
-    goals?: number;
-    assists?: number;
-    clean_sheets?: number;
-  };
-}
+import { TeamMember, MemberType } from '@/types/team';
 
 /**
- * Fetch all team members
+ * Fetch all team members by type
  */
-export async function fetchTeamMembers(): Promise<DbServiceResponse<TeamMember[]>> {
+export async function fetchTeamMembersByType(memberType: MemberType): Promise<DbServiceResponse<TeamMember[]>> {
   return handleDbOperation(
     async () => {
       const { data, error } = await supabase
         .from('team_members')
         .select('*')
-        .eq('is_active', true);
+        .eq('member_type', memberType)
+        .eq('is_active', true)
+        .order('jersey_number', { ascending: true })
+        .order('name', { ascending: true });
 
       if (error) throw error;
-      return data || [];
+      return data as TeamMember[] || [];
+    },
+    `Failed to fetch ${memberType}s`
+  );
+}
+
+/**
+ * Fetch all team members (active)
+ */
+export async function fetchAllTeamMembers(): Promise<DbServiceResponse<TeamMember[]>> {
+  return handleDbOperation(
+    async () => {
+      const { data, error } = await supabase
+        .from('team_members')
+        .select('*')
+        .eq('is_active', true)
+        .order('member_type', { ascending: true })
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+      return data as TeamMember[] || [];
     },
     'Failed to fetch team members'
   );
 }
 
 /**
- * Fetch team members by type
- */
-export async function fetchTeamMembersByType(type: 'player' | 'management' | 'official'): Promise<DbServiceResponse<TeamMember[]>> {
-  return handleDbOperation(
-    async () => {
-      const { data, error } = await supabase
-        .from('team_members')
-        .select('*')
-        .eq('member_type', type)
-        .eq('is_active', true);
-
-      if (error) throw error;
-      return data || [];
-    },
-    `Failed to fetch team members with type ${type}`
-  );
-}
-
-/**
- * Fetch a team member by id
+ * Fetch team member by id
  */
 export async function fetchTeamMemberById(id: string): Promise<DbServiceResponse<TeamMember>> {
   return handleDbOperation(
@@ -72,14 +57,14 @@ export async function fetchTeamMemberById(id: string): Promise<DbServiceResponse
         .single();
 
       if (error) throw error;
-      return data;
+      return data as TeamMember;
     },
     `Failed to fetch team member with id ${id}`
   );
 }
 
 /**
- * Create a team member
+ * Create team member
  */
 export async function createTeamMember(member: Omit<TeamMember, 'id'>): Promise<DbServiceResponse<TeamMember>> {
   return handleDbOperation(
@@ -91,14 +76,14 @@ export async function createTeamMember(member: Omit<TeamMember, 'id'>): Promise<
         .single();
 
       if (error) throw error;
-      return data;
+      return data as TeamMember;
     },
     'Failed to create team member'
   );
 }
 
 /**
- * Update a team member
+ * Update team member
  */
 export async function updateTeamMember(id: string, member: Partial<TeamMember>): Promise<DbServiceResponse<TeamMember>> {
   return handleDbOperation(
@@ -111,14 +96,14 @@ export async function updateTeamMember(id: string, member: Partial<TeamMember>):
         .single();
 
       if (error) throw error;
-      return data;
+      return data as TeamMember;
     },
     `Failed to update team member with id ${id}`
   );
 }
 
 /**
- * Delete a team member
+ * Delete team member
  */
 export async function deleteTeamMember(id: string): Promise<DbServiceResponse<boolean>> {
   return handleDbOperation(
@@ -136,21 +121,38 @@ export async function deleteTeamMember(id: string): Promise<DbServiceResponse<bo
 }
 
 /**
- * Fetch players by position
+ * Fetch management team members specifically
  */
-export async function fetchPlayersByPosition(position: string): Promise<DbServiceResponse<TeamMember[]>> {
+export async function fetchManagementTeam(): Promise<DbServiceResponse<TeamMember[]>> {
   return handleDbOperation(
     async () => {
       const { data, error } = await supabase
         .from('team_members')
         .select('*')
-        .eq('member_type', 'player')
-        .eq('position', position)
-        .eq('is_active', true);
+        .eq('member_type', 'management')
+        .eq('is_active', true)
+        .order('name', { ascending: true });
 
       if (error) throw error;
-      return data || [];
+      return data as TeamMember[] || [];
     },
-    `Failed to fetch players with position ${position}`
+    'Failed to fetch management team'
+  );
+}
+
+// New function to get all team members (for admin management)
+export async function getAllTeamMembers(): Promise<DbServiceResponse<TeamMember[]>> {
+  return handleDbOperation(
+    async () => {
+      const { data, error } = await supabase
+        .from('team_members')
+        .select('*')
+        .order('member_type', { ascending: true })
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+      return data as TeamMember[] || [];
+    },
+    'Failed to fetch all team members'
   );
 }

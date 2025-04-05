@@ -1,16 +1,7 @@
 
 import { supabase } from '@/services/supabase/supabaseClient';
 import { handleDbOperation, DbServiceResponse } from './utils/dbService';
-
-export interface Sponsor {
-  id?: string;
-  name: string;
-  logo_url?: string;
-  website_url?: string;
-  tier: 'platinum' | 'gold' | 'silver' | 'bronze';
-  description?: string;
-  is_active?: boolean;
-}
+import { Sponsor } from '@/types/sponsors';
 
 /**
  * Fetch all sponsors
@@ -26,7 +17,7 @@ export async function fetchSponsors(): Promise<DbServiceResponse<Sponsor[]>> {
         .order('name', { ascending: true });
 
       if (error) throw error;
-      return data || [];
+      return data as Sponsor[] || [];
     },
     'Failed to fetch sponsors'
   );
@@ -45,7 +36,7 @@ export async function fetchSponsorById(id: string): Promise<DbServiceResponse<Sp
         .single();
 
       if (error) throw error;
-      return data;
+      return data as Sponsor;
     },
     `Failed to fetch sponsor with id ${id}`
   );
@@ -64,7 +55,7 @@ export async function createSponsor(sponsor: Omit<Sponsor, 'id'>): Promise<DbSer
         .single();
 
       if (error) throw error;
-      return data;
+      return data as Sponsor;
     },
     'Failed to create sponsor'
   );
@@ -84,7 +75,7 @@ export async function updateSponsor(id: string, sponsor: Partial<Sponsor>): Prom
         .single();
 
       if (error) throw error;
-      return data;
+      return data as Sponsor;
     },
     `Failed to update sponsor with id ${id}`
   );
@@ -122,8 +113,25 @@ export async function fetchSponsorsByTier(tier: string): Promise<DbServiceRespon
         .order('name', { ascending: true });
 
       if (error) throw error;
-      return data || [];
+      return data as Sponsor[] || [];
     },
     `Failed to fetch sponsors with tier ${tier}`
+  );
+}
+
+// New function to directly return all sponsors (for admin management)
+export async function getAllSponsors(): Promise<DbServiceResponse<Sponsor[]>> {
+  return handleDbOperation(
+    async () => {
+      const { data, error } = await supabase
+        .from('sponsors')
+        .select('*')
+        .order('tier', { ascending: true })
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+      return data as Sponsor[] || [];
+    },
+    'Failed to fetch all sponsors'
   );
 }

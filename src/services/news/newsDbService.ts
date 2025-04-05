@@ -1,6 +1,6 @@
 
 import { supabase } from '@/services/supabase/supabaseClient';
-import { NewsArticle, CreateNewsArticleData, UpdateNewsArticleData, NewsQueryOptions } from '@/types/News';
+import { NewsArticle, CreateNewsArticleData, UpdateNewsArticleData, NewsQueryOptions } from '@/types';
 import { showErrorToUser, safeAsync, ErrorType, createAppError } from '@/utils/errorHandling';
 
 const DEFAULT_PAGE_SIZE = 10;

@@ -74,6 +74,23 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Text hierarchy styles */
+  h1 {
+    @apply text-4xl font-bold tracking-tight;
+  }
+  h2 {
+    @apply text-3xl font-bold;
+  }
+  h3 {
+    @apply text-xl font-bold;
+  }
+  h4 {
+    @apply text-lg font-semibold;
+  }
+  h5 {
+    @apply text-base font-medium;
+  }
 }
 
 @layer utilities {
@@ -87,4 +104,23 @@
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
   }
+  
+  /* Section dividers */
+  .section-divider {
+    @apply w-full h-12 relative overflow-hidden;
+  }
+  
+  .pattern-overlay {
+    @apply absolute inset-0 opacity-20 pointer-events-none;
+  }
+  
+  /* Cards with consistent styling */
+  .feature-card {
+    @apply bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden;
+  }
+  
+  .card-header {
+    @apply bg-team-blue text-white p-4 border-b-4 border-team-lightBlue;
+  }
 }
+

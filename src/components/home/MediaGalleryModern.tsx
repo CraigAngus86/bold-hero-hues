@@ -13,24 +13,22 @@ import {
   Instagram,
   Youtube,
   Twitter,
-  Facebook
+  Facebook,
+  ExternalLink
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogClose } from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface MediaItem {
   id: string;
   title: string;
   description?: string;
   image_url: string;
-  thumbnail_url: string;
   media_type: 'image' | 'video';
-  category: string;
   date_added: string;
   is_featured: boolean;
+  size: 'small' | 'medium' | 'large';
 }
 
 const MediaGalleryModern = () => {
@@ -41,106 +39,86 @@ const MediaGalleryModern = () => {
       title: 'Match Highlights: Banks o\' Dee vs Formartine',
       description: 'Highlights from our 3-1 victory at Spain Park',
       image_url: '/lovable-uploads/0c8edeaf-c67c-403f-90f0-61b390e5e89a.png',
-      thumbnail_url: '/lovable-uploads/0c8edeaf-c67c-403f-90f0-61b390e5e89a.png',
       media_type: 'video',
-      category: 'match-highlights',
       date_added: '2025-04-02T10:30:00Z',
-      is_featured: true
+      is_featured: true,
+      size: 'large'
     },
     {
       id: '2',
       title: 'Team Photo 2024/25 Season',
       description: 'Official team photo for the current season',
       image_url: '/lovable-uploads/4651b18c-bc2e-4e02-96ab-8993f8dfc145.png',
-      thumbnail_url: '/lovable-uploads/4651b18c-bc2e-4e02-96ab-8993f8dfc145.png',
       media_type: 'image',
-      category: 'team-photos',
       date_added: '2025-03-15T09:00:00Z',
-      is_featured: true
+      is_featured: true,
+      size: 'medium'
     },
     {
       id: '3',
       title: 'New Kit Launch',
       description: 'Unveiling our new home kit for the 2024/25 season',
       image_url: '/lovable-uploads/7f997ef4-9019-4660-9e9e-4e230d7b1eb3.png',
-      thumbnail_url: '/lovable-uploads/7f997ef4-9019-4660-9e9e-4e230d7b1eb3.png',
       media_type: 'image',
-      category: 'club-news',
       date_added: '2025-02-28T14:15:00Z',
-      is_featured: false
+      is_featured: false,
+      size: 'small'
     },
     {
       id: '4',
       title: 'Spain Park Stadium Improvements',
       description: 'Recent improvements to our home ground',
       image_url: '/lovable-uploads/ba4e2b09-12ed-48ad-a4ba-1162ab87ad70.png',
-      thumbnail_url: '/lovable-uploads/ba4e2b09-12ed-48ad-a4ba-1162ab87ad70.png',
       media_type: 'image',
-      category: 'club-news',
       date_added: '2025-02-10T11:45:00Z',
-      is_featured: false
+      is_featured: false,
+      size: 'medium'
     },
     {
       id: '5',
       title: 'Interview with Manager Jamie Watt',
       description: 'Pre-match thoughts ahead of crucial cup tie',
       image_url: '/lovable-uploads/banks-o-dee-dark-logo.png',
-      thumbnail_url: '/lovable-uploads/banks-o-dee-dark-logo.png',
       media_type: 'video',
-      category: 'interviews',
       date_added: '2025-01-20T16:30:00Z',
-      is_featured: false
+      is_featured: false,
+      size: 'small'
     },
     {
       id: '6',
       title: 'Youth Academy Training Session',
       description: 'Our future stars in action',
       image_url: '/lovable-uploads/cb95b9fb-0f2d-42ef-9788-10509a80ed6e.png',
-      thumbnail_url: '/lovable-uploads/cb95b9fb-0f2d-42ef-9788-10509a80ed6e.png',
       media_type: 'image',
-      category: 'youth',
       date_added: '2025-01-05T10:00:00Z',
-      is_featured: false
+      is_featured: false,
+      size: 'medium'
     },
     {
       id: '7',
       title: 'Community Outreach Program',
       description: 'Banks o\' Dee FC giving back to the community',
       image_url: '/lovable-uploads/02654c64-77bc-4a05-ae93-7c8173d0dc3c.png',
-      thumbnail_url: '/lovable-uploads/02654c64-77bc-4a05-ae93-7c8173d0dc3c.png',
       media_type: 'image',
-      category: 'community',
       date_added: '2025-01-03T09:15:00Z',
-      is_featured: false
+      is_featured: false,
+      size: 'small'
     },
     {
       id: '8',
       title: 'Highland League Trophy Ceremony',
       description: 'Celebrating our league victory',
       image_url: '/lovable-uploads/0617ed5b-43b8-449c-870e-5bba374f7cb4.png',
-      thumbnail_url: '/lovable-uploads/0617ed5b-43b8-449c-870e-5bba374f7cb4.png',
       media_type: 'image',
-      category: 'club-news',
       date_added: '2024-12-15T18:00:00Z',
-      is_featured: false
+      is_featured: false,
+      size: 'large'
     }
   ];
   
-  // State for filtering and lightbox
-  const [activeCategory, setActiveCategory] = useState<string>('all');
-  const [isScrolling, setIsScrolling] = useState<boolean>(false);
-  const [showLeftArrow, setShowLeftArrow] = useState<boolean>(false);
-  const [showRightArrow, setShowRightArrow] = useState<boolean>(true);
   const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null);
   const [isLightboxOpen, setIsLightboxOpen] = useState<boolean>(false);
   
-  const galleryRef = useRef<HTMLDivElement>(null);
-  
-  // Filter items based on active category
-  const filteredItems = activeCategory === 'all' 
-    ? mediaItems 
-    : mediaItems.filter(item => item.category === activeCategory);
-
   // Handle media item click
   const handleItemClick = (item: MediaItem) => {
     setSelectedItem(item);
@@ -151,50 +129,6 @@ const MediaGalleryModern = () => {
   const closeLightbox = () => {
     setIsLightboxOpen(false);
   };
-  
-  // Calculate unique categories
-  const categories = ['all', ...Array.from(new Set(mediaItems.map(item => item.category)))];
-  
-  useEffect(() => {
-    const gallery = galleryRef.current;
-    if (!gallery) return;
-
-    const checkArrows = () => {
-      setShowLeftArrow(gallery.scrollLeft > 0);
-      setShowRightArrow(gallery.scrollLeft < gallery.scrollWidth - gallery.clientWidth - 10);
-    };
-
-    gallery.addEventListener('scroll', checkArrows);
-    checkArrows(); // Initial check
-
-    // Check after images might have loaded
-    window.addEventListener('load', checkArrows);
-    window.addEventListener('resize', checkArrows);
-
-    return () => {
-      gallery.removeEventListener('scroll', checkArrows);
-      window.removeEventListener('load', checkArrows);
-      window.removeEventListener('resize', checkArrows);
-    };
-  }, [activeCategory]); // Re-run when category changes
-
-  const scroll = (direction: 'left' | 'right') => {
-    const gallery = galleryRef.current;
-    if (!gallery) return;
-
-    setIsScrolling(true);
-
-    const scrollAmount = gallery.clientWidth * 0.8;
-    const targetScroll = gallery.scrollLeft + (direction === 'right' ? scrollAmount : -scrollAmount);
-
-    gallery.scrollTo({
-      left: targetScroll,
-      behavior: 'smooth'
-    });
-
-    // Reset scrolling state after animation
-    setTimeout(() => setIsScrolling(false), 500);
-  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -202,137 +136,98 @@ const MediaGalleryModern = () => {
   };
 
   return (
-    <section className="bg-team-blue py-12 overflow-hidden">
-      <div className="container mx-auto px-4 relative">
-        <div className="flex flex-col md:flex-row justify-between items-center mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-white">
-            Media Gallery
-          </h2>
-          
-          <div className="mt-4 md:mt-0">
-            <Tabs defaultValue="all" value={activeCategory} onValueChange={setActiveCategory}>
-              <TabsList className="bg-team-navy/50">
-                {categories.map(category => (
-                  <TabsTrigger 
-                    key={category}
-                    value={category}
-                    className="text-white data-[state=active]:bg-white data-[state=active]:text-team-blue"
-                  >
-                    {category === 'all' ? 'All' : category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
-          </div>
-        </div>
+    <section className="bg-team-blue py-16 overflow-hidden">
+      <div className="container mx-auto px-4">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="mb-10"
+        >
+          <h2 className="text-3xl font-bold text-white mb-4 text-center">Media Gallery</h2>
+          <p className="text-team-lightBlue text-center max-w-2xl mx-auto">
+            Explore our latest photos, videos, and media content from matches, training sessions, and community events.
+          </p>
+        </motion.div>
         
-        <div className="relative">
-          {/* Left scroll button */}
-          {showLeftArrow && (
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-black/60 text-white rounded-full p-2 hover:bg-black/80 transition-all"
-              onClick={() => scroll('left')}
-              disabled={isScrolling}
-              aria-label="Scroll left"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </motion.button>
-          )}
-          
-          {/* Right scroll button */}
-          {showRightArrow && (
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-black/60 text-white rounded-full p-2 hover:bg-black/80 transition-all"
-              onClick={() => scroll('right')}
-              disabled={isScrolling}
-              aria-label="Scroll right"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </motion.button>
-          )}
-          
-          {/* Gallery */}
-          <div 
-            ref={galleryRef}
-            className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
-            {filteredItems.map((item) => (
+        <div className="grid grid-cols-12 gap-4">
+          {mediaItems.map((item) => {
+            // Determine column span based on size
+            const colSpan = 
+              item.size === 'small' ? 'col-span-12 sm:col-span-6 md:col-span-3' :
+              item.size === 'medium' ? 'col-span-12 sm:col-span-6 md:col-span-6' :
+              'col-span-12 md:col-span-9';
+            
+            // Determine row span for larger items
+            const rowSpan = item.size === 'large' ? 'row-span-2' : '';
+            
+            // Determine aspect ratio based on size
+            const aspectRatio = 
+              item.size === 'small' ? 'aspect-square' :
+              item.size === 'medium' ? 'aspect-video' :
+              'aspect-[16/9]';
+            
+            return (
               <motion.div
                 key={item.id}
-                layout
                 initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.3 }}
-                className="flex-shrink-0 w-72 md:w-80 snap-start"
-                onClick={() => handleItemClick(item)}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4 }}
+                className={`${colSpan} ${rowSpan}`}
               >
-                <Card 
-                  className="bg-white rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow group h-full"
+                <div 
+                  className={`w-full h-full overflow-hidden rounded-lg cursor-pointer relative group ${aspectRatio}`}
+                  onClick={() => handleItemClick(item)}
                 >
-                  <div className="relative aspect-video overflow-hidden">
-                    <img 
-                      src={item.thumbnail_url} 
-                      alt={item.title}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      loading="lazy"
-                    />
-                    
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-                      <div className="text-white">
-                        <p className="font-medium line-clamp-1">{item.title}</p>
-                        {item.description && (
-                          <p className="text-sm text-white/80 line-clamp-1">{item.description}</p>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Media type indicator */}
-                    <div className={cn(
-                      "absolute top-2 right-2 rounded-md p-1",
-                      item.media_type === 'video' ? "bg-red-500" : "bg-blue-500"
-                    )}>
-                      {item.media_type === 'video' ? (
-                        <Video className="w-4 h-4 text-white" />
-                      ) : (
-                        <ImageIcon className="w-4 h-4 text-white" />
-                      )}
-                    </div>
+                  <img 
+                    src={item.image_url} 
+                    alt={item.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  
+                  {/* Overlay with gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-80 transition-opacity group-hover:opacity-100"></div>
+                  
+                  {/* Media type indicator */}
+                  <div className={cn(
+                    "absolute top-3 right-3 rounded-full p-2",
+                    item.media_type === 'video' ? "bg-red-600" : "bg-blue-600"
+                  )}>
+                    {item.media_type === 'video' ? (
+                      <Video className="w-4 h-4 text-white" />
+                    ) : (
+                      <ImageIcon className="w-4 h-4 text-white" />
+                    )}
                   </div>
                   
-                  <div className="p-3 flex justify-between items-center">
-                    <div>
-                      <p className="text-sm font-medium line-clamp-1">{item.title}</p>
-                      <p className="text-xs text-gray-500">{formatDate(item.date_added)}</p>
+                  {/* Content overlay */}
+                  <div className="absolute bottom-0 left-0 right-0 p-4 transform transition-transform duration-300 translate-y-2 group-hover:translate-y-0">
+                    <h3 className="text-white font-bold text-lg line-clamp-1">{item.title}</h3>
+                    {item.description && (
+                      <p className="text-gray-200 text-sm mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">{item.description}</p>
+                    )}
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="text-xs text-gray-300">{formatDate(item.date_added)}</span>
+                      <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-team-lightBlue text-sm">View</span>
                     </div>
                   </div>
-                </Card>
+                </div>
               </motion.div>
-            ))}
-          </div>
-          
-          {filteredItems.length === 0 && (
-            <div className="bg-white/10 rounded-lg p-8 text-center text-white">
-              <p>No media items found for this category.</p>
-            </div>
-          )}
+            );
+          })}
         </div>
         
-        <div className="text-center mt-8">
+        <div className="text-center mt-10">
           <Button 
             asChild
             variant="outline"
-            className="text-white border-white hover:bg-white hover:text-team-blue"
+            className="text-white border-white hover:bg-white hover:text-team-blue font-medium"
+            size="lg"
           >
-            <Link to="/gallery">
-              View Full Gallery
+            <Link to="/gallery" className="inline-flex items-center">
+              View Full Gallery <ExternalLink className="w-4 h-4 ml-2" />
             </Link>
           </Button>
         </div>

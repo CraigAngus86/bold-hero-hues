@@ -1,111 +1,74 @@
-import { useNavigate } from 'react-router-dom';
-import { Trophy } from 'lucide-react';
+
 import { Card, CardContent } from '@/components/ui/card';
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/Table';
-import { TeamStats } from '../league/types';
+import { Table } from 'lucide-react';
+import { TeamStats } from '@/components/league/types';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 interface LeagueTablePreviewProps {
   leagueData: TeamStats[] | null;
 }
 
 const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
-  const navigate = useNavigate();
-  
-  // Get exactly 6 teams to display
-  const getPreviewTeams = () => {
-    if (!leagueData || leagueData.length === 0) return [];
-    
-    // Find Banks o' Dee position
-    const banksODeeIndex = leagueData.findIndex(team => 
-      team.team.toLowerCase().includes("banks o' dee") || 
-      team.team.toLowerCase().includes("banks o dee")
-    );
-    
-    // If we have 6 or fewer teams, show all of them
-    if (leagueData.length <= 6) return leagueData;
-    
-    // If Banks o' Dee is not in the data or outside top 6, return top 5 + Banks
-    if (banksODeeIndex === -1 || banksODeeIndex >= 6) {
-      const result = [...leagueData.slice(0, 5)];
-      if (banksODeeIndex !== -1) {
-        result.push(leagueData[banksODeeIndex]);
-      } else {
-        result.push(leagueData[5]);
-      }
-      return result;
-    }
-    
-    // Otherwise Banks o' Dee is in top 6, so just return top 6
-    return leagueData.slice(0, 6);
+  const isBanksODee = (team: string) => {
+    return team?.toLowerCase().includes('banks') && team?.toLowerCase().includes('dee');
   };
   
-  const handleNavigateToTable = () => {
-    navigate('/table');
-    window.scrollTo(0, 0);
-  };
-  
-  const previewTeams = getPreviewTeams();
+  // Only show top 5 teams
+  const displayTeams = leagueData?.slice(0, 5) || [];
   
   return (
-    <Card className="overflow-hidden border border-gray-200 hover:shadow-md transition-shadow bg-white flex flex-col h-full rounded-lg">
-      <div className="bg-team-blue text-white font-semibold py-3 px-4 flex items-center justify-center">
-        <Trophy className="w-4 h-4 mr-2" />
-        <h3 className="text-lg">Highland League</h3>
+    <Card className="overflow-hidden border-none shadow-lg hover:shadow-xl transition-shadow bg-white flex flex-col h-full rounded-lg">
+      <div className="bg-team-blue text-white font-bold py-4 px-4 flex items-center justify-center border-b-4 border-team-lightBlue">
+        <Table className="w-5 h-5 mr-2" />
+        <h3 className="text-xl">League Table</h3>
       </div>
-      <CardContent className="p-4 flex-1 flex flex-col">
-        <div className="text-xs flex-1">
-          <Table>
-            <TableHeader className="bg-team-lightBlue/50">
-              <TableRow>
-                <TableHead className="h-8 py-1.5 text-team-blue font-semibold w-12">Pos</TableHead>
-                <TableHead className="h-8 py-1.5 text-team-blue font-semibold text-left">Team</TableHead>
-                <TableHead className="h-8 py-1.5 text-team-blue font-semibold text-center w-12">P</TableHead>
-                <TableHead className="h-8 py-1.5 text-team-blue font-semibold text-center w-12">Pts</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {previewTeams.length > 0 ? (
-                previewTeams.map((team) => (
-                  <TableRow 
-                    key={team.position}
-                    className={team.team.toLowerCase().includes("banks o") ? "bg-team-lightBlue/20" : ""}
-                  >
-                    <TableCell className="py-1.5 font-medium text-center">{team.position}</TableCell>
-                    <TableCell className="py-1.5">
-                      <div className="flex items-center space-x-1.5">
-                        {team.team.toLowerCase().includes("banks o") ? (
-                          <img 
-                            src="/lovable-uploads/banks-o-dee-logo.png" 
-                            alt="Banks o' Dee logo"
-                            className="w-4 h-4 object-contain"
-                          />
-                        ) : (
-                          <span className="w-4 h-4 flex-shrink-0"></span>
-                        )}
-                        <span className="text-xs truncate max-w-[90px]">{team.team}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-1.5 text-center text-xs">{team.played}</TableCell>
-                    <TableCell className="py-1.5 text-center text-xs font-bold">{team.points}</TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center py-2 text-gray-500">
-                    No league data available
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+      
+      <CardContent className="p-5 flex-1">
+        {displayTeams.length > 0 ? (
+          <div className="space-y-1">
+            {/* Table header */}
+            <div className="grid grid-cols-12 text-xs font-bold text-gray-500 border-b border-gray-200 pb-2 mb-2">
+              <div className="col-span-1">#</div>
+              <div className="col-span-5">Team</div>
+              <div className="col-span-2 text-center">P</div>
+              <div className="col-span-2 text-center">GD</div>
+              <div className="col-span-2 text-center">PTS</div>
+            </div>
+            
+            {/* Table rows */}
+            {displayTeams.map((team, index) => (
+              <div 
+                key={team.id} 
+                className={`grid grid-cols-12 text-sm py-2 ${index < displayTeams.length - 1 ? 'border-b border-gray-100' : ''} items-center`}
+              >
+                <div className="col-span-1 font-medium">{team.position}</div>
+                <div className="col-span-5 font-medium truncate">
+                  <span className={isBanksODee(team.name) ? 'text-team-blue font-bold' : ''}>
+                    {team.name}
+                  </span>
+                </div>
+                <div className="col-span-2 text-center">{team.played}</div>
+                <div className="col-span-2 text-center">{team.goalDifference}</div>
+                <div className="col-span-2 text-center font-bold">{team.points}</div>
+              </div>
+            ))}
+            
+            {/* Empty rows for visual balance if fewer than 5 teams */}
+            {displayTeams.length < 5 && Array.from({ length: 5 - displayTeams.length }).map((_, index) => (
+              <div key={`empty-${index}`} className="grid grid-cols-12 text-sm py-3 border-b border-gray-100 last:border-0"></div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex items-center justify-center h-[250px]">
+            <p className="text-gray-500 font-medium">No league data available</p>
+          </div>
+        )}
+        
         <div className="mt-4 text-center">
-          <button 
-            onClick={handleNavigateToTable}
-            className="inline-block px-4 py-2 bg-team-blue text-white text-sm font-medium rounded hover:bg-team-navy transition-colors w-full"
-          >
-            View Full Table
-          </button>
+          <Button asChild variant="outline" className="text-team-blue border-team-blue hover:bg-team-blue hover:text-white">
+            <Link to="/table">View Full Table</Link>
+          </Button>
         </div>
       </CardContent>
     </Card>

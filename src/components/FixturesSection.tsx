@@ -142,62 +142,63 @@ const FixturesSection = () => {
   const nextMatchWithTickets = upcomingMatches.find(match => match.ticketLink);
 
   return (
-    <section className="py-10 bg-team-gray">
+    <section className="py-12 bg-team-navy">
       <div className="container mx-auto px-3">
-        <div className="flex justify-between items-center mb-5">
-          <motion.h2 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="text-2xl font-semibold text-team-blue"
-          >
-            Results, Fixtures & League Table
-          </motion.h2>
-          
-          {nextMatchWithTickets && (
-            <Button 
-              asChild
-              size="sm"
-              className="bg-team-blue hover:bg-team-navy text-white"
-            >
-              <a 
-                href={nextMatchWithTickets.ticketLink} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="inline-flex items-center"
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-3xl font-bold text-white">
+              Results, Fixtures & League Table
+            </h2>
+            
+            {nextMatchWithTickets && (
+              <Button 
+                asChild
+                size="lg"
+                className="bg-team-lightBlue hover:bg-white text-team-blue font-medium"
               >
-                <Ticket className="w-4 h-4 mr-1" /> Buy Tickets
-              </a>
-            </Button>
+                <a 
+                  href={nextMatchWithTickets.ticketLink} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="inline-flex items-center"
+                >
+                  <Ticket className="w-5 h-5 mr-2" /> Buy Tickets
+                </a>
+              </Button>
+            )}
+          </div>
+          
+          {isLoading ? (
+            <div className="h-96 flex items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-team-lightBlue"></div>
+              <p className="ml-4 text-white text-lg">Loading matches data...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-1">
+                <div className="h-full">
+                  <RecentResults matches={recentResults} />
+                </div>
+              </div>
+              
+              <div className="md:col-span-1">
+                <div className="h-full">
+                  <UpcomingFixtures matches={upcomingMatches} />
+                </div>
+              </div>
+              
+              <div className="md:col-span-1">
+                <div className="h-full">
+                  <LeagueTablePreview leagueData={leagueData} />
+                </div>
+              </div>
+            </div>
           )}
-        </div>
-        
-        {isLoading ? (
-          <div className="h-48 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-team-blue"></div>
-            <p className="ml-3 text-gray-600">Loading data...</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="md:col-span-1">
-              <div className="h-full">
-                <RecentResults matches={recentResults} />
-              </div>
-            </div>
-            
-            <div className="md:col-span-1">
-              <div className="h-full">
-                <UpcomingFixtures matches={upcomingMatches} />
-              </div>
-            </div>
-            
-            <div className="md:col-span-1">
-              <div className="h-full">
-                <LeagueTablePreview leagueData={leagueData} />
-              </div>
-            </div>
-          </div>
-        )}
+        </motion.div>
       </div>
     </section>
   );

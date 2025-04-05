@@ -1,4 +1,3 @@
-
 import { supabase } from '@/services/supabase/supabaseClient';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
@@ -50,14 +49,6 @@ interface StoredImageMetadata {
   };
 }
 
-// Define RPC function types to help TypeScript understand our function calls
-type SupabaseRpcFunction = 
-  | 'store_image_metadata' 
-  | 'get_image_metadata' 
-  | 'update_image_metadata' 
-  | 'delete_image_metadata'
-  | 'move_image_metadata';
-
 /**
  * Upload an image to a specific bucket
  */
@@ -99,7 +90,7 @@ export async function uploadImage(
       
       // Store metadata using stored procedure function
       if (metadata || dimensions) {
-        // Using Supabase's rpc method to store metadata with proper typing
+        // Using Supabase's rpc method to store metadata
         const { error: metadataError } = await supabase
           .rpc('store_image_metadata', {
             bucket_id: bucketId,
@@ -109,7 +100,7 @@ export async function uploadImage(
             description: metadata?.description,
             tags: metadata?.tags,
             dimensions: dimensions ? JSON.stringify(dimensions) : null
-          });
+          } as Record<string, any>);
         
         if (metadataError) throw metadataError;
       }
@@ -162,12 +153,12 @@ export async function getImages(
             .from(bucketId)
             .getPublicUrl(filePath);
             
-          // Get metadata using rpc function with proper typing
+          // Get metadata using rpc function
           const { data: metadataData, error: metadataError } = await supabase
             .rpc('get_image_metadata', { 
               p_bucket_id: bucketId,
               p_storage_path: filePath
-            });
+            } as Record<string, any>);
             
           if (metadataError) console.error('Error fetching metadata:', metadataError);
 
@@ -204,12 +195,12 @@ export async function deleteImage(
 ): Promise<DbServiceResponse<boolean>> {
   return handleDbOperation(
     async () => {
-      // Delete metadata using rpc function with proper typing
+      // Delete metadata using rpc function
       await supabase
         .rpc('delete_image_metadata', {
           p_bucket_id: bucketId,
           p_storage_path: path
-        });
+        } as Record<string, any>);
       
       // Then delete the image
       const { error } = await supabase
@@ -270,14 +261,14 @@ export async function moveImage(
 
       if (uploadError) throw uploadError;
 
-      // Update metadata using rpc function with proper typing
+      // Update metadata using rpc function
       const { error: moveError } = await supabase
         .rpc('move_image_metadata', {
           p_source_bucket_id: sourceBucketId,
           p_source_path: sourcePath,
           p_dest_bucket_id: destinationBucketId,
           p_dest_path: destinationPath
-        });
+        } as Record<string, any>);
       
       if (moveError) throw moveError;
 
@@ -334,7 +325,7 @@ export async function updateImageMetadata(
 ): Promise<DbServiceResponse<boolean>> {
   return handleDbOperation(
     async () => {
-      // Update metadata using rpc function with proper typing
+      // Update metadata using rpc function
       const { error } = await supabase
         .rpc('update_image_metadata', {
           p_bucket_id: bucketId,
@@ -342,7 +333,7 @@ export async function updateImageMetadata(
           p_alt_text: metadata.alt_text,
           p_description: metadata.description,
           p_tags: metadata.tags
-        });
+        } as Record<string, any>);
         
       if (error) throw error;
       return true;
@@ -360,12 +351,12 @@ export async function getImageMetadata(
 ): Promise<DbServiceResponse<StoredImageMetadata>> {
   return handleDbOperation(
     async () => {
-      // Get metadata using rpc function with proper typing
+      // Get metadata using rpc function
       const { data, error } = await supabase
         .rpc('get_image_metadata', {
           p_bucket_id: bucketId,
           p_storage_path: path
-        });
+        } as Record<string, any>);
         
       if (error) throw error;
       return data as StoredImageMetadata; // Type assertion for the returned data

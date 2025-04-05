@@ -2,7 +2,8 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { Clock } from 'lucide-react';
-import { Match, formatDate } from './types';
+import { Match } from './types';
+import { formatShortDate } from '@/utils/date';
 
 interface RecentResultsProps {
   matches: Match[];
@@ -29,6 +30,9 @@ const RecentResults = ({ matches }: RecentResultsProps) => {
     return 'text-amber-600';
   };
   
+  // Display max 4 matches to maintain consistent height with league table
+  const displayMatches = matches.slice(0, 4);
+  
   return (
     <Card className="overflow-hidden border border-gray-200 hover:shadow-md transition-shadow bg-white flex flex-col h-full rounded-lg">
       <div className="bg-team-blue text-white font-semibold py-3 px-4 flex items-center justify-center">
@@ -36,12 +40,12 @@ const RecentResults = ({ matches }: RecentResultsProps) => {
         <h3 className="text-lg">Recent Results</h3>
       </div>
       <CardContent className="p-4 flex-1">
-        {matches.length > 0 ? (
+        {displayMatches.length > 0 ? (
           <div className="space-y-3">
-            {matches.map(match => (
-              <div key={match.id} className="border-b border-gray-100 last:border-0 pb-3 last:pb-0 min-h-[90px] flex flex-col justify-between">
+            {displayMatches.map(match => (
+              <div key={match.id} className="border-b border-gray-100 last:border-0 pb-3 last:pb-0">
                 <div className="text-xs text-gray-600 mb-1.5 font-medium">
-                  {formatDate(match.date)} • {match.competition}
+                  {formatDate(match.date)} | {match.competition} | {match.venue}
                 </div>
                 
                 <div className="flex items-center">
@@ -68,10 +72,6 @@ const RecentResults = ({ matches }: RecentResultsProps) => {
                   </div>
                 </div>
                 
-                <div className="text-xs text-gray-500 mt-1.5 text-center">
-                  {match.venue}
-                </div>
-                
                 {match.hasMatchPhotos && (
                   <div className="mt-1.5 text-center">
                     <Link 
@@ -84,9 +84,14 @@ const RecentResults = ({ matches }: RecentResultsProps) => {
                 )}
               </div>
             ))}
+            
+            {/* Add empty placeholder divs if we have fewer than 4 matches */}
+            {displayMatches.length < 4 && Array.from({ length: 4 - displayMatches.length }).map((_, index) => (
+              <div key={`empty-${index}`} className="border-b border-gray-100 last:border-0 pb-3 last:pb-0 h-[60px]"></div>
+            ))}
           </div>
         ) : (
-          <div className="flex items-center justify-center h-32">
+          <div className="flex items-center justify-center h-[248px]">
             <p className="text-gray-500 text-sm">No recent results</p>
           </div>
         )}

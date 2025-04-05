@@ -1,11 +1,11 @@
 
 // Date formatting utility functions
 export const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
   const options: Intl.DateTimeFormatOptions = { 
     weekday: 'long', 
     day: 'numeric', 
-    month: 'long', 
-    year: 'numeric' 
+    month: 'short'
   };
   return new Date(dateString).toLocaleDateString('en-GB', options);
 };

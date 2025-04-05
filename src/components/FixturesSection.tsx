@@ -180,15 +180,21 @@ const FixturesSection = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-1">
-              <RecentResults matches={recentResults} />
+              <div className="h-full">
+                <RecentResults matches={recentResults} />
+              </div>
             </div>
             
             <div className="md:col-span-1">
-              <UpcomingFixtures matches={upcomingMatches} />
+              <div className="h-full">
+                <UpcomingFixtures matches={upcomingMatches} />
+              </div>
             </div>
             
             <div className="md:col-span-1">
-              <LeagueTablePreview leagueData={leagueData} />
+              <div className="h-full">
+                <LeagueTablePreview leagueData={leagueData} />
+              </div>
             </div>
           </div>
         )}

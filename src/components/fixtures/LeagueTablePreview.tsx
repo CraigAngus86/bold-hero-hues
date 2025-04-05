@@ -11,7 +11,7 @@ interface LeagueTablePreviewProps {
 const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
   const navigate = useNavigate();
   
-  // Handle empty or null data with sensible defaults
+  // Get exactly 6 teams to display
   const getPreviewTeams = () => {
     if (!leagueData || leagueData.length === 0) return [];
     
@@ -21,23 +21,22 @@ const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
       team.team.toLowerCase().includes("banks o dee")
     );
     
-    if (banksODeeIndex === -1) {
-      // If Banks o' Dee is not in the data, just return top 8
-      return leagueData.slice(0, 8);
-    } else {
-      // Make sure we include Banks o' Dee and other teams to total 8
-      const result = [...leagueData.slice(0, 7)]; // Get top 7 teams
-      
-      // If Banks o' Dee is already in top 7, add the 8th team
-      if (banksODeeIndex < 7) {
-        result.push(leagueData[7]);
-        return result;
+    // If we have 6 or fewer teams, show all of them
+    if (leagueData.length <= 6) return leagueData;
+    
+    // If Banks o' Dee is not in the data or outside top 6, return top 5 + Banks
+    if (banksODeeIndex === -1 || banksODeeIndex >= 6) {
+      const result = [...leagueData.slice(0, 5)];
+      if (banksODeeIndex !== -1) {
+        result.push(leagueData[banksODeeIndex]);
+      } else {
+        result.push(leagueData[5]);
       }
-      
-      // Otherwise, add Banks o' Dee as the 8th team
-      result.push(leagueData[banksODeeIndex]);
       return result;
     }
+    
+    // Otherwise Banks o' Dee is in top 6, so just return top 6
+    return leagueData.slice(0, 6);
   };
   
   const handleNavigateToTable = () => {
@@ -58,10 +57,10 @@ const LeagueTablePreview = ({ leagueData }: LeagueTablePreviewProps) => {
           <Table>
             <TableHeader className="bg-team-lightBlue/50">
               <TableRow>
-                <TableHead className="h-8 py-1.5 text-team-blue font-semibold">Pos</TableHead>
+                <TableHead className="h-8 py-1.5 text-team-blue font-semibold w-12">Pos</TableHead>
                 <TableHead className="h-8 py-1.5 text-team-blue font-semibold text-left">Team</TableHead>
-                <TableHead className="h-8 py-1.5 text-team-blue font-semibold text-center">P</TableHead>
-                <TableHead className="h-8 py-1.5 text-team-blue font-semibold text-center">Pts</TableHead>
+                <TableHead className="h-8 py-1.5 text-team-blue font-semibold text-center w-12">P</TableHead>
+                <TableHead className="h-8 py-1.5 text-team-blue font-semibold text-center w-12">Pts</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/services/supabase/supabaseClient';
+import { PostgrestFilterBuilder } from '@supabase/supabase-js';
 
 interface UseSupabaseFetchOptions<T> {
   tableName: string;
@@ -33,7 +34,8 @@ export function useSupabaseFetch<T>({
       try {
         setIsLoading(true);
         
-        let query = supabase
+        // Using any for the query to avoid strict typing issues with table names
+        let query: any = supabase
           .from(tableName)
           .select(columns);
         
@@ -58,7 +60,7 @@ export function useSupabaseFetch<T>({
         
         if (error) throw error;
         
-        setData(result);
+        setData(result as T[]);
       } catch (error) {
         console.error(`Error fetching data from ${tableName}:`, error);
         setError(error as Error);

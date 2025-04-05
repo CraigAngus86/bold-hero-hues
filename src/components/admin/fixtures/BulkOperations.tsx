@@ -233,6 +233,7 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({ onRefreshData }) => {
               onClick={handleImportCSV} 
               disabled={!csvFile || isUploading}
               className="w-full"
+              variant="default"
             >
               {isUploading ? (
                 <>
@@ -261,6 +262,7 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({ onRefreshData }) => {
             onClick={handleExportCSV}
             disabled={isExporting}
             className="w-full"
+            variant="default"
           >
             {isExporting ? (
               <>
@@ -282,21 +284,21 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({ onRefreshData }) => {
               <Label>Update Type</Label>
               <div className="flex gap-4">
                 <Button
-                  variant={updateType === 'complete' ? 'default' : 'outline'}
+                  variant={updateType === 'complete' ? 'default' : 'default'}
                   onClick={() => setUpdateType('complete')}
                   className="flex-1"
                 >
                   Mark as Complete
                 </Button>
                 <Button
-                  variant={updateType === 'postpone' ? 'default' : 'outline'}
+                  variant={updateType === 'postpone' ? 'default' : 'default'}
                   onClick={() => setUpdateType('postpone')}
                   className="flex-1"
                 >
                   Postpone
                 </Button>
                 <Button
-                  variant={updateType === 'reschedule' ? 'default' : 'outline'}
+                  variant={updateType === 'reschedule' ? 'default' : 'default'}
                   onClick={() => setUpdateType('reschedule')}
                   className="flex-1"
                 >
@@ -309,6 +311,7 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({ onRefreshData }) => {
               onClick={handleBulkUpdate}
               disabled={isUpdating}
               className="w-full"
+              variant="default"
             >
               {isUpdating ? (
                 <>

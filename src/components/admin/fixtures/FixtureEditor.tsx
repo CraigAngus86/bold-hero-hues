@@ -106,13 +106,19 @@ const FixtureEditor: React.FC<FixtureEditorProps> = ({
               away_score: data.away_score,
               ticket_link: data.ticket_link || "",
               season: data.season || seasons[0],
-              match_report: data.match_report || "",
+              match_report: "",
             });
           }
         })
-        .finally(() => setIsLoading(false));
+        .catch(err => {
+          console.error('Error:', err);
+          toast.error('Failed to load fixture data');
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
     }
-  }, [fixtureId, form]);
+  }, [fixtureId, form, seasons]);
   
   // Fetch all venues, teams, and competitions for dropdowns
   useEffect(() => {

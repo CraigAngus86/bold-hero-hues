@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/admin/layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -27,7 +26,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 // Import components
 import { FixturesList } from '@/components/admin/fixtures/FixturesList';
-import { FixturesManager } from '@/components/admin/fixtures/FixturesManager';
+import FixturesManager from '@/components/admin/fixtures/FixturesManager';
 import FixtureEditor from '@/components/admin/fixtures/FixtureEditor';
 import CalendarView from '@/components/admin/fixtures/CalendarView';
 import BulkOperations from '@/components/admin/fixtures/BulkOperations';

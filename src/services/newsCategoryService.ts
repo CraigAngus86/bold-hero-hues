@@ -12,28 +12,14 @@ export interface NewsCategory {
  */
 export async function createNewsCategory(name: string): Promise<NewsCategory> {
   try {
-    // Check if categories table exists by performing a count query
-    const { count, error: countError } = await supabase
+    const { data, error } = await supabase
       .from('news_categories')
-      .select('*', { count: 'exact', head: true });
-    
-    // If table doesn't exist, create it
-    if (countError && countError.message.includes('does not exist')) {
-      console.log('Categories table does not exist yet, creating category in news_articles instead');
-      // For now, just create an article with this category
-      // This is a fallback approach until a proper categories table exists
-      throw new Error('Categories table does not exist');
-    } else {
-      // Table exists, insert the category
-      const { data, error } = await supabase
-        .from('news_categories')
-        .insert({ name })
-        .select()
-        .single();
+      .insert({ name })
+      .select()
+      .single();
 
-      if (error) throw error;
-      return data as NewsCategory;
-    }
+    if (error) throw error;
+    return data as NewsCategory;
   } catch (error) {
     console.error('Error creating category:', error);
     toast.error('Failed to create category');

@@ -7,21 +7,17 @@ import { showErrorToUser, createAppError, ErrorType } from '@/utils/errorHandlin
  */
 export async function getCategories(): Promise<string[]> {
   try {
-    // First try to get from dedicated categories table if it exists
-    try {
-      const { data: categoryData, error: categoryError } = await supabase
-        .from('news_categories')
-        .select('name')
-        .order('name');
+    // Query the dedicated categories table
+    const { data: categoryData, error: categoryError } = await supabase
+      .from('news_categories')
+      .select('name')
+      .order('name');
         
-      if (!categoryError && categoryData) {
-        return categoryData.map(cat => cat.name);
-      }
-    } catch (e) {
-      console.log('News categories table might not exist, falling back');
+    if (!categoryError && categoryData) {
+      return categoryData.map(cat => cat.name);
     }
     
-    // Fallback to distinct values from news_articles
+    // Fallback to distinct values from news_articles if needed
     const { data, error } = await supabase
       .from('news_articles')
       .select('category')

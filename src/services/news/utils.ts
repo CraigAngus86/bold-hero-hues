@@ -25,3 +25,15 @@ export const getDbDateFormat = (displayDate: string): string => {
   const date = new Date(displayDate);
   return date.toISOString().split('T')[0]; // YYYY-MM-DD
 };
+
+/**
+ * Generate a URL-friendly slug from a title
+ */
+export function generateSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}

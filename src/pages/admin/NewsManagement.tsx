@@ -33,6 +33,8 @@ const NewsManagement: React.FC = () => {
     setActiveTab('list');
   };
 
+  const categoryNames = categories ? categories.map(category => category.name) : [];
+
   return (
     <AdminLayout>
       <div className="flex items-center justify-between mb-6">
@@ -60,7 +62,7 @@ const NewsManagement: React.FC = () => {
         <TabsContent value="editor">
           <NewsArticleEditor
             article={editingArticle}
-            categories={categories || []}
+            categories={categoryNames}
             onSaveComplete={handleSaveComplete}
             isLoadingCategories={categoriesLoading}
           />

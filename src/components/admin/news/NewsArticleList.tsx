@@ -64,12 +64,13 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
   });
 
   // Extract unique categories
-  const categories = data?.data 
-    ? [...new Set(data.data.map(article => article.category))]
+  const articles = data?.data || [];
+  const categories = articles.length > 0
+    ? [...new Set(articles.map(article => article.category))]
     : [];
 
   // Filter articles based on search term and category
-  const filteredArticles = data?.data?.filter(article => {
+  const filteredArticles = articles.filter(article => {
     const matchesSearch = searchTerm 
       ? article.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
         article.content.toLowerCase().includes(searchTerm.toLowerCase())
@@ -84,7 +85,7 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
       : true;
       
     return matchesSearch && matchesCategory && matchesFeatured;
-  }) || [];
+  });
 
   const handleToggleFeatured = (id: string, currentStatus: boolean) => {
     toggleFeaturedMutation.mutate({ id, featured: !currentStatus });
@@ -246,7 +247,7 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
         {filteredArticles.length > 0 && (
           <div className="mt-4 text-right">
             <Small className="text-gray-500">
-              Showing {filteredArticles.length} of {data?.data?.length || 0} articles
+              Showing {filteredArticles.length} of {articles.length || 0} articles
             </Small>
           </div>
         )}

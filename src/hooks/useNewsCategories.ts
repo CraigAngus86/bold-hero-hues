@@ -15,8 +15,8 @@ export const useNewsCategories = () => {
   const { data, isLoading, error } = useQuery({
     queryKey: ['newsCategories'],
     queryFn: async () => {
-      // First try to get categories from dedicated table if it exists
       try {
+        // Now that we have the news_categories table created, we can query it directly
         const { data: categoryData, error: categoryError } = await supabase
           .from('news_categories')
           .select('*')
@@ -25,22 +25,29 @@ export const useNewsCategories = () => {
         if (!categoryError && categoryData) {
           return categoryData as NewsCategory[];
         }
+        
+        throw new Error('Failed to fetch categories');
       } catch (e) {
-        console.log('News categories table might not exist yet, falling back to distinct values');
+        console.log('Error fetching categories, falling back to distinct values');
+        
+        // Fallback to distinct categories from news_articles
+        const { data: articles } = await supabase
+          .from('news_articles')
+          .select('category');
+        
+        if (articles) {
+          // Get unique categories
+          const uniqueCategories = [...new Set(articles.map(a => a.category))];
+          
+          // Transform string array to object array to match expected interface
+          return uniqueCategories.map((name, index) => ({
+            id: `cat-${index}`,
+            name
+          }));
+        }
+        
+        return [];
       }
-      
-      // Fallback to distinct categories from news_articles
-      const { data: categories } = await getNewsCategories();
-      
-      if (categories) {
-        // Transform string array to object array to match expected interface
-        return categories.map((name, index) => ({
-          id: `cat-${index}`,
-          name
-        }));
-      }
-      
-      return [];
     }
   });
   

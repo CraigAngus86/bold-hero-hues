@@ -12,8 +12,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { MoveLeft, Save, Upload, AlertCircle, ImagePlus } from 'lucide-react';
-import { useImageUpload, imageUploadConfigs, BucketType } from '@/services/images';
+import { MoveLeft, Save, Upload, ImagePlus } from 'lucide-react';
+import { useImageUpload } from '@/services/images';
 import { Typography } from '@/components/ui';
 import { NewsArticle, CreateNewsArticleData } from '@/types';
 import { generateSlug } from '@/services/news/utils';
@@ -70,7 +70,7 @@ export const NewsArticleEditor: React.FC<NewsArticleEditorProps> = ({
       if (imageFile) {
         const result = await upload(
           imageFile,
-          imageUploadConfigs.newsBucket as BucketType,
+          'news',
           'articles'
         );
         if (result.success && result.data) {
@@ -98,7 +98,7 @@ export const NewsArticleEditor: React.FC<NewsArticleEditorProps> = ({
       if (imageFile) {
         const result = await upload(
           imageFile,
-          imageUploadConfigs.newsBucket as BucketType,
+          'news',
           'articles'
         );
         if (result.success && result.data) {

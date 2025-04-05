@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import FixturesScraper from '@/components/admin/fixtures/FixturesScraper';
 import FixturesImporter from '@/components/admin/fixtures/FixturesImporter';
 import ScraperDocumentation from '@/components/admin/fixtures/ScraperDocumentation';
+import FixturesManager from '@/components/admin/fixtures/FixturesManager';
 import { fetchMatchesFromSupabase } from '@/services/supabase/fixturesService';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, FileDown } from 'lucide-react';
@@ -66,7 +67,7 @@ export default function FixturesAdmin() {
           <TabsList className="mb-4">
             <TabsTrigger value="import">Import Fixtures</TabsTrigger>
             <TabsTrigger value="docs">Documentation</TabsTrigger>
-            <TabsTrigger value="manage" disabled={matches.length === 0}>Manage Fixtures ({matches.length})</TabsTrigger>
+            <TabsTrigger value="manage">Manage Fixtures ({matches.length})</TabsTrigger>
           </TabsList>
           
           <TabsContent value="import">
@@ -86,10 +87,7 @@ export default function FixturesAdmin() {
                 <p className="text-gray-500">No fixtures found. Import fixtures first.</p>
               </div>
             ) : (
-              <div className="border rounded-md p-4">
-                <p className="text-gray-500 mb-4">This section will allow editing and managing fixtures. Currently showing {matches.length} fixtures and results.</p>
-                <p className="text-sm text-amber-600">Fixture editing functionality coming soon.</p>
-              </div>
+              <FixturesManager />
             )}
           </TabsContent>
         </Tabs>

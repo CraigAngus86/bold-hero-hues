@@ -1,330 +1,313 @@
 
-import { supabase } from '@/services/supabase/supabaseClient';
-import { v4 as uuidv4 } from 'uuid';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { BucketType } from './config';
-import { getImageDimensions } from './utils';
 import { ImageMetadata, StoredImageMetadata } from './types';
-import { handleDbOperation, DbServiceResponse } from '../utils/dbService';
+import { v4 as uuidv4 } from 'uuid';
 
-type RpcFunction = 
-  | 'store_image_metadata' 
-  | 'get_image_metadata' 
-  | 'delete_image_metadata' 
-  | 'move_image_metadata' 
-  | 'update_image_metadata';
+// Function to get the public URL for an image
+export function getPublicUrl(bucketId: BucketType, path: string): string {
+  const { data } = supabase.storage.from(bucketId).getPublicUrl(path);
+  return data.publicUrl;
+}
 
 /**
- * Upload an image to a specific bucket
+ * Upload an image to storage and save metadata
  */
 export async function uploadImage(
-  file: File, 
-  bucketId: BucketType, 
-  path?: string,
+  file: File,
+  bucket: BucketType,
+  folderPath?: string, 
   metadata?: Partial<ImageMetadata>
-): Promise<DbServiceResponse<ImageMetadata>> {
-  return handleDbOperation<ImageMetadata>(
-    async () => {
-      // Generate a unique filename to prevent overwriting
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${uuidv4()}.${fileExt}`;
-      const filePath = path ? `${path}/${fileName}` : fileName;
+): Promise<{ success: boolean; data?: ImageMetadata; error?: any }> {
+  try {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${uuidv4()}.${fileExt}`;
+    const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
+    
+    // Upload file to storage bucket
+    const { error: uploadError } = await supabase.storage
+      .from(bucket)
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
 
-      // Upload the file to storage
-      const { data, error } = await supabase
-        .storage
-        .from(bucketId)
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
+    if (uploadError) {
+      throw uploadError;
+    }
+    
+    // Get public URL of uploaded file
+    const url = getPublicUrl(bucket, filePath);
+    
+    // Store metadata in database
+    const imageMetadata: StoredImageMetadata = {
+      bucket_id: bucket,
+      storage_path: filePath,
+      file_name: file.name,
+      alt_text: metadata?.alt_text,
+      description: metadata?.description,
+      tags: metadata?.tags,
+      dimensions: metadata?.dimensions
+    };
+    
+    const { error: metadataError } = await supabase
+      .from('image_metadata')
+      .insert(imageMetadata);
 
-      if (error) throw error;
-
-      // Get the public URL for the uploaded file
-      const { data: { publicUrl } } = supabase
-        .storage
-        .from(bucketId)
-        .getPublicUrl(data.path);
-        
-      // If we have image dimensions, store them
-      let dimensions;
-      if (file.type.startsWith('image/')) {
-        dimensions = await getImageDimensions(file);
-      }
-      
-      // Store metadata using stored procedure function
-      if (metadata || dimensions) {
-        // Using Supabase's rpc method to store metadata
-        const { error: metadataError } = await supabase
-          .rpc<any, any>('store_image_metadata' as RpcFunction, {
-            bucket_id: bucketId,
-            storage_path: data.path,
-            file_name: fileName,
-            alt_text: metadata?.alt_text || file.name.split('.')[0],
-            description: metadata?.description,
-            tags: metadata?.tags,
-            dimensions: dimensions ? JSON.stringify(dimensions) : null
-          });
-        
-        if (metadataError) throw metadataError;
-      }
-
-      return {
-        id: data.path,
-        name: fileName,
+    if (metadataError) {
+      console.warn('Error storing image metadata:', metadataError);
+      // Continue even if metadata storage fails
+    }
+    
+    // Return success with image data
+    return {
+      success: true,
+      data: {
+        id: fileName,
+        name: file.name,
         size: file.size,
         type: file.type,
-        bucketType: bucketId,
-        url: publicUrl,
+        bucketType: bucket,
+        url,
         alt_text: metadata?.alt_text,
         description: metadata?.description,
         tags: metadata?.tags,
-        dimensions: dimensions,
+        dimensions: metadata?.dimensions,
         createdAt: new Date().toISOString()
-      };
-    },
-    `Failed to upload image to ${bucketId}`
-  );
+      }
+    };
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    return { success: false, error };
+  }
 }
 
 /**
- * Get a list of images from a specific bucket
+ * Get images from a specific folder
  */
 export async function getImages(
-  bucketId: BucketType,
-  path?: string
-): Promise<DbServiceResponse<ImageMetadata[]>> {
-  return handleDbOperation<ImageMetadata[]>(
-    async () => {
-      const { data, error } = await supabase
-        .storage
-        .from(bucketId)
-        .list(path || '', {
-          limit: 100,
-          offset: 0,
-          sortBy: { column: 'name', order: 'asc' }
-        });
+  bucket: BucketType,
+  folderPath?: string
+): Promise<{ success: boolean; data?: ImageMetadata[]; error?: any }> {
+  try {
+    // List files in storage bucket with optional folder path
+    const path = folderPath || '';
+    const { data: files, error: listError } = await supabase.storage
+      .from(bucket)
+      .list(path, {
+        limit: 100,
+        offset: 0,
+        sortBy: { column: 'name', order: 'asc' }
+      });
 
-      if (error) throw error;
+    if (listError) {
+      throw listError;
+    }
 
-      // Map storage objects to ImageMetadata
-      const images = await Promise.all(data
-        .filter(item => !item.id.endsWith('/')) // Filter out folders
-        .map(async (item) => {
-          const filePath = path ? `${path}/${item.name}` : item.name;
-          const { data: { publicUrl } } = supabase
-            .storage
-            .from(bucketId)
-            .getPublicUrl(filePath);
-            
-          // Get metadata using rpc function
-          const { data: metadataData, error: metadataError } = await supabase
-            .rpc<StoredImageMetadata, any>('get_image_metadata' as RpcFunction, { 
-              p_bucket_id: bucketId,
-              p_storage_path: filePath
-            });
-            
-          if (metadataError) console.error('Error fetching metadata:', metadataError);
+    if (!files || files.length === 0) {
+      return { success: true, data: [] };
+    }
 
-          // Create a type-safe wrapper around the metadata response
-          const typedMetadata = metadataData as StoredImageMetadata | null;
+    // Get metadata for all files
+    const images: ImageMetadata[] = files
+      .filter(file => !file.id.endsWith('/')) // Filter out folders
+      .map(file => {
+        const filePath = folderPath ? `${folderPath}/${file.name}` : file.name;
+        const url = getPublicUrl(bucket, filePath);
+        
+        return {
+          id: file.id,
+          name: file.name,
+          size: file.metadata?.size || 0,
+          type: file.metadata?.mimetype || '',
+          bucketType: bucket,
+          url,
+          createdAt: file.created_at || new Date().toISOString()
+        };
+      });
 
-          return {
-            id: item.id,
-            name: item.name,
-            size: item.metadata?.size || 0,
-            type: item.metadata?.mimetype || '',
-            bucketType: bucketId,
-            url: publicUrl,
-            alt_text: typedMetadata?.alt_text,
-            description: typedMetadata?.description,
-            tags: typedMetadata?.tags,
-            dimensions: typedMetadata?.dimensions,
-            createdAt: item.created_at
-          };
-        }));
-
-      return images;
-    },
-    `Failed to fetch images from ${bucketId}`
-  );
+    return { success: true, data: images };
+  } catch (error) {
+    console.error('Error fetching images:', error);
+    return { success: false, error };
+  }
 }
 
 /**
- * Delete an image from a specific bucket
+ * Delete an image from storage and remove its metadata
  */
 export async function deleteImage(
-  bucketId: BucketType,
+  bucket: BucketType,
   path: string
-): Promise<DbServiceResponse<boolean>> {
-  return handleDbOperation<boolean>(
-    async () => {
-      // Delete metadata using rpc function
-      await supabase
-        .rpc<any, any>('delete_image_metadata' as RpcFunction, {
-          p_bucket_id: bucketId,
-          p_storage_path: path
-        });
-      
-      // Then delete the image
-      const { error } = await supabase
-        .storage
-        .from(bucketId)
-        .remove([path]);
+): Promise<{ success: boolean; error?: any }> {
+  try {
+    // Delete file from storage
+    const { error: deleteError } = await supabase.storage
+      .from(bucket)
+      .remove([path]);
 
-      if (error) throw error;
-      return true;
-    },
-    `Failed to delete image from ${bucketId}`
-  );
+    if (deleteError) {
+      throw deleteError;
+    }
+
+    // Delete metadata from database
+    const { error: metadataError } = await supabase
+      .from('image_metadata')
+      .delete()
+      .eq('bucket_id', bucket)
+      .eq('storage_path', path);
+
+    if (metadataError) {
+      console.warn('Error deleting image metadata:', metadataError);
+      // Continue even if metadata deletion fails
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting image:', error);
+    return { success: false, error };
+  }
 }
 
 /**
- * Get public URL for an image
- */
-export function getPublicUrl(bucketId: BucketType, path: string): string {
-  const { data: { publicUrl } } = supabase
-    .storage
-    .from(bucketId)
-    .getPublicUrl(path);
-
-  return publicUrl;
-}
-
-/**
- * Move an image to a different path or bucket
+ * Move an image to a new location
  */
 export async function moveImage(
-  sourceBucketId: BucketType,
-  sourcePath: string,
-  destinationBucketId: BucketType,
-  destinationPath: string
-): Promise<DbServiceResponse<boolean>> {
-  return handleDbOperation<boolean>(
-    async () => {
-      // First download the file
-      const { data: fileData, error: downloadError } = await supabase
-        .storage
-        .from(sourceBucketId)
-        .download(sourcePath);
+  bucket: BucketType,
+  oldPath: string,
+  newPath: string
+): Promise<{ success: boolean; error?: any }> {
+  try {
+    // Copy file to new location
+    const { error: copyError } = await supabase.storage
+      .from(bucket)
+      .copy(oldPath, newPath);
 
-      if (downloadError) throw downloadError;
+    if (copyError) {
+      throw copyError;
+    }
 
-      if (!fileData) {
-        throw new Error(`File not found at ${sourcePath}`);
-      }
+    // Delete the old file
+    const { error: deleteError } = await supabase.storage
+      .from(bucket)
+      .remove([oldPath]);
 
-      // Then upload to new location
-      const { error: uploadError } = await supabase
-        .storage
-        .from(destinationBucketId)
-        .upload(destinationPath, fileData, {
-          cacheControl: '3600',
-          upsert: true
-        });
+    if (deleteError) {
+      throw deleteError;
+    }
 
-      if (uploadError) throw uploadError;
+    // Update metadata in database
+    const { error: metadataError } = await supabase
+      .from('image_metadata')
+      .update({ storage_path: newPath })
+      .eq('bucket_id', bucket)
+      .eq('storage_path', oldPath);
 
-      // Update metadata using rpc function
-      const { error: moveError } = await supabase
-        .rpc<any, any>('move_image_metadata' as RpcFunction, {
-          p_source_bucket_id: sourceBucketId,
-          p_source_path: sourcePath,
-          p_dest_bucket_id: destinationBucketId,
-          p_dest_path: destinationPath
-        });
-      
-      if (moveError) throw moveError;
+    if (metadataError) {
+      console.warn('Error updating image metadata:', metadataError);
+      // Continue even if metadata update fails
+    }
 
-      // Finally delete from old location
-      const { error: deleteError } = await supabase
-        .storage
-        .from(sourceBucketId)
-        .remove([sourcePath]);
-
-      if (deleteError) throw deleteError;
-
-      return true;
-    },
-    `Failed to move image from ${sourceBucketId}/${sourcePath} to ${destinationBucketId}/${destinationPath}`
-  );
+    return { success: true };
+  } catch (error) {
+    console.error('Error moving image:', error);
+    return { success: false, error };
+  }
 }
 
 /**
- * Create a folder in a bucket
+ * Create a new folder in storage
  */
 export async function createFolder(
-  bucketId: BucketType,
-  folderPath: string
-): Promise<DbServiceResponse<boolean>> {
-  return handleDbOperation<boolean>(
-    async () => {
-      // Create an empty file with .folder extension to represent a folder
-      const { error } = await supabase
-        .storage
-        .from(bucketId)
-        .upload(`${folderPath}/.folder`, new Blob(['']));
+  bucket: BucketType,
+  folderPath: string,
+  folderName: string
+): Promise<{ success: boolean; error?: any }> {
+  try {
+    // Create a placeholder file to represent the folder
+    const path = folderPath ? `${folderPath}/${folderName}/.folder` : `${folderName}/.folder`;
+    const content = new Blob([''], { type: 'text/plain' });
+    
+    // Upload placeholder file
+    const { error } = await supabase.storage
+      .from(bucket)
+      .upload(path, content);
 
-      if (error && error.message !== 'The resource already exists') {
-        throw error;
-      }
+    if (error) {
+      throw error;
+    }
 
-      return true;
-    },
-    `Failed to create folder ${folderPath} in ${bucketId}`
-  );
+    // Create folder entry in database
+    const fullPath = folderPath ? `${folderPath}/${folderName}` : folderName;
+    const { error: dbError } = await supabase
+      .from('image_folders')
+      .insert({
+        name: folderName,
+        path: fullPath,
+        parent_id: null // This would need to be determined based on the folderPath
+      });
+
+    if (dbError) {
+      console.warn('Error creating folder in database:', dbError);
+      // Continue even if database entry fails
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error creating folder:', error);
+    return { success: false, error };
+  }
 }
 
 /**
  * Update image metadata
  */
 export async function updateImageMetadata(
-  bucketId: BucketType,
+  bucket: BucketType,
   path: string,
-  metadata: Partial<{
-    alt_text: string;
-    description: string;
-    tags: string[];
-  }>
-): Promise<DbServiceResponse<boolean>> {
-  return handleDbOperation<boolean>(
-    async () => {
-      // Update metadata using rpc function
-      const { error } = await supabase
-        .rpc<any, any>('update_image_metadata' as RpcFunction, {
-          p_bucket_id: bucketId,
-          p_storage_path: path,
-          p_alt_text: metadata.alt_text,
-          p_description: metadata.description,
-          p_tags: metadata.tags
-        });
-        
-      if (error) throw error;
-      return true;
-    },
-    `Failed to update metadata for image ${path}`
-  );
+  metadata: Partial<StoredImageMetadata>
+): Promise<{ success: boolean; error?: any }> {
+  try {
+    const { error } = await supabase
+      .from('image_metadata')
+      .update(metadata)
+      .eq('bucket_id', bucket)
+      .eq('storage_path', path);
+
+    if (error) {
+      throw error;
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating image metadata:', error);
+    return { success: false, error };
+  }
 }
 
 /**
- * Get image metadata
+ * Get image metadata from database
  */
 export async function getImageMetadata(
-  bucketId: BucketType,
+  bucket: BucketType,
   path: string
-): Promise<DbServiceResponse<StoredImageMetadata>> {
-  return handleDbOperation<StoredImageMetadata>(
-    async () => {
-      // Get metadata using rpc function
-      const { data, error } = await supabase
-        .rpc<StoredImageMetadata, any>('get_image_metadata' as RpcFunction, {
-          p_bucket_id: bucketId,
-          p_storage_path: path
-        });
-        
-      if (error) throw error;
-      return data;
-    },
-    `Failed to get metadata for image ${path}`
-  );
+): Promise<{ success: boolean; data?: StoredImageMetadata; error?: any }> {
+  try {
+    const { data, error } = await supabase
+      .from('image_metadata')
+      .select('*')
+      .eq('bucket_id', bucket)
+      .eq('storage_path', path)
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error fetching image metadata:', error);
+    return { success: false, error };
+  }
 }

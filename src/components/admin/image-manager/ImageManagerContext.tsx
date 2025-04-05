@@ -6,7 +6,7 @@ import { useFolderOperations } from './folderOperations';
 import { useImageDialog } from './ImageDialogState';
 import { ImageManagerContextType, ImageFolder } from './types';
 
-export { ImageFolder };
+export type { ImageFolder };
 
 export const ImageManagerContext = createContext<ImageManagerContextType | undefined>(undefined);
 

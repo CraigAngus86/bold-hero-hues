@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import UpcomingFixtures from './fixtures/UpcomingFixtures';
@@ -6,7 +7,7 @@ import LeagueTablePreview from './fixtures/LeagueTablePreview';
 import { TeamStats } from './league/types';
 import { fetchLeagueTableFromSupabase } from '@/services/supabase/leagueDataService';
 import { Match } from './fixtures/types';
-import { toast } from 'sonner';
+import { toast } from "sonner";
 import { fetchFixturesFromSupabase, fetchResultsFromSupabase } from '@/services/supabase/fixturesService';
 import { convertToMatches } from '@/types/fixtures';
 import { supabase } from '@/integrations/supabase/client';
@@ -74,7 +75,7 @@ const FixturesSection = () => {
               return isUpcoming;
             })
             .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-            .slice(0, 3);
+            .slice(0, 4); // Showing 4 upcoming matches instead of 3
           
           console.log('Filtered upcoming matches:', upcoming.length);
           return upcoming;
@@ -84,7 +85,7 @@ const FixturesSection = () => {
           return matches
             .filter(match => match.isCompleted)
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-            .slice(0, 3);
+            .slice(0, 4); // Showing 4 recent results instead of 3
         };
         
         if (fixtures.length > 0) {
@@ -121,12 +122,12 @@ const FixturesSection = () => {
         const upcoming = mockMatches
           .filter(match => !match.isCompleted && new Date(match.date) >= today)
           .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-          .slice(0, 3);
+          .slice(0, 4); // Showing 4 upcoming matches instead of 3
         
         const recent = mockMatches
           .filter(match => match.isCompleted)
           .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-          .slice(0, 3);
+          .slice(0, 4); // Showing 4 recent results instead of 3
         
         setUpcomingMatches(upcoming);
         setRecentResults(recent);
@@ -141,9 +142,9 @@ const FixturesSection = () => {
   const nextMatchWithTickets = upcomingMatches.find(match => match.ticketLink);
 
   return (
-    <section className="py-8 bg-team-gray">
-      <div className="container mx-auto px-2">
-        <div className="flex justify-between items-center mb-3">
+    <section className="py-10 bg-team-gray">
+      <div className="container mx-auto px-3">
+        <div className="flex justify-between items-center mb-5">
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -177,7 +178,7 @@ const FixturesSection = () => {
             <p className="ml-3 text-gray-600">Loading data...</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-1">
               <RecentResults matches={recentResults} />
             </div>

@@ -13,23 +13,23 @@ const UpcomingFixtures = ({ matches }: UpcomingFixturesProps) => {
   };
   
   return (
-    <Card className="overflow-hidden border-team-gray hover:shadow-md transition-shadow bg-white flex flex-col h-full">
-      <div className="bg-[#00105a] text-white font-medium p-3 flex items-center justify-center">
+    <Card className="overflow-hidden border border-gray-200 hover:shadow-md transition-shadow bg-white flex flex-col h-full rounded-lg">
+      <div className="bg-team-blue text-white font-semibold py-3 px-4 flex items-center justify-center">
         <Calendar className="w-4 h-4 mr-2" />
-        <h3 className="text-lg font-semibold">Upcoming Matches</h3>
+        <h3 className="text-lg">Upcoming Matches</h3>
       </div>
-      <CardContent className="p-3 flex-1">
+      <CardContent className="p-4 flex-1">
         {matches.length > 0 ? (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {matches.map(match => (
-              <div key={match.id} className="border-b border-gray-100 last:border-0 pb-2 last:pb-0">
-                <div className="text-xs text-gray-500 mb-1">
+              <div key={match.id} className="border-b border-gray-100 last:border-0 pb-3 last:pb-0 min-h-[90px] flex flex-col justify-between">
+                <div className="text-xs text-gray-600 mb-1.5 font-medium">
                   {formatDate(match.date)} • {match.time} • {match.competition}
                 </div>
                 
                 <div className="flex items-center">
                   <div className="flex-1 text-right pr-2 text-sm">
-                    <span className={`font-medium ${isBanksODee(match.homeTeam) ? 'text-team-blue' : ''}`}>
+                    <span className={`font-medium truncate inline-block max-w-28 ${isBanksODee(match.homeTeam) ? 'text-team-blue font-semibold' : ''}`}>
                       {match.homeTeam}
                     </span>
                   </div>
@@ -41,13 +41,13 @@ const UpcomingFixtures = ({ matches }: UpcomingFixturesProps) => {
                   </div>
                   
                   <div className="flex-1 pl-2 text-sm">
-                    <span className={`font-medium ${isBanksODee(match.awayTeam) ? 'text-team-blue' : ''}`}>
+                    <span className={`font-medium truncate inline-block max-w-28 ${isBanksODee(match.awayTeam) ? 'text-team-blue font-semibold' : ''}`}>
                       {match.awayTeam}
                     </span>
                   </div>
                 </div>
                 
-                <div className="text-xs text-gray-500 mt-1 text-center">
+                <div className="text-xs text-gray-500 mt-1.5 text-center">
                   {match.venue}
                 </div>
               </div>

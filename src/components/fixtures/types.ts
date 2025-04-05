@@ -1,3 +1,5 @@
+
+// Types for fixtures data
 export interface Match {
   id: string;
   date: string;
@@ -13,53 +15,30 @@ export interface Match {
   ticketLink?: string;
 }
 
-export interface MatchGroup {
-  month: string;
-  matches: Match[];
-}
+// Format date in a consistent way: "Sat, 15 Apr 2023"
+export const formatDate = (dateString: string): string => {
+  const options: Intl.DateTimeFormatOptions = { 
+    weekday: 'short', 
+    day: 'numeric', 
+    month: 'short', 
+    year: 'numeric' 
+  };
+  
+  return new Date(dateString).toLocaleDateString('en-GB', options);
+};
 
-export function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('en-GB', { 
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short'
-  });
-}
-
-export function groupMatchesByMonth(matches: Match[]): MatchGroup[] {
-  const groupedMatches: { [month: string]: Match[] } = {};
+// Format time in consistent way: "15:00"
+export const formatTime = (timeString: string): string => {
+  // If time is already in format "15:00", return as is
+  if (/^\d{1,2}:\d{2}$/.test(timeString)) {
+    return timeString;
+  }
   
-  matches.forEach(match => {
-    const date = new Date(match.date);
-    const month = date.toLocaleDateString('en-GB', { year: 'numeric', month: 'long' });
-    
-    if (!groupedMatches[month]) {
-      groupedMatches[month] = [];
-    }
-    
-    groupedMatches[month].push(match);
-  });
-  
-  return Object.entries(groupedMatches).map(([month, matches]) => ({
-    month,
-    matches
-  }));
-}
-
-export function getAvailableMonths(matches: Match[]): string[] {
-  const months = new Set<string>();
-  
-  matches.forEach(match => {
-    const date = new Date(match.date);
-    const monthYear = date.toLocaleDateString('en-GB', { year: 'numeric', month: 'long' });
-    months.add(monthYear);
-  });
-  
-  return Array.from(months).sort((a, b) => {
-    // Convert to Date objects for comparison
-    const dateA = new Date(a.split(' ')[0] + ' 1, ' + a.split(' ')[1]);
-    const dateB = new Date(b.split(' ')[0] + ' 1, ' + b.split(' ')[1]);
-    return dateA.getTime() - dateB.getTime();
-  });
-}
+  // Try to parse and format other time formats
+  try {
+    const [hours, minutes] = timeString.split(':');
+    return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+  } catch (e) {
+    return timeString; // Return original if parsing fails
+  }
+};

@@ -1,127 +1,86 @@
 
-import { useEffect, useState } from 'react';
-import { useSponsorsStore } from '@/services/sponsorsService';
-import { Sponsor } from '@/types/sponsors';
-import { Skeleton } from '@/components/ui/skeleton';
+import React from 'react';
+import { Typography } from '@/components/ui';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-const SponsorsSection = () => {
-  const { isLoading, sponsors, loadSponsors } = useSponsorsStore();
-  const [groupedSponsors, setGroupedSponsors] = useState<Record<string, Sponsor[]>>({});
+const { H2, H3, Body } = Typography;
 
-  useEffect(() => {
-    loadSponsors();
-  }, [loadSponsors]);
+// Mock data for sponsors
+const sponsors = [
+  {
+    id: 1,
+    name: 'Aberdeen FC',
+    logo: '/lovable-uploads/0617ed5b-43b8-449c-870e-5bba374f7cb4.png',
+    tier: 'platinum',
+    website: 'https://example.com/sponsor1'
+  },
+  {
+    id: 2,
+    name: 'SPFL',
+    logo: '/lovable-uploads/8f2cd33f-1e08-494a-9aaa-65792ee9418a.png',
+    tier: 'gold',
+    website: 'https://example.com/sponsor2'
+  },
+  {
+    id: 3,
+    name: 'Highland League',
+    logo: '/lovable-uploads/122628af-86b4-4d7f-bfe3-01d4bf03d053.png',
+    tier: 'gold',
+    website: 'https://example.com/sponsor3'
+  },
+  {
+    id: 4,
+    name: 'Other Sponsor',
+    logo: '/lovable-uploads/c5b46adc-8c4c-4b59-9a27-4ec841222d92.png',
+    tier: 'silver',
+    website: 'https://example.com/sponsor4'
+  },
+];
 
-  useEffect(() => {
-    if (sponsors.length > 0) {
-      const grouped = sponsors.reduce((acc, sponsor) => {
-        if (!sponsor.is_active) return acc;
-        
-        const tier = sponsor.tier || 'bronze';
-        if (!acc[tier]) {
-          acc[tier] = [];
-        }
-        acc[tier].push(sponsor);
-        return acc;
-      }, {} as Record<string, Sponsor[]>);
-      
-      setGroupedSponsors(grouped);
-    }
-  }, [sponsors]);
-
-  const tierLabels: Record<string, string> = {
-    'platinum': 'Main Sponsors',
-    'gold': 'Official Partners',
-    'silver': 'Official Sponsors',
-    'bronze': 'Community Sponsors'
-  };
-
-  const renderSponsorTier = (tier: string, sponsors: Sponsor[]) => {
-    return (
-      <div key={tier} className="mb-8 last:mb-0">
-        <h3 className="text-lg font-semibold mb-4 text-team-blue">
-          {tierLabels[tier] || 'Sponsors'}
-        </h3>
-        
-        <div className="flex overflow-x-auto space-x-6 pb-4 scrollbar-hide">
-          {sponsors.map(sponsor => (
-            <a 
-              key={sponsor.id} 
-              href={sponsor.website_url || '#'} 
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-shrink-0 group relative"
-            >
-              <div className="bg-white rounded-lg p-4 h-24 w-40 md:w-48 flex items-center justify-center border border-gray-200 hover:shadow-md transition-all">
-                {sponsor.logo_url ? (
-                  <img 
-                    src={sponsor.logo_url} 
-                    alt={sponsor.name} 
-                    className="max-h-16 max-w-full object-contain filter group-hover:brightness-90 transition-all"
-                  />
-                ) : (
-                  <div className="text-center text-gray-500 text-sm">{sponsor.name}</div>
-                )}
-              </div>
-              <div className="absolute inset-x-0 bottom-0 bg-team-blue text-white text-xs py-1 text-center opacity-0 group-hover:opacity-100 transition-opacity rounded-b-lg">
-                {sponsor.name}
-              </div>
-            </a>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  const renderSkeletons = () => {
-    return (
-      <div className="mb-8">
-        <Skeleton className="h-6 w-40 mb-4" />
-        <div className="flex space-x-6 overflow-hidden">
-          {[1, 2, 3, 4].map(i => (
-            <Skeleton key={i} className="h-24 w-40 md:w-48 rounded-lg flex-shrink-0" />
-          ))}
-        </div>
-      </div>
-    );
-  };
-
+const SponsorsSection: React.FC = () => {
   return (
-    <section className="py-12 bg-gray-50">
-      <div className="container mx-auto px-4">
-        <h2 className="text-2xl md:text-3xl font-bold text-center text-team-blue mb-8">
-          Our Sponsors
-        </h2>
-        
-        {isLoading ? (
-          <>
-            {renderSkeletons()}
-            {renderSkeletons()}
-          </>
-        ) : (
-          <>
-            {Object.entries(groupedSponsors)
-              .sort(([tierA], [tierB]) => {
-                const tierOrder = { 'platinum': 1, 'gold': 2, 'silver': 3, 'bronze': 4 };
-                return (tierOrder[tierA as keyof typeof tierOrder] || 999) - 
-                       (tierOrder[tierB as keyof typeof tierOrder] || 999);
-              })
-              .map(([tier, sponsors]) => renderSponsorTier(tier, sponsors))
-            }
-          </>
-        )}
-        
-        <div className="text-center mt-8">
-          <a 
-            href="/sponsors" 
-            className="inline-flex items-center text-team-blue hover:text-team-navy font-medium"
-          >
-            Become a Sponsor
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
-          </a>
-        </div>
+    <section>
+      <div className="mb-8 text-center">
+        <H2 className="mb-2">Club Sponsors</H2>
+        <Body className="max-w-2xl mx-auto">
+          Banks o' Dee FC is proud to be associated with these businesses who support our club.
+          Their generous sponsorship helps us achieve our goals.
+        </Body>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        {sponsors.map((sponsor) => (
+          <Card key={sponsor.id} className="hover:shadow-md transition-shadow">
+            <CardContent className="flex flex-col items-center justify-center p-6 text-center">
+              <div className="bg-white rounded-full p-2 mb-4 w-24 h-24 flex items-center justify-center">
+                <img 
+                  src={sponsor.logo} 
+                  alt={`${sponsor.name} logo`} 
+                  className="max-w-full max-h-full object-contain"
+                />
+              </div>
+              <H3 className="mb-1">{sponsor.name}</H3>
+              <p className="text-sm text-gray-500 capitalize mb-4">{sponsor.tier} Sponsor</p>
+              
+              <Button variant="outline" size="sm" asChild className="w-full">
+                <a href={sponsor.website} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center">
+                  Visit Website <ExternalLink className="w-4 h-4 ml-2" />
+                </a>
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      
+      <div className="text-center">
+        <Button asChild>
+          <Link to="/sponsors">
+            See All Our Sponsors
+          </Link>
+        </Button>
       </div>
     </section>
   );

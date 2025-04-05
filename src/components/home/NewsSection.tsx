@@ -4,12 +4,15 @@ import { useQuery } from '@tanstack/react-query';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Typography } from '@/components/ui';
 import { getArticles } from '@/services/news/db/listing';
 import { NewsArticle } from '@/types';
 import { formatDate } from '@/services/news/utils';
 import NewsCard from '@/components/news/NewsCard';
 import NewsSectionSkeleton from './NewsSectionSkeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
+
+const { H2 } = Typography;
 
 interface NewsSectionProps {
   excludeIds?: string[]; // IDs of articles to exclude (e.g., from hero)
@@ -95,7 +98,7 @@ const NewsSection: React.FC<NewsSectionProps> = ({
     return (
       <div className="py-16 bg-white">
         <div className="container mx-auto px-4">
-          <h2 className="text-2xl font-semibold text-team-blue mb-6">Latest News</h2>
+          <H2 className="mb-6">Latest News</H2>
           <div className="bg-gray-100 rounded-lg p-6 text-center">
             <p className="text-gray-500">Unable to load news articles. Please try again later.</p>
           </div>
@@ -109,7 +112,7 @@ const NewsSection: React.FC<NewsSectionProps> = ({
     return (
       <div className="py-16 bg-white">
         <div className="container mx-auto px-4">
-          <h2 className="text-2xl font-semibold text-team-blue mb-6">Latest News</h2>
+          <H2 className="mb-6">Latest News</H2>
           <div className="bg-gray-100 rounded-lg p-6 text-center">
             <p className="text-gray-500">No news articles available at the moment.</p>
           </div>
@@ -119,54 +122,52 @@ const NewsSection: React.FC<NewsSectionProps> = ({
   }
 
   return (
-    <section className="py-16 bg-white">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl font-semibold text-team-blue">Latest News</h2>
-          
-          <Button asChild variant="outline" className="bg-team-lightBlue hover:bg-team-blue hover:text-white text-team-blue">
-            <Link to="/news" className="inline-flex items-center">
-              View All News <ArrowRight className="w-4 h-4 ml-2" />
-            </Link>
-          </Button>
-        </div>
+    <section>
+      <div className="flex justify-between items-center mb-8">
+        <H2>Latest News</H2>
         
-        <div className="grid grid-cols-12 gap-6">
-          {/* Featured Article - 6x6 grid area (spans 6 columns, height of 2 rows) */}
-          {featuredArticle && (
-            <div className="col-span-12 md:col-span-6 row-span-2">
-              <NewsCard
-                title={featuredArticle.title}
-                excerpt={processExcerpt(featuredArticle.content, true)}
-                image={featuredArticle.image_url || getLocalImageFallback(0)}
-                date={formatDate(featuredArticle.publish_date)}
-                category={featuredArticle.category}
-                slug={featuredArticle.slug}
-                size="large"
-                className="h-full"
-              />
-            </div>
-          )}
-          
-          {/* 8 standard articles in 3x3 grid format */}
-          {regularArticles.map((article, index) => (
-            <div 
-              key={article.id} 
-              className="col-span-12 sm:col-span-6 md:col-span-3"
-            >
-              <NewsCard
-                title={article.title}
-                excerpt={processExcerpt(article.content)}
-                image={article.image_url || getLocalImageFallback(index + 1)}
-                date={formatDate(article.publish_date)}
-                category={article.category}
-                slug={article.slug}
-                size="small"
-                className="h-full"
-              />
-            </div>
-          ))}
-        </div>
+        <Button asChild variant="outline">
+          <Link to="/news" className="inline-flex items-center">
+            View All News <ArrowRight className="w-4 h-4 ml-2" />
+          </Link>
+        </Button>
+      </div>
+      
+      <div className="grid grid-cols-12 gap-6">
+        {/* Featured Article - 6x6 grid area (spans 6 columns, height of 2 rows) */}
+        {featuredArticle && (
+          <div className="col-span-12 md:col-span-6 row-span-2">
+            <NewsCard
+              title={featuredArticle.title}
+              excerpt={processExcerpt(featuredArticle.content, true)}
+              image={featuredArticle.image_url || getLocalImageFallback(0)}
+              date={formatDate(featuredArticle.publish_date)}
+              category={featuredArticle.category}
+              slug={featuredArticle.slug}
+              size="large"
+              className="h-full"
+            />
+          </div>
+        )}
+        
+        {/* 8 standard articles in 3x3 grid format */}
+        {regularArticles.map((article, index) => (
+          <div 
+            key={article.id} 
+            className="col-span-12 sm:col-span-6 md:col-span-3"
+          >
+            <NewsCard
+              title={article.title}
+              excerpt={processExcerpt(article.content)}
+              image={article.image_url || getLocalImageFallback(index + 1)}
+              date={formatDate(article.publish_date)}
+              category={article.category}
+              slug={article.slug}
+              size="small"
+              className="h-full"
+            />
+          </div>
+        ))}
       </div>
     </section>
   );

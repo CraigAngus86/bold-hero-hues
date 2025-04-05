@@ -2,10 +2,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Typography } from '@/components/ui';
 import { formatDate } from '@/services/news/utils';
 import { Link } from 'react-router-dom';
 import { useFeaturedArticles } from '@/hooks/useFeaturedArticles';
 import HeroSkeleton from './HeroSkeleton';
+
+const { H1, Body } = Typography;
 
 const HeroSection: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -76,10 +79,10 @@ const HeroSection: React.FC = () => {
   
   if (error || !articles || articles.length === 0) {
     return (
-      <div className="w-full h-[60vh] md:h-[60vh] sm:h-[40vh] relative bg-team-navy flex items-center justify-center">
+      <div className="w-full h-[60vh] md:h-[60vh] sm:h-[40vh] relative bg-primary-800 flex items-center justify-center">
         <div className="text-white text-center p-8">
-          <h2 className="text-2xl font-bold mb-4">Welcome to Banks o' Dee FC</h2>
-          <p className="mb-6">The home of Banks o' Dee Football Club</p>
+          <H1 className="mb-4 text-white">Welcome to Banks o' Dee FC</H1>
+          <Body className="mb-6 text-white">The home of Banks o' Dee Football Club</Body>
           <Button asChild>
             <Link to="/news">Latest News</Link>
           </Button>
@@ -128,19 +131,28 @@ const HeroSection: React.FC = () => {
             
             <div className="absolute bottom-0 left-0 p-4 md:p-8 w-full md:w-2/3 text-white">
               <div className="animate-fade-in">
-                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 line-clamp-2">
+                <span className="inline-block px-3 py-1 mb-4 bg-secondary-300 text-primary-800 text-xs font-semibold rounded">
+                  {article.category || 'News'}
+                </span>
+                
+                <H1 className="mb-2 text-white line-clamp-2">
                   {article.title}
-                </h2>
+                </H1>
                 
-                <p className="text-sm md:text-base mb-4 line-clamp-2 text-gray-200">
+                <Body className="mb-4 line-clamp-2 text-gray-200">
                   {article.content.replace(/<[^>]*>?/gm, '').substring(0, 120)}...
-                </p>
+                </Body>
                 
-                <Button asChild size="sm" className="bg-team-blue hover:bg-team-navy">
-                  <Link to={`/news/${article.slug}`}>
-                    Read More
-                  </Link>
-                </Button>
+                <div className="flex items-center gap-4">
+                  <Button asChild size="sm">
+                    <Link to={`/news/${article.slug}`}>
+                      Read More
+                    </Link>
+                  </Button>
+                  <span className="text-white/70 text-sm">
+                    {formatDate(article.publish_date)}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

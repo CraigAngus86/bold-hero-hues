@@ -10,6 +10,7 @@ import SponsorsSection from '@/components/home/SponsorsSection';
 import Footer from '@/components/Footer';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useFeaturedArticles } from '@/hooks/useFeaturedArticles';
+import { Container } from '@/components/ui';
 
 const Index = () => {
   // Get featured articles IDs to exclude from news section
@@ -25,7 +26,7 @@ const Index = () => {
       </ErrorBoundary>
       
       {/* Section Divider with Texture */}
-      <div className="w-full h-12 bg-gradient-to-r from-team-navy via-team-blue to-team-lightBlue relative overflow-hidden">
+      <div className="w-full h-12 bg-gradient-to-r from-primary-800 via-primary-700 to-secondary-300 relative overflow-hidden">
         <div 
           className="absolute inset-0 opacity-20"
           style={{
@@ -37,7 +38,7 @@ const Index = () => {
       
       {/* Latest News - updated to show 9 articles in a 12x12 grid */}
       <ErrorBoundary>
-        <div className="relative py-12">
+        <div className="relative py-12 md:py-16">
           {/* Background pattern overlay */}
           <div 
             className="absolute inset-0 opacity-5 pointer-events-none" 
@@ -46,14 +47,16 @@ const Index = () => {
               backgroundSize: "60px 60px"
             }}
           ></div>
-          <NewsSection excludeIds={featuredArticleIds} initialCount={9} />
+          <Container>
+            <NewsSection excludeIds={featuredArticleIds} initialCount={9} />
+          </Container>
         </div>
       </ErrorBoundary>
       
       {/* Diagonal Section Divider with Texture */}
       <div className="relative h-24 overflow-hidden">
         <div className="absolute inset-0 bg-gray-50 z-10"></div>
-        <div className="absolute -bottom-10 left-0 right-0 h-24 bg-team-navy transform -skew-y-2 z-20"></div>
+        <div className="absolute -bottom-10 left-0 right-0 h-24 bg-primary-800 transform -skew-y-2 z-20"></div>
         <div 
           className="absolute -bottom-10 left-0 right-0 h-24 transform -skew-y-2 z-30 opacity-20"
           style={{
@@ -65,12 +68,16 @@ const Index = () => {
       
       {/* Fixtures, Results & League Table Section */}
       <ErrorBoundary>
-        <FixturesSection />
+        <div className="bg-primary-800 text-white py-12 md:py-16">
+          <Container>
+            <FixturesSection />
+          </Container>
+        </div>
       </ErrorBoundary>
       
       {/* Diagonal Section Divider with Texture */}
       <div className="relative h-24 overflow-hidden">
-        <div className="absolute inset-0 bg-team-navy z-10"></div>
+        <div className="absolute inset-0 bg-primary-800 z-10"></div>
         <div className="absolute -bottom-10 left-0 right-0 h-24 bg-gray-50 transform skew-y-2 z-20"></div>
         <div 
           className="absolute -bottom-10 left-0 right-0 h-24 transform skew-y-2 z-30 opacity-20"
@@ -83,7 +90,11 @@ const Index = () => {
       
       {/* Combined Social Media and Fan Zone Section */}
       <ErrorBoundary>
-        <SocialFanSection />
+        <div className="py-12 md:py-16">
+          <Container>
+            <SocialFanSection />
+          </Container>
+        </div>
       </ErrorBoundary>
       
       {/* Curved Section Divider with Texture */}
@@ -104,7 +115,11 @@ const Index = () => {
       
       {/* Media Gallery - Modern Mosaic Implementation */}
       <ErrorBoundary>
-        <MediaGalleryModern />
+        <div className="bg-primary-800 text-white py-12 md:py-16">
+          <Container>
+            <MediaGalleryModern />
+          </Container>
+        </div>
       </ErrorBoundary>
       
       {/* Wave Section Divider with Texture */}
@@ -125,7 +140,11 @@ const Index = () => {
       
       {/* Sponsors Section */}
       <ErrorBoundary>
-        <SponsorsSection />
+        <div className="py-12 md:py-16">
+          <Container>
+            <SponsorsSection />
+          </Container>
+        </div>
       </ErrorBoundary>
       
       <Footer />

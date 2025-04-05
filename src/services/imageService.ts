@@ -1,4 +1,3 @@
-
 import { supabase } from '@/services/supabase/supabaseClient';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
@@ -74,21 +73,20 @@ export async function uploadImage(
         dimensions = await getImageDimensions(file);
       }
       
-      // Store metadata using raw SQL or RPC since TypeScript isn't aware of the image_metadata table
+      // Store metadata using stored procedure function
       if (metadata || dimensions) {
         // Using Supabase's rpc method to store metadata
-        const metadataToStore = {
+        const { error: metadataError } = await supabase.rpc('store_image_metadata', {
           bucket_id: bucketId,
           storage_path: data.path,
           file_name: fileName,
           alt_text: metadata?.alt_text || file.name.split('.')[0],
           description: metadata?.description,
           tags: metadata?.tags,
-          dimensions: dimensions ? JSON.stringify({ width: dimensions.width, height: dimensions.height }) : null
-        };
+          dimensions: dimensions ? JSON.stringify(dimensions) : null
+        });
         
-        // Use raw SQL or rpc to insert metadata
-        await supabase.rpc('store_image_metadata', metadataToStore).maybeSingle();
+        if (metadataError) throw metadataError;
       }
 
       return {
@@ -139,13 +137,14 @@ export async function getImages(
             .from(bucketId)
             .getPublicUrl(filePath);
             
-          // Get metadata using rpc function instead of direct table access
-          const { data: metadataData } = await supabase
+          // Get metadata using rpc function
+          const { data: metadataData, error: metadataError } = await supabase
             .rpc('get_image_metadata', { 
               p_bucket_id: bucketId,
               p_storage_path: filePath
-            })
-            .maybeSingle();
+            });
+            
+          if (metadataError) console.error('Error fetching metadata:', metadataError);
 
           return {
             id: item.id,
@@ -154,10 +153,10 @@ export async function getImages(
             type: item.metadata?.mimetype || '',
             bucketType: bucketId,
             url: publicUrl,
-            alt_text: metadataData?.alt_text,
-            description: metadataData?.description,
-            tags: metadataData?.tags,
-            dimensions: metadataData?.dimensions,
+            alt_text: metadataData ? metadataData.alt_text : undefined,
+            description: metadataData ? metadataData.description : undefined,
+            tags: metadataData ? metadataData.tags : undefined,
+            dimensions: metadataData ? metadataData.dimensions : undefined,
             createdAt: item.created_at
           };
         }));
@@ -243,12 +242,14 @@ export async function moveImage(
       if (uploadError) throw uploadError;
 
       // Update metadata using rpc function
-      await supabase.rpc('move_image_metadata', {
+      const { error: moveError } = await supabase.rpc('move_image_metadata', {
         p_source_bucket_id: sourceBucketId,
         p_source_path: sourcePath,
         p_dest_bucket_id: destinationBucketId,
         p_dest_path: destinationPath
       });
+      
+      if (moveError) throw moveError;
 
       // Finally delete from old location
       const { error: deleteError } = await supabase
@@ -332,7 +333,7 @@ export async function getImageMetadata(
       const { data, error } = await supabase.rpc('get_image_metadata', {
         p_bucket_id: bucketId,
         p_storage_path: path
-      }).maybeSingle();
+      });
         
       if (error) throw error;
       return data;

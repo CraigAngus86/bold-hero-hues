@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Typography } from '@/components/ui';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 const { H3, H4, Small, Body } = Typography;
 
@@ -32,7 +33,7 @@ const NewsCard: React.FC<NewsCardProps> = ({
   
   return (
     <Link to={`/news/${slug}`}>
-      <Card className={cn('overflow-hidden h-full hover:shadow-lg transition-shadow', className)}>
+      <Card className={cn('overflow-hidden h-full hover:shadow-lg transition-shadow border border-gray-200', className)}>
         <div className={`relative ${imageHeight} overflow-hidden`}>
           <img 
             src={image} 
@@ -44,8 +45,10 @@ const NewsCard: React.FC<NewsCardProps> = ({
             }}
           />
           {category && (
-            <div className="absolute top-3 left-3 bg-secondary-300 text-primary-800 px-2 py-1 text-xs font-medium rounded">
-              {category}
+            <div className="absolute top-3 left-3">
+              <Badge variant="secondary" className="bg-secondary-300 text-primary-800 font-medium">
+                {category}
+              </Badge>
             </div>
           )}
         </div>
@@ -58,10 +61,10 @@ const NewsCard: React.FC<NewsCardProps> = ({
           )}
           
           {size !== 'small' && (
-            <Body className="mb-3 line-clamp-3">{excerpt}</Body>
+            <Body className="mb-3 line-clamp-3 text-gray-600">{excerpt}</Body>
           )}
           
-          <Small className="text-gray-500">{date}</Small>
+          <Small>{date}</Small>
         </CardContent>
       </Card>
     </Link>

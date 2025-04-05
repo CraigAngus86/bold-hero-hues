@@ -26,7 +26,7 @@ const Index = () => {
       </ErrorBoundary>
       
       {/* Section Divider with Texture */}
-      <div className="w-full h-12 bg-gradient-to-r from-primary-800 via-primary-700 to-secondary-300 relative overflow-hidden">
+      <div className="w-full h-12 bg-gradient-to-r from-primary-800 via-primary-700 to-primary-600 relative overflow-hidden">
         <div 
           className="absolute inset-0 opacity-20"
           style={{
@@ -38,15 +38,7 @@ const Index = () => {
       
       {/* Latest News - updated to show 9 articles in a 12x12 grid */}
       <ErrorBoundary>
-        <div className="relative py-12 md:py-16">
-          {/* Background pattern overlay */}
-          <div 
-            className="absolute inset-0 opacity-5 pointer-events-none" 
-            style={{
-              backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300105a' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
-              backgroundSize: "60px 60px"
-            }}
-          ></div>
+        <div className="py-12 md:py-16 bg-white">
           <Container>
             <NewsSection excludeIds={featuredArticleIds} initialCount={9} />
           </Container>
@@ -55,7 +47,7 @@ const Index = () => {
       
       {/* Diagonal Section Divider with Texture */}
       <div className="relative h-24 overflow-hidden">
-        <div className="absolute inset-0 bg-gray-50 z-10"></div>
+        <div className="absolute inset-0 bg-white z-10"></div>
         <div className="absolute -bottom-10 left-0 right-0 h-24 bg-primary-800 transform -skew-y-2 z-20"></div>
         <div 
           className="absolute -bottom-10 left-0 right-0 h-24 transform -skew-y-2 z-30 opacity-20"
@@ -90,7 +82,7 @@ const Index = () => {
       
       {/* Combined Social Media and Fan Zone Section */}
       <ErrorBoundary>
-        <div className="py-12 md:py-16">
+        <div className="py-12 md:py-16 bg-gray-50">
           <Container>
             <SocialFanSection />
           </Container>
@@ -140,7 +132,7 @@ const Index = () => {
       
       {/* Sponsors Section */}
       <ErrorBoundary>
-        <div className="py-12 md:py-16">
+        <div className="py-12 md:py-16 bg-white">
           <Container>
             <SponsorsSection />
           </Container>

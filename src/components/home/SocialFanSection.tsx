@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Twitter, Facebook, Instagram, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 
-const { H2, H3, Body } = Typography;
+const { H2, H3, Body, Small } = Typography;
 
 const SocialFanSection: React.FC = () => {
   // Mock social media posts
@@ -76,14 +77,14 @@ const SocialFanSection: React.FC = () => {
       <div>
         <div className="flex items-center justify-between mb-6">
           <H2>Social Media</H2>
-          <div className="flex space-x-2">
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-primary-800 hover:text-primary-600">
+          <div className="flex space-x-3">
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-800 transition-colors">
               <Twitter className="w-5 h-5" />
             </a>
-            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-primary-800 hover:text-primary-600">
+            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-800 transition-colors">
               <Facebook className="w-5 h-5" />
             </a>
-            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-primary-800 hover:text-primary-600">
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-800 transition-colors">
               <Instagram className="w-5 h-5" />
             </a>
           </div>
@@ -91,12 +92,12 @@ const SocialFanSection: React.FC = () => {
 
         <div className="space-y-4">
           {socialPosts.map(post => (
-            <Card key={post.id} className="overflow-hidden">
+            <Card key={post.id} className="overflow-hidden border border-gray-200 hover:shadow-md transition-shadow">
               <CardContent className="p-0">
                 <div className="flex border-b p-3 items-center bg-gray-50">
                   {getSocialIcon(post.platform)}
-                  <span className="font-medium ml-2">{post.author}</span>
-                  <span className="text-xs text-gray-500 ml-auto">{post.date}</span>
+                  <span className="font-medium ml-2 text-gray-800">{post.author}</span>
+                  <Small className="ml-auto">{post.date}</Small>
                 </div>
                 <div className="flex p-4">
                   {post.image && (
@@ -104,7 +105,7 @@ const SocialFanSection: React.FC = () => {
                       <img 
                         src={post.image} 
                         alt="" 
-                        className="w-full h-full object-cover rounded"
+                        className="w-full h-full object-cover rounded-md"
                       />
                     </div>
                   )}
@@ -118,7 +119,7 @@ const SocialFanSection: React.FC = () => {
         </div>
 
         <div className="mt-6 text-center">
-          <Button asChild variant="outline">
+          <Button asChild variant="outline" className="text-primary-700">
             <a href="https://twitter.com/BanksoDeeFc" target="_blank" rel="noopener noreferrer" className="inline-flex items-center">
               Follow Us <ExternalLink className="w-4 h-4 ml-2" />
             </a>
@@ -132,25 +133,29 @@ const SocialFanSection: React.FC = () => {
 
         <div className="space-y-6">
           {fanEvents.map(event => (
-            <Card key={event.id} className="overflow-hidden">
-              <div className="md:flex">
-                <div className="md:w-1/3">
+            <Card key={event.id} className="overflow-hidden border border-gray-200 hover:shadow-md transition-shadow">
+              <div className="md:flex h-full">
+                <div className="md:w-1/3 h-48 md:h-auto">
                   <img 
                     src={event.image} 
                     alt={event.title} 
-                    className="w-full h-full object-cover md:h-full"
+                    className="w-full h-full object-cover"
                   />
                 </div>
-                <CardContent className="p-4 md:w-2/3">
-                  <H3 className="mb-2">{event.title}</H3>
-                  <div className="mb-2 text-sm text-gray-500">
-                    <div>{event.date}</div>
-                    <div>{event.location}</div>
+                <CardContent className="p-5 md:w-2/3 flex flex-col">
+                  <div>
+                    <H3 className="mb-2">{event.title}</H3>
+                    <div className="mb-3 text-sm text-gray-500">
+                      <div>{event.date}</div>
+                      <div>{event.location}</div>
+                    </div>
+                    <Body className="mb-4">{event.description}</Body>
                   </div>
-                  <Body className="mb-4">{event.description}</Body>
-                  <Button asChild size="sm" variant="secondary">
-                    <Link to="/events">Learn More</Link>
-                  </Button>
+                  <div className="mt-auto">
+                    <Button asChild size="sm" variant="secondary" className="mt-2">
+                      <Link to="/events">Learn More</Link>
+                    </Button>
+                  </div>
                 </CardContent>
               </div>
             </Card>

@@ -58,7 +58,7 @@ const DataValidator = () => {
           results.invalidTeams.push(`Position ${team.position}: "${team.team}" (too short or missing)`);
         }
         
-        // Check points calculation
+        // Check points calculation - should be (won * 3) + drawn
         const calculatedPoints = (team.won * 3) + team.drawn;
         if (Math.abs(calculatedPoints - team.points) > 2) {
           results.valid = false;
@@ -67,12 +67,12 @@ const DataValidator = () => {
           );
         }
         
-        // Check games played
+        // Check games played - should match the sum of won + drawn + lost
         const totalGames = team.won + team.drawn + team.lost;
         if (team.played !== totalGames) {
           results.valid = false;
           results.gamesPlayedIssues.push(
-            `${team.team}: Played ${team.played} but W/D/L adds to ${totalGames}`
+            `${team.team}: Played ${team.played} but W(${team.won})+D(${team.drawn})+L(${team.lost})=${totalGames}`
           );
         }
       });
@@ -185,6 +185,9 @@ const DataValidator = () => {
                     <li key={`points-${i}`}>{issue}</li>
                   ))}
                 </ul>
+                <div className="mt-2 text-xs text-yellow-600">
+                  <strong>Check:</strong> Points should be equal to (W × 3) + D
+                </div>
               </div>
             )}
             
@@ -200,6 +203,9 @@ const DataValidator = () => {
                     <li key={`games-${i}`}>{issue}</li>
                   ))}
                 </ul>
+                <div className="mt-2 text-xs text-yellow-600">
+                  <strong>Check:</strong> Played should equal the sum of W + D + L
+                </div>
               </div>
             )}
             

@@ -60,6 +60,14 @@ const TeamRow = ({ team }: TeamRowProps) => {
     console.warn('Invalid team name detected:', team.team, team);
   }
 
+  // Verify that games played equals won + drawn + lost
+  const calculatedGamesPlayed = won + drawn + lost;
+  const hasPlayedMismatch = played !== calculatedGamesPlayed;
+
+  // Check if points calculation makes sense (3 pts for win, 1 for draw)
+  const calculatedPoints = (won * 3) + drawn;
+  const hasPointsMismatch = Math.abs(points - calculatedPoints) > 1;
+
   return (
     <TableRow 
       className={teamName === "Banks o' Dee" ? "bg-team-lightBlue/30" : ""}
@@ -88,14 +96,20 @@ const TeamRow = ({ team }: TeamRowProps) => {
           )}
         </div>
       </TableCell>
-      <TableCell className="text-center">{played}</TableCell>
+      <TableCell className={`text-center ${hasPlayedMismatch ? "text-amber-600" : ""}`}>
+        {played}
+        {hasPlayedMismatch && <span className="text-xs block text-amber-600">≠{calculatedGamesPlayed}</span>}
+      </TableCell>
       <TableCell className="text-center">{won}</TableCell>
       <TableCell className="text-center">{drawn}</TableCell>
       <TableCell className="text-center">{lost}</TableCell>
       <TableCell className="text-center">{goalsFor}</TableCell>
       <TableCell className="text-center">{goalsAgainst}</TableCell>
       <TableCell className="text-center">{goalDifference}</TableCell>
-      <TableCell className="text-center font-bold">{points}</TableCell>
+      <TableCell className={`text-center font-bold ${hasPointsMismatch ? "text-amber-600" : ""}`}>
+        {points}
+        {hasPointsMismatch && <span className="text-xs block text-amber-600">≠{calculatedPoints}</span>}
+      </TableCell>
       <TableCell>
         <div className="flex items-center justify-center space-x-1">
           {form.length > 0 ? (

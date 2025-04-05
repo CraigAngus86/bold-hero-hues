@@ -1,3 +1,4 @@
+
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import * as cheerio from 'https://esm.sh/cheerio@1.0.0-rc.12'
@@ -301,15 +302,19 @@ function processTableRow($, row, index) {
       return null;
     }
     
-    // Extract other stats - starting from the third cell (index 2)
+    // Extract other stats with CORRECTED column indexing
+    // BBC Sport table structure: Position | Team | P | W | D | L | F | A | GD | Pts | Form
     const played = safeParseInt($(cells.eq(2)).text());
     const won = safeParseInt($(cells.eq(3)).text());
     const drawn = safeParseInt($(cells.eq(4)).text());
     const lost = safeParseInt($(cells.eq(5)).text());
     const goalsFor = safeParseInt($(cells.eq(6)).text());
     const goalsAgainst = safeParseInt($(cells.eq(7)).text());
-    const goalDifference = safeParseInt($(cells.eq(8)).text());
+    let goalDifference = safeParseInt($(cells.eq(8)).text());
     const points = safeParseInt($(cells.eq(9)).text());
+    
+    // Debug the extracted values
+    console.log(`Edge Function: Extracted stats for ${teamName}: P=${played}, W=${won}, D=${drawn}, L=${lost}, GF=${goalsFor}, GA=${goalsAgainst}, GD=${goalDifference}, Pts=${points}`);
     
     // Extract form if available (typically last column)
     const form = [];

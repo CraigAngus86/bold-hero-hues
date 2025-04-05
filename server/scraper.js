@@ -187,7 +187,8 @@ function processTableRow($, row, index) {
       return null; // Skip if no team name found
     }
     
-    // Extract other stats starting from the third cell (index 2)
+    // Extract other stats with CORRECTED column indexing
+    // BBC Sport table structure: Position | Team | P | W | D | L | F | A | GD | Pts | Form
     const played = safeParseInt($(cells.eq(2)).text());
     const won = safeParseInt($(cells.eq(3)).text());
     const drawn = safeParseInt($(cells.eq(4)).text());
@@ -212,7 +213,7 @@ function processTableRow($, row, index) {
       form.push(...extractedForm);
     }
     
-    console.log(`Extracted data for ${teamName} (P:${position}, Pts:${points})`);
+    console.log(`Extracted data for ${teamName} (P:${played}, W:${won}, D:${drawn}, L:${lost}, Pts:${points})`);
     
     // Create a team stats object
     return {

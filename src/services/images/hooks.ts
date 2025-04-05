@@ -3,8 +3,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { uploadImage } from './api';
 import { optimizeImage } from './utils';
-import { BucketType } from './config';
-import { ImageMetadata, ImageOptimizationOptions } from './types';
+import { BucketType, ImageMetadata, ImageOptimizationOptions } from './types';
 
 // Hook for image uploading with loading state
 export function useImageUpload() {

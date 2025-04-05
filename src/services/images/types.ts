@@ -1,7 +1,6 @@
 
-import { BucketType } from './config';
-
-export type { BucketType };
+// Define BucketType here instead of importing it
+export type BucketType = 'news' | 'players' | 'sponsors' | 'general';
 
 // Image metadata interface
 export interface ImageMetadata {

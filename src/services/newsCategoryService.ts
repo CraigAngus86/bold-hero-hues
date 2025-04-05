@@ -12,8 +12,9 @@ export interface NewsCategory {
  */
 export async function createNewsCategory(name: string): Promise<NewsCategory> {
   try {
-    const { data, error } = await supabase
-      .from('news_categories')
+    // Using a type assertion to work around the TypeScript restriction
+    const { data, error } = await (supabase
+      .from('news_categories') as any)
       .insert({ name })
       .select()
       .single();
@@ -32,8 +33,9 @@ export async function createNewsCategory(name: string): Promise<NewsCategory> {
  */
 export async function updateNewsCategory(id: string, name: string): Promise<NewsCategory> {
   try {
-    const { data, error } = await supabase
-      .from('news_categories')
+    // Using a type assertion to work around the TypeScript restriction
+    const { data, error } = await (supabase
+      .from('news_categories') as any)
       .update({ name })
       .eq('id', id)
       .select()
@@ -53,8 +55,9 @@ export async function updateNewsCategory(id: string, name: string): Promise<News
  */
 export async function deleteNewsCategory(id: string): Promise<boolean> {
   try {
-    const { error } = await supabase
-      .from('news_categories')
+    // Using a type assertion to work around the TypeScript restriction
+    const { error } = await (supabase
+      .from('news_categories') as any)
       .delete()
       .eq('id', id);
 
@@ -72,8 +75,9 @@ export async function deleteNewsCategory(id: string): Promise<boolean> {
  */
 export async function fetchNewsCategories(): Promise<NewsCategory[]> {
   try {
-    const { data, error } = await supabase
-      .from('news_categories')
+    // Using a type assertion to work around the TypeScript restriction
+    const { data, error } = await (supabase
+      .from('news_categories') as any)
       .select('*')
       .order('name');
 

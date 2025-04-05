@@ -31,9 +31,37 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
   const queryClient = useQueryClient();
 
   // Fetch news articles
-  const { data, isLoading } = useQuery({
+  const { data: responseData, isLoading } = useQuery({
     queryKey: ['newsArticles'],
     queryFn: () => getNewsArticles({ orderBy: 'publish_date', orderDirection: 'desc' }),
+  });
+
+  // Extract articles array from response data (which might be an array or an object with data & count)
+  const articles = Array.isArray(responseData) 
+    ? responseData 
+    : (responseData?.data || []);
+
+  // Extract unique categories
+  const categories = articles.length > 0
+    ? [...new Set(articles.map(article => article.category))]
+    : [];
+
+  // Filter articles based on search term and category
+  const filteredArticles = articles.filter(article => {
+    const matchesSearch = searchTerm 
+      ? article.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        article.content.toLowerCase().includes(searchTerm.toLowerCase())
+      : true;
+      
+    const matchesCategory = selectedCategory 
+      ? article.category === selectedCategory 
+      : true;
+      
+    const matchesFeatured = featuredFilter !== undefined 
+      ? article.is_featured === featuredFilter 
+      : true;
+      
+    return matchesSearch && matchesCategory && matchesFeatured;
   });
 
   // Delete article mutation
@@ -61,30 +89,6 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
       toast.error('Failed to update article');
       console.error('Error updating article:', error);
     },
-  });
-
-  // Extract unique categories
-  const articles = data?.data || [];
-  const categories = articles.length > 0
-    ? [...new Set(articles.map(article => article.category))]
-    : [];
-
-  // Filter articles based on search term and category
-  const filteredArticles = articles.filter(article => {
-    const matchesSearch = searchTerm 
-      ? article.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        article.content.toLowerCase().includes(searchTerm.toLowerCase())
-      : true;
-      
-    const matchesCategory = selectedCategory 
-      ? article.category === selectedCategory 
-      : true;
-      
-    const matchesFeatured = featuredFilter !== undefined 
-      ? article.is_featured === featuredFilter 
-      : true;
-      
-    return matchesSearch && matchesCategory && matchesFeatured;
   });
 
   const handleToggleFeatured = (id: string, currentStatus: boolean) => {

@@ -7,9 +7,9 @@ import { showErrorToUser, createAppError, ErrorType } from '@/utils/errorHandlin
  */
 export async function getCategories(): Promise<string[]> {
   try {
-    // Query the dedicated categories table
-    const { data: categoryData, error: categoryError } = await supabase
-      .from('news_categories')
+    // Query the dedicated categories table using type assertion
+    const { data: categoryData, error: categoryError } = await (supabase
+      .from('news_categories') as any)
       .select('name')
       .order('name');
         
@@ -40,8 +40,9 @@ export async function getCategories(): Promise<string[]> {
  */
 export async function createCategory(name: string): Promise<{ success: boolean; id?: string; error?: Error }> {
   try {
-    const { data, error } = await supabase
-      .from('news_categories')
+    // Using a type assertion to work around the TypeScript restriction
+    const { data, error } = await (supabase
+      .from('news_categories') as any)
       .insert({ name })
       .select()
       .single();
@@ -61,8 +62,9 @@ export async function createCategory(name: string): Promise<{ success: boolean; 
  */
 export async function updateCategory(id: string, name: string): Promise<{ success: boolean; error?: Error }> {
   try {
-    const { error } = await supabase
-      .from('news_categories')
+    // Using a type assertion to work around the TypeScript restriction
+    const { error } = await (supabase
+      .from('news_categories') as any)
       .update({ name })
       .eq('id', id);
 
@@ -81,8 +83,9 @@ export async function updateCategory(id: string, name: string): Promise<{ succes
  */
 export async function deleteCategory(id: string): Promise<{ success: boolean; error?: Error }> {
   try {
-    const { error } = await supabase
-      .from('news_categories')
+    // Using a type assertion to work around the TypeScript restriction
+    const { error } = await (supabase
+      .from('news_categories') as any)
       .delete()
       .eq('id', id);
 

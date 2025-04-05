@@ -1,6 +1,5 @@
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getNewsCategories } from '@/services/newsService';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface NewsCategory {
@@ -10,15 +9,13 @@ export interface NewsCategory {
 }
 
 export const useNewsCategories = () => {
-  const queryClient = useQueryClient();
-  
   const { data, isLoading, error } = useQuery({
     queryKey: ['newsCategories'],
     queryFn: async () => {
       try {
-        // Now that we have the news_categories table created, we can query it directly
-        const { data: categoryData, error: categoryError } = await supabase
-          .from('news_categories')
+        // Using a type assertion to work around the TypeScript restriction
+        const { data: categoryData, error: categoryError } = await (supabase
+          .from('news_categories') as any)
           .select('*')
           .order('name');
           

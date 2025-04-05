@@ -1,8 +1,7 @@
 
 import { useCallback, useMemo } from 'react';
-import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
-import Hero from '@/components/Hero';
+import HeroSection from '@/components/home/HeroSection';
 import NewsCard from '@/components/NewsCard';
 import SponsorsCarousel from '@/components/SponsorsCarousel';
 import FixturesSection from '@/components/FixturesSection';
@@ -49,9 +48,9 @@ const Index = () => {
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
       
-      {/* Hero Section */}
+      {/* Hero Section - Updated to new component */}
       <ErrorBoundary>
-        <Hero />
+        <HeroSection />
       </ErrorBoundary>
       
       {/* Latest News - with fixed grid layout */}

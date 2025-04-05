@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { Clock } from 'lucide-react';
 import { Match } from './types';
-import { formatShortDate } from '@/utils/date';
+import { formatDate } from '@/utils/date';
 
 interface RecentResultsProps {
   matches: Match[];

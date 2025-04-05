@@ -2,7 +2,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Calendar } from 'lucide-react';
 import { Match } from './types';
-import { formatShortDate } from '@/utils/date';
+import { formatDate } from '@/utils/date';
 
 interface UpcomingFixturesProps {
   matches: Match[];

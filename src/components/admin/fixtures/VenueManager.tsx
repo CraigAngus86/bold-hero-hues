@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
-import { Plus, MapPin, Edit, Trash2, Loader2, Check } from 'lucide-react';
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { Plus, Edit, Trash2, MapPin, Loader2, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -16,7 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 interface Venue {
   id: string;
   name: string;
-  address: string;
+  address?: string;
   capacity?: number;
   facilities?: string;
   directions?: string;
@@ -119,7 +119,7 @@ export const VenueManager: React.FC = () => {
   };
   
   // Handle form submission (create or update)
-  const onSubmit = async (values: VenueFormValues) => {
+  const onSubmit = async (values: z.infer<typeof venueFormSchema>) => {
     try {
       // In a real implementation, you would save to a venues table
       // For this demo, we'll just update the local state
@@ -127,7 +127,11 @@ export const VenueManager: React.FC = () => {
       if (editingVenue) {
         // Update existing venue
         const updatedVenues = venues.map(venue => 
-          venue.id === editingVenue.id ? { ...venue, ...values } : venue
+          venue.id === editingVenue.id ? { 
+            ...venue, 
+            ...values,
+            name: values.name, // Ensure name is always set
+          } : venue
         );
         setVenues(updatedVenues);
         toast.success('Venue updated successfully');

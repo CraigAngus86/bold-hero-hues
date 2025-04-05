@@ -143,7 +143,7 @@ export const CompetitionManager: React.FC = () => {
       if (editingCompetition) {
         // Update existing competition
         const updatedCompetitions = competitions.map(comp => 
-          comp.id === editingCompetition.id ? { ...comp, ...values } : comp
+          comp.id === editingCompetition.id ? { ...comp, ...values, name: values.name, type: values.type, season: values.season } : comp
         );
         setCompetitions(updatedCompetitions);
         toast.success('Competition updated successfully');

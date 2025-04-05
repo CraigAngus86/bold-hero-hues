@@ -24,7 +24,6 @@ export const ScraperLogs: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch logs
   const fetchLogs = async () => {
     setLoading(true);
     setError(null);
@@ -48,12 +47,10 @@ export const ScraperLogs: React.FC = () => {
     }
   };
 
-  // Load logs on component mount
   useEffect(() => {
     fetchLogs();
   }, []);
   
-  // Format date
   const formatDate = (dateStr: string) => {
     try {
       return format(parseISO(dateStr), 'dd MMM yyyy HH:mm:ss');
@@ -62,7 +59,6 @@ export const ScraperLogs: React.FC = () => {
     }
   };
 
-  // Get status badge
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
       case 'completed':
@@ -76,7 +72,6 @@ export const ScraperLogs: React.FC = () => {
     }
   };
   
-  // Get source label
   const getSourceLabel = (source: string) => {
     switch (source.toLowerCase()) {
       case 'bbc':

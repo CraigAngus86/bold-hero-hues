@@ -16,7 +16,23 @@ export interface ImageMetadata {
   type: string;
   bucketType: BucketType;
   url: string;
+  alt_text?: string;
+  description?: string;
+  tags?: string[];
+  dimensions?: {
+    width: number;
+    height: number;
+  };
   createdAt: string;
+}
+
+// Image optimization options
+export interface ImageOptimizationOptions {
+  maxWidth?: number;
+  maxHeight?: number;
+  quality?: number;
+  format?: 'jpeg' | 'png' | 'webp';
+  preserveAspectRatio?: boolean;
 }
 
 /**
@@ -25,7 +41,8 @@ export interface ImageMetadata {
 export async function uploadImage(
   file: File, 
   bucketId: BucketType, 
-  path?: string
+  path?: string,
+  metadata?: Partial<ImageMetadata>
 ): Promise<DbServiceResponse<ImageMetadata>> {
   return handleDbOperation(
     async () => {
@@ -50,6 +67,29 @@ export async function uploadImage(
         .storage
         .from(bucketId)
         .getPublicUrl(data.path);
+        
+      // If we have image dimensions, store them
+      let dimensions;
+      if (file.type.startsWith('image/')) {
+        dimensions = await getImageDimensions(file);
+      }
+      
+      // Store metadata if provided
+      if (metadata || dimensions) {
+        const metadataToStore = {
+          bucket_id: bucketId,
+          storage_path: data.path,
+          file_name: fileName,
+          alt_text: metadata?.alt_text || file.name.split('.')[0],
+          description: metadata?.description,
+          tags: metadata?.tags,
+          dimensions: dimensions ? { width: dimensions.width, height: dimensions.height } : undefined
+        };
+        
+        await supabase
+          .from('image_metadata')
+          .insert([metadataToStore]);
+      }
 
       return {
         id: data.path,
@@ -58,6 +98,10 @@ export async function uploadImage(
         type: file.type,
         bucketType: bucketId,
         url: publicUrl,
+        alt_text: metadata?.alt_text,
+        description: metadata?.description,
+        tags: metadata?.tags,
+        dimensions: dimensions,
         createdAt: new Date().toISOString()
       };
     },
@@ -86,14 +130,22 @@ export async function getImages(
       if (error) throw error;
 
       // Map storage objects to ImageMetadata
-      const images = data
+      const images = await Promise.all(data
         .filter(item => !item.id.endsWith('/')) // Filter out folders
-        .map(item => {
+        .map(async (item) => {
           const filePath = path ? `${path}/${item.name}` : item.name;
           const { data: { publicUrl } } = supabase
             .storage
             .from(bucketId)
             .getPublicUrl(filePath);
+            
+          // Try to get metadata for this image
+          const { data: metadataData } = await supabase
+            .from('image_metadata')
+            .select('*')
+            .eq('bucket_id', bucketId)
+            .eq('storage_path', filePath)
+            .single();
 
           return {
             id: item.id,
@@ -102,9 +154,13 @@ export async function getImages(
             type: item.metadata?.mimetype || '',
             bucketType: bucketId,
             url: publicUrl,
+            alt_text: metadataData?.alt_text,
+            description: metadataData?.description,
+            tags: metadataData?.tags,
+            dimensions: metadataData?.dimensions,
             createdAt: item.created_at
           };
-        });
+        }));
 
       return images;
     },
@@ -121,6 +177,14 @@ export async function deleteImage(
 ): Promise<DbServiceResponse<boolean>> {
   return handleDbOperation(
     async () => {
+      // First delete metadata
+      await supabase
+        .from('image_metadata')
+        .delete()
+        .eq('bucket_id', bucketId)
+        .eq('storage_path', path);
+      
+      // Then delete the image
       const { error } = await supabase
         .storage
         .from(bucketId)
@@ -179,6 +243,16 @@ export async function moveImage(
 
       if (uploadError) throw uploadError;
 
+      // Update metadata
+      await supabase
+        .from('image_metadata')
+        .update({ 
+          bucket_id: destinationBucketId,
+          storage_path: destinationPath
+        })
+        .eq('bucket_id', sourceBucketId)
+        .eq('storage_path', sourcePath);
+
       // Finally delete from old location
       const { error: deleteError } = await supabase
         .storage
@@ -219,13 +293,93 @@ export async function createFolder(
 }
 
 /**
+ * Update image metadata
+ */
+export async function updateImageMetadata(
+  bucketId: BucketType,
+  path: string,
+  metadata: Partial<{
+    alt_text: string;
+    description: string;
+    tags: string[];
+  }>
+): Promise<DbServiceResponse<boolean>> {
+  return handleDbOperation(
+    async () => {
+      const { error } = await supabase
+        .from('image_metadata')
+        .update(metadata)
+        .eq('bucket_id', bucketId)
+        .eq('storage_path', path);
+        
+      if (error) throw error;
+      return true;
+    },
+    `Failed to update metadata for image ${path}`
+  );
+}
+
+/**
+ * Get image metadata
+ */
+export async function getImageMetadata(
+  bucketId: BucketType,
+  path: string
+): Promise<DbServiceResponse<any>> {
+  return handleDbOperation(
+    async () => {
+      const { data, error } = await supabase
+        .from('image_metadata')
+        .select('*')
+        .eq('bucket_id', bucketId)
+        .eq('storage_path', path)
+        .single();
+        
+      if (error) throw error;
+      return data;
+    },
+    `Failed to get metadata for image ${path}`
+  );
+}
+
+/**
+ * Get image dimensions
+ */
+async function getImageDimensions(file: File): Promise<{ width: number; height: number } | null> {
+  return new Promise((resolve) => {
+    try {
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(img.src);
+        resolve({ width: img.width, height: img.height });
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(img.src);
+        resolve(null);
+      };
+      img.src = URL.createObjectURL(file);
+    } catch (err) {
+      console.error('Error getting image dimensions:', err);
+      resolve(null);
+    }
+  });
+}
+
+/**
  * Optimize an image before uploading (resize, compress)
  */
 export async function optimizeImage(
   file: File,
-  maxWidth = 1200,
-  quality = 0.8
+  options: ImageOptimizationOptions = {}
 ): Promise<File> {
+  const {
+    maxWidth = 1200,
+    maxHeight = 1200,
+    quality = 0.8,
+    format = 'jpeg',
+    preserveAspectRatio = true
+  } = options;
+  
   return new Promise((resolve, reject) => {
     try {
       // Create an image element to load the file
@@ -236,10 +390,20 @@ export async function optimizeImage(
         let width = img.width;
         let height = img.height;
         
-        // Calculate new dimensions if the image is larger than maxWidth
-        if (width > maxWidth) {
-          height = (height * maxWidth) / width;
-          width = maxWidth;
+        // Calculate new dimensions if the image is larger than max dimensions
+        if (preserveAspectRatio) {
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width;
+            width = maxWidth;
+          }
+          
+          if (height > maxHeight) {
+            width = (width * maxHeight) / height;
+            height = maxHeight;
+          }
+        } else {
+          width = Math.min(width, maxWidth);
+          height = Math.min(height, maxHeight);
         }
         
         canvas.width = width;
@@ -255,6 +419,9 @@ export async function optimizeImage(
         ctx.drawImage(img, 0, 0, width, height);
         
         // Convert canvas to blob
+        const mimeType = format === 'jpeg' ? 'image/jpeg' : 
+                         format === 'png' ? 'image/png' : 'image/webp';
+                         
         canvas.toBlob(
           (blob) => {
             if (!blob) {
@@ -265,13 +432,13 @@ export async function optimizeImage(
             // Create new file from blob
             const optimizedFile = new File(
               [blob],
-              file.name,
-              { type: 'image/jpeg', lastModified: Date.now() }
+              file.name.replace(/\.[^/.]+$/, `.${format}`),
+              { type: mimeType, lastModified: Date.now() }
             );
             
             resolve(optimizedFile);
           },
-          'image/jpeg',
+          mimeType,
           quality
         );
       };
@@ -294,7 +461,14 @@ export function useImageUpload() {
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   
-  const upload = async (file: File, bucket: BucketType, path?: string, optimize = true) => {
+  const upload = async (
+    file: File, 
+    bucket: BucketType, 
+    path?: string, 
+    optimize = true,
+    metadata?: Partial<ImageMetadata>,
+    optimizationOptions?: ImageOptimizationOptions
+  ) => {
     setIsUploading(true);
     setProgress(10);
     
@@ -303,11 +477,12 @@ export function useImageUpload() {
       
       // Optimize image if requested
       if (optimize && file.type.startsWith('image/')) {
-        fileToUpload = await optimizeImage(file);
-        setProgress(30);
+        setProgress(20);
+        fileToUpload = await optimizeImage(file, optimizationOptions);
+        setProgress(40);
       }
       
-      const result = await uploadImage(fileToUpload, bucket, path);
+      const result = await uploadImage(fileToUpload, bucket, path, metadata);
       setProgress(100);
       
       return result;
@@ -322,3 +497,51 @@ export function useImageUpload() {
   
   return { upload, isUploading, progress };
 }
+
+// Predefined upload configurations for different image types
+export const imageUploadConfigs = {
+  news: {
+    bucket: 'news_images' as BucketType,
+    maxSizeMB: 10,
+    acceptedTypes: 'image/png,image/jpeg,image/webp',
+    optimizationOptions: {
+      maxWidth: 1200,
+      maxHeight: 800,
+      quality: 0.85,
+      format: 'webp' as const
+    }
+  },
+  player: {
+    bucket: 'player_images' as BucketType,
+    maxSizeMB: 5,
+    acceptedTypes: 'image/png,image/jpeg,image/webp',
+    optimizationOptions: {
+      maxWidth: 800,
+      maxHeight: 800,
+      quality: 0.85,
+      format: 'webp' as const
+    }
+  },
+  sponsor: {
+    bucket: 'sponsor_images' as BucketType,
+    maxSizeMB: 5,
+    acceptedTypes: 'image/png,image/jpeg,image/svg+xml',
+    optimizationOptions: {
+      maxWidth: 600,
+      maxHeight: 400,
+      quality: 0.9,
+      format: 'webp' as const
+    }
+  },
+  general: {
+    bucket: 'general_images' as BucketType,
+    maxSizeMB: 10,
+    acceptedTypes: 'image/png,image/jpeg,image/webp,image/svg+xml',
+    optimizationOptions: {
+      maxWidth: 1920,
+      maxHeight: 1080,
+      quality: 0.85,
+      format: 'webp' as const
+    }
+  }
+};

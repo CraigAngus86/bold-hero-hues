@@ -152,6 +152,48 @@ export type Database = {
           },
         ]
       }
+      image_metadata: {
+        Row: {
+          alt_text: string | null
+          bucket_id: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          dimensions: Json | null
+          file_name: string
+          id: string
+          storage_path: string
+          tags: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          alt_text?: string | null
+          bucket_id: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          dimensions?: Json | null
+          file_name: string
+          id?: string
+          storage_path: string
+          tags?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          alt_text?: string | null
+          bucket_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          dimensions?: Json | null
+          file_name?: string
+          id?: string
+          storage_path?: string
+          tags?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       news_articles: {
         Row: {
           author: string | null

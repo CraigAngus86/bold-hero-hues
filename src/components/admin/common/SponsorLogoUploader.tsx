@@ -4,13 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
-import { useImageUpload } from '@/services/imageService';
+import { useImageUpload, imageUploadConfigs } from '@/services/imageService';
 
 interface SponsorLogoUploaderProps {
-  initialImageUrl?: string;  // Make this prop optional and available
+  initialImageUrl?: string | null;
   onUploadComplete?: (imageUrl: string) => void;
   onUpload?: (imageUrl: string) => void;  // Add compatibility with both naming conventions
   className?: string;
+  sponsorName?: string;
 }
 
 export function SponsorLogoUploader({
@@ -18,15 +19,18 @@ export function SponsorLogoUploader({
   onUploadComplete,
   onUpload,
   className = '',
+  sponsorName = 'Sponsor',
 }: SponsorLogoUploaderProps) {
   const [dragActive, setDragActive] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(initialImageUrl);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { upload, isUploading, progress } = useImageUpload();
   
-  const maxSizeMB = 2;
+  // Use predefined config for sponsor images
+  const config = imageUploadConfigs.sponsor;
+  const maxSizeMB = config.maxSizeMB;
   const maxSizeBytes = maxSizeMB * 1024 * 1024;
-  const acceptedTypes = 'image/png,image/jpeg,image/svg+xml';
+  const acceptedTypes = config.acceptedTypes;
   
   const handleDrag = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -82,7 +86,22 @@ export function SponsorLogoUploader({
     if (!selectedFile) return;
     
     try {
-      const result = await upload(selectedFile, 'sponsor_images', 'logos');
+      // Use predefined sponsor logo folder
+      const metadata = {
+        alt_text: `${sponsorName} logo`,
+        description: `Logo for ${sponsorName}`,
+        tags: ['sponsor', 'logo']
+      };
+      
+      const result = await upload(
+        selectedFile, 
+        config.bucket, 
+        'logos',
+        true, 
+        metadata, 
+        config.optimizationOptions
+      );
+      
       if (result.success && result.data) {
         toast.success('Logo uploaded successfully');
         clearSelection();

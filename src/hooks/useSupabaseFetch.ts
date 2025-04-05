@@ -1,76 +1,119 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/services/supabase/supabaseClient';
-import { PostgrestFilterBuilder } from '@supabase/supabase-js';
 
-interface UseSupabaseFetchOptions<T> {
-  tableName: string;
-  columns?: string;
-  filters?: {
-    column: string;
-    operator: string;
-    value: any;
-  }[];
-  orderBy?: {
-    column: string;
-    ascending?: boolean;
-  };
-  limit?: number;
-}
+// Define your known tables as a type
+type KnownTables = 'fixtures' | 'highland_league_table' | 'image_folders' | 'scrape_logs' | 'settings';
 
-export function useSupabaseFetch<T>({ 
-  tableName, 
-  columns = '*', 
-  filters = [],
-  orderBy,
-  limit
-}: UseSupabaseFetchOptions<T>) {
-  const [data, setData] = useState<T[] | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+// Generic version of the hook for strictly typed tables
+export function useSupabaseFetch<T>(
+  table: KnownTables,
+  options?: {
+    select?: string;
+    match?: Record<string, any>;
+    order?: { column: string; ascending: boolean };
+  }
+) {
+  const [data, setData] = useState<T[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setIsLoading(true);
+        setLoading(true);
         
-        // Using any for the query to avoid strict typing issues with table names
-        let query: any = supabase
-          .from(tableName)
-          .select(columns);
+        let query = supabase.from(table);
         
-        // Apply filters if any
-        filters.forEach(filter => {
-          query = query.filter(filter.column, filter.operator, filter.value);
-        });
+        if (options?.select) {
+          query = query.select(options.select);
+        } else {
+          query = query.select('*');
+        }
         
-        // Apply ordering if specified
-        if (orderBy) {
-          query = query.order(orderBy.column, { 
-            ascending: orderBy.ascending !== false 
+        if (options?.match) {
+          Object.entries(options.match).forEach(([key, value]) => {
+            query = query.eq(key, value);
           });
         }
         
-        // Apply limit if specified
-        if (limit) {
-          query = query.limit(limit);
+        if (options?.order) {
+          query = query.order(options.order.column, { 
+            ascending: options.order.ascending 
+          });
         }
         
-        const { data: result, error } = await query;
+        const { data: result, error: queryError } = await query;
         
-        if (error) throw error;
+        if (queryError) throw queryError;
         
-        setData(result as T[]);
-      } catch (error) {
-        console.error(`Error fetching data from ${tableName}:`, error);
-        setError(error as Error);
+        setData(result || []);
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('Unknown error occurred'));
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
-    
+
     fetchData();
-  }, [tableName, columns, JSON.stringify(filters), orderBy, limit]);
-  
-  return { data, isLoading, error };
+  }, [table, options]);
+
+  return { data, loading, error };
+}
+
+// Alternative version for dynamic table names (less type-safe)
+export function useDynamicSupabaseFetch<T>(
+  table: string,
+  options?: {
+    select?: string;
+    match?: Record<string, any>;
+    order?: { column: string; ascending: boolean };
+  }
+) {
+  const [data, setData] = useState<T[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Using 'any' to bypass TypeScript's strict checking
+        let query = (supabase as any).from(table);
+        
+        if (options?.select) {
+          query = query.select(options.select);
+        } else {
+          query = query.select('*');
+        }
+        
+        if (options?.match) {
+          Object.entries(options.match).forEach(([key, value]) => {
+            query = query.eq(key, value);
+          });
+        }
+        
+        if (options?.order) {
+          query = query.order(options.order.column, { 
+            ascending: options.order.ascending 
+          });
+        }
+        
+        const { data: result, error: queryError } = await query;
+        
+        if (queryError) throw queryError;
+        
+        setData(result || []);
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('Unknown error occurred'));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [table, options]);
+
+  return { data, loading, error };
 }

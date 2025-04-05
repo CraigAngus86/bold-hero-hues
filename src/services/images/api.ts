@@ -305,7 +305,20 @@ export async function getImageMetadata(
       throw error;
     }
 
-    return { success: true, data };
+    // Transform the data to match our expected StoredImageMetadata type
+    const transformedData: StoredImageMetadata = {
+      id: data.id,
+      bucket_id: data.bucket_id,
+      storage_path: data.storage_path,
+      file_name: data.file_name,
+      alt_text: data.alt_text,
+      description: data.description,
+      tags: data.tags,
+      // Ensure dimensions is properly typed
+      dimensions: typeof data.dimensions === 'object' ? data.dimensions : undefined
+    };
+
+    return { success: true, data: transformedData };
   } catch (error) {
     console.error('Error fetching image metadata:', error);
     return { success: false, error };

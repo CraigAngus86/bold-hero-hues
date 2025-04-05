@@ -6,7 +6,8 @@ import { useFolderOperations } from './folderOperations';
 import { useImageDialog } from './ImageDialogState';
 import { ImageManagerContextType, ImageFolder } from './types';
 
-export type { ImageFolder };
+// Don't re-export ImageFolder here - it creates circular references
+// export type { ImageFolder }; <- This line needs to be removed
 
 export const ImageManagerContext = createContext<ImageManagerContextType | undefined>(undefined);
 

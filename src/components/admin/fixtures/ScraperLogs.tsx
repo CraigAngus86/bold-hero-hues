@@ -1,323 +1,187 @@
+
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Search, RefreshCcw, ChevronLeft, ChevronRight, Eye, DownloadCloud } from 'lucide-react';
-import { format } from 'date-fns';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Loader2, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { format, parseISO } from 'date-fns';
 
 interface ScraperLog {
   id: string;
-  timestamp: string;
+  created_at: string;
   source: string;
-  status: 'success' | 'error' | 'warning';
-  itemsFound?: number;
-  itemsAdded?: number;
-  itemsUpdated?: number;
-  errorMessage?: string;
+  status: string;
+  items_found: number;
+  items_added: number;
+  items_updated: number;
+  error_message: string | null;
 }
 
 export const ScraperLogs: React.FC = () => {
-  const [logs, setLogs] = useState<ScraperLog[]>([
-    {
-      id: '1',
-      timestamp: '2023-10-15T09:00:00Z',
-      source: 'bbc-sport',
-      status: 'success',
-      itemsFound: 12,
-      itemsAdded: 4,
-      itemsUpdated: 2,
-    },
-    {
-      id: '2',
-      timestamp: '2023-10-14T09:00:00Z',
-      source: 'bbc-sport',
-      status: 'success',
-      itemsFound: 8,
-      itemsAdded: 2,
-      itemsUpdated: 0,
-    },
-    {
-      id: '3',
-      timestamp: '2023-10-13T09:00:00Z',
-      source: 'bbc-sport',
-      status: 'error',
-      itemsFound: 0,
-      itemsAdded: 0,
-      itemsUpdated: 0,
-      errorMessage: 'Failed to connect to BBC Sport website: timeout after 30 seconds',
-    },
-    {
-      id: '4',
-      timestamp: '2023-10-12T09:00:00Z',
-      source: 'bbc-sport',
-      status: 'warning',
-      itemsFound: 10,
-      itemsAdded: 0,
-      itemsUpdated: 0,
-      errorMessage: 'All fixtures already exist in the database',
-    },
-    {
-      id: '5',
-      timestamp: '2023-10-11T09:00:00Z',
-      source: 'bbc-sport',
-      status: 'success',
-      itemsFound: 15,
-      itemsAdded: 7,
-      itemsUpdated: 3,
-    },
-  ]);
-  
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedLog, setSelectedLog] = useState<ScraperLog | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  
-  const filteredLogs = logs.filter(log => {
-    const matchesSearch = 
-      log.source.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      (log.errorMessage && log.errorMessage.toLowerCase().includes(searchQuery.toLowerCase()));
-      
-    const matchesStatus = statusFilter === 'all' || log.status === statusFilter;
+  const [logs, setLogs] = useState<ScraperLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch logs
+  const fetchLogs = async () => {
+    setLoading(true);
+    setError(null);
     
-    return matchesSearch && matchesStatus;
-  });
-  
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentLogs = filteredLogs.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
-  
-  const handleViewLog = (log: ScraperLog) => {
-    setSelectedLog(log);
-    setIsDialogOpen(true);
-  };
-  
-  const handleRefreshLogs = async () => {
-    setIsLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setLogs([...logs].reverse());
-    } catch (error) {
-      console.error('Error refreshing logs:', error);
+      const { data, error } = await supabase
+        .from('scrape_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      
+      if (error) throw error;
+      
+      setLogs(data as ScraperLog[]);
+    } catch (err) {
+      console.error('Error fetching scraper logs:', err);
+      setError('Failed to load scraper logs');
+      toast.error('Failed to load scraper logs');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
+
+  // Load logs on component mount
+  useEffect(() => {
+    fetchLogs();
+  }, []);
   
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'success':
-        return <Badge variant="success">Success</Badge>;
-      case 'error':
-        return <Badge variant="destructive">Error</Badge>;
-      case 'warning':
-        return <Badge variant="outline">Warning</Badge>;
-      default:
-        return <Badge>{status}</Badge>;
-    }
-  };
-  
-  const formatTimestamp = (timestamp: string) => {
+  // Format date
+  const formatDate = (dateStr: string) => {
     try {
-      const date = new Date(timestamp);
-      return format(date, 'MMM d, yyyy - h:mm a');
+      return format(parseISO(dateStr), 'dd MMM yyyy HH:mm:ss');
     } catch (e) {
-      return timestamp;
+      return dateStr;
+    }
+  };
+
+  // Get status badge
+  const getStatusBadge = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Completed</Badge>;
+      case 'failed':
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Failed</Badge>;
+      case 'running':
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Running</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
     }
   };
   
+  // Get source label
+  const getSourceLabel = (source: string) => {
+    switch (source.toLowerCase()) {
+      case 'bbc':
+      case 'bbc-sport':
+        return 'BBC Sport';
+      case 'hfl':
+      case 'highland-league':
+        return 'Highland League';
+      case 'json_import':
+        return 'JSON Import';
+      case 'manual_import':
+        return 'Manual Import';
+      default:
+        return source;
+    }
+  };
+
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
-        <div className="flex gap-2">
-          <div className="relative w-full sm:w-[300px]">
-            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search logs..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8"
-            />
-          </div>
-          
-          <Select
-            value={statusFilter}
-            onValueChange={setStatusFilter}
-          >
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="success">Success</SelectItem>
-              <SelectItem value="error">Error</SelectItem>
-              <SelectItem value="warning">Warning</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <Button
-          variant="outline"
-          onClick={handleRefreshLogs}
-          disabled={isLoading}
+    <Card className="p-4">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-medium">Scraper Activity Logs</h3>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={fetchLogs} 
+          disabled={loading}
         >
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-          ) : (
-            <RefreshCcw className="h-4 w-4 mr-2" />
-          )}
+          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
           Refresh Logs
         </Button>
       </div>
       
-      <Card>
-        <CardContent className="p-0">
+      {error && (
+        <div className="bg-destructive/15 p-3 rounded-md mb-4">
+          <div className="flex items-center gap-2 text-destructive">
+            <AlertCircle className="h-4 w-4" />
+            {error}
+          </div>
+        </div>
+      )}
+      
+      {loading ? (
+        <div className="flex justify-center items-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mr-3" />
+          <p>Loading logs...</p>
+        </div>
+      ) : (
+        <div className="max-h-[500px] overflow-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Time</TableHead>
+                <TableHead>Date & Time</TableHead>
                 <TableHead>Source</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-center">Items Found</TableHead>
-                <TableHead className="text-center">Added</TableHead>
-                <TableHead className="text-center">Updated</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>Found</TableHead>
+                <TableHead>Added</TableHead>
+                <TableHead>Updated</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {currentLogs.length === 0 ? (
+              {logs.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
-                    {isLoading ? 'Loading logs...' : 'No logs found'}
+                  <TableCell colSpan={6} className="text-center py-4 text-gray-500">
+                    No logs found
                   </TableCell>
                 </TableRow>
               ) : (
-                currentLogs.map((log) => (
-                  <TableRow key={log.id}>
-                    <TableCell className="whitespace-nowrap">
-                      {formatTimestamp(log.timestamp)}
-                    </TableCell>
-                    <TableCell>{log.source}</TableCell>
+                logs.map((log) => (
+                  <TableRow 
+                    key={log.id}
+                    className={log.status.toLowerCase() === 'failed' ? 'bg-red-50' : ''}
+                  >
+                    <TableCell>{formatDate(log.created_at)}</TableCell>
+                    <TableCell>{getSourceLabel(log.source)}</TableCell>
                     <TableCell>{getStatusBadge(log.status)}</TableCell>
-                    <TableCell className="text-center">{log.itemsFound ?? '—'}</TableCell>
-                    <TableCell className="text-center">{log.itemsAdded ?? '—'}</TableCell>
-                    <TableCell className="text-center">{log.itemsUpdated ?? '—'}</TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleViewLog(log)}
-                        title="View log details"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
+                    <TableCell>{log.items_found || 0}</TableCell>
+                    <TableCell>
+                      <span className="text-green-600 font-medium">{log.items_added || 0}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-blue-600 font-medium">{log.items_updated || 0}</span>
                     </TableCell>
                   </TableRow>
                 ))
               )}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
-      
-      {filteredLogs.length > itemsPerPage && (
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            Showing <span className="font-medium">{indexOfFirstItem + 1}</span> to{" "}
-            <span className="font-medium">
-              {Math.min(indexOfLastItem, filteredLogs.length)}
-            </span>{" "}
-            of <span className="font-medium">{filteredLogs.length}</span> logs
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-              disabled={currentPage === totalPages}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
         </div>
       )}
       
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Log Details</DialogTitle>
-          </DialogHeader>
-          
-          {selectedLog && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <p className="text-sm text-muted-foreground">Time</p>
-                  <p>{formatTimestamp(selectedLog.timestamp)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Source</p>
-                  <p>{selectedLog.source}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Status</p>
-                  <p>{getStatusBadge(selectedLog.status)}</p>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <p className="text-sm text-muted-foreground">Items Found</p>
-                  <p>{selectedLog.itemsFound ?? '—'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Items Added</p>
-                  <p>{selectedLog.itemsAdded ?? '—'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Items Updated</p>
-                  <p>{selectedLog.itemsUpdated ?? '—'}</p>
-                </div>
-              </div>
-              
-              {selectedLog.errorMessage && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Error Message</p>
-                  <p className="text-destructive">{selectedLog.errorMessage}</p>
-                </div>
-              )}
-              
-              <div className="flex justify-end">
-                <Button variant="outline" onClick={() => window.navigator.clipboard.writeText(JSON.stringify(selectedLog, null, 2))}>
-                  <DownloadCloud className="h-4 w-4 mr-2" />
-                  Export Log
-                </Button>
-              </div>
+      {logs.length > 0 && logs.some(log => log.status.toLowerCase() === 'failed') && (
+        <div className="mt-4 p-3 rounded-md border border-amber-200 bg-amber-50">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5" />
+            <div>
+              <p className="font-medium text-amber-800">Some scrapers have failed</p>
+              <p className="text-sm text-amber-700 mt-1">
+                Check the error messages in the logs for details on what went wrong.
+                You may need to update your scraper configuration or check the source websites.
+              </p>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
+          </div>
+        </div>
+      )}
+    </Card>
   );
 };

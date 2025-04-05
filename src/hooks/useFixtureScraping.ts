@@ -1,8 +1,8 @@
 
 import { useState } from 'react';
 import { ScrapedFixture } from '@/types/fixtures';
-import { triggerFixturesUpdate, getFixturesForLovable } from '@/services/supabase/fixtures/integrationService';
-import { importHistoricFixtures, scrapeAndStoreFixtures } from '@/services/supabase/fixtures/importExport';
+import { supabase } from '@/integrations/supabase/client';
+import { importFixturesFromJson, scrapeAndStoreFixtures } from '@/services/supabase/fixtures/importExport';
 import { toast } from 'sonner';
 
 // Function to convert fixtures to downloadable JSON
@@ -25,34 +25,23 @@ export const useFixtureScraping = () => {
       setError(null);
       setSuccess(null);
       
-      // Use our integration service
-      const fixturesData = await getFixturesForLovable({
-        forceUpdate: true, // Force update
-        upcomingLimit: 5,
-        recentLimit: 5
+      // Call supabase function to get test data
+      const { data, error } = await supabase.functions.invoke('scrape-fixtures', {
+        body: { action: 'test' }
       });
       
-      if (!fixturesData.success || !fixturesData.data) {
-        throw new Error(fixturesData.error || 'Failed to fetch test data');
+      if (error || !data?.success) {
+        throw new Error(error?.message || data?.message || 'Failed to fetch test data');
       }
       
-      // Convert matches to scraped fixtures for display
-      const testResults = fixturesData.data.all.map(match => ({
-        id: match.id,
-        homeTeam: match.homeTeam,
-        awayTeam: match.awayTeam,
-        date: match.date,
-        time: match.time,
-        competition: match.competition,
-        venue: match.venue,
-        isCompleted: match.isCompleted,
-        homeScore: match.homeScore,
-        awayScore: match.awayScore,
-        source: 'test',
-      }));
-      
-      setResults(testResults);
-      setSuccess(`Test successful! Retrieved ${testResults.length} fixtures.`);
+      // Set test results
+      if (data.fixtures && Array.isArray(data.fixtures)) {
+        setResults(data.fixtures);
+        setSuccess(`Test successful! Retrieved ${data.fixtures.length} fixtures.`);
+        toast.success(`Test retrieved ${data.fixtures.length} fixtures`);
+      } else {
+        throw new Error('No fixture data returned from test');
+      }
     } catch (error) {
       console.error('Error in test fetch:', error);
       setError(`Test fetch failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -62,40 +51,36 @@ export const useFixtureScraping = () => {
     }
   };
 
-  // Fetch from BBC Sport using edge function
+  // Fetch from BBC Sport
   const handleFetchFromBBC = async () => {
     try {
       setIsLoading(true);
       setError(null);
       setSuccess(null);
       
-      const response = await scrapeAndStoreFixtures('bbc');
+      // Call scrapeAndStoreFixtures with 'bbc' source
+      const response = await scrapeAndStoreFixtures('bbc', []);
       
       if (!response.success) {
-        throw new Error('Failed to scrape fixtures from BBC Sport');
+        throw new Error(response.message || 'Failed to scrape fixtures from BBC Sport');
       }
       
-      if (response.fixtures) {
-        // Convert matches to scraped fixtures for display
-        const scrapedFixtures = response.fixtures.map((match: any) => ({
-          id: match.id,
-          homeTeam: match.homeTeam,
-          awayTeam: match.awayTeam,
-          date: match.date,
-          time: match.time,
-          competition: match.competition,
-          venue: match.venue,
-          isCompleted: match.isCompleted,
-          homeScore: match.homeScore,
-          awayScore: match.awayScore,
-          source: 'bbc-sport',
-        }));
-        
-        setResults(scrapedFixtures);
+      // Call supabase function as fallback if needed
+      const { data, error } = await supabase.functions.invoke('scrape-fixtures', {
+        body: { action: 'bbc' }
+      });
+      
+      if (error) {
+        throw new Error(`Edge function error: ${error.message}`);
       }
       
-      setSuccess(`Successfully scraped ${response.fixtures?.length || 0} fixtures from BBC Sport`);
-      toast.success(`Scraped ${response.fixtures?.length || 0} fixtures from BBC Sport`);
+      if (data?.success && data.fixtures && Array.isArray(data.fixtures)) {
+        setResults(data.fixtures);
+        setSuccess(`Successfully scraped ${data.fixtures.length} fixtures from BBC Sport`);
+        toast.success(`Scraped ${data.fixtures.length} fixtures from BBC Sport`);
+      } else {
+        throw new Error(data?.message || 'No fixtures returned from BBC Sport');
+      }
     } catch (error) {
       console.error('Error fetching from BBC:', error);
       setError(`BBC Sport fetch failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -112,31 +97,29 @@ export const useFixtureScraping = () => {
       setError(null);
       setSuccess(null);
       
-      const response = await scrapeAndStoreFixtures('hfl');
+      // Call scrapeAndStoreFixtures with 'highland-league' source
+      const response = await scrapeAndStoreFixtures('highland-league', []);
       
       if (!response.success) {
-        throw new Error('Highland League scraper not implemented yet');
+        throw new Error(response.message || 'Highland League scraper not implemented yet');
       }
       
-      if (response.fixtures) {
-        const scrapedFixtures = response.fixtures.map((match: any) => ({
-          id: match.id,
-          homeTeam: match.homeTeam,
-          awayTeam: match.awayTeam,
-          date: match.date,
-          time: match.time,
-          competition: match.competition,
-          venue: match.venue,
-          isCompleted: match.isCompleted,
-          homeScore: match.homeScore,
-          awayScore: match.awayScore,
-          source: 'hfl',
-        }));
-        
-        setResults(scrapedFixtures);
+      // Call supabase function as fallback if needed
+      const { data, error } = await supabase.functions.invoke('scrape-fixtures', {
+        body: { action: 'hfl' }
+      });
+      
+      if (error) {
+        throw new Error(`Edge function error: ${error.message}`);
       }
       
-      setSuccess(`Successfully scraped ${response.fixtures?.length || 0} fixtures from Highland League`);
+      if (data?.success && data.fixtures && Array.isArray(data.fixtures)) {
+        setResults(data.fixtures);
+        setSuccess(`Successfully scraped ${data.fixtures.length} fixtures from Highland League`);
+        toast.success(`Scraped ${data.fixtures.length} fixtures from Highland League`);
+      } else {
+        throw new Error(data?.message || 'No fixtures returned from Highland League');
+      }
     } catch (error) {
       console.error('Error fetching from Highland League:', error);
       setError(`Highland League fetch failed: ${error instanceof Error ? error.message : 'Unknown error'}`);

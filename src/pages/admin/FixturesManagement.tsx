@@ -14,39 +14,77 @@ import {
   Database, 
   MapPin,
   BarChart,
-  Upload
+  Upload,
+  Search,
+  Plus
 } from 'lucide-react';
-import { FixturesList } from '@/components/admin/fixtures/FixturesList';
+import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DateRange } from '@/components/admin/fixtures/DateRange';
-import { CalendarView } from '@/components/admin/fixtures/index';
-import { FixturesScraper } from '@/components/admin/fixtures/index';
-import { FixturesImporter } from '@/components/admin/fixtures/index';
-import { ScraperDocumentation } from '@/components/admin/fixtures/index';
-import { FixturesManager } from '@/components/admin/fixtures/index';
-import { ScraperLogs } from '@/components/admin/fixtures/ScraperLogs';
+import { supabase } from '@/integrations/supabase/client';
+
+// Import components
+import { FixturesList } from '@/components/admin/fixtures/FixturesList';
+import { FixturesManager } from '@/components/admin/fixtures/FixturesManager';
+import FixtureEditor from '@/components/admin/fixtures/FixtureEditor';
+import CalendarView from '@/components/admin/fixtures/CalendarView';
+import BulkOperations from '@/components/admin/fixtures/BulkOperations';
 import { VenueManager } from '@/components/admin/fixtures/VenueManager';
 import { CompetitionManager } from '@/components/admin/fixtures/CompetitionManager';
-import { toast } from 'sonner';
+import { ScraperLogs } from '@/components/admin/fixtures/ScraperLogs';
+import BBCScraperConfig from '@/components/admin/fixtures/BBCScraperConfig';
 import { convertToMatches } from '@/types/fixtures';
 import { Match } from '@/components/fixtures/types';
-import { Fixture } from '@/types/fixtures';
-import { fetchMatchesFromSupabase } from '@/services/supabase/fixturesService';
-import { supabase } from '@/integrations/supabase/client';
 import { exportFixturesToJson } from '@/services/supabase/fixtures/importExport';
 
 const FixturesManagement = () => {
   const [loading, setLoading] = useState(false);
   const [matches, setMatches] = useState<Match[]>([]);
-  const [fixtures, setFixtures] = useState<Fixture[]>([]);
   const [dateFilter, setDateFilter] = useState({ from: undefined, to: undefined });
   const [view, setView] = useState('upcoming');
   const [competitionsList, setCompetitionsList] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [competitionFilter, setCompetitionFilter] = useState('all');
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editingFixtureId, setEditingFixtureId] = useState<string | undefined>(undefined);
   
+  // Handle date filter change
   const handleDateFilterChange = (range) => {
     setDateFilter(range);
-    // Apply date filtering here
   };
   
+  // Apply filters to matches
+  const getFilteredMatches = () => {
+    return matches.filter(match => {
+      // Filter by search query
+      const matchSearchTerms = [match.homeTeam, match.awayTeam, match.competition, match.venue].join(' ').toLowerCase();
+      const matchesSearch = searchQuery ? matchSearchTerms.includes(searchQuery.toLowerCase()) : true;
+      
+      // Filter by competition
+      const matchesCompetition = competitionFilter === 'all' ? true : match.competition === competitionFilter;
+      
+      // Filter by date range
+      let matchesDate = true;
+      if (dateFilter.from && dateFilter.to) {
+        const matchDate = new Date(match.date);
+        matchesDate = matchDate >= dateFilter.from && matchDate <= dateFilter.to;
+      }
+      
+      // Filter by view type (upcoming/past/all)
+      let matchesView = true;
+      if (view === 'upcoming') {
+        matchesView = !match.isCompleted;
+      } else if (view === 'past') {
+        matchesView = match.isCompleted;
+      }
+      
+      return matchesSearch && matchesCompetition && matchesDate && matchesView;
+    });
+  };
+  
+  // Fetch matches from Supabase
   const fetchMatches = async () => {
     try {
       setLoading(true);
@@ -64,7 +102,6 @@ const FixturesManagement = () => {
       // Convert to our app's Match format
       const convertedMatches = convertToMatches(fixturesData);
       setMatches(convertedMatches);
-      setFixtures(convertedMatches);
       
       // Extract unique competitions
       const uniqueCompetitions = [...new Set(convertedMatches.map(match => match.competition))];
@@ -94,9 +131,23 @@ const FixturesManagement = () => {
     }
   };
 
+  // Open fixture editor
+  const handleOpenEditor = (fixtureId?: string) => {
+    setEditingFixtureId(fixtureId);
+    setEditorOpen(true);
+  };
+
+  // Close fixture editor and refresh data
+  const handleEditorSave = () => {
+    setEditorOpen(false);
+    fetchMatches();
+  };
+
   useEffect(() => {
     fetchMatches();
   }, []);
+  
+  const filteredMatches = getFilteredMatches();
   
   return (
     <AdminLayout>
@@ -121,9 +172,13 @@ const FixturesManagement = () => {
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Refresh Data
             </Button>
-            <Button variant="outline" size="sm">
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
+            <Button 
+              onClick={() => handleOpenEditor()} 
+              variant="default" 
+              size="sm"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              New Fixture
             </Button>
           </div>
         </div>
@@ -137,6 +192,10 @@ const FixturesManagement = () => {
             <TabsTrigger value="list">
               <FileText className="h-4 w-4 mr-2" />
               Fixture List
+            </TabsTrigger>
+            <TabsTrigger value="ticket-links">
+              <FileText className="h-4 w-4 mr-2" />
+              Ticket Links
             </TabsTrigger>
             <TabsTrigger value="import">
               <Upload className="h-4 w-4 mr-2" />
@@ -167,9 +226,31 @@ const FixturesManagement = () => {
           <TabsContent value="list" className="mt-4">
             <Card className="p-4 mb-6">
               <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">Filter by date:</span>
+                <div className="flex flex-col md:flex-row gap-2 w-full">
+                  <div className="relative w-full md:w-64">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search fixtures..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  
+                  <Select
+                    value={competitionFilter}
+                    onValueChange={setCompetitionFilter}
+                  >
+                    <SelectTrigger className="w-full md:w-48">
+                      <SelectValue placeholder="Filter by competition" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Competitions</SelectItem>
+                      {competitionsList.map(comp => (
+                        <SelectItem key={comp} value={comp}>{comp}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2 w-full md:w-auto">
@@ -199,15 +280,15 @@ const FixturesManagement = () => {
                   <div className="flex justify-center p-8">
                     <RefreshCw className="h-8 w-8 animate-spin text-primary" />
                   </div>
-                ) : fixtures.length > 0 ? (
+                ) : filteredMatches.length > 0 ? (
                   <FixturesList 
-                    fixtures={fixtures.filter(f => !f.isCompleted)} 
-                    onEdit={(fixture) => console.log('Editing fixture:', fixture)}
+                    fixtures={filteredMatches} 
+                    onEdit={(fixture) => handleOpenEditor(fixture.id)}
                     onDelete={(fixtureId) => console.log('Deleting fixture:', fixtureId)}
                   />
                 ) : (
                   <div className="text-center p-12 border border-dashed rounded-md">
-                    <p className="text-gray-500">No upcoming fixtures found.</p>
+                    <p className="text-gray-500">No fixtures found.</p>
                     <p className="text-sm text-muted-foreground mt-1">Try adjusting your filters or add new fixtures.</p>
                   </div>
                 )}
@@ -218,15 +299,15 @@ const FixturesManagement = () => {
                   <div className="flex justify-center p-8">
                     <RefreshCw className="h-8 w-8 animate-spin text-primary" />
                   </div>
-                ) : fixtures.filter(f => f.isCompleted).length > 0 ? (
+                ) : filteredMatches.length > 0 ? (
                   <FixturesList 
-                    fixtures={fixtures.filter(f => f.isCompleted)} 
-                    onEdit={(fixture) => console.log('Editing fixture:', fixture)}
+                    fixtures={filteredMatches} 
+                    onEdit={(fixture) => handleOpenEditor(fixture.id)}
                     onDelete={(fixtureId) => console.log('Deleting fixture:', fixtureId)}
                   />
                 ) : (
                   <div className="text-center p-12 border border-dashed rounded-md">
-                    <p className="text-gray-500">No past fixtures found.</p>
+                    <p className="text-gray-500">No fixtures found.</p>
                     <p className="text-sm text-muted-foreground mt-1">Try adjusting your filters or add new fixtures.</p>
                   </div>
                 )}
@@ -237,10 +318,10 @@ const FixturesManagement = () => {
                   <div className="flex justify-center p-8">
                     <RefreshCw className="h-8 w-8 animate-spin text-primary" />
                   </div>
-                ) : fixtures.length > 0 ? (
+                ) : filteredMatches.length > 0 ? (
                   <FixturesList 
-                    fixtures={fixtures} 
-                    onEdit={(fixture) => console.log('Editing fixture:', fixture)}
+                    fixtures={filteredMatches} 
+                    onEdit={(fixture) => handleOpenEditor(fixture.id)}
                     onDelete={(fixtureId) => console.log('Deleting fixture:', fixtureId)}
                   />
                 ) : (
@@ -253,14 +334,14 @@ const FixturesManagement = () => {
             </Tabs>
           </TabsContent>
           
+          <TabsContent value="ticket-links" className="mt-4">
+            <FixturesManager />
+          </TabsContent>
+          
           <TabsContent value="import" className="mt-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <FixturesScraper />
-              <FixturesImporter />
-            </div>
-            
-            <div className="mt-6">
-              <ScraperDocumentation />
+              <BulkOperations />
+              <BBCScraperConfig />
             </div>
           </TabsContent>
           
@@ -284,6 +365,20 @@ const FixturesManagement = () => {
           </TabsContent>
         </Tabs>
       </div>
+      
+      {/* Fixture Editor Dialog */}
+      <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
+        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingFixtureId ? 'Edit Fixture' : 'Add New Fixture'}</DialogTitle>
+          </DialogHeader>
+          <FixtureEditor 
+            fixtureId={editingFixtureId} 
+            onSave={handleEditorSave}
+            onCancel={() => setEditorOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };

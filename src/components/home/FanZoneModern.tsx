@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Award, Users, Calendar, MessageSquare, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Award, Users, Calendar, MessageSquare, ChevronLeft, ChevronRight, ThumbsUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';

@@ -4,7 +4,7 @@ import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/home/HeroSection';
 import NewsSection from '@/components/home/NewsSection';
 import FixturesSection from '@/components/FixturesSection';
-import SocialHubModern from '@/components/home/SocialHubModern';
+import SocialMediaFeed from '@/components/SocialMediaFeed';
 import FanZoneModern from '@/components/home/FanZoneModern';
 import MediaGalleryModern from '@/components/home/MediaGalleryModern';
 import SponsorsSection from '@/components/home/SponsorsSection';
@@ -35,9 +35,9 @@ const Index = () => {
         <FixturesSection />
       </ErrorBoundary>
       
-      {/* Social Hub - Modern Implementation */}
+      {/* Social Media Feed */}
       <ErrorBoundary>
-        <SocialHubModern />
+        <SocialMediaFeed />
       </ErrorBoundary>
       
       {/* Fan Zone - Modern Implementation */}

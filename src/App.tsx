@@ -1,80 +1,57 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
-import ErrorBoundary from "@/components/ErrorBoundary";
-import Index from "@/pages/Index";
-import News from "@/pages/News";
-import Team from "@/pages/Team";
-import Fixtures from "@/pages/Fixtures";
-import LeagueTable from "@/pages/LeagueTable";
-import Stadium from "@/pages/Stadium";
-import Tickets from "@/pages/Tickets";
-import Admin from "@/pages/Admin";
-import FixturesAdmin from "@/pages/admin/Fixtures";
-import NotFound from "@/pages/NotFound";
-import { MainLayout } from "@/components/layout";
+import { lazy, Suspense } from 'react';
+import { Route, Routes } from 'react-router-dom';
+import { Toaster } from '@/components/ui/sonner';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { HelmetProvider } from 'react-helmet-async';
 
-// Scroll to top component that triggers on route change
-const ScrollToTop = () => {
-  const { pathname } = useLocation();
+// Import pages
+const Index = lazy(() => import('./pages/Index'));
+const News = lazy(() => import('./pages/News'));
+const Team = lazy(() => import('./pages/Team'));
+const Fixtures = lazy(() => import('./pages/Fixtures'));
+const LeagueTable = lazy(() => import('./pages/LeagueTable'));
+const Stadium = lazy(() => import('./pages/Stadium'));
+const Tickets = lazy(() => import('./pages/Tickets'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+const Gallery = lazy(() => import('./pages/Gallery'));
+const Admin = lazy(() => import('./pages/Admin'));
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
+// Import UI components
+const Loading = lazy(() => import('./components/ui/Loading'));
 
-  return null;
-};
-
-// Layout wrapper for pages
-const PageWithLayout = ({ Component }: { Component: React.ComponentType }) => {
-  return (
-    <MainLayout>
-      <Component />
-    </MainLayout>
-  );
-};
-
-const App = () => {
-  // Create a new QueryClient instance inside the component
-  const [queryClient] = useState(() => new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: 1,
-        staleTime: 5 * 60 * 1000, // 5 minutes
-      },
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      refetchOnWindowFocus: false,
     },
-  }));
+  },
+});
 
+function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <ErrorBoundary>
-            <ScrollToTop />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/news" element={<News />} />
-              <Route path="/team" element={<Team />} />
-              <Route path="/fixtures" element={<Fixtures />} />
-              <Route path="/table" element={<LeagueTable />} />
-              <Route path="/stadium" element={<Stadium />} />
-              <Route path="/tickets" element={<Tickets />} />
-              <Route path="/admin" element={<Admin />} />
-              <Route path="/admin/fixtures" element={<FixturesAdmin />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </ErrorBoundary>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <Suspense fallback={<Loading />}>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/news/*" element={<News />} />
+            <Route path="/team" element={<Team />} />
+            <Route path="/fixtures" element={<Fixtures />} />
+            <Route path="/table" element={<LeagueTable />} />
+            <Route path="/stadium" element={<Stadium />} />
+            <Route path="/tickets" element={<Tickets />} />
+            <Route path="/gallery" element={<Gallery />} />
+            <Route path="/admin/*" element={<Admin />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+        <Toaster position="top-right" />
+      </QueryClientProvider>
+    </HelmetProvider>
   );
-};
+}
 
 export default App;

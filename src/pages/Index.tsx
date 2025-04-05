@@ -4,8 +4,9 @@ import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/home/HeroSection';
 import NewsSection from '@/components/home/NewsSection';
 import FixturesSection from '@/components/FixturesSection';
-import SponsorsCarousel from '@/components/SponsorsCarousel';
-import SocialMediaFeed from '@/components/SocialMediaFeed';
+import SocialHub from '@/components/home/SocialHub';
+import MediaGallery from '@/components/home/MediaGallery';
+import SponsorsSection from '@/components/home/SponsorsSection';
 import Footer from '@/components/Footer';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useFeaturedArticles } from '@/hooks/useFeaturedArticles';
@@ -33,14 +34,19 @@ const Index = () => {
         <FixturesSection />
       </ErrorBoundary>
       
-      {/* Social Media Feed Section */}
+      {/* Social Hub & Fan Zone */}
       <ErrorBoundary>
-        <SocialMediaFeed />
+        <SocialHub />
       </ErrorBoundary>
       
-      {/* Sponsors Carousel */}
+      {/* Media Gallery */}
       <ErrorBoundary>
-        <SponsorsCarousel />
+        <MediaGallery />
+      </ErrorBoundary>
+      
+      {/* Sponsors Section */}
+      <ErrorBoundary>
+        <SponsorsSection />
       </ErrorBoundary>
       
       <Footer />

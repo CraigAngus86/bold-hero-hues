@@ -9,6 +9,7 @@ import { NewsArticle } from '@/types';
 import { formatDate } from '@/services/news/utils';
 import NewsCard from '@/components/news/NewsCard';
 import NewsSectionSkeleton from './NewsSectionSkeleton';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface NewsSectionProps {
   excludeIds?: string[]; // IDs of articles to exclude (e.g., from hero)
@@ -17,8 +18,14 @@ interface NewsSectionProps {
 
 const NewsSection: React.FC<NewsSectionProps> = ({ 
   excludeIds = [], 
-  initialCount = 11 // Updated: 1 featured + 2 right side + 4 bottom row + 4 additional
+  initialCount = 9 // Updated: 1 featured article (6x6) + 8 standard articles (3x3 each)
 }) => {
+  const isMobile = useIsMobile();
+  const mobileCount = 4; // Limit to 4 articles on mobile
+  
+  // Adjust count based on mobile or desktop view
+  const displayCount = isMobile ? mobileCount : initialCount;
+  
   // Increase the fetch count to ensure we have enough articles
   const fetchCount = initialCount + 4; // Fetch extra to account for filtering
 
@@ -48,13 +55,13 @@ const NewsSection: React.FC<NewsSectionProps> = ({
     // Featured article is the most recent one
     const featured = filteredArticles.length > 0 ? filteredArticles[0] : null;
     
-    // Regular articles are the rest, limited to initialCount-1 (since one is featured)
+    // Regular articles are the rest, limited to displayCount-1 (since one is featured)
     const regular = featured 
-      ? filteredArticles.slice(1, initialCount) 
-      : filteredArticles.slice(0, initialCount);
+      ? filteredArticles.slice(1, displayCount)
+      : filteredArticles.slice(0, displayCount);
     
     return { featuredArticle: featured, regularArticles: regular };
-  }, [data, excludeIds, initialCount]);
+  }, [data, excludeIds, displayCount]);
 
   // Get a local image fallback based on article index
   const getLocalImageFallback = (index: number) => {
@@ -80,7 +87,7 @@ const NewsSection: React.FC<NewsSectionProps> = ({
 
   // Loading state
   if (isLoading) {
-    return <NewsSectionSkeleton count={initialCount - 1} featured={true} />;
+    return <NewsSectionSkeleton count={displayCount - 1} featured={true} />;
   }
 
   // Error state
@@ -125,9 +132,9 @@ const NewsSection: React.FC<NewsSectionProps> = ({
         </div>
         
         <div className="grid grid-cols-12 gap-6">
-          {/* Featured Article - 6 columns on desktop */}
+          {/* Featured Article - 6x6 grid area (spans 6 columns, height of 2 rows) */}
           {featuredArticle && (
-            <div className="col-span-12 md:col-span-6">
+            <div className="col-span-12 md:col-span-6 row-span-2">
               <NewsCard
                 title={featuredArticle.title}
                 excerpt={processExcerpt(featuredArticle.content, true)}
@@ -141,50 +148,16 @@ const NewsSection: React.FC<NewsSectionProps> = ({
             </div>
           )}
           
-          {/* Right side stacked articles - 2 articles of 3 columns each */}
-          <div className="col-span-12 md:col-span-6">
-            <div className="grid grid-cols-12 gap-6 h-full">
-              {/* Top right article */}
-              {regularArticles[0] && (
-                <div className="col-span-12 sm:col-span-6 md:col-span-12 lg:col-span-6 xl:col-span-6 h-[calc(50%-0.75rem)]">
-                  <NewsCard
-                    title={regularArticles[0].title}
-                    excerpt={processExcerpt(regularArticles[0].content)}
-                    image={regularArticles[0].image_url || getLocalImageFallback(1)}
-                    date={formatDate(regularArticles[0].publish_date)}
-                    category={regularArticles[0].category}
-                    slug={regularArticles[0].slug}
-                    size="medium"
-                    className="h-full"
-                  />
-                </div>
-              )}
-              
-              {/* Bottom right article */}
-              {regularArticles[1] && (
-                <div className="col-span-12 sm:col-span-6 md:col-span-12 lg:col-span-6 xl:col-span-6 h-[calc(50%-0.75rem)]">
-                  <NewsCard
-                    title={regularArticles[1].title}
-                    excerpt={processExcerpt(regularArticles[1].content)}
-                    image={regularArticles[1].image_url || getLocalImageFallback(2)}
-                    date={formatDate(regularArticles[1].publish_date)}
-                    category={regularArticles[1].category}
-                    slug={regularArticles[1].slug}
-                    size="medium"
-                    className="h-full"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {/* Bottom row - 4 articles of 3 columns each */}
-          {regularArticles.slice(2, 6).map((article, index) => (
-            <div key={article.id} className="col-span-12 sm:col-span-6 md:col-span-6 lg:col-span-3">
+          {/* 8 standard articles in 3x3 grid format */}
+          {regularArticles.map((article, index) => (
+            <div 
+              key={article.id} 
+              className="col-span-12 sm:col-span-6 md:col-span-3"
+            >
               <NewsCard
                 title={article.title}
                 excerpt={processExcerpt(article.content)}
-                image={article.image_url || getLocalImageFallback(index + 3)}
+                image={article.image_url || getLocalImageFallback(index + 1)}
                 date={formatDate(article.publish_date)}
                 category={article.category}
                 slug={article.slug}
@@ -193,26 +166,6 @@ const NewsSection: React.FC<NewsSectionProps> = ({
               />
             </div>
           ))}
-          
-          {/* Additional 4 articles in a 3x3 grid (each taking 3 columns) */}
-          <div className="col-span-12">
-            <div className="grid grid-cols-12 gap-6 mt-6">
-              {regularArticles.slice(6, 10).map((article, index) => (
-                <div key={article.id} className="col-span-12 sm:col-span-6 md:col-span-4 lg:col-span-3">
-                  <NewsCard
-                    title={article.title}
-                    excerpt={processExcerpt(article.content)}
-                    image={article.image_url || getLocalImageFallback(index + 7)}
-                    date={formatDate(article.publish_date)}
-                    category={article.category}
-                    slug={article.slug}
-                    size="small"
-                    className="h-full"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </section>

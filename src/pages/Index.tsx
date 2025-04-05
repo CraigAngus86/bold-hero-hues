@@ -24,9 +24,9 @@ const Index = () => {
         <HeroSection />
       </ErrorBoundary>
       
-      {/* Latest News */}
+      {/* Latest News - updated to show 9 articles in a 12x12 grid */}
       <ErrorBoundary>
-        <NewsSection excludeIds={featuredArticleIds} initialCount={6} />
+        <NewsSection excludeIds={featuredArticleIds} initialCount={9} />
       </ErrorBoundary>
       
       {/* Fixtures, Results & League Table Section */}

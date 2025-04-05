@@ -1,8 +1,7 @@
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
-import { Calendar, Ticket } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Calendar } from 'lucide-react';
 import { Match } from './types';
 
 interface UpcomingFixturesProps {
@@ -61,21 +60,6 @@ const UpcomingFixtures = ({ matches }: UpcomingFixturesProps) => {
                 <div className="text-xs text-gray-500 mt-1 text-center">
                   {match.venue}
                 </div>
-                
-                {match.ticketLink && (
-                  <div className="mt-2 text-center">
-                    <Button asChild variant="outline" size="sm" className="text-xs h-7 px-3">
-                      <a 
-                        href={match.ticketLink} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="inline-flex items-center"
-                      >
-                        <Ticket className="w-3 h-3 mr-1" /> Buy Tickets
-                      </a>
-                    </Button>
-                  </div>
-                )}
               </div>
             ))}
           </div>

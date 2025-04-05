@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import UpcomingFixtures from './fixtures/UpcomingFixtures';
@@ -11,14 +10,13 @@ import { toast } from 'sonner';
 import { fetchFixturesFromSupabase, fetchResultsFromSupabase } from '@/services/supabase/fixturesService';
 import { convertToMatches } from '@/types/fixtures';
 import { supabase } from '@/integrations/supabase/client';
+import { Button } from './ui/button';
+import { Ticket } from 'lucide-react';
 
-// Helper function to check if a folder exists in storage
 const checkMatchPhotosExist = async (match: Match): Promise<boolean> => {
-  // Format: highland-league-matches/[away-team]-[date]
   const matchDate = new Date(match.date);
   const formattedDate = `${matchDate.getFullYear()}-${String(matchDate.getMonth() + 1).padStart(2, '0')}-${String(matchDate.getDate()).padStart(2, '0')}`;
   
-  // Create folder path for match photos
   const awayTeam = match.awayTeam.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
   const folderPath = `highland-league-matches/${awayTeam}-${formattedDate}`;
   
@@ -30,7 +28,6 @@ const checkMatchPhotosExist = async (match: Match): Promise<boolean> => {
     
     if (error) throw error;
     
-    // Check if there are any files in the folder (excluding the .folder file)
     return data && data.filter(item => !item.name.endsWith('.folder')).length > 0;
   } catch (error) {
     console.log('No match photos found:', error);
@@ -49,7 +46,6 @@ const FixturesSection = () => {
       try {
         setIsLoading(true);
         
-        // Fetch all data in parallel
         const [leagueTable, fixturesData, resultsData] = await Promise.all([
           fetchLeagueTableFromSupabase(),
           fetchFixturesFromSupabase(),
@@ -58,22 +54,18 @@ const FixturesSection = () => {
         
         setLeagueData(leagueTable);
         
-        // Convert fixtures and results to Match format
         const fixtures = convertToMatches(fixturesData);
         const results = convertToMatches(resultsData);
         
         console.log('Fixtures from API:', fixtures.length);
         console.log('Results from API:', results.length);
         
-        // Calculate the current date only once
         const today = new Date();
         console.log('Today is:', today.toISOString());
         
-        // Standardized function to get upcoming matches
         const getUpcomingMatches = (matches: Match[]) => {
           console.log('Filtering upcoming matches, total to filter:', matches.length);
           
-          // Filter upcoming matches: not completed AND date is in the future
           const upcoming = matches
             .filter(match => {
               const matchDate = new Date(match.date);
@@ -82,27 +74,23 @@ const FixturesSection = () => {
               return isUpcoming;
             })
             .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-            .slice(0, 3); // Show only next 3 matches
+            .slice(0, 3);
           
           console.log('Filtered upcoming matches:', upcoming.length);
           return upcoming;
         };
         
-        // Standardized function to get recent results
         const getRecentResults = (matches: Match[]) => {
-          // Filter completed matches: must be marked as completed
           return matches
             .filter(match => match.isCompleted)
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-            .slice(0, 3); // Show only last 3 matches
+            .slice(0, 3);
         };
         
-        // Use real data if available and valid
         if (fixtures.length > 0) {
           const upcoming = getUpcomingMatches(fixtures);
           const recent = getRecentResults(results);
           
-          // Check for match photos for recent results
           const recentWithPhotos = await Promise.all(
             recent.map(async (match) => {
               const hasPhotos = await checkMatchPhotosExist(match);
@@ -110,7 +98,6 @@ const FixturesSection = () => {
             })
           );
           
-          // Only use real data if we actually have upcoming matches
           if (upcoming.length > 0) {
             setUpcomingMatches(upcoming);
             setRecentResults(recentWithPhotos);
@@ -119,35 +106,27 @@ const FixturesSection = () => {
           }
         }
         
-        // Fall back to mock data
         console.log('Using mock data for fixtures and results');
         const { mockMatches } = await import('@/components/fixtures/fixturesMockData');
         
-        // Apply the same filtering to mock data
         setUpcomingMatches(getUpcomingMatches(mockMatches));
         setRecentResults(getRecentResults(mockMatches));
-        
       } catch (error) {
         console.error('Error fetching data:', error);
         toast.error('Failed to load fixtures and results data');
         
-        // Fall back to mock data
         const { mockMatches } = await import('@/components/fixtures/fixturesMockData');
         const today = new Date();
         
-        // Get upcoming matches (not completed and in the future)
         const upcoming = mockMatches
           .filter(match => !match.isCompleted && new Date(match.date) >= today)
           .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-          .slice(0, 3); // Show only next 3 matches
+          .slice(0, 3);
         
-        console.log('Mock upcoming matches after error:', upcoming.length);
-        
-        // Get recent results (completed)
         const recent = mockMatches
           .filter(match => match.isCompleted)
           .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-          .slice(0, 3); // Show only last 3 matches
+          .slice(0, 3);
         
         setUpcomingMatches(upcoming);
         setRecentResults(recent);
@@ -159,17 +138,38 @@ const FixturesSection = () => {
     fetchData();
   }, []);
 
+  const nextMatchWithTickets = upcomingMatches.find(match => match.ticketLink);
+
   return (
     <section className="py-8 bg-team-gray">
       <div className="container mx-auto px-2">
-        <motion.h2 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="text-2xl font-semibold text-team-blue mb-3"
-        >
-          Results, Fixtures & League Table
-        </motion.h2>
+        <div className="flex justify-between items-center mb-3">
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="text-2xl font-semibold text-team-blue"
+          >
+            Results, Fixtures & League Table
+          </motion.h2>
+          
+          {nextMatchWithTickets && (
+            <Button 
+              asChild
+              size="sm"
+              className="bg-team-blue hover:bg-team-navy text-white"
+            >
+              <a 
+                href={nextMatchWithTickets.ticketLink} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="inline-flex items-center"
+              >
+                <Ticket className="w-4 h-4 mr-1" /> Buy Tickets
+              </a>
+            </Button>
+          )}
+        </div>
         
         {isLoading ? (
           <div className="h-48 flex items-center justify-center">

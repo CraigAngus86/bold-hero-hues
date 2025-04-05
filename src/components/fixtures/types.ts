@@ -1,4 +1,3 @@
-
 export interface Match {
   id: string;
   date: string;
@@ -11,6 +10,7 @@ export interface Match {
   homeScore?: number;
   awayScore?: number;
   hasMatchPhotos?: boolean;
+  ticketLink?: string;
 }
 
 export interface MatchGroup {

@@ -1,20 +1,33 @@
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { 
+  Newspaper, 
+  Users, 
+  Award, 
+  Image, 
+  Calendar, 
+  Settings,
+  Globe,
+  RefreshCw 
+} from 'lucide-react';
+
 import NewsManager from '@/components/admin/NewsManager';
 import SponsorsManager from '@/components/admin/SponsorsManager';
 import TeamManager from '@/components/admin/TeamManager';
 import LeagueTableManager from '@/components/admin/LeagueTableManager';
 import ImageManager from '@/components/admin/image-manager/ImageManager';
-import { Database, Globe, Server, Newspaper, Users, Award, Image, Calendar, Settings } from 'lucide-react';
 import DataDashboard from '@/components/admin/data/DataDashboard';
 import { createInitialFolders } from '@/integrations/supabase/client';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 const Admin = () => {
+  const navigate = useNavigate();
+
   useEffect(() => {
     // Create the initial folders when the Admin page loads
     createInitialFolders();
@@ -27,52 +40,88 @@ const Admin = () => {
           <h1 className="text-2xl font-semibold">Admin Dashboard</h1>
         </div>
         
-        <Tabs defaultValue="news">
-          <TabsList className="mb-4">
-            <TabsTrigger value="news" className="flex items-center">
-              <Newspaper className="h-4 w-4 mr-2" />
-              News
-            </TabsTrigger>
-            <TabsTrigger value="sponsors" className="flex items-center">
-              <Award className="h-4 w-4 mr-2" />
-              Sponsors
-            </TabsTrigger>
-            <TabsTrigger value="team" className="flex items-center">
-              <Users className="h-4 w-4 mr-2" />
-              Team
-            </TabsTrigger>
-            <TabsTrigger value="fixtures" className="flex items-center">
-              <Calendar className="h-4 w-4 mr-2" />
-              Fixtures
-            </TabsTrigger>
-            <TabsTrigger value="league" className="flex items-center">
-              <Globe className="h-4 w-4 mr-2" />
-              League Table
-            </TabsTrigger>
-            <TabsTrigger value="images" className="flex items-center">
-              <Image className="h-4 w-4 mr-2" />
-              Images
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center">
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
-            </TabsTrigger>
-          </TabsList>
+        <Tabs defaultValue="news" className="space-y-4">
+          <div className="border-b">
+            <TabsList className="mb-0">
+              <TabsTrigger value="news" className="flex items-center">
+                <Newspaper className="h-4 w-4 mr-2" />
+                News
+              </TabsTrigger>
+              <TabsTrigger value="sponsors" className="flex items-center">
+                <Award className="h-4 w-4 mr-2" />
+                Sponsors
+              </TabsTrigger>
+              <TabsTrigger value="team" className="flex items-center">
+                <Users className="h-4 w-4 mr-2" />
+                Team
+              </TabsTrigger>
+              <TabsTrigger value="fixtures" className="flex items-center">
+                <Calendar className="h-4 w-4 mr-2" />
+                Fixtures
+              </TabsTrigger>
+              <TabsTrigger value="league" className="flex items-center">
+                <Globe className="h-4 w-4 mr-2" />
+                League Table
+              </TabsTrigger>
+              <TabsTrigger value="images" className="flex items-center">
+                <Image className="h-4 w-4 mr-2" />
+                Images
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="flex items-center">
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </TabsTrigger>
+            </TabsList>
+          </div>
           
-          <TabsContent value="news">
-            <NewsManager />
+          <TabsContent value="news" className="space-y-4">
+            <div className="mb-4 flex justify-between">
+              <h2 className="text-xl font-semibold">News Management</h2>
+              <Button variant="outline" size="sm">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh
+              </Button>
+            </div>
+            <Card>
+              <CardContent className="p-6">
+                <NewsManager />
+              </CardContent>
+            </Card>
           </TabsContent>
           
-          <TabsContent value="sponsors">
-            <SponsorsManager />
+          <TabsContent value="sponsors" className="space-y-4">
+            <div className="mb-4 flex justify-between">
+              <h2 className="text-xl font-semibold">Sponsors Management</h2>
+              <Button variant="outline" size="sm">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh
+              </Button>
+            </div>
+            <Card>
+              <CardContent className="p-6">
+                <SponsorsManager />
+              </CardContent>
+            </Card>
           </TabsContent>
           
-          <TabsContent value="team">
-            <TeamManager />
+          <TabsContent value="team" className="space-y-4">
+            <div className="mb-4 flex justify-between">
+              <h2 className="text-xl font-semibold">Team Management</h2>
+              <Button variant="outline" size="sm">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh
+              </Button>
+            </div>
+            <Card>
+              <CardContent className="p-6">
+                <TeamManager />
+              </CardContent>
+            </Card>
           </TabsContent>
 
-          <TabsContent value="fixtures">
-            <div className="mb-4 flex justify-end">
+          <TabsContent value="fixtures" className="space-y-4">
+            <div className="mb-4 flex justify-between">
+              <h2 className="text-xl font-semibold">Fixtures Management</h2>
               <Button asChild>
                 <Link to="/admin/fixtures">
                   <Calendar className="h-4 w-4 mr-2" />
@@ -91,19 +140,55 @@ const Admin = () => {
                 <p className="text-gray-600 mb-4">
                   Use the dedicated fixtures section to manage all match fixtures and results.
                 </p>
+                <Button 
+                  variant="default" 
+                  onClick={() => navigate('/admin/fixtures')}
+                  className="mt-2"
+                >
+                  Go to Fixtures Manager
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
           
-          <TabsContent value="league">
-            <LeagueTableManager />
+          <TabsContent value="league" className="space-y-4">
+            <div className="mb-4 flex justify-between">
+              <h2 className="text-xl font-semibold">League Table Management</h2>
+              <Button variant="outline" size="sm">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh
+              </Button>
+            </div>
+            <Card>
+              <CardContent className="p-6">
+                <LeagueTableManager />
+              </CardContent>
+            </Card>
           </TabsContent>
           
-          <TabsContent value="images">
-            <ImageManager />
+          <TabsContent value="images" className="space-y-4">
+            <div className="mb-4 flex justify-between">
+              <h2 className="text-xl font-semibold">Image Management</h2>
+              <Button variant="outline" size="sm" onClick={() => toast.success("Images refreshed")}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh
+              </Button>
+            </div>
+            <Card>
+              <CardContent className="p-6">
+                <ImageManager />
+              </CardContent>
+            </Card>
           </TabsContent>
           
-          <TabsContent value="settings">
+          <TabsContent value="settings" className="space-y-4">
+            <div className="mb-4 flex justify-between">
+              <h2 className="text-xl font-semibold">System Settings</h2>
+              <Button variant="outline" size="sm">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh
+              </Button>
+            </div>
             <Card>
               <CardHeader>
                 <CardTitle>System Settings</CardTitle>

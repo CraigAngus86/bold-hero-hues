@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { ScrapedFixture } from '@/types/fixtures';
 import { triggerFixturesUpdate, getFixturesForLovable } from '@/services/supabase/fixtures/integrationService';
-import { scrapeAndStoreFixtures, importHistoricFixtures } from '@/services/supabase/fixtures/importExport';
+import { importHistoricFixtures, scrapeAndStoreFixtures } from '@/services/supabase/fixtures/importExport';
 import { toast } from 'sonner';
 
 // Function to convert fixtures to downloadable JSON
@@ -69,15 +69,15 @@ export const useFixtureScraping = () => {
       setError(null);
       setSuccess(null);
       
-      const response = await triggerFixturesUpdate('bbc');
+      const response = await scrapeAndStoreFixtures('bbc');
       
       if (!response.success) {
-        throw new Error(response.message);
+        throw new Error('Failed to scrape fixtures from BBC Sport');
       }
       
       if (response.fixtures) {
         // Convert matches to scraped fixtures for display
-        const scrapedFixtures = response.fixtures.map(match => ({
+        const scrapedFixtures = response.fixtures.map((match: any) => ({
           id: match.id,
           homeTeam: match.homeTeam,
           awayTeam: match.awayTeam,
@@ -94,8 +94,8 @@ export const useFixtureScraping = () => {
         setResults(scrapedFixtures);
       }
       
-      setSuccess(response.message);
-      toast.success(response.message);
+      setSuccess(`Successfully scraped ${response.fixtures?.length || 0} fixtures from BBC Sport`);
+      toast.success(`Scraped ${response.fixtures?.length || 0} fixtures from BBC Sport`);
     } catch (error) {
       console.error('Error fetching from BBC:', error);
       setError(`BBC Sport fetch failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -112,9 +112,31 @@ export const useFixtureScraping = () => {
       setError(null);
       setSuccess(null);
       
-      // This would be implemented with an edge function
-      toast.error('Highland League scraper not implemented yet');
-      setError('Highland League scraper not implemented yet');
+      const response = await scrapeAndStoreFixtures('hfl');
+      
+      if (!response.success) {
+        throw new Error('Highland League scraper not implemented yet');
+      }
+      
+      if (response.fixtures) {
+        const scrapedFixtures = response.fixtures.map((match: any) => ({
+          id: match.id,
+          homeTeam: match.homeTeam,
+          awayTeam: match.awayTeam,
+          date: match.date,
+          time: match.time,
+          competition: match.competition,
+          venue: match.venue,
+          isCompleted: match.isCompleted,
+          homeScore: match.homeScore,
+          awayScore: match.awayScore,
+          source: 'hfl',
+        }));
+        
+        setResults(scrapedFixtures);
+      }
+      
+      setSuccess(`Successfully scraped ${response.fixtures?.length || 0} fixtures from Highland League`);
     } catch (error) {
       console.error('Error fetching from Highland League:', error);
       setError(`Highland League fetch failed: ${error instanceof Error ? error.message : 'Unknown error'}`);

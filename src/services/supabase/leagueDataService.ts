@@ -34,7 +34,7 @@ export const getLastUpdateTime = async (): Promise<string | null> => {
 };
 
 // Function to trigger a scrape operation for league data
-export const triggerLeagueDataScrape = async (): Promise<boolean> => {
+export const triggerLeagueDataScrape = async (): Promise<TeamStats[]> => {
   try {
     // Call the Supabase edge function to trigger a scrape
     const { data, error } = await supabase.functions.invoke('scrape-highland-league', {
@@ -43,16 +43,17 @@ export const triggerLeagueDataScrape = async (): Promise<boolean> => {
     
     if (error) {
       console.error('Error triggering league data scrape:', error);
-      return false;
+      return [];
     }
     
     // If successful, clear cache to ensure fresh data on next fetch
     clearSupabaseCache();
     
-    return data?.success || false;
+    // Return the freshly fetched data
+    return await fetchLeagueTableFromSupabase();
   } catch (error) {
     console.error('Error in triggerLeagueDataScrape:', error);
-    return false;
+    return [];
   }
 };
 

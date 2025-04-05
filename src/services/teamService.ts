@@ -1,148 +1,299 @@
-
 import { create } from 'zustand';
 
-// Types
-interface Player {
+export interface TeamMember {
   id: number;
   name: string;
-  position: string;
-  imageUrl: string;
-  number: number;
-  nationality: string;
+  position?: string;
+  image: string;
+  number?: number;
+  age?: number;
   height?: string;
-  dateOfBirth?: string;
+  nationality?: string;
   previousClubs?: string[];
   bio?: string;
-}
-
-interface StaffMember {
-  id: number;
-  name: string;
-  role: string;
-  imageUrl: string;
-  bio?: string;
+  role?: string;
+  experience?: string;
+  type: 'player' | 'management' | 'official';
 }
 
 interface TeamState {
-  players: Player[];
-  staff: StaffMember[];
+  players: TeamMember[];
+  teamMembers: TeamMember[];
+  officials: TeamMember[];
+  management: TeamMember[];
   isLoading: boolean;
   error: string | null;
-  getPlayersByPosition: (position: string) => Player[];
-  fetchTeamData: () => Promise<void>;
+  fetchTeam: () => Promise<void>;
+  addTeamMember: (member: TeamMember) => void;
+  updateTeamMember: (member: TeamMember) => void;
+  deleteTeamMember: (id: number) => void;
+  getPlayers: () => TeamMember[];
+  getManagementStaff: () => TeamMember[];
+  getClubOfficials: () => TeamMember[];
 }
 
-// Sample team data
-const players: Player[] = [
-  {
-    id: 1,
-    name: 'Lee Sweeney',
-    position: 'Goalkeeper',
-    imageUrl: '/lovable-uploads/players/goalkeeper1.jpg',
-    number: 1,
-    nationality: 'Scottish',
-    height: '6\'2"',
-    dateOfBirth: '1992-05-15'
-  },
-  {
-    id: 2,
-    name: 'Daniel Hoban',
-    position: 'Goalkeeper',
-    imageUrl: '/lovable-uploads/players/goalkeeper2.jpg',
-    number: 13,
-    nationality: 'Scottish',
-    height: '6\'1"'
-  },
-  {
-    id: 3,
-    name: 'Jevan Anderson',
-    position: 'Defender',
-    imageUrl: '/lovable-uploads/players/defender1.jpg',
-    number: 2,
-    nationality: 'Scottish',
-    previousClubs: ['Burton Albion', 'Formartine United']
-  },
-  {
-    id: 4,
-    name: 'Dayle Robertson',
-    position: 'Forward',
-    imageUrl: '/lovable-uploads/players/forward1.jpg',
-    number: 9,
-    nationality: 'Scottish',
-    previousClubs: ['St. Johnstone']
-  },
-  {
-    id: 5,
-    name: 'Kane Winton',
-    position: 'Midfielder',
-    imageUrl: '/lovable-uploads/players/midfielder1.jpg',
-    number: 8,
-    nationality: 'Scottish'
-  },
-  {
-    id: 6,
-    name: 'Mark Gilmour',
-    position: 'Midfielder',
-    imageUrl: '/lovable-uploads/players/midfielder2.jpg',
-    number: 6,
-    nationality: 'Scottish'
-  },
-  {
-    id: 7,
-    name: 'Michael Philipson',
-    position: 'Defender',
-    imageUrl: '/lovable-uploads/players/defender2.jpg',
-    number: 4,
-    nationality: 'Scottish'
-  }
-];
-
-const staff: StaffMember[] = [
-  {
-    id: 1,
-    name: 'Josh Winton',
-    role: 'Manager',
-    imageUrl: '/lovable-uploads/staff/manager.jpg',
-    bio: 'Former club captain who took over as manager in 2023.'
-  },
-  {
-    id: 2,
-    name: 'Paul Lawson',
-    role: 'Assistant Manager',
-    imageUrl: '/lovable-uploads/staff/assistant.jpg',
-    bio: 'Former professional with Aberdeen and Ross County.'
-  }
-];
-
-// Create the store
 export const useTeamStore = create<TeamState>((set, get) => ({
-  players,
-  staff,
+  players: [
+    {
+      id: 1,
+      name: 'Andy Shearer',
+      position: 'Goalkeeper',
+      image: '/lovable-uploads/940ac3a1-b89d-40c9-957e-217a64371120.png',
+      number: 1,
+      age: 28,
+      nationality: 'Scottish',
+      previousClubs: ['Cove Rangers', 'Formartine United'],
+      type: 'player',
+      height: '6\'2\"'
+    },
+    {
+      id: 2,
+      name: 'Sam Robertson',
+      position: 'Defender',
+      image: '/lovable-uploads/c653949f-4499-4e9b-a939-a95989689798.png',
+      number: 3,
+      age: 24,
+      nationality: 'Scottish',
+      previousClubs: ['Inverurie Loco Works'],
+      type: 'player',
+      height: '5\'11\"'
+    },
+    {
+      id: 3,
+      name: 'Ryan Mcintosh',
+      position: 'Defender',
+      image: '/lovable-uploads/c653949f-4499-4e9b-a939-a95989689798.png',
+      number: 5,
+      age: 26,
+      nationality: 'Scottish',
+      previousClubs: [],
+      type: 'player',
+      height: '6\'0\"'
+    },
+    {
+      id: 4,
+      name: 'Alex Willox',
+      position: 'Defender',
+      image: '/lovable-uploads/c653949f-4499-4e9b-a939-a95989689798.png',
+      number: 6,
+      age: 29,
+      nationality: 'Scottish',
+      previousClubs: [],
+      type: 'player',
+      height: '5\'10\"'
+    },
+    {
+      id: 5,
+      name: 'Kane Winton',
+      position: 'Midfielder',
+      image: '/lovable-uploads/c653949f-4499-4e9b-a939-a95989689798.png',
+      number: 7,
+      age: 22,
+      nationality: 'Scottish',
+      previousClubs: [],
+      type: 'player',
+      height: '5\'9\"'
+    },
+    {
+      id: 6,
+      name: 'Rob Ward',
+      position: 'Forward',
+      image: '/lovable-uploads/c653949f-4499-4e9b-a939-a95989689798.png',
+      number: 9,
+      age: 30,
+      nationality: 'Scottish',
+      previousClubs: [],
+      type: 'player',
+      height: '6\'1\"'
+    },
+    {
+      id: 7,
+      name: 'Chris Antoniazzi',
+      position: 'Forward',
+      image: '/lovable-uploads/c653949f-4499-4e9b-a939-a95989689798.png',
+      number: 10,
+      age: 27,
+      nationality: 'Scottish',
+      previousClubs: [],
+      type: 'player',
+      height: '5\'8\"'
+    },
+    {
+      id: 8,
+      name: 'Jack Brown',
+      position: 'Forward',
+      image: '/lovable-uploads/c653949f-4499-4e9b-a939-a95989689798.png',
+      number: 11,
+      age: 23,
+      nationality: 'Scottish',
+      previousClubs: [],
+      type: 'player',
+      height: '5\'11\"'
+    },
+    {
+      id: 9,
+      name: 'Michael Philipson',
+      position: 'Midfielder',
+      image: '/lovable-uploads/c653949f-4499-4e9b-a939-a95989689798.png',
+      number: 14,
+      age: 25,
+      nationality: 'Scottish',
+      previousClubs: [],
+      type: 'player',
+      height: '5\'10\"'
+    },
+    {
+      id: 10,
+      name: 'Kieran Gibbons',
+      position: 'Midfielder',
+      image: '/lovable-uploads/c653949f-4499-4e9b-a939-a95989689798.png',
+      number: 16,
+      age: 29,
+      nationality: 'Scottish',
+      previousClubs: [],
+      type: 'player',
+      height: '5\'11\"'
+    },
+    {
+      id: 11,
+      name: 'Dayle Robertson',
+      position: 'Defender',
+      image: '/lovable-uploads/c653949f-4499-4e9b-a939-a95989689798.png',
+      number: 17,
+      age: 28,
+      nationality: 'Scottish',
+      previousClubs: [],
+      type: 'player',
+      height: '6\'0\"'
+    },
+    {
+      id: 12,
+      name: 'Ethan Cairns',
+      position: 'Forward',
+      image: '/lovable-uploads/c653949f-4499-4e9b-a939-a95989689798.png',
+      number: 18,
+      age: 19,
+      nationality: 'Scottish',
+      previousClubs: [],
+      type: 'player',
+      height: '5\'8\"'
+    },
+    {
+      id: 13,
+      name: 'Kai Adams',
+      position: 'Midfielder',
+      image: '/lovable-uploads/c653949f-4499-4e9b-a939-a95989689798.png',
+      number: 19,
+      age: 20,
+      nationality: 'Scottish',
+      previousClubs: [],
+      type: 'player',
+      height: '5\'9\"'
+    },
+    {
+      id: 14,
+      name: 'Aidan Combe',
+      position: 'Defender',
+      image: '/lovable-uploads/c653949f-4499-4e9b-a939-a95989689798.png',
+      number: 20,
+      age: 21,
+      nationality: 'Scottish',
+      previousClubs: [],
+      type: 'player',
+      height: '5\'10\"'
+    },
+    {
+      id: 15,
+      name: 'Regan Stewart',
+      position: 'Goalkeeper',
+      image: '/lovable-uploads/c653949f-4499-4e9b-a939-a95989689798.png',
+      number: 21,
+      age: 18,
+      nationality: 'Scottish',
+      previousClubs: [],
+      type: 'player',
+      height: '6\'3\"'
+    },
+    {
+      id: 16,
+      name: 'Aaron Norris',
+      position: 'Midfielder',
+      image: '/lovable-uploads/c653949f-4499-4e9b-a939-a95989689798.png',
+      number: 22,
+      age: 24,
+      nationality: 'Scottish',
+      previousClubs: [],
+      type: 'player',
+      height: '5\'11\"'
+    },
+    {
+      id: 17,
+      name: 'Calvin Ramsay',
+      position: 'Defender',
+      image: '/lovable-uploads/c653949f-4499-4e9b-a939-a95989689798.png',
+      number: 23,
+      age: 20,
+      nationality: 'Scottish',
+      previousClubs: [],
+      type: 'player',
+      height: '6\'0\"'
+    }
+  ],
+  management: [
+    {
+      id: 101,
+      name: 'Josh Winton',
+      role: 'First Team Manager',
+      image: '/lovable-uploads/cb95b9fb-0f2d-42ef-9788-10509a80ed6e.png',
+      bio: 'Joined in 2022 as Manager',
+      experience: '10 years coaching experience',
+      type: 'management'
+    },
+    {
+      id: 102,
+      name: 'Tommy Wilson',
+      role: 'Assistant Manager',
+      image: '/lovable-uploads/7f997ef4-9019-4660-9e9e-4e230d7b1eb3.png',
+      bio: 'Former player who joined the coaching staff in 2019',
+      experience: '15 years in Highland League',
+      type: 'management'
+    }
+  ],
+  officials: [
+    {
+      id: 201,
+      name: 'Brian Winton',
+      role: 'Club President',
+      image: '/lovable-uploads/e2efc1b0-1c8a-4e98-9826-3030a5f5d247.png',
+      experience: '25 years at Banks o\' Dee',
+      type: 'official'
+    },
+    {
+      id: 202,
+      name: 'Tom McQuarrie',
+      role: 'Club Secretary',
+      image: '/lovable-uploads/b937e144-e94f-4e75-881f-1e560c6b520a.png',
+      experience: '15 years of service',
+      type: 'official'
+    }
+  ],
+  teamMembers: [],
   isLoading: false,
   error: null,
-  
-  getPlayersByPosition: (position: string) => {
-    const { players } = get();
-    if (position === 'All') {
-      return players;
-    }
-    return players.filter(player => player.position === position);
-  },
-  
-  fetchTeamData: async () => {
-    // This is a placeholder for when we eventually fetch team data from an API
+  fetchTeam: async () => {
     set({ isLoading: true, error: null });
     
     try {
-      // In the future, this will be replaced with an actual API call
-      // For now, we'll just simulate a delay
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // The data is already set in the initial state, so we don't need to update it
-      // When we implement the API, we would do something like:
-      // set({ players: playerData, staff: staffData, isLoading: false });
+      const players = get().players;
+      const management = get().management;
+      const officials = get().officials;
       
-      set({ isLoading: false });
+      set({ 
+        teamMembers: [...players, ...management, ...officials],
+        isLoading: false 
+      });
     } catch (error) {
       console.error('Error fetching team data:', error);
       set({ 
@@ -150,5 +301,65 @@ export const useTeamStore = create<TeamState>((set, get) => ({
         isLoading: false 
       });
     }
+  },
+  getPlayers: () => get().players,
+  getManagementStaff: () => get().management,
+  getClubOfficials: () => get().officials,
+  addTeamMember: (member: TeamMember) => {
+    set((state) => {
+      if (member.type === 'player') {
+        return { players: [...state.players, member], teamMembers: [...state.teamMembers, member] };
+      } else if (member.type === 'management') {
+        return { management: [...state.management, member], teamMembers: [...state.teamMembers, member] };
+      } else if (member.type === 'official') {
+        return { officials: [...state.officials, member], teamMembers: [...state.teamMembers, member] };
+      }
+      return state;
+    });
+  },
+  updateTeamMember: (updatedMember: TeamMember) => {
+    set((state) => {
+      const updatedTeamMembers = state.teamMembers.map(member => 
+        member.id === updatedMember.id ? updatedMember : member
+      );
+      
+      if (updatedMember.type === 'player') {
+        const updatedPlayers = state.players.map(player => 
+          player.id === updatedMember.id ? updatedMember : player
+        );
+        return { players: updatedPlayers, teamMembers: updatedTeamMembers };
+      } else if (updatedMember.type === 'management') {
+        const updatedManagement = state.management.map(manager => 
+          manager.id === updatedMember.id ? updatedMember : manager
+        );
+        return { management: updatedManagement, teamMembers: updatedTeamMembers };
+      } else if (updatedMember.type === 'official') {
+        const updatedOfficials = state.officials.map(official => 
+          official.id === updatedMember.id ? updatedMember : official
+        );
+        return { officials: updatedOfficials, teamMembers: updatedTeamMembers };
+      }
+      return { teamMembers: updatedTeamMembers };
+    });
+  },
+  deleteTeamMember: (id: number) => {
+    set((state) => {
+      const member = state.teamMembers.find(m => m.id === id);
+      if (!member) return state;
+      
+      const updatedTeamMembers = state.teamMembers.filter(m => m.id !== id);
+      
+      if (member.type === 'player') {
+        const updatedPlayers = state.players.filter(p => p.id !== id);
+        return { players: updatedPlayers, teamMembers: updatedTeamMembers };
+      } else if (member.type === 'management') {
+        const updatedManagement = state.management.filter(m => m.id !== id);
+        return { management: updatedManagement, teamMembers: updatedTeamMembers };
+      } else if (member.type === 'official') {
+        const updatedOfficials = state.officials.filter(o => o.id !== id);
+        return { officials: updatedOfficials, teamMembers: updatedTeamMembers };
+      }
+      return { teamMembers: updatedTeamMembers };
+    });
   }
 }));

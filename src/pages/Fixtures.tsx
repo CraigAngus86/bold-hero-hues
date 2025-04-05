@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -44,7 +45,8 @@ const Fixtures = () => {
   }, []);
 
   const {
-    filteredMatches,
+    competitions,
+    months,
     selectedCompetition,
     setSelectedCompetition,
     selectedMonth,
@@ -54,8 +56,14 @@ const Fixtures = () => {
     showUpcoming,
     setShowUpcoming,
     availableMonths,
-    clearFilters
-  } = useFixturesFilter({ matches: allMatches, competitions: availableCompetitions });
+    clearFilters,
+    filteredMatches,
+    groupedMatches
+  } = useFixturesFilter({ 
+    allMatches, 
+    initialCompetition: 'All Competitions',
+    initialMonth: 'All Months'
+  });
   
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -91,18 +99,18 @@ const Fixtures = () => {
                 setShowPast={setShowPast}
                 showUpcoming={showUpcoming}
                 setShowUpcoming={setShowUpcoming}
-                competitions={availableCompetitions}
+                competitions={competitions}
                 availableMonths={availableMonths}
                 onClearFilters={clearFilters}
               />
               
               <div className="space-y-10">
-                {Object.keys(filteredMatches).length > 0 ? (
-                  Object.entries(filteredMatches).map(([month, matches]) => (
+                {groupedMatches.length > 0 ? (
+                  groupedMatches.map((group) => (
                     <MonthFixtures
-                      key={month}
-                      month={month}
-                      matches={matches}
+                      key={group.month}
+                      month={group.month}
+                      matches={group.matches}
                     />
                   ))
                 ) : (

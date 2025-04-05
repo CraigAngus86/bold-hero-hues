@@ -2,6 +2,21 @@
 // Moving fixture types to a dedicated type file
 import { Match } from "@/components/fixtures/types";
 
+// Adding Fixture export to fix the import error
+export interface Fixture {
+  id: string;
+  date: string;
+  time: string;
+  homeTeam: string;
+  awayTeam: string;
+  competition: string;
+  venue?: string;
+  isCompleted: boolean;
+  homeScore?: number;
+  awayScore?: number;
+  source?: string;
+}
+
 export interface ScrapedFixture {
   date: string;
   time: string;

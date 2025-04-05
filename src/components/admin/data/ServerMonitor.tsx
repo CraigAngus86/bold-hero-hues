@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { AlertCircle, Server, CheckCircle2, RefreshCw, ExternalLink, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -64,7 +63,7 @@ const ServerMonitor: React.FC<ServerMonitorProps> = ({ config }) => {
     try {
       setIsScrapingData(true);
       toast.info("Scraping Highland League data...");
-      await triggerLeagueDataScrape(true);
+      await triggerLeagueDataScrape();
       toast.success("Highland League data scraped successfully");
       checkSupabaseLastUpdated(); // Update the last updated time
     } catch (error) {

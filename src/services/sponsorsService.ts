@@ -1,10 +1,13 @@
+
 import { create } from 'zustand';
 
-interface Sponsor {
+export interface Sponsor {
   id: number;
   name: string;
   logoUrl: string;
   website?: string;
+  tier?: 'platinum' | 'gold' | 'silver' | 'bronze';
+  description?: string;
 }
 
 interface SponsorsState {
@@ -12,6 +15,9 @@ interface SponsorsState {
   isLoading: boolean;
   error: string | null;
   fetchSponsors: () => Promise<void>;
+  addSponsor: (sponsor: Sponsor) => void;
+  updateSponsor: (sponsor: Sponsor) => void;
+  deleteSponsor: (id: number) => void;
 }
 
 export const useSponsorsStore = create<SponsorsState>((set) => ({
@@ -20,31 +26,36 @@ export const useSponsorsStore = create<SponsorsState>((set) => ({
       id: 1,
       name: 'McIntosh Plant Hire',
       logoUrl: '/lovable-uploads/sponsors/mcintosh.png',
-      website: 'https://www.mcintoshplanthire.co.uk/'
+      website: 'https://www.mcintoshplanthire.co.uk/',
+      tier: 'gold'
     },
     {
       id: 2,
       name: 'Texo Group',
       logoUrl: '/lovable-uploads/sponsors/texo.png',
-      website: 'https://www.texo.co.uk/'
+      website: 'https://www.texo.co.uk/',
+      tier: 'gold'
     },
     {
       id: 3,
       name: 'Saltire Energy',
       logoUrl: '/lovable-uploads/sponsors/saltire.png',
-      website: 'https://www.saltire.com/'
+      website: 'https://www.saltire.com/',
+      tier: 'silver'
     },
     {
       id: 4,
       name: 'Anderson Construction',
       logoUrl: '/lovable-uploads/sponsors/anderson.png',
-      website: 'https://www.andersonconstruction.co.uk/'
+      website: 'https://www.andersonconstruction.co.uk/',
+      tier: 'silver'
     },
     {
       id: 5,
       name: 'STATS Group',
       logoUrl: '/lovable-uploads/sponsors/stats.png',
-      website: 'https://www.statsgroup.com/'
+      website: 'https://www.statsgroup.com/',
+      tier: 'bronze'
     }
   ],
   isLoading: false,
@@ -59,9 +70,6 @@ export const useSponsorsStore = create<SponsorsState>((set) => ({
       await new Promise(resolve => setTimeout(resolve, 500));
       
       // The data is already set in the initial state, so we don't need to update it
-      // When we implement the API, we would do something like:
-      // set({ sponsors: data, isLoading: false });
-      
       set({ isLoading: false });
     } catch (error) {
       console.error('Error fetching sponsors:', error);
@@ -70,5 +78,22 @@ export const useSponsorsStore = create<SponsorsState>((set) => ({
         isLoading: false 
       });
     }
+  },
+  addSponsor: (sponsor: Sponsor) => {
+    set((state) => ({
+      sponsors: [...state.sponsors, sponsor]
+    }));
+  },
+  updateSponsor: (updatedSponsor: Sponsor) => {
+    set((state) => ({
+      sponsors: state.sponsors.map(sponsor => 
+        sponsor.id === updatedSponsor.id ? updatedSponsor : sponsor
+      )
+    }));
+  },
+  deleteSponsor: (id: number) => {
+    set((state) => ({
+      sponsors: state.sponsors.filter(sponsor => sponsor.id !== id)
+    }));
   }
 }));

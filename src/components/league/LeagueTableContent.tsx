@@ -1,24 +1,39 @@
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Table, TableBody } from '@/components/ui/Table';
 import LeagueTableHeader from './LeagueTableHeader';
 import TeamRow from './TeamRow';
 import { TeamStats } from './types';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 interface LeagueTableContentProps {
   leagueData: TeamStats[];
 }
 
-const LeagueTableContent = ({ leagueData }: LeagueTableContentProps) => {
-  // Make sure leagueData is sorted by position and valid
-  const sortedData = [...leagueData].sort((a, b) => {
-    // Ensure we have valid positions to compare
-    const posA = a.position || 0;
-    const posB = b.position || 0;
-    return posA - posB;
-  });
+/**
+ * Displays the league table with team standings
+ */
+const LeagueTableContent: React.FC<LeagueTableContentProps> = ({ leagueData }) => {
+  // Memoize sort function to prevent recreating on every render
+  const sortedData = React.useMemo(() => {
+    return [...leagueData].sort((a, b) => {
+      // Ensure we have valid positions to compare
+      const posA = a.position || 0;
+      const posB = b.position || 0;
+      return posA - posB;
+    });
+  }, [leagueData]);
   
-  console.log('Rendering league table with data:', sortedData);
+  // Render team row with error boundary
+  const renderTeamRow = useCallback((team: TeamStats) => {
+    const key = team.id?.toString() || team.position?.toString() || team.team;
+    
+    return (
+      <ErrorBoundary key={key} componentName={`TeamRow-${team.team}`}>
+        <TeamRow team={team} />
+      </ErrorBoundary>
+    );
+  }, []);
   
   return (
     <div className="overflow-x-auto">
@@ -32,12 +47,7 @@ const LeagueTableContent = ({ leagueData }: LeagueTableContentProps) => {
               </td>
             </tr>
           ) : (
-            sortedData.map((team) => (
-              <TeamRow 
-                key={team.id?.toString() || team.position?.toString() || team.team} 
-                team={team} 
-              />
-            ))
+            sortedData.map(renderTeamRow)
           )}
         </TableBody>
       </Table>
@@ -45,4 +55,4 @@ const LeagueTableContent = ({ leagueData }: LeagueTableContentProps) => {
   );
 };
 
-export default LeagueTableContent;
+export default React.memo(LeagueTableContent);

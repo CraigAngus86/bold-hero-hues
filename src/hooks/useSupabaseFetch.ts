@@ -113,7 +113,7 @@ export function useDynamicSupabaseFetch<T>(
         setLoading(true);
         
         // Use any type to bypass TypeScript checks completely
-        const query = supabase.from(tableName) as any;
+        const query = supabase.from(tableName as any) as any;
         
         // Build query step by step
         const selectClause = options?.select || '*';

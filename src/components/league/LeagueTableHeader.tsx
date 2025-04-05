@@ -1,7 +1,12 @@
+
 import React from 'react';
 import { TableHeader, TableRow, TableHead } from '@/components/ui/Table';
 
-const LeagueTableHeader = () => {
+/**
+ * League table header component displaying column titles
+ * Memoized to prevent unnecessary re-renders
+ */
+const LeagueTableHeader: React.FC = React.memo(() => {
   return (
     <TableHeader className="bg-team-blue text-white">
       <TableRow>
@@ -19,6 +24,8 @@ const LeagueTableHeader = () => {
       </TableRow>
     </TableHeader>
   );
-};
+});
+
+LeagueTableHeader.displayName = 'LeagueTableHeader';
 
 export default LeagueTableHeader;

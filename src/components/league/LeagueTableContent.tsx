@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Table, TableBody } from '@/components/ui/table';
+import { Table, TableBody } from '@/components/ui/Table';
 import LeagueTableHeader from './LeagueTableHeader';
 import TeamRow from './TeamRow';
 import { TeamStats } from './types';

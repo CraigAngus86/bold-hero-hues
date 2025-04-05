@@ -6,7 +6,7 @@ import {
   TableHead,
   TableHeader,
   TableRow
-} from "@/components/ui/table";
+} from "@/components/ui/Table";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { ScrapedFixture } from "@/types/fixtures";

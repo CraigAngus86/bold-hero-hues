@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { TableRow, TableCell } from '@/components/ui/table';
+import { TableRow, TableCell } from '@/components/ui/Table';
 import FormIndicator from './FormIndicator';
 import { TeamStats } from './types';
 

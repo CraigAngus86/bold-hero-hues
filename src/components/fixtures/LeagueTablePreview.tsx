@@ -2,7 +2,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Trophy } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/Table';
 import { TeamStats } from '../league/types';
 
 interface LeagueTablePreviewProps {

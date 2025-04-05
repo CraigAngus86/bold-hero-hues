@@ -1,79 +1,76 @@
 
-import React from 'react';
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Globe } from "lucide-react";
+import { Download, Loader2, PlayCircle, Recycle, TestTube } from "lucide-react";
 
 interface ScraperActionButtonsProps {
   isLoading: boolean;
   testLoading: boolean;
-  onTestFetch: () => Promise<void>;
-  onFetchFromBBC: () => Promise<void>;
-  onFetchFromHFL: () => Promise<void>;
-  success?: boolean;
+  onTestFetch: () => void;
+  onFetchFromBBC: () => void;
+  onFetchFromHFL: () => void;
+  success: boolean;
 }
 
-const ScraperActionButtons: React.FC<ScraperActionButtonsProps> = ({
+const ScraperActionButtons = ({
   isLoading,
   testLoading,
   onTestFetch,
   onFetchFromBBC,
   onFetchFromHFL,
   success
-}) => {
+}: ScraperActionButtonsProps) => {
   return (
     <>
       <Button
-        className="w-full sm:w-auto"
+        variant="secondary"
+        size="sm"
+        disabled={testLoading}
         onClick={onTestFetch}
-        disabled={testLoading || isLoading}
-        variant="outline"
+        className="text-xs sm:text-sm"
       >
         {testLoading ? (
           <>
-            <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-            Testing...
+            <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> Testing...
           </>
         ) : (
           <>
-            <Globe className="mr-2 h-4 w-4" />
-            Test BBC Sport Connection
+            <TestTube className="mr-2 h-3.5 w-3.5" /> Test Connection
           </>
         )}
       </Button>
-      
+
       <Button
-        className="w-full sm:w-auto"
+        variant="default"
+        size="sm"
+        disabled={isLoading}
         onClick={onFetchFromBBC}
-        disabled={isLoading || testLoading}
+        className="text-xs sm:text-sm"
       >
-        {isLoading && success === false ? (
+        {isLoading ? (
           <>
-            <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-            Fetching from BBC Sport...
+            <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> Importing...
           </>
         ) : (
           <>
-            <Globe className="mr-2 h-4 w-4" />
-            Fetch from BBC Sport
+            <PlayCircle className="mr-2 h-3.5 w-3.5" /> Import from BBC Sport
           </>
         )}
       </Button>
-      
+
       <Button
-        className="w-full sm:w-auto"
+        variant="default"
+        size="sm"
+        disabled={isLoading}
         onClick={onFetchFromHFL}
-        disabled={isLoading || testLoading}
-        variant="secondary"
+        className="text-xs sm:text-sm"
       >
-        {isLoading && success === true ? (
+        {isLoading ? (
           <>
-            <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-            Fetching from HFL...
+            <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> Importing...
           </>
         ) : (
           <>
-            <Globe className="mr-2 h-4 w-4" />
-            Fetch from Highland League
+            <Recycle className="mr-2 h-3.5 w-3.5" /> Import from HFL Website
           </>
         )}
       </Button>

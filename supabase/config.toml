@@ -1,1 +1,8 @@
+
 project_id = "bbbxhwaixjjxgboeiktq"
+[functions]
+[functions.scrape-fixtures]
+verify_jwt = false
+
+[functions.scrape-bbc-fixtures]
+verify_jwt = false

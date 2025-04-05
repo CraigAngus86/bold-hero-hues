@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -6,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Upload, X, Image as ImageIcon, Loader2, Tag } from 'lucide-react';
-import { useImageUpload, BucketType, imageUploadConfigs, ImageOptimizationOptions } from '@/services/imageService';
+import { useImageUpload, BucketType, imageUploadConfigs, ImageOptimizationOptions } from '@/services/images';
 
 interface ImageUploaderProps {
   type?: 'news' | 'player' | 'sponsor' | 'general';
@@ -50,19 +49,16 @@ export function ImageUploader({
   const [tagInput, setTagInput] = useState('');
   const { upload, isUploading, progress } = useImageUpload();
   
-  // Use config based on image type
   const config = imageUploadConfigs[type];
   const maxSizeMB = config.maxSizeMB;
   const maxSizeBytes = maxSizeMB * 1024 * 1024;
   const acceptedTypes = config.acceptedTypes;
   
-  // Customize optimization options if provided
   const optimizationOptions: ImageOptimizationOptions = {
     ...config.optimizationOptions,
     ...(customSize || {})
   };
 
-  // Determine aspect ratio class
   const getAspectRatioClass = () => {
     switch (aspectRatio) {
       case 'square':
@@ -115,7 +111,6 @@ export function ImageUploader({
     const fileUrl = URL.createObjectURL(file);
     setPreviewUrl(fileUrl);
     
-    // Set default alt text from filename if not provided
     if (!altText) {
       const fileName = file.name.split('.')[0];
       setAltText(fileName.replace(/-|_/g, ' '));

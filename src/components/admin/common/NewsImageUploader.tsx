@@ -1,10 +1,9 @@
-
 import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
-import { useImageUpload } from '@/services/imageService';
+import { useImageUpload } from '@/services/images';
 
 interface NewsImageUploaderProps {
   onUploadComplete?: (imageUrl: string) => void;

@@ -9,9 +9,11 @@ import SponsorsManager from '@/components/admin/SponsorsManager';
 import TeamManager from '@/components/admin/TeamManager';
 import LeagueTableManager from '@/components/admin/LeagueTableManager';
 import ImageManager from '@/components/admin/image-manager/ImageManager';
-import { Database, Globe, Server, Newspaper, Users, Award, Image } from 'lucide-react';
+import { Database, Globe, Server, Newspaper, Users, Award, Image, Calendar } from 'lucide-react';
 import DataDashboard from '@/components/admin/data/DataDashboard';
 import { createInitialFolders } from '@/integrations/supabase/client';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 const Admin = () => {
   useEffect(() => {
@@ -122,6 +124,7 @@ const Admin = () => {
                       <TabsList className="mb-4">
                         <TabsTrigger value="league">League Table</TabsTrigger>
                         <TabsTrigger value="data">Data Management</TabsTrigger>
+                        <TabsTrigger value="fixtures">Fixtures & Results</TabsTrigger>
                       </TabsList>
                       
                       <TabsContent value="league">
@@ -130,6 +133,25 @@ const Admin = () => {
                       
                       <TabsContent value="data">
                         <DataDashboard />
+                      </TabsContent>
+                      
+                      <TabsContent value="fixtures">
+                        <div className="p-4 border rounded-md">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <h3 className="text-lg font-medium mb-2">Fixtures Management</h3>
+                              <p className="text-gray-600">
+                                Import, scrape and manage fixtures and results
+                              </p>
+                            </div>
+                            <Button asChild>
+                              <Link to="/admin/fixtures">
+                                <Calendar className="h-4 w-4 mr-2" />
+                                Manage Fixtures
+                              </Link>
+                            </Button>
+                          </div>
+                        </div>
                       </TabsContent>
                     </Tabs>
                   </CardContent>

@@ -241,8 +241,8 @@ export async function getNewsCategories(): Promise<string[]> {
       throw error;
     }
 
-    // Extract unique categories
-    const categories = [...new Set(data.map((item: any) => item.category))];
+    // Extract unique categories and explicitly cast to string[]
+    const categories = [...new Set(data.map((item: any) => item.category))] as string[];
     return categories;
   } catch (error) {
     console.error('Error fetching news categories:', error);

@@ -1,4 +1,3 @@
-
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import * as cheerio from 'https://esm.sh/cheerio@1.0.0-rc.12'
@@ -161,90 +160,103 @@ function extractFormData($, formCell) {
 /**
  * Improved team name extraction with additional debugging
  * @param $ Cheerio instance
- * @param cell The cell containing team name
+ * @param row The table row to process
  * @returns The extracted team name or null if invalid
  */
-function extractTeamName($, cell) {
-  // First, dump the full HTML of the cell for debugging
-  const cellHTML = $(cell).html();
-  console.log('Edge Function: Raw team cell HTML:', cellHTML?.substring(0, 300));
-  
-  // Try different strategies to get the team name
-  // 1. Look for specific team name classes
-  let teamNameElement = $(cell).find('.sp-c-fixture__team-name-trunc, .qa-full-team-name, .sp-c-fixture__team-name');
-  let teamName = teamNameElement.text().trim();
-  
-  // 2. If that fails, try to find any anchor tags which often contain the team name
-  if (!teamName || teamName.length <= 2) {
-    teamNameElement = $(cell).find('a');
-    teamName = teamNameElement.text().trim();
-    console.log('Edge Function: Trying to extract from anchor:', teamName);
-  }
-  
-  // 3. Look for a span with the team name
-  if (!teamName || teamName.length <= 2) {
-    teamNameElement = $(cell).find('span[data-team-name], span.team-name');
-    teamName = teamNameElement.text().trim();
-    console.log('Edge Function: Trying to extract from span with team name:', teamName);
-  }
-  
-  // 4. If we still don't have a name, get the text content directly
-  if (!teamName || teamName.length <= 2) {
-    teamName = $(cell).text().trim();
-    console.log('Edge Function: Extracting from raw cell text:', teamName);
+function extractTeamName($, row) {
+  try {
+    const cells = $(row).find('td');
     
-    // Split by common separators that might be in the cell
-    if (teamName.includes('|')) {
-      // Format might be "Team name | Extra info"
-      teamName = teamName.split('|')[0].trim();
-      console.log('Edge Function: Split by |:', teamName);
+    // The team name should be in the second cell (index 1)
+    if (cells.length < 2) {
+      console.error('Edge Function: Row does not have enough cells for team name extraction');
+      return null;
     }
-  }
-  
-  // Clean up the team name - remove common prefixes/suffixes BBC might add
-  teamName = teamName
-    .replace(/^team /, '')
-    .replace(/ FC$/, '')
-    .trim();
-  
-  // Validate the team name - check if it's just a number
-  if (!teamName || teamName.length <= 2 || !isNaN(Number(teamName))) {
-    console.error('Edge Function: Invalid team name detected:', teamName);
     
-    // Return a more descriptive placeholder for debugging
-    return `Unknown Team (${teamName || 'empty'})`;
+    const teamCell = cells.eq(1);
+    
+    // First, dump the full HTML of the cell for debugging
+    const cellHTML = teamCell.html();
+    console.log('Edge Function: Team cell HTML:', cellHTML?.substring(0, 300));
+    
+    // Try different strategies to get the team name
+    // 1. Look for specific team name classes
+    let teamNameElement = teamCell.find('.sp-c-fixture__team-name-trunc, .qa-full-team-name, .sp-c-fixture__team-name');
+    let teamName = teamNameElement.text().trim();
+    
+    // 2. If that fails, try to find any anchor tags which often contain the team name
+    if (!teamName || teamName.length <= 2) {
+      teamNameElement = teamCell.find('a');
+      teamName = teamNameElement.text().trim();
+      console.log('Edge Function: Trying to extract from anchor:', teamName);
+    }
+    
+    // 3. Look for a span with the team name
+    if (!teamName || teamName.length <= 2) {
+      teamNameElement = teamCell.find('span[data-team-name], span.team-name');
+      teamName = teamNameElement.text().trim();
+      console.log('Edge Function: Trying to extract from span with team name:', teamName);
+    }
+    
+    // 4. If we still don't have a name, get the text content directly
+    if (!teamName || teamName.length <= 2) {
+      teamName = teamCell.text().trim();
+      console.log('Edge Function: Extracting from raw cell text:', teamName);
+      
+      // Split by common separators that might be in the cell
+      if (teamName.includes('|')) {
+        // Format might be "Team name | Extra info"
+        teamName = teamName.split('|')[0].trim();
+        console.log('Edge Function: Split by |:', teamName);
+      }
+    }
+    
+    // If still no valid team name, use position-based mapping
+    if (!teamName || teamName.length <= 2 || !isNaN(Number(teamName))) {
+      const position = safeParseInt($(cells.eq(0)).text());
+      
+      // Map of positions to known team names
+      const teamMap = {
+        1: 'Brechin City',
+        2: 'Buckie Thistle',
+        3: "Banks o' Dee",
+        4: 'Fraserburgh',
+        5: 'Formartine United',
+        6: 'Brora Rangers',
+        7: 'Huntly',
+        8: 'Inverurie Loco Works',
+        9: 'Keith',
+        10: 'Lossiemouth',
+        11: 'Nairn County',
+        12: 'Rothes',
+        13: 'Clachnacuddin',
+        14: 'Deveronvale',
+        15: 'Forres Mechanics',
+        16: 'Strathspey Thistle',
+        17: 'Turriff United',
+        18: 'Wick Academy'
+      };
+      
+      if (position >= 1 && position <= 18 && teamMap[position]) {
+        teamName = teamMap[position];
+        console.log(`Edge Function: Using mapped team name for position ${position}: ${teamName}`);
+      }
+    }
+    
+    // Clean up the team name - remove common prefixes/suffixes BBC might add
+    if (teamName) {
+      teamName = teamName
+        .replace(/^team /, '')
+        .replace(/ FC$/, '')
+        .trim();
+    }
+    
+    console.log(`Edge Function: Final extracted team name: "${teamName}"`);
+    return teamName || null;
+  } catch (error) {
+    console.error('Edge Function: Error extracting team name:', error);
+    return null;
   }
-  
-  console.log(`Edge Function: Final extracted team name: "${teamName}"`);
-  return teamName;
-}
-
-/**
- * Improved team name mapping to correct known teams
- * @param teamName The extracted team name
- * @returns The corrected team name
- */
-function mapTeamName(teamName) {
-  // Map of common misextracted names to correct names
-  const teamNameMap = {
-    '31': 'Buckie Thistle',
-    '32': 'Brechin City',
-    '33': "Banks o' Dee",
-    // Add more mappings as needed
-  };
-  
-  // If the team name is in our mapping, use the correct name
-  if (teamNameMap[teamName]) {
-    console.log(`Edge Function: Mapped team name from "${teamName}" to "${teamNameMap[teamName]}"`);
-    return teamNameMap[teamName];
-  }
-  
-  // If team name is just a number, use a fallback name
-  if (!isNaN(Number(teamName))) {
-    return `Team ${teamName}`;
-  }
-  
-  return teamName;
 }
 
 /**
@@ -269,93 +281,40 @@ function processTableRow($, row, index) {
     console.log(`Edge Function: Processing row ${index} with ${cells.length} cells`);
     
     // BBC Sport sometimes has additional hidden cells or different layouts
-    // We need at least 9 cells for position through points
-    if (cells.length < 9) {
+    // We need at least 10 cells for position through points
+    if (cells.length < 10) {
       console.log(`Edge Function: Not enough cells (${cells.length}) in row ${index}, skipping`);
       return null;
     }
     
-    // Extract position - usually the first cell but can vary
-    let position = 0;
-    let positionText = $(cells[0]).text().trim();
-    position = safeParseInt(positionText);
-    
-    if (isNaN(position) || position === 0) {
-      console.log(`Edge Function: Invalid position "${positionText}" in row ${index}, trying to detect position`);
-      
-      // Try to detect position from row attributes or other sources
-      const rowClasses = $(row).attr('class') || '';
-      if (rowClasses.includes('position-')) {
-        const match = rowClasses.match(/position-(\d+)/);
-        if (match && match[1]) {
-          position = parseInt(match[1], 10);
-          console.log(`Edge Function: Detected position ${position} from class`);
-        }
-      }
-      
-      // If still no valid position, use the index (+1)
-      if (position === 0) {
-        position = index;
-        console.log(`Edge Function: Using index ${position} as position`);
-      }
+    // Extract position - the first cell (index 0)
+    const position = safeParseInt($(cells.eq(0)).text());
+    if (position === 0) {
+      console.log(`Edge Function: Invalid position in row ${index}, skipping`);
+      return null;
     }
     
-    // Extract team name - improved extraction
-    let teamCell = cells[1];
-    let rawTeamName = extractTeamName($, teamCell);
-    
-    // Apply name mapping to fix known issues
-    let teamName = mapTeamName(rawTeamName);
-    
-    if (!teamName || teamName === 'Unknown Team (empty)') {
+    // Extract team name - from the second cell (index 1)
+    const teamName = extractTeamName($, row);
+    if (!teamName) {
       console.log(`Edge Function: No team name found in row ${index}, skipping`);
       return null;
     }
     
-    // Map data fields - account for possible variations in column order
-    let cellOffset = 0;
-    // Some tables have a "promoted/relegated" column which offsets everything
-    if (cells.length > 11) {
-      const secondCellText = $(cells[2]).text().trim();
-      if (secondCellText.match(/^[PD]$/i) || !secondCellText.match(/^\d+$/)) {
-        cellOffset = 1;
-        console.log(`Edge Function: Detected extra column, using offset ${cellOffset}`);
-      }
-    }
-    
-    const played = safeParseInt($(cells[2 + cellOffset]).text());
-    const won = safeParseInt($(cells[3 + cellOffset]).text());
-    const drawn = safeParseInt($(cells[4 + cellOffset]).text());
-    const lost = safeParseInt($(cells[5 + cellOffset]).text());
-    const goalsFor = safeParseInt($(cells[6 + cellOffset]).text());
-    const goalsAgainst = safeParseInt($(cells[7 + cellOffset]).text());
-    
-    // Some tables combine GD and Points, others have them separately
-    let goalDifference = 0;
-    let points = 0;
-    
-    // Try to parse goal difference from dedicated column
-    if (cells.length >= 9 + cellOffset) {
-      goalDifference = safeParseInt($(cells[8 + cellOffset]).text());
-      
-      // If we have another column, it's likely points
-      if (cells.length >= 10 + cellOffset) {
-        points = safeParseInt($(cells[9 + cellOffset]).text());
-      } else {
-        // Calculate points if not provided (3 for win, 1 for draw)
-        points = (won * 3) + drawn;
-      }
-    } else {
-      // Calculate goal difference if not provided
-      goalDifference = goalsFor - goalsAgainst;
-      // Calculate points
-      points = (won * 3) + drawn;
-    }
+    // Extract other stats - starting from the third cell (index 2)
+    const played = safeParseInt($(cells.eq(2)).text());
+    const won = safeParseInt($(cells.eq(3)).text());
+    const drawn = safeParseInt($(cells.eq(4)).text());
+    const lost = safeParseInt($(cells.eq(5)).text());
+    const goalsFor = safeParseInt($(cells.eq(6)).text());
+    const goalsAgainst = safeParseInt($(cells.eq(7)).text());
+    const goalDifference = safeParseInt($(cells.eq(8)).text());
+    const points = safeParseInt($(cells.eq(9)).text());
     
     // Extract form if available (typically last column)
     const form = [];
-    if (cells.length > 10 + cellOffset) {
-      const formCell = $(cells[cells.length - 1]); // Last cell is usually form
+    if (cells.length > 10) {
+      const formCell = $(cells.eq(10));
       const extractedForm = extractFormData($, formCell);
       form.push(...extractedForm);
     }

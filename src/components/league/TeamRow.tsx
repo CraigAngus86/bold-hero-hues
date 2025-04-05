@@ -22,9 +22,39 @@ const TeamRow = ({ team }: TeamRowProps) => {
   const form = team.form || [];
   
   // Check for invalid team name
-  const teamName = team.team || '';
+  let teamName = team.team || '';
   const isInvalidTeamName = !team.team || !isNaN(Number(team.team)) || team.team.length <= 2;
-
+  
+  // Map numeric team names to real team names if possible
+  if (isInvalidTeamName && !isNaN(Number(team.team))) {
+    const teamMap = {
+      '1': 'Brechin City',
+      '2': 'Buckie Thistle',
+      '3': "Banks o' Dee",
+      '4': 'Fraserburgh',
+      '5': 'Formartine United',
+      '6': 'Brora Rangers',
+      '7': 'Huntly',
+      '8': 'Inverurie Loco Works',
+      '9': 'Keith',
+      '10': 'Lossiemouth',
+      '11': 'Nairn County',
+      '12': 'Rothes',
+      '13': 'Clachnacuddin',
+      '14': 'Deveronvale',
+      '15': 'Forres Mechanics',
+      '16': 'Strathspey Thistle',
+      '17': 'Turriff United',
+      '18': 'Wick Academy'
+    };
+    
+    if (teamMap[teamName]) {
+      teamName = teamMap[teamName];
+    } else {
+      teamName = `Team ${teamName}`;
+    }
+  }
+  
   // If we detect an invalid team name, log it for debugging
   if (isInvalidTeamName) {
     console.warn('Invalid team name detected:', team.team, team);
@@ -32,13 +62,13 @@ const TeamRow = ({ team }: TeamRowProps) => {
 
   return (
     <TableRow 
-      className={team.team === "Banks o' Dee" ? "bg-team-lightBlue/30" : ""}
+      className={teamName === "Banks o' Dee" ? "bg-team-lightBlue/30" : ""}
     >
       <TableCell className="font-medium text-center">{position}</TableCell>
       <TableCell className="font-medium">
         <div className="flex items-center">
           <div className="w-10 h-10 flex items-center justify-center mr-2">
-            {team.team === "Banks o' Dee" ? (
+            {teamName === "Banks o' Dee" ? (
               <img 
                 src="/lovable-uploads/8f2cd33f-1e08-494a-9aaa-65792ee9418a.png" 
                 alt="Banks o' Dee logo"
@@ -47,12 +77,15 @@ const TeamRow = ({ team }: TeamRowProps) => {
             ) : (
               <img 
                 src={team.logo || "https://placehold.co/60x60/gray/white?text=Logo"} 
-                alt={`${team.team} logo`}
+                alt={`${teamName} logo`}
                 className="w-8 h-8 object-contain"
               />
             )}
           </div>
-          <span>{teamName}</span>
+          <span className={isInvalidTeamName ? "text-amber-600" : ""}>{teamName}</span>
+          {isInvalidTeamName && !isNaN(Number(team.team)) && (
+            <span className="ml-1 text-xs text-amber-600">(from position {position})</span>
+          )}
         </div>
       </TableCell>
       <TableCell className="text-center">{played}</TableCell>

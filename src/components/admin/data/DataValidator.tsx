@@ -16,6 +16,7 @@ const DataValidator = () => {
     invalidTeams: string[];
     pointsIssues: string[];
     gamesPlayedIssues: string[];
+    columnAlignmentIssues: boolean;
     message: string;
   } | null>(null);
 
@@ -32,15 +33,29 @@ const DataValidator = () => {
         invalidTeams: [] as string[],
         pointsIssues: [] as string[],
         gamesPlayedIssues: [] as string[],
+        columnAlignmentIssues: false,
         message: 'Data validation successful'
       };
+      
+      // Check for column alignment issues (numeric team names often indicate this)
+      const numericTeamNames = data.filter(team => 
+        team.team && !isNaN(Number(team.team))
+      );
+      
+      if (numericTeamNames.length > 0) {
+        results.valid = false;
+        results.columnAlignmentIssues = true;
+        numericTeamNames.forEach(team => {
+          results.invalidTeams.push(`Position ${team.position}: "${team.team}" (likely column misalignment)`);
+        });
+      }
       
       // Check each team
       data.forEach((team: TeamStats) => {
         // Check for invalid team names
-        if (!team.team || team.team.length <= 2 || !isNaN(Number(team.team))) {
+        if (!team.team || team.team.length <= 2) {
           results.valid = false;
-          results.invalidTeams.push(`Position ${team.position}: "${team.team}"`);
+          results.invalidTeams.push(`Position ${team.position}: "${team.team}" (too short or missing)`);
         }
         
         // Check points calculation
@@ -120,6 +135,24 @@ const DataValidator = () => {
                 {validationResults.teamCount} teams found
               </span>
             </div>
+            
+            {/* Column Alignment Issues */}
+            {validationResults.columnAlignmentIssues && (
+              <div className="border border-red-200 rounded-md p-3 bg-red-50">
+                <h3 className="font-medium flex items-center text-red-700 mb-1">
+                  <AlertCircle className="h-4 w-4 mr-1.5" />
+                  Column Alignment Issues Detected
+                </h3>
+                <p className="text-sm text-red-600 mb-2">
+                  The scraper is likely misaligned with the BBC Sport table structure. 
+                  It appears numeric values (like games played) are being extracted as team names.
+                </p>
+                <div className="mt-2 text-xs text-red-600">
+                  <strong>Fix:</strong> Update the scraper to correctly map the columns. 
+                  The team name should be in the second column, with stats starting from the third column.
+                </div>
+              </div>
+            )}
             
             {/* Invalid Team Names */}
             {validationResults.invalidTeams.length > 0 && (

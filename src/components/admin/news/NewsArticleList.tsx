@@ -240,7 +240,8 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Categories</SelectItem>
+                {/* Changed from empty string to "all" */}
+                <SelectItem value="all">All Categories</SelectItem>
                 {categories && categories.map((category, index) => (
                   <SelectItem key={index} value={category || "_empty"}>
                     {category || "Uncategorized"}
@@ -249,9 +250,9 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
               </SelectContent>
             </Select>
             <Select 
-              value={featuredFilter === undefined ? '' : featuredFilter ? 'featured' : 'not-featured'}
+              value={featuredFilter === undefined ? 'all' : featuredFilter ? 'featured' : 'not-featured'}
               onValueChange={(value) => {
-                if (value === '') setFeaturedFilter(undefined);
+                if (value === 'all') setFeaturedFilter(undefined);
                 else setFeaturedFilter(value === 'featured');
               }}
             >
@@ -259,7 +260,8 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
                 <SelectValue placeholder="Featured Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Articles</SelectItem>
+                {/* Changed from empty string to "all" */}
+                <SelectItem value="all">All Articles</SelectItem>
                 <SelectItem value="featured">Featured Only</SelectItem>
                 <SelectItem value="not-featured">Not Featured</SelectItem>
               </SelectContent>
@@ -286,4 +288,3 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
     </Card>
   );
 };
-

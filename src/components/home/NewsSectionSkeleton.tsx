@@ -8,7 +8,7 @@ interface NewsSectionSkeletonProps {
 }
 
 const NewsSectionSkeleton: React.FC<NewsSectionSkeletonProps> = ({ 
-  count = 3,
+  count = 10, // Updated default count to match the total articles (1 + 2 + 4 + 4 = 11)
   featured = false 
 }) => {
   return (
@@ -71,7 +71,7 @@ const NewsSectionSkeleton: React.FC<NewsSectionSkeletonProps> = ({
             </div>
           </div>
           
-          {/* Bottom row skeletons */}
+          {/* Bottom row skeletons - First 4 articles */}
           {Array.from({ length: Math.min(4, count) }).map((_, index) => (
             <div key={`bottom-${index}`} className="col-span-12 sm:col-span-6 md:col-span-6 lg:col-span-3">
               <div className="rounded-lg overflow-hidden shadow-md bg-white h-full">
@@ -85,6 +85,25 @@ const NewsSectionSkeleton: React.FC<NewsSectionSkeletonProps> = ({
               </div>
             </div>
           ))}
+          
+          {/* Additional 4 articles in a 3x3 grid */}
+          <div className="col-span-12">
+            <div className="grid grid-cols-12 gap-6 mt-6">
+              {Array.from({ length: Math.min(4, Math.max(0, count - 4)) }).map((_, index) => (
+                <div key={`additional-${index}`} className="col-span-12 sm:col-span-6 md:col-span-4 lg:col-span-3">
+                  <div className="rounded-lg overflow-hidden shadow-md bg-white h-full">
+                    <Skeleton className="w-full h-36" />
+                    <div className="p-4">
+                      <Skeleton className="h-4 w-20 mb-2" />
+                      <Skeleton className="h-6 w-full mb-2" />
+                      <Skeleton className="h-4 w-3/4 mb-1" />
+                      <Skeleton className="h-4 w-24 mt-2" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </section>

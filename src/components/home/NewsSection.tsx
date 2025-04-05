@@ -17,7 +17,7 @@ interface NewsSectionProps {
 
 const NewsSection: React.FC<NewsSectionProps> = ({ 
   excludeIds = [], 
-  initialCount = 7 // Adjust the number based on the new grid layout (1 featured + 6 standard)
+  initialCount = 11 // Updated: 1 featured + 2 right side + 4 bottom row + 4 additional
 }) => {
   // Increase the fetch count to ensure we have enough articles
   const fetchCount = initialCount + 4; // Fetch extra to account for filtering
@@ -193,6 +193,26 @@ const NewsSection: React.FC<NewsSectionProps> = ({
               />
             </div>
           ))}
+          
+          {/* Additional 4 articles in a 3x3 grid (each taking 3 columns) */}
+          <div className="col-span-12">
+            <div className="grid grid-cols-12 gap-6 mt-6">
+              {regularArticles.slice(6, 10).map((article, index) => (
+                <div key={article.id} className="col-span-12 sm:col-span-6 md:col-span-4 lg:col-span-3">
+                  <NewsCard
+                    title={article.title}
+                    excerpt={processExcerpt(article.content)}
+                    image={article.image_url || getLocalImageFallback(index + 7)}
+                    date={formatDate(article.publish_date)}
+                    category={article.category}
+                    slug={article.slug}
+                    size="small"
+                    className="h-full"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </section>

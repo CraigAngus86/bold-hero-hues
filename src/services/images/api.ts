@@ -314,8 +314,15 @@ export async function getImageMetadata(
       alt_text: data.alt_text,
       description: data.description,
       tags: data.tags,
-      // Ensure dimensions is properly typed
-      dimensions: typeof data.dimensions === 'object' ? data.dimensions : undefined
+      // Ensure dimensions is properly typed with a proper check
+      dimensions: data.dimensions && 
+                 typeof data.dimensions === 'object' && 
+                 'width' in data.dimensions && 
+                 'height' in data.dimensions ? 
+                 { 
+                   width: Number(data.dimensions.width), 
+                   height: Number(data.dimensions.height) 
+                 } : undefined
     };
 
     return { success: true, data: transformedData };

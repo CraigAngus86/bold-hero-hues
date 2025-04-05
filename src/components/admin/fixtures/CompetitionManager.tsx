@@ -1,243 +1,254 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Trash, Edit, Plus, Save } from 'lucide-react';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash, Save, X } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 
 interface Competition {
   id: string;
   name: string;
   season: string;
   type: 'league' | 'cup' | 'friendly';
+  teams?: string[];
+  format?: string;
 }
 
 export const CompetitionManager: React.FC = () => {
   const [competitions, setCompetitions] = useState<Competition[]>([
     { id: '1', name: 'Highland League', season: '2023-2024', type: 'league' },
-    { id: '2', name: 'Highland League Cup', season: '2023-2024', type: 'cup' },
-    { id: '3', name: 'Scottish Cup', season: '2023-2024', type: 'cup' },
-    { id: '4', name: 'North of Scotland Cup', season: '2023-2024', type: 'cup' },
-    { id: '5', name: 'Friendly Match', season: '2023-2024', type: 'friendly' },
+    { id: '2', name: 'Scottish Cup', season: '2023-2024', type: 'cup' },
+    { id: '3', name: 'Friendly Matches', season: '2023-2024', type: 'friendly' }
   ]);
   
+  const [loading, setLoading] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [currentCompetition, setCurrentCompetition] = useState<Competition | null>(null);
   const [formData, setFormData] = useState({
-    id: '',
     name: '',
     season: '',
     type: 'league' as 'league' | 'cup' | 'friendly',
+    format: ''
   });
   
-  const [isEditing, setIsEditing] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  
-  const resetForm = () => {
-    setFormData({
-      id: '',
-      name: '',
-      season: '',
-      type: 'league',
-    });
-    setIsEditing(false);
+  const handleOpenDialog = (competition?: Competition) => {
+    if (competition) {
+      setCurrentCompetition(competition);
+      setFormData({
+        name: competition.name,
+        season: competition.season,
+        type: competition.type,
+        format: competition.format || ''
+      });
+    } else {
+      setCurrentCompetition(null);
+      setFormData({
+        name: '',
+        season: '',
+        type: 'league',
+        format: ''
+      });
+    }
+    setDialogOpen(true);
   };
   
-  const handleEditCompetition = (competition: Competition) => {
-    setFormData(competition);
-    setIsEditing(true);
-    setIsDialogOpen(true);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
   
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+  
+  const handleSave = () => {
     if (!formData.name || !formData.season) {
-      toast.error('Please fill in all required fields');
+      toast.error('Name and season are required fields');
       return;
     }
     
-    if (isEditing) {
-      // Update existing competition
-      setCompetitions(competitions.map(comp => 
-        comp.id === formData.id ? formData : comp
-      ));
-      toast.success('Competition updated successfully');
-    } else {
-      // Create new competition
-      const newCompetition = {
-        ...formData,
-        id: crypto.randomUUID(),
-      };
-      setCompetitions([...competitions, newCompetition]);
-      toast.success('Competition created successfully');
-    }
+    setLoading(true);
     
-    resetForm();
-    setIsDialogOpen(false);
+    try {
+      // In a real application, you would save to your database here
+      if (currentCompetition) {
+        // Update existing competition
+        setCompetitions(prevCompetitions => 
+          prevCompetitions.map(comp => 
+            comp.id === currentCompetition.id 
+              ? { ...comp, ...formData }
+              : comp
+          )
+        );
+        toast.success(`Updated competition: ${formData.name}`);
+      } else {
+        // Create new competition
+        const newCompetition = {
+          ...formData,
+          id: Math.random().toString(36).substring(2, 9)
+        };
+        setCompetitions(prevCompetitions => [...prevCompetitions, newCompetition]);
+        toast.success(`Created new competition: ${formData.name}`);
+      }
+    } catch (error) {
+      console.error('Error saving competition:', error);
+      toast.error('Failed to save competition');
+    } finally {
+      setLoading(false);
+      setDialogOpen(false);
+    }
   };
   
-  const handleDeleteCompetition = (id: string) => {
-    setCompetitions(competitions.filter(comp => comp.id !== id));
-    toast.success('Competition deleted successfully');
-  };
-  
-  const getTypeLabel = (type: string) => {
-    switch(type) {
-      case 'league': return 'League';
-      case 'cup': return 'Cup/Tournament';
-      case 'friendly': return 'Friendly';
-      default: return type;
+  const handleDelete = (id: string) => {
+    if (confirm('Are you sure you want to delete this competition? This action cannot be undone.')) {
+      setCompetitions(prevCompetitions => prevCompetitions.filter(comp => comp.id !== id));
+      toast.success('Competition deleted');
     }
   };
   
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Competition Management</CardTitle>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => { resetForm(); setIsDialogOpen(true); }}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Competition
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {isEditing ? 'Edit Competition' : 'Add New Competition'}
-              </DialogTitle>
-              <DialogDescription>
-                {isEditing 
-                  ? 'Update the competition details below.' 
-                  : 'Enter the details for the new competition.'}
-              </DialogDescription>
-            </DialogHeader>
-            
-            <form onSubmit={handleFormSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Competition Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g., Highland League"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="season">Season</Label>
-                <Input
-                  id="season"
-                  value={formData.season}
-                  onChange={(e) => setFormData({ ...formData, season: e.target.value })}
-                  placeholder="e.g., 2023-2024"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="type">Competition Type</Label>
-                <Select 
-                  value={formData.type}
-                  onValueChange={(value) => setFormData({ 
-                    ...formData, 
-                    type: value as 'league' | 'cup' | 'friendly'
-                  })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="league">League</SelectItem>
-                    <SelectItem value="cup">Cup/Tournament</SelectItem>
-                    <SelectItem value="friendly">Friendly</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <DialogFooter>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => {
-                    resetForm();
-                    setIsDialogOpen(false);
-                  }}
-                >
-                  <X className="mr-2 h-4 w-4" />
-                  Cancel
-                </Button>
-                <Button type="submit">
-                  <Save className="mr-2 h-4 w-4" />
-                  {isEditing ? 'Update' : 'Create'}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </CardHeader>
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-medium">Competition Management</h3>
+        <Button onClick={() => handleOpenDialog()} className="flex items-center">
+          <Plus className="h-4 w-4 mr-2" />
+          Add Competition
+        </Button>
+      </div>
       
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Season</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {competitions.length === 0 ? (
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-4 text-muted-foreground">
-                  No competitions found. Add a competition to get started.
-                </TableCell>
+                <TableHead>Name</TableHead>
+                <TableHead>Season</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Format</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ) : (
-              competitions.map((competition) => (
-                <TableRow key={competition.id}>
-                  <TableCell className="font-medium">{competition.name}</TableCell>
-                  <TableCell>{competition.season}</TableCell>
-                  <TableCell>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary text-secondary-foreground">
-                      {getTypeLabel(competition.type)}
-                    </span>
-                  </TableCell>
-                  <TableCell className="flex space-x-2">
-                    <Button 
-                      size="icon" 
-                      variant="ghost"
-                      onClick={() => handleEditCompetition(competition)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      size="icon" 
-                      variant="ghost"
-                      className="text-destructive hover:text-destructive"
-                      onClick={() => handleDeleteCompetition(competition.id)}
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
+            </TableHeader>
+            <TableBody>
+              {competitions.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
+                    No competitions found. Add your first competition.
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+              ) : (
+                competitions.map(comp => (
+                  <TableRow key={comp.id}>
+                    <TableCell className="font-medium">{comp.name}</TableCell>
+                    <TableCell>{comp.season}</TableCell>
+                    <TableCell>
+                      <span className="capitalize">{comp.type}</span>
+                    </TableCell>
+                    <TableCell>{comp.format || '—'}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleOpenDialog(comp)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(comp.id)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+      
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-[550px]">
+          <DialogHeader>
+            <DialogTitle>
+              {currentCompetition ? 'Edit Competition' : 'Add New Competition'}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">Name</Label>
+              <Input
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                className="col-span-3"
+                placeholder="Highland League"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="season" className="text-right">Season</Label>
+              <Input
+                id="season"
+                name="season"
+                value={formData.season}
+                onChange={handleInputChange}
+                className="col-span-3"
+                placeholder="2023-2024"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="type" className="text-right">Type</Label>
+              <Select
+                value={formData.type}
+                onValueChange={(value) => handleSelectChange('type', value)}
+              >
+                <SelectTrigger id="type" className="col-span-3">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="league">League</SelectItem>
+                  <SelectItem value="cup">Cup</SelectItem>
+                  <SelectItem value="friendly">Friendly</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="format" className="text-right">Format</Label>
+              <Input
+                id="format"
+                name="format"
+                value={formData.format}
+                onChange={handleInputChange}
+                className="col-span-3"
+                placeholder="Round-robin, knockout, etc."
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave} disabled={loading}>
+              {loading ? 'Saving...' : 'Save Competition'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };

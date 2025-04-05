@@ -1,27 +1,14 @@
+
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
-import { toast } from 'sonner';
-import { Plus, Pencil, Trash, Save, X, MapPin } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Trash, Edit, Plus, MapPin } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface Venue {
   id: string;
@@ -34,334 +21,245 @@ interface Venue {
 
 export const VenueManager: React.FC = () => {
   const [venues, setVenues] = useState<Venue[]>([
-    { 
-      id: '1', 
-      name: 'Spain Park', 
-      address: 'Canal Road, Aberdeen, AB25 3TL', 
-      capacity: 2500,
-      facilities: 'Main stand, terracing, refreshments, parking.',
-      directions: 'Located in the Bridge of Don area. Bus routes 1, 2, and 40 stop nearby.'
-    },
-    { 
-      id: '2', 
-      name: 'Glebe Park', 
-      address: 'Glebe Park, Brechin, DD9 6BJ',
-      capacity: 4083,
-      facilities: 'Main stand, covered terracing, club shop, refreshment areas.',
-      directions: 'Just off the A933, walking distance from Brechin town center.'
-    },
-    { 
-      id: '3', 
-      name: 'Dudgeon Park', 
-      address: 'Dudgeon Park, Brora, KW9 6QH',
-      capacity: 4000,
-      facilities: 'Modern facilities, covered stand, clubhouse.',
-      directions: 'Located in the center of Brora, close to the railway station.'
-    },
+    { id: '1', name: 'Station Park', address: 'Nairn, Scotland', capacity: 2500 },
+    { id: '2', name: 'Christie Park', address: 'Huntly, Scotland', capacity: 3000 },
+    { id: '3', name: 'Harmsworth Park', address: 'Wick, Scotland', capacity: 2412 }
   ]);
   
-  const [formData, setFormData] = useState<Venue>({
-    id: '',
+  const [loading, setLoading] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [currentVenue, setCurrentVenue] = useState<Venue | null>(null);
+  const [formData, setFormData] = useState({
     name: '',
     address: '',
-    capacity: undefined,
+    capacity: '',
     facilities: '',
-    directions: '',
+    directions: ''
   });
   
-  const [isEditing, setIsEditing] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
-  
-  const resetForm = () => {
-    setFormData({
-      id: '',
-      name: '',
-      address: '',
-      capacity: undefined,
-      facilities: '',
-      directions: '',
-    });
-    setIsEditing(false);
+  const handleOpenDialog = (venue?: Venue) => {
+    if (venue) {
+      setCurrentVenue(venue);
+      setFormData({
+        name: venue.name,
+        address: venue.address,
+        capacity: venue.capacity ? String(venue.capacity) : '',
+        facilities: venue.facilities || '',
+        directions: venue.directions || ''
+      });
+    } else {
+      setCurrentVenue(null);
+      setFormData({
+        name: '',
+        address: '',
+        capacity: '',
+        facilities: '',
+        directions: ''
+      });
+    }
+    setDialogOpen(true);
   };
   
-  const handleEditVenue = (venue: Venue) => {
-    setFormData(venue);
-    setIsEditing(true);
-    setIsDialogOpen(true);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
   
-  const handleViewDetails = (venue: Venue) => {
-    setSelectedVenue(venue);
-  };
-  
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSave = () => {
     if (!formData.name || !formData.address) {
       toast.error('Name and address are required fields');
       return;
     }
     
-    if (isEditing) {
-      // Update existing venue
-      setVenues(venues.map(venue => 
-        venue.id === formData.id ? formData : venue
-      ));
-      toast.success('Venue updated successfully');
-    } else {
-      // Create new venue
-      const newVenue = {
-        ...formData,
-        id: crypto.randomUUID(),
-      };
-      setVenues([...venues, newVenue]);
-      toast.success('Venue created successfully');
-    }
+    setLoading(true);
     
-    resetForm();
-    setIsDialogOpen(false);
+    try {
+      // In a real application, you would save to your database here
+      const venueData = {
+        name: formData.name,
+        address: formData.address,
+        capacity: formData.capacity ? parseInt(formData.capacity) : undefined,
+        facilities: formData.facilities || undefined,
+        directions: formData.directions || undefined
+      };
+      
+      if (currentVenue) {
+        // Update existing venue
+        setVenues(prevVenues => 
+          prevVenues.map(venue => 
+            venue.id === currentVenue.id 
+              ? { ...venue, ...venueData }
+              : venue
+          )
+        );
+        toast.success(`Updated venue: ${formData.name}`);
+      } else {
+        // Create new venue
+        const newVenue = {
+          ...venueData,
+          id: Math.random().toString(36).substring(2, 9)
+        };
+        setVenues(prevVenues => [...prevVenues, newVenue]);
+        toast.success(`Added new venue: ${formData.name}`);
+      }
+    } catch (error) {
+      console.error('Error saving venue:', error);
+      toast.error('Failed to save venue');
+    } finally {
+      setLoading(false);
+      setDialogOpen(false);
+    }
   };
   
-  const handleDeleteVenue = (id: string) => {
-    setVenues(venues.filter(venue => venue.id !== id));
-    toast.success('Venue deleted successfully');
-    
-    if (selectedVenue?.id === id) {
-      setSelectedVenue(null);
+  const handleDelete = (id: string) => {
+    if (confirm('Are you sure you want to delete this venue? This action cannot be undone.')) {
+      setVenues(prevVenues => prevVenues.filter(venue => venue.id !== id));
+      toast.success('Venue deleted');
     }
   };
   
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Venue Management</CardTitle>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => { resetForm(); setIsDialogOpen(true); }}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Venue
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {isEditing ? 'Edit Venue' : 'Add New Venue'}
-              </DialogTitle>
-              <DialogDescription>
-                {isEditing 
-                  ? 'Update the venue details below.' 
-                  : 'Enter the details for the new venue.'}
-              </DialogDescription>
-            </DialogHeader>
-            
-            <form onSubmit={handleFormSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Venue Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g., Spain Park"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
-                <Textarea
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  placeholder="Full venue address"
-                  rows={2}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="capacity">Capacity</Label>
-                <Input
-                  id="capacity"
-                  type="number"
-                  min="0"
-                  value={formData.capacity || ''}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    capacity: e.target.value ? parseInt(e.target.value) : undefined 
-                  })}
-                  placeholder="Stadium capacity"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="facilities">Facilities</Label>
-                <Textarea
-                  id="facilities"
-                  value={formData.facilities || ''}
-                  onChange={(e) => setFormData({ ...formData, facilities: e.target.value })}
-                  placeholder="Available facilities"
-                  rows={3}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="directions">Travel Directions</Label>
-                <Textarea
-                  id="directions"
-                  value={formData.directions || ''}
-                  onChange={(e) => setFormData({ ...formData, directions: e.target.value })}
-                  placeholder="How to get to the venue"
-                  rows={3}
-                />
-              </div>
-              
-              <DialogFooter>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => {
-                    resetForm();
-                    setIsDialogOpen(false);
-                  }}
-                >
-                  <X className="mr-2 h-4 w-4" />
-                  Cancel
-                </Button>
-                <Button type="submit">
-                  <Save className="mr-2 h-4 w-4" />
-                  {isEditing ? 'Update' : 'Create'}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </CardHeader>
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-medium">Venue Management</h3>
+        <Button onClick={() => handleOpenDialog()} className="flex items-center">
+          <Plus className="h-4 w-4 mr-2" />
+          Add Venue
+        </Button>
+      </div>
       
-      <CardContent>
-        <div className="grid md:grid-cols-[1fr_350px] gap-6">
-          <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Address</TableHead>
-                    <TableHead>Capacity</TableHead>
-                    <TableHead>Actions</TableHead>
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Address</TableHead>
+                <TableHead>Capacity</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {venues.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-6 text-muted-foreground">
+                    No venues found. Add your first venue.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                venues.map(venue => (
+                  <TableRow key={venue.id}>
+                    <TableCell className="font-medium">{venue.name}</TableCell>
+                    <TableCell>{venue.address}</TableCell>
+                    <TableCell>{venue.capacity ? `${venue.capacity.toLocaleString()} seats` : '—'}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleOpenDialog(venue)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(venue.id)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {venues.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-center py-4 text-muted-foreground">
-                        No venues found. Add a venue to get started.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    venues.map((venue) => (
-                      <TableRow 
-                        key={venue.id}
-                        className={selectedVenue?.id === venue.id ? "bg-secondary/30" : ""}
-                        onClick={() => handleViewDetails(venue)}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        <TableCell className="font-medium">{venue.name}</TableCell>
-                        <TableCell className="max-w-[200px] truncate">{venue.address}</TableCell>
-                        <TableCell>{venue.capacity?.toLocaleString() || 'Unknown'}</TableCell>
-                        <TableCell className="flex space-x-2">
-                          <Button 
-                            size="icon" 
-                            variant="ghost"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditVenue(venue);
-                            }}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            size="icon" 
-                            variant="ghost"
-                            className="text-destructive hover:text-destructive"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteVenue(venue.id);
-                            }}
-                          >
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+      
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-[550px]">
+          <DialogHeader>
+            <DialogTitle>
+              {currentVenue ? 'Edit Venue' : 'Add New Venue'}
+            </DialogTitle>
+          </DialogHeader>
           
-          <Card className="h-fit">
-            {selectedVenue ? (
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="text-lg font-semibold">{selectedVenue.name}</h3>
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <MapPin className="h-3 w-3 mr-1" />
-                      {selectedVenue.address}
-                    </div>
-                  </div>
-                </div>
-                
-                {selectedVenue.capacity && (
-                  <div className="mb-4">
-                    <p className="text-sm text-muted-foreground">Capacity</p>
-                    <p className="font-medium">{selectedVenue.capacity.toLocaleString()}</p>
-                  </div>
-                )}
-                
-                <Accordion type="single" collapsible className="w-full">
-                  {selectedVenue.facilities && (
-                    <AccordionItem value="facilities">
-                      <AccordionTrigger className="text-sm font-medium">
-                        Facilities
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <p className="text-sm">{selectedVenue.facilities}</p>
-                      </AccordionContent>
-                    </AccordionItem>
-                  )}
-                  
-                  {selectedVenue.directions && (
-                    <AccordionItem value="directions">
-                      <AccordionTrigger className="text-sm font-medium">
-                        Travel Directions
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <p className="text-sm">{selectedVenue.directions}</p>
-                      </AccordionContent>
-                    </AccordionItem>
-                  )}
-                </Accordion>
-                
-                <div className="mt-4">
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(selectedVenue.address)}`, '_blank')}
-                  >
-                    <MapPin className="h-4 w-4 mr-2" />
-                    View on Google Maps
-                  </Button>
-                </div>
-              </CardContent>
-            ) : (
-              <CardContent className="p-6 text-center flex flex-col items-center justify-center h-[300px] text-muted-foreground">
-                <MapPin className="h-8 w-8 mb-2" />
-                <p>Select a venue to view details</p>
-              </CardContent>
-            )}
-          </Card>
-        </div>
-      </CardContent>
-    </Card>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">Venue Name</Label>
+              <Input
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                className="col-span-3"
+                placeholder="Stadium name"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="address" className="text-right">Address</Label>
+              <Input
+                id="address"
+                name="address"
+                value={formData.address}
+                onChange={handleInputChange}
+                className="col-span-3"
+                placeholder="Full address"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="capacity" className="text-right">Capacity</Label>
+              <Input
+                id="capacity"
+                name="capacity"
+                type="number"
+                value={formData.capacity}
+                onChange={handleInputChange}
+                className="col-span-3"
+                placeholder="Seating capacity"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="facilities" className="text-right">Facilities</Label>
+              <Textarea
+                id="facilities"
+                name="facilities"
+                value={formData.facilities}
+                onChange={handleInputChange}
+                className="col-span-3"
+                placeholder="Describe available facilities"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="directions" className="text-right">Directions</Label>
+              <Textarea
+                id="directions"
+                name="directions"
+                value={formData.directions}
+                onChange={handleInputChange}
+                className="col-span-3"
+                placeholder="Travel directions"
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave} disabled={loading}>
+              {loading ? 'Saving...' : 'Save Venue'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };

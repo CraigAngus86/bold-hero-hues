@@ -8,3 +8,6 @@ export { default as ScraperStatusAlerts } from './ScraperStatusAlerts';
 export { default as FixturesManager } from './FixturesManager';
 export { default as CalendarView } from './CalendarView';
 export { DateRange } from './DateRange';
+export { ScraperLogs } from './ScraperLogs';
+export { VenueManager } from './VenueManager';
+export { CompetitionManager } from './CompetitionManager';

@@ -15,40 +15,45 @@ interface ClubOfficialsProps {
 export default function ClubOfficials({ officials: propOfficials }: ClubOfficialsProps = {}) {
   const [officials, setOfficials] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
-  const { teamMembers, loadTeamMembers } = useTeamStore();
+  const { getOfficials, loadTeamMembers, isLoading } = useTeamStore();
   
   useEffect(() => {
-    // If officials are provided as props, use those
-    if (propOfficials && propOfficials.length > 0) {
-      // Convert prop officials to TeamMember format
-      const convertedOfficials = propOfficials.map((official, index) => ({
-        id: `official-${index}`,
-        name: official.name,
-        member_type: 'official' as const,
-        position: official.role,
-        image_url: official.image,
-        bio: official.bio,
-        experience: official.experience,
-        is_active: true
-      }));
-      
-      setOfficials(convertedOfficials);
-      setLoading(false);
-      return;
-    }
+    const fetchOfficials = async () => {
+      try {
+        // If officials are provided as props, use those
+        if (propOfficials && propOfficials.length > 0) {
+          // Convert prop officials to TeamMember format
+          const convertedOfficials = propOfficials.map((official, index) => ({
+            id: `official-${index}`,
+            name: official.name,
+            member_type: 'official' as const,
+            position: official.role,
+            image_url: official.image,
+            bio: official.bio,
+            experience: official.experience,
+            is_active: true
+          }));
+          
+          setOfficials(convertedOfficials);
+          setLoading(false);
+          return;
+        }
+        
+        // Otherwise load from team store
+        await loadTeamMembers();
+        const officialMembers = await getOfficials();
+        setOfficials(officialMembers);
+      } catch (error) {
+        console.error("Error fetching officials:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    // Otherwise load from team store
-    if (teamMembers.length === 0) {
-      loadTeamMembers();
-    }
-    
-    // Filter officials from team members
-    const filteredOfficials = teamMembers.filter(member => member.member_type === 'official');
-    setOfficials(filteredOfficials);
-    setLoading(false);
-  }, [teamMembers, loadTeamMembers, propOfficials]);
+    fetchOfficials();
+  }, [propOfficials, getOfficials, loadTeamMembers]);
   
-  if (loading) {
+  if (loading || isLoading) {
     return <div className="text-center py-10">Loading club officials...</div>;
   }
   

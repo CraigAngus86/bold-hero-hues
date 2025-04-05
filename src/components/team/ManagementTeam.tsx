@@ -7,11 +7,15 @@ import { useTeamStore } from '@/services/teamService';
 export default function ManagementTeam() {
   const [staff, setStaff] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
-  const getManagementStaff = useTeamStore((state) => state.getManagementStaff);
+  const { getManagementStaff, loadTeamMembers, isLoading } = useTeamStore();
   
   useEffect(() => {
     const fetchManagement = async () => {
       try {
+        // Ensure team members are loaded
+        await loadTeamMembers();
+        
+        // Get management staff from store
         const managementStaff = await getManagementStaff();
         setStaff(managementStaff);
       } catch (error) {
@@ -22,9 +26,9 @@ export default function ManagementTeam() {
     };
     
     fetchManagement();
-  }, [getManagementStaff]);
+  }, [getManagementStaff, loadTeamMembers]);
   
-  if (loading) {
+  if (loading || isLoading) {
     return <div className="text-center py-10">Loading management team...</div>;
   }
   

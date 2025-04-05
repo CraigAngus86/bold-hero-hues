@@ -23,6 +23,7 @@ const TeamGrid = () => {
     loadTeamMembers();
   }, [loadTeamMembers]);
   
+  // Define positions used for filtering
   const positions = ["All", "Goalkeeper", "Defender", "Midfielder", "Forward"];
   
   const handlePositionChange = (position: string) => {
@@ -32,19 +33,30 @@ const TeamGrid = () => {
   // Get players by position and adapt them to the format expected by PlayerList
   const players = getPlayersByPosition(selectedPosition).map(adaptTeamMemberToPlayer);
 
-  if (isLoading) {
-    return <div className="text-center py-8">Loading players...</div>;
-  }
-
   return (
-    <div>
+    <div className="my-12">
+      <h2 className="text-2xl font-bold text-team-blue mb-6">Our Squad</h2>
+      
       <PositionFilter
         positions={positions}
         selectedPosition={selectedPosition}
         onPositionChange={handlePositionChange}
       />
       
-      <PlayerList players={players} />
+      {isLoading ? (
+        <div className="text-center py-8">Loading players...</div>
+      ) : players.length > 0 ? (
+        <PlayerList players={players} />
+      ) : (
+        <div className="text-center py-8 bg-white rounded-lg shadow-sm">
+          <p className="text-gray-500">No players found for the selected position.</p>
+          <p className="text-gray-400 text-sm mt-2">
+            {selectedPosition !== "All" ? 
+              `Try selecting a different position filter` : 
+              `Add players in the Team Management section of the admin area`}
+          </p>
+        </div>
+      )}
     </div>
   );
 };

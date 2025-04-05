@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,10 +6,11 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { PlusCircle, Edit, Trash, Loader2, Search, Filter, UserCircle } from 'lucide-react';
+import { PlusCircle, Edit, Trash, Loader2, Search, Filter, UserCircle, Database } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTeamStore, TeamMember, MemberType } from '@/services/teamService';
 import { createTeamMember, updateTeamMember, deleteTeamMember, getAllTeamMembers } from '@/services/teamDbService';
+import { seedTeamData } from '@/services/teamSeedData';
 
 interface TeamMembersManagerProps {
   onEditMember?: (member: TeamMember) => void;
@@ -24,6 +24,7 @@ const TeamMembersManager: React.FC<TeamMembersManagerProps> = ({ onEditMember })
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [seeding, setSeeding] = useState(false);
   const { loadTeamMembers } = useTeamStore();
   
   useEffect(() => {
@@ -44,6 +45,23 @@ const TeamMembersManager: React.FC<TeamMembersManagerProps> = ({ onEditMember })
       toast.error("Failed to load team members");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSeedData = async () => {
+    if (confirm("This will replace all existing team members with sample data. Continue?")) {
+      setSeeding(true);
+      try {
+        await seedTeamData();
+        await loadTeamMemberData();
+        await loadTeamMembers();
+        toast.success("Team data seeded successfully!");
+      } catch (error) {
+        console.error("Error seeding team data:", error);
+        toast.error("Failed to seed team data");
+      } finally {
+        setSeeding(false);
+      }
     }
   };
   
@@ -83,7 +101,6 @@ const TeamMembersManager: React.FC<TeamMembersManagerProps> = ({ onEditMember })
     setCurrentMember(null);
   };
   
-  // Function to handle member deletion
   const handleDeleteMember = async (id: string) => {
     try {
       if (window.confirm("Are you sure you want to delete this team member?")) {
@@ -109,7 +126,6 @@ const TeamMembersManager: React.FC<TeamMembersManagerProps> = ({ onEditMember })
     
     try {
       if (currentMember.id) {
-        // Update existing member
         const response = await updateTeamMember(currentMember.id, currentMember);
         if (response.success) {
           toast.success("Team member updated successfully");
@@ -117,7 +133,6 @@ const TeamMembersManager: React.FC<TeamMembersManagerProps> = ({ onEditMember })
           toast.error("Failed to update team member");
         }
       } else {
-        // Add new member
         const response = await createTeamMember(currentMember);
         if (response.success) {
           toast.success("Team member added successfully");
@@ -135,7 +150,6 @@ const TeamMembersManager: React.FC<TeamMembersManagerProps> = ({ onEditMember })
     }
   };
 
-  // Filter team members
   const filteredMembers = teamMembers.filter(member => {
     const matchesSearch = searchTerm 
       ? member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -186,7 +200,7 @@ const TeamMembersManager: React.FC<TeamMembersManagerProps> = ({ onEditMember })
                   <SelectValue placeholder="Filter by type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all-types">All Types</SelectItem>
+                  <SelectItem value="">All Types</SelectItem>
                   <SelectItem value="player">Players</SelectItem>
                   <SelectItem value="management">Management</SelectItem>
                   <SelectItem value="official">Officials</SelectItem>
@@ -197,16 +211,31 @@ const TeamMembersManager: React.FC<TeamMembersManagerProps> = ({ onEditMember })
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all-status">All Statuses</SelectItem>
+                  <SelectItem value="">All Statuses</SelectItem>
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="inactive">Inactive</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={onEditMember ? openNewDialog : () => openNewDialog()} className="w-full sm:w-auto">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add Team Member
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={onEditMember ? openNewDialog : () => openNewDialog()} className="w-full sm:w-auto">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Team Member
+              </Button>
+              <Button 
+                onClick={handleSeedData} 
+                variant="outline" 
+                disabled={seeding} 
+                className="w-full sm:w-auto"
+              >
+                {seeding ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Database className="h-4 w-4 mr-2" />
+                )}
+                Seed Sample Data
+              </Button>
+            </div>
           </div>
           
           {loading ? (
@@ -300,8 +329,7 @@ const TeamMembersManager: React.FC<TeamMembersManagerProps> = ({ onEditMember })
         </CardContent>
       </Card>
       
-      {/* Dialog for creating/editing (used only when not using external editor via onEditMember) */}
-      {!onEditMember && (
+      {!onEditMember && dialogOpen && (
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent className="sm:max-w-[550px]">
             <DialogHeader>

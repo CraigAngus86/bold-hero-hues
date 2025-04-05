@@ -1,3 +1,4 @@
+
 import { supabase } from '@/services/supabase/supabaseClient';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
@@ -92,7 +93,7 @@ export async function uploadImage(
       if (metadata || dimensions) {
         // Using Supabase's rpc method to store metadata
         const { error: metadataError } = await supabase
-          .rpc('store_image_metadata', {
+          .rpc('store_image_metadata' as any, {
             bucket_id: bucketId,
             storage_path: data.path,
             file_name: fileName,
@@ -100,7 +101,7 @@ export async function uploadImage(
             description: metadata?.description,
             tags: metadata?.tags,
             dimensions: dimensions ? JSON.stringify(dimensions) : null
-          } as Record<string, any>);
+          });
         
         if (metadataError) throw metadataError;
       }
@@ -155,10 +156,10 @@ export async function getImages(
             
           // Get metadata using rpc function
           const { data: metadataData, error: metadataError } = await supabase
-            .rpc('get_image_metadata', { 
+            .rpc('get_image_metadata' as any, { 
               p_bucket_id: bucketId,
               p_storage_path: filePath
-            } as Record<string, any>);
+            });
             
           if (metadataError) console.error('Error fetching metadata:', metadataError);
 
@@ -197,10 +198,10 @@ export async function deleteImage(
     async () => {
       // Delete metadata using rpc function
       await supabase
-        .rpc('delete_image_metadata', {
+        .rpc('delete_image_metadata' as any, {
           p_bucket_id: bucketId,
           p_storage_path: path
-        } as Record<string, any>);
+        });
       
       // Then delete the image
       const { error } = await supabase
@@ -263,12 +264,12 @@ export async function moveImage(
 
       // Update metadata using rpc function
       const { error: moveError } = await supabase
-        .rpc('move_image_metadata', {
+        .rpc('move_image_metadata' as any, {
           p_source_bucket_id: sourceBucketId,
           p_source_path: sourcePath,
           p_dest_bucket_id: destinationBucketId,
           p_dest_path: destinationPath
-        } as Record<string, any>);
+        });
       
       if (moveError) throw moveError;
 
@@ -327,13 +328,13 @@ export async function updateImageMetadata(
     async () => {
       // Update metadata using rpc function
       const { error } = await supabase
-        .rpc('update_image_metadata', {
+        .rpc('update_image_metadata' as any, {
           p_bucket_id: bucketId,
           p_storage_path: path,
           p_alt_text: metadata.alt_text,
           p_description: metadata.description,
           p_tags: metadata.tags
-        } as Record<string, any>);
+        });
         
       if (error) throw error;
       return true;
@@ -353,10 +354,10 @@ export async function getImageMetadata(
     async () => {
       // Get metadata using rpc function
       const { data, error } = await supabase
-        .rpc('get_image_metadata', {
+        .rpc('get_image_metadata' as any, {
           p_bucket_id: bucketId,
           p_storage_path: path
-        } as Record<string, any>);
+        });
         
       if (error) throw error;
       return data as StoredImageMetadata; // Type assertion for the returned data

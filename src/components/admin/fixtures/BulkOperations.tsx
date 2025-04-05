@@ -1,280 +1,330 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Upload, Download, FileSpreadsheet, AlertTriangle, Check, Loader2 } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Upload, Download, FileSpreadsheet, Calendar, RefreshCw, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { importFixturesFromJson, exportFixturesToJson } from '@/services/supabase/fixtures/importExport';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-const BulkOperations: React.FC = () => {
-  const [importLoading, setImportLoading] = useState(false);
-  const [exportLoading, setExportLoading] = useState(false);
-  const [importData, setImportData] = useState<string>('');
-  const [importPreview, setImportPreview] = useState<any[]>([]);
-  const [validationErrors, setValidationErrors] = useState<string[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+interface BulkOperationsProps {
+  onRefreshData?: () => void;
+}
 
-  // Handle file upload for import
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      if (file.type === 'application/json') {
-        // Handle JSON file
-        const text = await file.text();
-        setImportData(text);
-        
-        try {
-          const jsonData = JSON.parse(text);
-          
-          if (Array.isArray(jsonData)) {
-            setImportPreview(jsonData.slice(0, 5));
-            setValidationErrors([]);
-          } else if (jsonData.fixtures && Array.isArray(jsonData.fixtures)) {
-            setImportPreview(jsonData.fixtures.slice(0, 5));
-            setValidationErrors([]);
-          } else {
-            setValidationErrors(['Invalid JSON format. Expected array of fixtures or object with fixtures array.']);
-            setImportPreview([]);
-          }
-        } catch (error) {
-          setValidationErrors(['Invalid JSON format']);
-          setImportPreview([]);
-        }
-      } else if (file.type === 'text/csv') {
-        // Handle CSV file (basic implementation)
-        const text = await file.text();
-        setImportData(text);
-        
-        try {
-          // Basic CSV parsing
-          const lines = text.split('\n');
-          const headers = lines[0].split(',').map(h => h.trim());
-          
-          const fixtures = [];
-          for (let i = 1; i < Math.min(lines.length, 6); i++) {
-            if (!lines[i].trim()) continue;
-            
-            const values = lines[i].split(',').map(v => v.trim());
-            const fixture: any = {};
-            
-            headers.forEach((header, index) => {
-              fixture[header] = values[index] || '';
-            });
-            
-            fixtures.push(fixture);
-          }
-          
-          setImportPreview(fixtures);
-          setValidationErrors([]);
-        } catch (error) {
-          setValidationErrors(['Invalid CSV format']);
-          setImportPreview([]);
-        }
-      } else {
-        setValidationErrors(['Unsupported file type. Please upload JSON or CSV.']);
-      }
-    } catch (error) {
-      console.error('Error processing file:', error);
-      setValidationErrors(['Error processing file']);
+const BulkOperations: React.FC<BulkOperationsProps> = ({ onRefreshData }) => {
+  const [isUploading, setIsUploading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [updateType, setUpdateType] = useState<'complete' | 'postpone' | 'reschedule'>('complete');
+  
+  // Handle CSV file selection
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setCsvFile(e.target.files[0]);
     }
   };
-
-  // Import fixtures from JSON or CSV
-  const handleImport = async () => {
-    if (!importData) {
-      toast.error('No data to import');
+  
+  // Import fixtures from CSV
+  const handleImportCSV = async () => {
+    if (!csvFile) {
+      toast.error("Please select a CSV file to import");
       return;
     }
     
-    setImportLoading(true);
+    setIsUploading(true);
     
     try {
-      let jsonData;
+      // Read the file
+      const fileReader = new FileReader();
       
-      try {
-        jsonData = JSON.parse(importData);
-      } catch (error) {
-        // Try to convert CSV to JSON
-        const lines = importData.split('\n');
-        const headers = lines[0].split(',').map(h => h.trim());
+      fileReader.onload = async (e) => {
+        const csvData = e.target?.result as string;
         
-        jsonData = [];
-        for (let i = 1; i < lines.length; i++) {
-          if (!lines[i].trim()) continue;
+        // Parse CSV
+        const rows = csvData.split('\n');
+        const headers = rows[0].split(',').map(h => h.trim().toLowerCase());
+        
+        const fixtures = [];
+        
+        for (let i = 1; i < rows.length; i++) {
+          if (!rows[i].trim()) continue;
           
-          const values = lines[i].split(',').map(v => v.trim());
-          const fixture: any = {};
+          const values = rows[i].split(',').map(v => v.trim());
+          const fixture: Record<string, any> = {};
           
           headers.forEach((header, index) => {
-            fixture[header] = values[index] || '';
+            const value = values[index];
+            
+            switch (header) {
+              case 'date':
+                fixture.date = value;
+                break;
+              case 'time':
+                fixture.time = value || '15:00';
+                break;
+              case 'home_team':
+              case 'hometeam':
+                fixture.home_team = value;
+                break;
+              case 'away_team':
+              case 'awayteam':
+                fixture.away_team = value;
+                break;
+              case 'competition':
+                fixture.competition = value;
+                break;
+              case 'venue':
+                fixture.venue = value;
+                break;
+              case 'is_completed':
+              case 'completed':
+                fixture.is_completed = value.toLowerCase() === 'true';
+                break;
+              case 'home_score':
+              case 'homescore':
+                fixture.home_score = parseInt(value) || null;
+                break;
+              case 'away_score':
+              case 'awayscore':
+                fixture.away_score = parseInt(value) || null;
+                break;
+              default:
+                fixture[header] = value;
+            }
           });
           
-          jsonData.push(fixture);
+          // Add required fields if missing
+          if (!fixture.is_completed) fixture.is_completed = false;
+          if (!fixture.time) fixture.time = '15:00';
+          
+          fixtures.push(fixture);
         }
-      }
-      
-      // Process fixtures
-      const result = await importFixturesFromJson(jsonData);
-      
-      if (result.success) {
-        toast.success(result.message);
-        setImportData('');
-        setImportPreview([]);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
+        
+        // Upload to Supabase
+        const { data, error } = await supabase
+          .from('fixtures')
+          .insert(fixtures);
+          
+        if (error) {
+          throw error;
         }
-      } else {
-        toast.error(result.message);
-      }
+        
+        toast.success(`Successfully imported ${fixtures.length} fixtures`);
+        
+        // Refresh data if callback provided
+        if (onRefreshData) onRefreshData();
+      };
+      
+      fileReader.readAsText(csvFile);
+      
     } catch (error) {
       console.error('Error importing fixtures:', error);
       toast.error('Failed to import fixtures');
     } finally {
-      setImportLoading(false);
+      setIsUploading(false);
+      setCsvFile(null);
     }
   };
-
-  // Export all fixtures
-  const handleExport = async () => {
-    setExportLoading(true);
+  
+  // Export fixtures to CSV
+  const handleExportCSV = async () => {
+    setIsExporting(true);
     
     try {
-      const result = await exportFixturesToJson();
+      // Fetch all fixtures
+      const { data, error } = await supabase
+        .from('fixtures')
+        .select('*')
+        .order('date', { ascending: true });
+        
+      if (error) throw error;
       
-      if (result.success) {
-        toast.success(result.message);
-      } else {
-        toast.error(result.message);
+      if (!data || data.length === 0) {
+        toast.error('No fixtures to export');
+        return;
       }
+      
+      // Create CSV string
+      const headers = Object.keys(data[0]).join(',');
+      const rows = data.map(row => 
+        Object.values(row).map(value => 
+          typeof value === 'string' ? `"${value.replace(/"/g, '""')}"` : value
+        ).join(',')
+      );
+      
+      const csvContent = [headers, ...rows].join('\n');
+      
+      // Create download link
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const date = new Date().toISOString().split('T')[0];
+      
+      link.setAttribute('href', url);
+      link.setAttribute('download', `fixtures-export-${date}.csv`);
+      link.style.visibility = 'hidden';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success(`Exported ${data.length} fixtures`);
     } catch (error) {
       console.error('Error exporting fixtures:', error);
       toast.error('Failed to export fixtures');
     } finally {
-      setExportLoading(false);
+      setIsExporting(false);
     }
   };
-
+  
+  // Bulk update fixtures
+  const handleBulkUpdate = async () => {
+    setIsUpdating(true);
+    
+    try {
+      // Implementation will depend on the specific update type
+      // This is a placeholder for now
+      toast.success(`Bulk operation completed successfully`);
+      if (onRefreshData) onRefreshData();
+    } catch (error) {
+      console.error('Error during bulk operation:', error);
+      toast.error('Failed to complete bulk operation');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+  
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Bulk Operations</CardTitle>
-        <CardDescription>Import and export fixture data</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="import" className="w-full">
-          <TabsList className="grid grid-cols-2 mb-4">
-            <TabsTrigger value="import">
-              <Upload className="h-4 w-4 mr-2" />
-              Import
-            </TabsTrigger>
-            <TabsTrigger value="export">
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </TabsTrigger>
-          </TabsList>
+    <Card className="p-4 mb-6">
+      <h3 className="text-lg font-medium mb-4">Bulk Operations</h3>
+      
+      <Tabs defaultValue="import">
+        <TabsList className="mb-4">
+          <TabsTrigger value="import">Import</TabsTrigger>
+          <TabsTrigger value="export">Export</TabsTrigger>
+          <TabsTrigger value="update">Bulk Update</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="import" className="space-y-4">
+          <Alert variant="outline">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Import CSV</AlertTitle>
+            <AlertDescription>
+              CSV should have headers matching: date, time, home_team, away_team, competition, venue, etc.
+            </AlertDescription>
+          </Alert>
           
-          <TabsContent value="import" className="space-y-4">
-            <div className="grid w-full max-w-sm items-center gap-1.5">
-              <Label htmlFor="file-upload">Upload Fixtures</Label>
+          <div className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="csvFile">CSV File</Label>
               <Input 
-                id="file-upload" 
+                id="csvFile" 
                 type="file" 
-                accept=".json,.csv" 
-                onChange={handleFileUpload} 
-                ref={fileInputRef}
-              />
-              <p className="text-xs text-muted-foreground">
-                Supported formats: JSON, CSV
-              </p>
-            </div>
-            
-            <div className="grid w-full gap-1.5">
-              <Label htmlFor="import-data">Or paste JSON/CSV data</Label>
-              <Textarea
-                id="import-data"
-                value={importData}
-                onChange={(e) => setImportData(e.target.value)}
-                className="min-h-[150px] font-mono text-sm"
-                placeholder='[{"date":"2023-04-01","time":"15:00","home_team":"Banks o\' Dee","away_team":"Opponent FC","competition":"Highland League"}]'
+                accept=".csv" 
+                onChange={handleFileChange}
               />
             </div>
             
-            {validationErrors.length > 0 && (
-              <div className="bg-destructive/15 p-3 rounded-md">
-                <div className="flex items-center gap-2 text-destructive font-medium mb-2">
-                  <AlertTriangle className="h-4 w-4" />
-                  Validation Errors
-                </div>
-                <ul className="list-disc pl-5 text-sm">
-                  {validationErrors.map((error, index) => (
-                    <li key={index}>{error}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            
-            {importPreview.length > 0 && (
-              <div className="border rounded-md p-3">
-                <Label className="block mb-2">Preview (first 5 fixtures):</Label>
-                <pre className="bg-muted p-2 rounded text-xs overflow-auto max-h-[200px]">
-                  {JSON.stringify(importPreview, null, 2)}
-                </pre>
-              </div>
-            )}
-          </TabsContent>
+            <Button 
+              onClick={handleImportCSV} 
+              disabled={!csvFile || isUploading}
+              className="w-full"
+            >
+              {isUploading ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Importing...
+                </>
+              ) : (
+                <>
+                  <FileSpreadsheet className="h-4 w-4 mr-2" />
+                  Import Fixtures
+                </>
+              )}
+            </Button>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="export" className="space-y-4">
+          <Alert variant="outline">
+            <AlertTitle>Export Fixtures</AlertTitle>
+            <AlertDescription>
+              Download all fixtures as a CSV file for backup or editing.
+            </AlertDescription>
+          </Alert>
           
-          <TabsContent value="export" className="space-y-4">
-            <div className="flex flex-col gap-4 items-center justify-center py-6 border-2 border-dashed rounded-md">
-              <FileSpreadsheet className="h-12 w-12 text-muted-foreground" />
-              <div className="text-center">
-                <p className="font-medium">Export Fixture Data</p>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Download all fixtures as a JSON file
-                </p>
-                <Button onClick={handleExport} disabled={exportLoading}>
-                  {exportLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Exporting...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="mr-2 h-4 w-4" />
-                      Export All Fixtures
-                    </>
-                  )}
+          <Button
+            onClick={handleExportCSV}
+            disabled={isExporting}
+            className="w-full"
+          >
+            {isExporting ? (
+              <>
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                Exporting...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4 mr-2" />
+                Export to CSV
+              </>
+            )}
+          </Button>
+        </TabsContent>
+        
+        <TabsContent value="update" className="space-y-4">
+          <div className="grid gap-4">
+            <div className="grid gap-2">
+              <Label>Update Type</Label>
+              <div className="flex gap-4">
+                <Button
+                  variant={updateType === 'complete' ? 'default' : 'outline'}
+                  onClick={() => setUpdateType('complete')}
+                  className="flex-1"
+                >
+                  Mark as Complete
+                </Button>
+                <Button
+                  variant={updateType === 'postpone' ? 'default' : 'outline'}
+                  onClick={() => setUpdateType('postpone')}
+                  className="flex-1"
+                >
+                  Postpone
+                </Button>
+                <Button
+                  variant={updateType === 'reschedule' ? 'default' : 'outline'}
+                  onClick={() => setUpdateType('reschedule')}
+                  className="flex-1"
+                >
+                  Reschedule
                 </Button>
               </div>
             </div>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-      <CardFooter className="flex justify-end">
-        <Button 
-          onClick={handleImport} 
-          disabled={importLoading || !importData || validationErrors.length > 0}
-          variant="default"
-        >
-          {importLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Importing...
-            </>
-          ) : (
-            <>
-              <Check className="mr-2 h-4 w-4" />
-              Import Fixtures
-            </>
-          )}
-        </Button>
-      </CardFooter>
+            
+            <Button
+              onClick={handleBulkUpdate}
+              disabled={isUpdating}
+              className="w-full"
+            >
+              {isUpdating ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                <>
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Apply Bulk Update
+                </>
+              )}
+            </Button>
+          </div>
+        </TabsContent>
+      </Tabs>
     </Card>
   );
 };

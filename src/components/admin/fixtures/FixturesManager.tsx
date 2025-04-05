@@ -9,7 +9,7 @@ import {
   TableHead, 
   TableHeader, 
   TableRow 
-} from '@/components/ui/table';
+} from '@/components/ui/Table';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Link, Calendar, Edit, ExternalLink, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';

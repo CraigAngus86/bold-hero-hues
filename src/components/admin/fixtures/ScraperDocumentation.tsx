@@ -1,169 +1,174 @@
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { InfoIcon } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Card } from "@/components/ui/card";
 
-export default function ScraperDocumentation() {
+const ScraperDocumentation = () => {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Fixtures Integration Documentation</CardTitle>
-        <CardDescription>
-          How to use the fixtures scraper and importer with Supabase
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <Alert>
-          <InfoIcon className="h-4 w-4" />
-          <AlertTitle>Integration Guide</AlertTitle>
-          <AlertDescription>
-            This guide explains how the Banks o' Dee FC fixtures scraper and importer integrate with Supabase.
-          </AlertDescription>
-        </Alert>
-        
-        <Tabs defaultValue="overview">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="scraper">Using the Scraper</TabsTrigger>
-            <TabsTrigger value="importer">Using the Importer</TabsTrigger>
-            <TabsTrigger value="formats">Data Formats</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="overview" className="space-y-4">
-            <h3 className="text-lg font-medium">Data Flow Architecture</h3>
-            <div className="p-4 bg-gray-50 border rounded-md">
-              <p className="text-muted-foreground">
-                <code>BBC Sport Website → Web Scraper → Supabase Database → Website Display</code>
+    <Card className="p-6">
+      <h2 className="text-2xl font-semibold mb-4">Fixtures Management Documentation</h2>
+      
+      <div className="mb-6">
+        <p className="text-gray-600">
+          This documentation explains how to use the fixture scraping and management tools.
+        </p>
+      </div>
+      
+      <ScrollArea className="h-[500px] pr-4">
+        <Accordion type="single" collapsible className="space-y-4">
+          <AccordionItem value="about">
+            <AccordionTrigger className="text-lg font-medium">About the Scraper</AccordionTrigger>
+            <AccordionContent className="space-y-3 text-gray-600">
+              <p>
+                The fixture scraper automatically retrieves Banks o' Dee FC match data from official sources:
               </p>
-              <ol className="mt-2 space-y-1 list-decimal list-inside text-sm">
-                <li>The scraper fetches fixture data from BBC Sport</li>
-                <li>The data is processed and stored in Supabase</li>
-                <li>The frontend retrieves the data from Supabase</li>
-                <li>The fixtures are displayed on your website</li>
-              </ol>
-            </div>
-            
-            <h3 className="text-lg font-medium">Database Structure</h3>
-            <p className="text-sm text-muted-foreground">
-              All fixtures are stored in the <code>fixtures</code> table in Supabase with the following key fields:
-            </p>
-            <div className="text-xs font-mono p-4 bg-gray-50 border rounded-md">
-              <ul className="space-y-1">
-                <li>id (uuid): Unique identifier</li>
-                <li>home_team (text): Home team name</li>
-                <li>away_team (text): Away team name</li>
-                <li>date (text): Match date</li>
-                <li>time (text): Kick-off time</li>
-                <li>competition (text): Competition name</li>
-                <li>venue (text): Venue name</li>
-                <li>is_completed (boolean): Whether the match is completed</li>
-                <li>home_score (integer): Home team score</li>
-                <li>away_score (integer): Away team score</li>
-                <li>source (text): Data source (e.g. "bbc-sport")</li>
-                <li>import_date (timestamp): When the fixture was imported</li>
+              <ul className="list-disc pl-6 space-y-1">
+                <li>BBC Sport (Highland League fixtures and results)</li>
+                <li>Highland Football League website (comprehensive fixture list)</li>
               </ul>
-            </div>
-          </TabsContent>
+              <p className="mt-2">
+                Edge functions deployed on Supabase handle the actual web scraping operations 
+                in the background, keeping the process secure and efficient.
+              </p>
+            </AccordionContent>
+          </AccordionItem>
           
-          <TabsContent value="scraper" className="space-y-4">
-            <h3 className="text-lg font-medium">Using the Scraper</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              The scraper allows you to fetch fixtures data from official sources and store it in the database.
-            </p>
-            
-            <h4 className="font-medium">Scraper Functions:</h4>
-            <ul className="list-disc list-inside text-sm space-y-2">
-              <li><strong>Test Fetch</strong>: Tests the connection and retrieves a sample of fixtures without storing them</li>
-              <li><strong>Fetch BBC Sport</strong>: Scrapes fixtures from BBC Sport and stores them in the database</li>
-              <li><strong>Fetch Highland League</strong>: Retrieves fixtures from the Highland Football League website</li>
-            </ul>
-            
-            <div className="p-4 bg-amber-50 border border-amber-200 rounded-md mt-4">
-              <h4 className="font-medium text-amber-800">Troubleshooting:</h4>
-              <ul className="list-disc list-inside text-sm text-amber-700 space-y-1 mt-2">
-                <li>If the scraper fails, check the console for detailed error messages</li>
-                <li>The BBC Sport website structure may change, requiring scraper updates</li>
-                <li>You can export fixtures to JSON as a backup before attempting updates</li>
-              </ul>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="importer" className="space-y-4">
-            <h3 className="text-lg font-medium">Using the Importer</h3>
-            <p className="text-sm text-muted-foreground">
-              The importer allows you to upload fixture data from a JSON file, useful for bulk imports or restoring from backups.
-            </p>
-            
-            <h4 className="font-medium">Import Process:</h4>
-            <ol className="list-decimal list-inside text-sm space-y-1">
-              <li>Prepare a JSON file with fixture data in one of the supported formats</li>
-              <li>Upload the file using the file selector</li>
-              <li>The system will validate the JSON structure</li>
-              <li>If valid, fixtures will be imported into the database</li>
-              <li>Existing fixtures are updated, new fixtures are added</li>
-            </ol>
-            
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-md mt-4">
-              <h4 className="font-medium text-blue-800">Best Practices:</h4>
-              <ul className="list-disc list-inside text-sm text-blue-700 space-y-1 mt-2">
-                <li>Always export current fixtures before large imports as a backup</li>
-                <li>Test imports with a small number of fixtures first</li>
-                <li>Check the format documentation to ensure your JSON matches expected format</li>
-              </ul>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="formats" className="space-y-4">
-            <h3 className="text-lg font-medium">Supported Data Formats</h3>
-            <p className="text-sm text-muted-foreground">
-              The system supports multiple JSON formats for fixture data.
-            </p>
-            
-            <div className="space-y-4 mt-4">
-              <div>
-                <h4 className="font-medium">Standard Format:</h4>
-                <div className="text-xs font-mono p-4 bg-gray-50 border rounded-md">
-{`[
-  {
-    "homeTeam": "Banks o' Dee FC",
-    "awayTeam": "Opponent Team",
-    "date": "2023-04-15",
-    "time": "15:00",
-    "competition": "Highland League",
-    "venue": "Stadium Name",
-    "isCompleted": false,
-    "homeScore": null,
-    "awayScore": null
-  }
-]`}
-                </div>
-              </div>
+          <AccordionItem value="usage">
+            <AccordionTrigger className="text-lg font-medium">How to Use</AccordionTrigger>
+            <AccordionContent className="space-y-3 text-gray-600">
+              <h4 className="font-medium text-gray-800">Step 1: Test the Connection</h4>
+              <p>
+                Start by clicking "Test Connection" to verify that the scraper service is available.
+                This performs a quick check without actually importing any data.
+              </p>
               
-              <div>
-                <h4 className="font-medium">Claude Format:</h4>
-                <div className="text-xs font-mono p-4 bg-gray-50 border rounded-md">
-{`[
-  {
-    "opposition": "Opponent Team",
-    "location": "Home",
-    "date": "2023-04-15",
-    "kickOffTime": "15:00",
-    "competition": "Highland League",
-    "score": "2-1",
-    "isCompleted": true
-  }
-]`}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Note: In Claude format, "Banks o' Dee FC" is always assumed to be one of the teams, with the other being the "opposition".
-                </p>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
+              <h4 className="font-medium text-gray-800 mt-3">Step 2: Import Fixtures</h4>
+              <p>
+                Choose one of the import sources:
+              </p>
+              <ul className="list-disc pl-6 space-y-1">
+                <li><strong>Import from BBC Sport</strong> - Gets the most up-to-date results and upcoming fixtures from BBC Sport</li>
+                <li><strong>Import from HFL Website</strong> - Retrieves all scheduled Highland League fixtures</li>
+              </ul>
+              
+              <h4 className="font-medium text-gray-800 mt-3">Step 3: Review and Export</h4>
+              <p>
+                After importing, review the fixtures in the table below. 
+                Use the Export button to download the data as JSON if needed.
+              </p>
+            </AccordionContent>
+          </AccordionItem>
+          
+          <AccordionItem value="format">
+            <AccordionTrigger className="text-lg font-medium">Fixture Data Format</AccordionTrigger>
+            <AccordionContent className="space-y-3 text-gray-600">
+              <p>The standard fixture format contains these fields:</p>
+              
+              <pre className="bg-gray-50 p-3 rounded overflow-x-auto my-2 text-xs">
+{`{
+  "date": "2023-08-26",       // Match date (YYYY-MM-DD)
+  "time": "15:00",            // Kick-off time (24h format)
+  "homeTeam": "Banks o' Dee", // Home team name
+  "awayTeam": "Formartine",   // Away team name
+  "competition": "Highland League", // Competition name
+  "venue": "Spain Park",      // Stadium/venue (optional)
+  "isCompleted": true,        // Whether match is completed
+  "homeScore": 2,             // Home team score (for completed matches)
+  "awayScore": 1              // Away team score (for completed matches)
+}`}
+              </pre>
+              
+              <p>
+                When importing data manually, ensure it follows this format or the alternative
+                Claude export format as described in the Import section.
+              </p>
+            </AccordionContent>
+          </AccordionItem>
+          
+          <AccordionItem value="database">
+            <AccordionTrigger className="text-lg font-medium">Database Structure</AccordionTrigger>
+            <AccordionContent className="space-y-3 text-gray-600">
+              <p>
+                Fixtures are stored in the Supabase <code>fixtures</code> table with the following structure:
+              </p>
+              
+              <table className="min-w-full text-xs mt-2">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="p-2 text-left">Column</th>
+                    <th className="p-2 text-left">Type</th>
+                    <th className="p-2 text-left">Description</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  <tr>
+                    <td className="p-2 font-mono">id</td>
+                    <td className="p-2">UUID</td>
+                    <td className="p-2">Unique identifier (auto-generated)</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2 font-mono">date</td>
+                    <td className="p-2">DATE</td>
+                    <td className="p-2">Match date</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2 font-mono">time</td>
+                    <td className="p-2">TEXT</td>
+                    <td className="p-2">Kick-off time</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2 font-mono">home_team</td>
+                    <td className="p-2">TEXT</td>
+                    <td className="p-2">Home team name</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2 font-mono">away_team</td>
+                    <td className="p-2">TEXT</td>
+                    <td className="p-2">Away team name</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2 font-mono">competition</td>
+                    <td className="p-2">TEXT</td>
+                    <td className="p-2">Competition name</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2 font-mono">is_completed</td>
+                    <td className="p-2">BOOLEAN</td>
+                    <td className="p-2">Whether match is completed</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2 font-mono">home_score</td>
+                    <td className="p-2">INTEGER</td>
+                    <td className="p-2">Home team score (nullable)</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2 font-mono">away_score</td>
+                    <td className="p-2">INTEGER</td>
+                    <td className="p-2">Away team score (nullable)</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2 font-mono">venue</td>
+                    <td className="p-2">TEXT</td>
+                    <td className="p-2">Stadium/venue (nullable)</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2 font-mono">source</td>
+                    <td className="p-2">TEXT</td>
+                    <td className="p-2">Source of the data (bbc-sport, highland-league, manual-import)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </ScrollArea>
     </Card>
   );
-}
+};
+
+export default ScraperDocumentation;

@@ -1,64 +1,47 @@
+
 export interface Match {
   id: string;
   date: string;
   time: string;
-  competition: string;
   homeTeam: string;
   awayTeam: string;
+  competition: string;
   venue: string;
   isCompleted: boolean;
   homeScore?: number;
   awayScore?: number;
-  hasMatchPhotos?: boolean;
 }
 
-export interface TeamStats {
-  id?: number;
-  position: number;
-  team: string;
-  played: number;
-  won: number;
-  drawn: number;
-  lost: number;
-  goalsFor: number;
-  goalsAgainst: number;
-  goalDifference: number;
-  points: number;
-  form: string[];
-  logo: string;
+export interface MatchGroup {
+  month: string;
+  matches: Match[];
 }
 
-export const formatDate = (dateString: string) => {
-  const options: Intl.DateTimeFormatOptions = { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' };
-  return new Date(dateString).toLocaleDateString('en-GB', options);
-};
+export function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-GB', { 
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short'
+  });
+}
 
-export const groupMatchesByMonth = (matches: Match[]) => {
-  const grouped = matches.reduce<Record<string, Match[]>>((acc, match) => {
+export function groupMatchesByMonth(matches: Match[]): MatchGroup[] {
+  const groupedMatches: { [month: string]: Match[] } = {};
+  
+  matches.forEach(match => {
     const date = new Date(match.date);
-    const monthYear = date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+    const month = date.toLocaleDateString('en-GB', { year: 'numeric', month: 'long' });
     
-    if (!acc[monthYear]) {
-      acc[monthYear] = [];
+    if (!groupedMatches[month]) {
+      groupedMatches[month] = [];
     }
     
-    acc[monthYear].push(match);
-    return acc;
-  }, {});
-  
-  // Sort matches within each month
-  Object.keys(grouped).forEach(month => {
-    grouped[month].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    groupedMatches[month].push(match);
   });
   
-  return grouped;
-};
-
-// Get unique months from the match data
-export const getAvailableMonths = (matches: Match[]) => {
-  const months = matches.map(match => {
-    const date = new Date(match.date);
-    return date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
-  });
-  return ["All Months", ...Array.from(new Set(months))];
-};
+  return Object.entries(groupedMatches).map(([month, matches]) => ({
+    month,
+    matches
+  }));
+}

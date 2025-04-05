@@ -1,120 +1,94 @@
 
-import { Card, CardContent } from '@/components/ui/card';
+import { Trophy, MapPin, Calendar, Clock, Users } from 'lucide-react';
 import { Match, formatDate } from './types';
-import { Camera } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 interface MatchCardProps {
   match: Match;
 }
 
-// Helper function to generate the photo gallery path for a match
-const getMatchPhotoPath = (match: Match) => {
-  const matchDate = new Date(match.date);
-  const formattedDate = `${matchDate.getFullYear()}-${String(matchDate.getMonth() + 1).padStart(2, '0')}-${String(matchDate.getDate()).padStart(2, '0')}`;
-  const awayTeam = match.awayTeam.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-  return `/admin?tab=images&folder=highland-league-matches/${awayTeam}-${formattedDate}`;
-};
-
-// Generate placeholder logos for teams
-const getTeamLogo = (teamName: string) => {
-  // This would ideally be replaced with actual team logos
-  const initials = teamName
-    .split(' ')
-    .map(word => word.charAt(0))
-    .join('')
-    .substring(0, 2)
-    .toUpperCase();
-  
-  // For Banks o' Dee we use the official logo
-  if (teamName === "Banks o' Dee") {
-    return "/lovable-uploads/8f2cd33f-1e08-494a-9aaa-65792ee9418a.png";
-  }
-  
-  return `https://placehold.co/100x100/team-blue/white?text=${initials}`;
-};
-
 const MatchCard = ({ match }: MatchCardProps) => {
+  const isBanksODee = (team: string) => {
+    return team.toLowerCase().includes('banks') || team.toLowerCase().includes('dee');
+  };
+  
+  const isHomeWin = match.isCompleted && match.homeScore !== undefined && match.awayScore !== undefined && match.homeScore > match.awayScore;
+  const isAwayWin = match.isCompleted && match.homeScore !== undefined && match.awayScore !== undefined && match.homeScore < match.awayScore;
+  const isDraw = match.isCompleted && match.homeScore !== undefined && match.awayScore !== undefined && match.homeScore === match.awayScore;
+  
+  const banksIsHome = isBanksODee(match.homeTeam);
+  const banksIsAway = isBanksODee(match.awayTeam);
+  
+  const banksWon = (banksIsHome && isHomeWin) || (banksIsAway && isAwayWin);
+  const banksLost = (banksIsHome && isAwayWin) || (banksIsAway && isHomeWin);
+  
+  const resultClass = match.isCompleted
+    ? banksWon
+      ? 'bg-green-100 border-green-300'
+      : banksLost
+        ? 'bg-red-50 border-red-200'
+        : isDraw
+          ? 'bg-yellow-50 border-yellow-200'
+          : 'bg-white border-gray-200'
+    : 'bg-white border-gray-200';
+  
   return (
-    <Card 
-      key={match.id}
-      className={`overflow-hidden border-team-gray hover:shadow-md transition-shadow ${match.isCompleted ? 'bg-white' : 'bg-white'}`}
-    >
-      <CardContent className="p-0">
-        <div className={`text-xs font-medium p-2 flex justify-between items-center ${match.isCompleted ? 'bg-team-lightBlue text-team-blue' : 'bg-team-blue text-white'}`}>
-          <span>{match.competition}</span>
-          <span>{formatDate(match.date)} • {match.time}</span>
+    <div className={`rounded-lg ${resultClass} border p-4 shadow-sm transition-all hover:shadow-md`}>
+      <div className="flex flex-wrap items-center justify-between gap-2 text-sm mb-3">
+        <div className="flex items-center space-x-1.5 text-gray-600">
+          <Calendar className="h-3.5 w-3.5" />
+          <span>{formatDate(match.date)}</span>
         </div>
-        <div className="p-2 relative">
-          <div className="flex items-center justify-between gap-1">
-            <div className="flex items-center flex-1 relative">
-              <div className="w-10 h-12 flex-shrink-0 mr-1 flex items-center justify-center relative z-10">
-                <img 
-                  src={getTeamLogo(match.homeTeam)} 
-                  alt={`${match.homeTeam} logo`} 
-                  className={`max-w-full max-h-full object-contain ${match.homeTeam === "Banks o' Dee" ? "w-10 absolute top-0 h-16" : ""}`}
-                />
-              </div>
-              <div className="flex-1 text-right">
-                <p className={`font-semibold ${match.homeTeam === "Banks o' Dee" ? "text-team-blue" : ""}`}>
-                  {match.homeTeam}
-                </p>
-              </div>
-            </div>
-            
-            {match.isCompleted ? (
-              <div className="flex items-center justify-center space-x-2 font-bold mx-1 z-10">
-                <span className="w-8 h-8 flex items-center justify-center bg-[#c5e7ff] rounded-sm">{match.homeScore}</span>
-                <span className="text-xs">-</span>
-                <span className="w-8 h-8 flex items-center justify-center bg-[#c5e7ff] rounded-sm">{match.awayScore}</span>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center font-bold text-sm mx-1 z-10">
-                <span className="bg-[#c5e7ff] w-8 h-8 flex items-center justify-center rounded-sm text-xs">VS</span>
-              </div>
-            )}
-            
-            <div className="flex items-center flex-1 relative">
-              <div className="flex-1 text-left">
-                <p className={`font-semibold ${match.awayTeam === "Banks o' Dee" ? "text-team-blue" : ""}`}>
-                  {match.awayTeam}
-                </p>
-              </div>
-              <div className="w-10 h-12 flex-shrink-0 ml-1 flex items-center justify-center relative z-10">
-                <img 
-                  src={getTeamLogo(match.awayTeam)} 
-                  alt={`${match.awayTeam} logo`} 
-                  className={`max-w-full max-h-full object-contain ${match.awayTeam === "Banks o' Dee" ? "w-10 absolute top-0 h-16" : ""}`}
-                />
-              </div>
-            </div>
-          </div>
-          <div className="text-xs text-gray-500 text-center mt-0.5 mb-1 relative z-20">
-            {match.venue}
-          </div>
-          
-          <div className="flex justify-center space-x-2 relative z-20">
-            {/* Photo Gallery Link - only show if hasMatchPhotos is true */}
-            {'hasMatchPhotos' in match && match.hasMatchPhotos && match.isCompleted ? (
-              <Link 
-                to={getMatchPhotoPath(match)} 
-                className="text-xs bg-team-lightBlue text-team-blue px-3 py-1 rounded hover:bg-team-blue hover:text-white transition-colors text-center flex items-center"
-              >
-                <Camera className="w-3 h-3 mr-1" />
-                Match Photos
-              </Link>
-            ) : !match.isCompleted && (
-              <a 
-                href="/tickets" 
-                className="text-xs bg-team-blue text-white px-3 py-1 rounded hover:bg-team-navy transition-colors text-center"
-              >
-                Get Tickets
-              </a>
-            )}
+        
+        <div className="flex items-center space-x-1.5">
+          <Trophy className="h-3.5 w-3.5 text-team-blue" />
+          <span className="font-medium text-gray-700">{match.competition}</span>
+        </div>
+      </div>
+      
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex-1 text-right pr-3">
+          <div className={`font-medium text-lg ${banksIsHome ? 'text-team-blue font-semibold' : 'text-gray-800'}`}>
+            {match.homeTeam}
           </div>
         </div>
-      </CardContent>
-    </Card>
+        
+        <div className="flex items-center justify-center space-x-2">
+          {match.isCompleted ? (
+            <div className="bg-white rounded-md border border-gray-300 shadow-sm px-3 py-1 min-w-[70px] text-center">
+              <span className={`text-xl font-bold ${banksWon ? 'text-green-600' : banksLost ? 'text-red-500' : 'text-gray-700'}`}>
+                {match.homeScore} - {match.awayScore}
+              </span>
+            </div>
+          ) : (
+            <div className="rounded-md bg-blue-50 border border-blue-200 px-3 py-1 min-w-[70px] text-center">
+              <span className="font-medium text-blue-800">
+                {match.time}
+              </span>
+            </div>
+          )}
+        </div>
+        
+        <div className="flex-1 pl-3">
+          <div className={`font-medium text-lg ${banksIsAway ? 'text-team-blue font-semibold' : 'text-gray-800'}`}>
+            {match.awayTeam}
+          </div>
+        </div>
+      </div>
+      
+      <div className="flex flex-wrap justify-between text-xs text-gray-500">
+        <div className="flex items-center space-x-1">
+          <MapPin className="h-3 w-3" />
+          <span>{match.venue}</span>
+        </div>
+        
+        {!match.isCompleted && (
+          <div className="flex items-center space-x-1">
+            <Clock className="h-3 w-3" />
+            <span>Kick-off: {match.time}</span>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

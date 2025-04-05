@@ -1,232 +1,164 @@
 
 import { ScrapedFixture } from '@/types/fixtures';
-import { storeFixtures } from './storeService';
-import { toast } from 'sonner';
 
 /**
- * Test utility to validate fixture data structure
- * @param fixtures Array of fixtures to validate
- * @returns Object with validation result
+ * Validates fixture data to ensure it meets the required format
  */
-export const validateFixtureData = (fixtures: any[]): { 
-  valid: boolean; 
+export const validateFixtureData = (data: any): {
+  valid: boolean;
   message: string;
-  validFixtures: ScrapedFixture[];
+  validFixtures?: ScrapedFixture[]
 } => {
-  if (!Array.isArray(fixtures)) {
-    return { 
-      valid: false, 
-      message: 'Invalid data format: Expected an array of fixtures', 
-      validFixtures: [] 
+  // Check if data is an array
+  if (!Array.isArray(data)) {
+    return {
+      valid: false,
+      message: 'Data must be an array of fixtures'
     };
   }
-
-  if (fixtures.length === 0) {
-    return { 
-      valid: false, 
-      message: 'No fixtures found in the data', 
-      validFixtures: [] 
+  
+  // Check if array is empty
+  if (data.length === 0) {
+    return {
+      valid: false,
+      message: 'No fixtures found in the data'
     };
   }
-
-  // Check if fixtures have required fields based on the format
+  
+  // Detect format (standard or Claude)
+  const isCloudeFormat = data[0] && 'opposition' in data[0];
+  
+  // Validate each fixture based on format
   const validFixtures: ScrapedFixture[] = [];
-  const errors: string[] = [];
-
-  fixtures.forEach((fixture, index) => {
+  const invalidFixtures: number[] = [];
+  
+  data.forEach((item, index) => {
     try {
-      // Determine if this is standard format or Claude format
-      const isStandardFormat = ('homeTeam' in fixture || 'home_team' in fixture);
-      const isClaudeFormat = ('opposition' in fixture && 'location' in fixture);
-      
-      if (!isStandardFormat && !isClaudeFormat) {
-        errors.push(`Fixture #${index + 1} has an unknown format`);
-        return;
-      }
-
-      if (isStandardFormat) {
-        // Validate standard format
-        if (!fixture.homeTeam && !fixture.home_team) {
-          errors.push(`Fixture #${index + 1} is missing home team`);
+      if (isCloudeFormat) {
+        // Claude format validation
+        if (!item.opposition || !item.location || !item.date) {
+          invalidFixtures.push(index);
+          return;
         }
-        if (!fixture.awayTeam && !fixture.away_team) {
-          errors.push(`Fixture #${index + 1} is missing away team`);
-        }
-        if (!fixture.date) {
-          errors.push(`Fixture #${index + 1} is missing date`);
-        }
-      }
-
-      if (isClaudeFormat) {
-        // Validate Claude format
-        if (!fixture.opposition) {
-          errors.push(`Fixture #${index + 1} is missing opposition`);
-        }
-        if (!fixture.location) {
-          errors.push(`Fixture #${index + 1} is missing location`);
-        }
-        if (!fixture.date) {
-          errors.push(`Fixture #${index + 1} is missing date`);
-        }
-
-        // Validate location value
-        if (fixture.location && !['Home', 'Away'].includes(fixture.location)) {
-          errors.push(`Fixture #${index + 1} has invalid location: must be 'Home' or 'Away'`);
-        }
-      }
-
-      // Add to valid fixtures if no errors
-      if (isStandardFormat) {
+        
+        const isHome = item.location === 'Home';
+        const [homeScore, awayScore] = item.score?.split('-').map(Number) || [undefined, undefined];
+        
         validFixtures.push({
-          homeTeam: fixture.homeTeam || fixture.home_team || '',
-          awayTeam: fixture.awayTeam || fixture.away_team || '',
-          date: fixture.date || '',
-          time: fixture.time || '',
-          competition: fixture.competition || 'Unknown',
-          venue: fixture.venue || '',
-          isCompleted: fixture.isCompleted || fixture.is_completed || false,
-          homeScore: fixture.homeScore || fixture.home_score || null,
-          awayScore: fixture.awayScore || fixture.away_score || null,
+          date: item.date,
+          time: item.kickOffTime || '15:00',
+          homeTeam: isHome ? "Banks o' Dee" : item.opposition,
+          awayTeam: isHome ? item.opposition : "Banks o' Dee",
+          competition: item.competition || 'Highland League',
+          venue: isHome ? "Spain Park" : `${item.opposition} Ground`,
+          isCompleted: !!item.isCompleted,
+          homeScore: homeScore,
+          awayScore: awayScore,
           source: 'manual-import'
         });
-      } else if (isClaudeFormat) {
-        const isHome = fixture.location === 'Home';
+      } else {
+        // Standard format validation
+        if (!item.homeTeam || !item.awayTeam || !item.date) {
+          invalidFixtures.push(index);
+          return;
+        }
+        
         validFixtures.push({
-          homeTeam: isHome ? "Banks o' Dee FC" : fixture.opposition || '',
-          awayTeam: isHome ? fixture.opposition || '' : "Banks o' Dee FC",
-          date: fixture.date || '',
-          time: fixture.kickOffTime || fixture.kick_off_time || '',
-          competition: fixture.competition || 'Unknown',
-          venue: isHome ? "Spain Park" : fixture.location || '',
-          isCompleted: fixture.isCompleted || fixture.is_completed || false,
-          homeScore: isHome ? 
-            (fixture.score ? parseInt(fixture.score.split('-')[0]) : null) : 
-            (fixture.score ? parseInt(fixture.score.split('-')[1]) : null),
-          awayScore: isHome ? 
-            (fixture.score ? parseInt(fixture.score.split('-')[1]) : null) : 
-            (fixture.score ? parseInt(fixture.score.split('-')[0]) : null),
+          date: item.date,
+          time: item.time || '15:00',
+          homeTeam: item.homeTeam,
+          awayTeam: item.awayTeam,
+          competition: item.competition || 'Highland League',
+          venue: item.venue || 'TBD',
+          isCompleted: !!item.isCompleted,
+          homeScore: item.homeScore,
+          awayScore: item.awayScore,
           source: 'manual-import'
         });
       }
     } catch (error) {
-      errors.push(`Error processing fixture #${index + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      invalidFixtures.push(index);
     }
   });
-
-  if (errors.length > 0) {
-    return { 
-      valid: false, 
-      message: `Found ${errors.length} issues with the fixture data:\n${errors.slice(0, 3).join('\n')}${errors.length > 3 ? `\n...and ${errors.length - 3} more issues` : ''}`, 
-      validFixtures 
+  
+  if (invalidFixtures.length > 0) {
+    return {
+      valid: validFixtures.length > 0,
+      message: `${validFixtures.length} valid fixtures found, ${invalidFixtures.length} invalid fixtures detected at positions: ${invalidFixtures.join(', ')}`,
+      validFixtures
     };
   }
-
-  return { 
-    valid: true, 
-    message: `Successfully validated ${validFixtures.length} fixtures`, 
-    validFixtures 
+  
+  return {
+    valid: true,
+    message: `${validFixtures.length} valid fixtures found`,
+    validFixtures
   };
 };
 
 /**
- * Run a test import with the provided fixtures
- * @param fixtures Array of fixtures to test import
- * @returns Promise with test results
+ * Function to test the import without actually saving to database
  */
-export const testFixturesImport = async (fixtures: ScrapedFixture[]): Promise<{
-  success: boolean;
+export const testFixturesImport = async (data: any): Promise<{
+  valid: boolean;
   message: string;
-  validationErrors?: string[];
+  fixtures?: ScrapedFixture[]
 }> => {
   try {
-    // Validate the fixtures
-    const validation = validateFixtureData(fixtures);
-    
-    if (!validation.valid) {
-      return {
-        success: false,
-        message: 'Validation failed',
-        validationErrors: [validation.message]
-      };
-    }
-    
-    // For test import, we don't actually store anything
-    // We just log what would be stored
-    console.log(`[TEST IMPORT] Would import ${validation.validFixtures.length} fixtures`);
-    validation.validFixtures.forEach((fixture, i) => {
-      if (i < 5) { // Only log first 5 for brevity
-        console.log(`[TEST IMPORT] Fixture ${i + 1}:`, {
-          homeTeam: fixture.homeTeam,
-          awayTeam: fixture.awayTeam,
-          date: fixture.date,
-          competition: fixture.competition,
-          isCompleted: fixture.isCompleted
-        });
-      }
-    });
-    
-    return {
-      success: true,
-      message: `Test import successful for ${validation.validFixtures.length} fixtures`
-    };
+    return validateFixtureData(data);
   } catch (error) {
-    console.error('Error in test import:', error);
     return {
-      success: false,
-      message: `Error in test import: ${error instanceof Error ? error.message : 'Unknown error'}`
+      valid: false,
+      message: error instanceof Error ? error.message : 'Unknown error validating fixtures'
     };
   }
 };
 
 /**
- * Generate a downloadable export of all fixtures from Supabase
+ * Function to download fixtures as JSON file
  */
-export const generateFixturesExport = async (): Promise<void> => {
+export const generateFixturesExport = async () => {
   try {
-    // We'll use the fixture service to get all fixtures
-    const { fetchMatchesFromSupabase } = await import('@/services/supabase/fixtures/fetchService');
-    const fixtures = await fetchMatchesFromSupabase();
+    const { supabase } = await import('@/integrations/supabase/client');
     
-    if (!fixtures || fixtures.length === 0) {
-      toast.error('No fixtures found to export');
-      return;
+    // Fetch all fixtures from the database
+    const { data: fixtures, error } = await supabase
+      .from('fixtures')
+      .select('*')
+      .order('date', { ascending: true });
+    
+    if (error) {
+      throw error;
     }
     
-    // Convert DB fixtures to JSON format
+    // Format data for export
     const exportData = fixtures.map(fixture => ({
-      homeTeam: fixture.home_team,
-      awayTeam: fixture.away_team,
       date: fixture.date,
       time: fixture.time,
+      homeTeam: fixture.home_team,
+      awayTeam: fixture.away_team,
       competition: fixture.competition,
       venue: fixture.venue,
       isCompleted: fixture.is_completed,
       homeScore: fixture.home_score,
-      awayScore: fixture.away_score,
-      source: fixture.source,
-      importDate: fixture.import_date
+      awayScore: fixture.away_score
     }));
     
-    // Create downloadable file
-    const json = JSON.stringify(exportData, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
+    // Create and download the file
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
     
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `fixtures-export-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
+    const exportFileDefaultName = `banks-o-dee-fixtures-${new Date().toISOString().split('T')[0]}.json`;
     
-    // Cleanup
-    setTimeout(() => {
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-    }, 0);
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+    linkElement.remove();
     
-    toast.success(`Exported ${exportData.length} fixtures`);
+    return true;
   } catch (error) {
-    console.error('Error generating fixtures export:', error);
-    toast.error('Failed to export fixtures');
+    console.error('Error exporting fixtures:', error);
+    return false;
   }
 };

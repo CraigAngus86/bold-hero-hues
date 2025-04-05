@@ -1,107 +1,115 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { ScrapedFixture } from '@/types/fixtures';
-import { storeFixtures } from './storeService';
 import { logScrapeOperation } from './loggingService';
-import { toast } from 'sonner';
+import { storeFixtures } from './storeService';
 
-/**
- * Import historic fixtures from a JSON file
- * @param jsonData The parsed JSON data containing fixtures array
- * @returns Promise with operation result
- */
-export const importHistoricFixtures = async (jsonData: ScrapedFixture[] | any[]): Promise<boolean> => {
+export const importHistoricFixtures = async (
+  fixturesData: any
+): Promise<boolean> => {
   try {
-    if (!Array.isArray(jsonData)) {
-      toast.error('Invalid JSON format');
-      return false;
+    // Check if the data is already in the expected format or if it's in the special Claude format
+    let fixtures: ScrapedFixture[] = [];
+    
+    if (Array.isArray(fixturesData)) {
+      if (fixturesData[0] && 'opposition' in fixturesData[0]) {
+        // Convert from Claude's format to our standard format
+        fixtures = fixturesData.map(item => {
+          const isHome = item.location === 'Home';
+          const [homeScore, awayScore] = item.score?.split('-').map(Number) || [null, null];
+          
+          return {
+            date: item.date,
+            time: item.kickOffTime || '15:00',
+            homeTeam: isHome ? "Banks o' Dee" : item.opposition,
+            awayTeam: isHome ? item.opposition : "Banks o' Dee",
+            competition: item.competition || 'Highland League',
+            venue: isHome ? "Spain Park" : `${item.opposition} Ground`,
+            isCompleted: !!item.isCompleted,
+            homeScore: homeScore !== null ? homeScore : undefined,
+            awayScore: awayScore !== null ? awayScore : undefined,
+            source: 'manual-import'
+          };
+        });
+      } else {
+        // Assuming it's already in our standard format
+        fixtures = fixturesData;
+      }
     }
     
-    // Convert the data if it's in a different format
-    const fixtures: ScrapedFixture[] = jsonData.map(fixture => {
-      // Check if this is our standard format
-      if ('homeTeam' in fixture || 'home_team' in fixture) {
-        // It's already in our format or close to it
-        return fixture as ScrapedFixture;
-      }
-      
-      // Check if it's in Claude's format
-      if ('opposition' in fixture || 'location' in fixture) {
-        // It's in Claude's format, convert it
-        // Banks O' Dee is always one of the teams, the other team is the opposition
-        const isHome = fixture.location === 'Home';
-        
-        return {
-          homeTeam: isHome ? "Banks o' Dee FC" : fixture.opposition || '',
-          awayTeam: isHome ? fixture.opposition || '' : "Banks o' Dee FC",
-          date: fixture.date || '',
-          time: fixture.kickOffTime || fixture.kick_off_time || '',
-          competition: fixture.competition || '',
-          venue: isHome ? "Spain Park" : fixture.location || '',
-          isCompleted: fixture.isCompleted || fixture.is_completed || false,
-          homeScore: isHome ? 
-            (fixture.score ? parseInt(fixture.score.split('-')[0]) : null) : 
-            (fixture.score ? parseInt(fixture.score.split('-')[1]) : null),
-          awayScore: isHome ? 
-            (fixture.score ? parseInt(fixture.score.split('-')[1]) : null) : 
-            (fixture.score ? parseInt(fixture.score.split('-')[0]) : null),
-          source: 'manual-import'
-        };
-      }
-
-      // Neither format - try to guess
-      return {
-        homeTeam: fixture.homeTeam || fixture.home_team || fixture.home || '',
-        awayTeam: fixture.awayTeam || fixture.away_team || fixture.away || '',
-        date: fixture.date || '',
-        time: fixture.time || fixture.kick_off_time || fixture.kickOffTime || '',
-        competition: fixture.competition || '',
-        venue: fixture.venue || '',
-        isCompleted: fixture.isCompleted || fixture.is_completed || false,
-        homeScore: fixture.homeScore || fixture.home_score || null,
-        awayScore: fixture.awayScore || fixture.away_score || null,
-        source: 'manual-import'
-      };
-    });
+    // Add source tag to all fixtures
+    fixtures = fixtures.map(fixture => ({
+      ...fixture,
+      source: fixture.source || 'manual-import'
+    }));
     
-    const source = 'manual-import';
-    const result = await storeFixtures(fixtures, source);
+    // Store the fixtures
+    const result = await storeFixtures(fixtures);
     
-    if (result.success) {
-      toast.success(`Successfully imported ${fixtures.length} fixtures`);
-      return true;
-    } else {
-      toast.error(`Failed to import fixtures: ${result.message}`);
-      return false;
-    }
+    // Log the operation
+    await logScrapeOperation(
+      'manual-import',
+      result.success ? 'success' : 'error',
+      fixtures.length,
+      result.added,
+      result.updated,
+      result.success ? null : result.message
+    );
+    
+    return result.success;
   } catch (error) {
     console.error('Error importing fixtures:', error);
-    toast.error('Error importing fixtures');
     return false;
   }
 };
 
-/**
- * Scrape and store fixtures in one operation
- * @param fixtures Array of scraped fixtures to store
- * @returns Promise with operation success status
- */
-export const scrapeAndStoreFixtures = async (fixtures: ScrapedFixture[]): Promise<boolean> => {
+// Function to scrape fixtures from remote sources and store them
+export const scrapeAndStoreFixtures = async (
+  fixtures: ScrapedFixture[],
+  source: string
+): Promise<{
+  success: boolean;
+  added: number;
+  updated: number;
+  message: string;
+}> => {
   try {
-    if (!fixtures || fixtures.length === 0) {
-      console.warn('No fixtures provided to scrapeAndStoreFixtures');
-      return false;
-    }
-    
-    // Determine the source based on the first fixture
-    const source = fixtures[0].source || 'unknown';
+    // Add source tag to all fixtures
+    const taggedFixtures = fixtures.map(fixture => ({
+      ...fixture,
+      source
+    }));
     
     // Store the fixtures
-    const result = await storeFixtures(fixtures, source);
+    const result = await storeFixtures(taggedFixtures);
     
-    return result.success;
+    // Log the operation
+    await logScrapeOperation(
+      source,
+      result.success ? 'success' : 'error',
+      fixtures.length,
+      result.added,
+      result.updated,
+      result.success ? null : result.message
+    );
+    
+    return result;
   } catch (error) {
-    console.error('Error in scrapeAndStoreFixtures:', error);
-    return false;
+    console.error('Error scraping and storing fixtures:', error);
+    await logScrapeOperation(
+      source,
+      'error',
+      fixtures.length,
+      0,
+      0,
+      error instanceof Error ? error.message : 'Unknown error'
+    );
+    
+    return {
+      success: false,
+      added: 0,
+      updated: 0,
+      message: error instanceof Error ? error.message : 'Unknown error'
+    };
   }
 };

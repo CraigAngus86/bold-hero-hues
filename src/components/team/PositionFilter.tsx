@@ -1,6 +1,5 @@
 
-import { useState } from 'react';
-import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface PositionFilterProps {
   positions: string[];
@@ -8,29 +7,36 @@ interface PositionFilterProps {
   onPositionChange: (position: string) => void;
 }
 
-const PositionFilter = ({ 
-  positions, 
-  selectedPosition, 
-  onPositionChange 
+const PositionFilter = ({
+  positions,
+  selectedPosition,
+  onPositionChange
 }: PositionFilterProps) => {
   return (
-    <div className="mb-10 flex justify-center">
-      <div className="inline-flex flex-wrap gap-2 bg-team-gray p-1 rounded-lg">
-        {positions.map((position) => (
-          <button
-            key={position}
-            onClick={() => onPositionChange(position)}
-            className={cn(
-              "px-4 py-2 text-sm font-medium rounded-md transition-colors",
-              selectedPosition === position
-                ? "bg-[#00105a] text-white"
-                : "text-gray-700 hover:bg-[#00105a]/10"
-            )}
-          >
-            {position}
-          </button>
-        ))}
-      </div>
+    <div className="flex flex-wrap justify-center gap-2 mb-10">
+      {positions.map((position) => (
+        <motion.button
+          key={position}
+          onClick={() => onPositionChange(position)}
+          className={`relative px-5 py-2 rounded-full transition-colors ${
+            selectedPosition === position
+              ? 'text-white'
+              : 'text-[#00105a] bg-gray-100 hover:bg-gray-200'
+          }`}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          {selectedPosition === position && (
+            <motion.div
+              layoutId="position-background"
+              className="absolute inset-0 rounded-full bg-[#00105a]"
+              initial={false}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            />
+          )}
+          <span className="relative z-10">{position}</span>
+        </motion.button>
+      ))}
     </div>
   );
 };

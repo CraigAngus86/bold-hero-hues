@@ -1,262 +1,154 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 
-export interface TeamMember {
+import { create } from 'zustand';
+
+// Types
+interface Player {
   id: number;
   name: string;
-  position?: string;
-  role?: string;
-  number?: number;
-  image: string;
-  biography?: string;
+  position: string;
+  imageUrl: string;
+  number: number;
+  nationality: string;
+  height?: string;
+  dateOfBirth?: string;
+  previousClubs?: string[];
   bio?: string;
-  type: 'player' | 'management' | 'official';
-  stats?: {
-    appearances?: number;
-    goals?: number;
-    assists?: number;
-    cleanSheets?: number;
-  };
-  experience?: string;
 }
 
-// Mock player image
-const profileImageUrl = "/lovable-uploads/9cecca5c-daf2-4f52-a6ca-06e02ca9ea44.png";
+interface StaffMember {
+  id: number;
+  name: string;
+  role: string;
+  imageUrl: string;
+  bio?: string;
+}
 
-// Initial team members data
-const initialTeamMembers: TeamMember[] = [
-  // Goalkeepers
+interface TeamState {
+  players: Player[];
+  staff: StaffMember[];
+  isLoading: boolean;
+  error: string | null;
+  getPlayersByPosition: (position: string) => Player[];
+  fetchTeamData: () => Promise<void>;
+}
+
+// Sample team data
+const players: Player[] = [
   {
     id: 1,
-    name: "Daniel Hoban",
-    position: "Goalkeeper",
+    name: 'Lee Sweeney',
+    position: 'Goalkeeper',
+    imageUrl: '/lovable-uploads/players/goalkeeper1.jpg',
     number: 1,
-    image: profileImageUrl,
-    type: "player",
-    stats: {
-      appearances: 18,
-      cleanSheets: 8
-    },
-    biography: "Daniel joined Banks o' Dee in 2022 and has been a reliable presence between the posts."
+    nationality: 'Scottish',
+    height: '6\'2"',
+    dateOfBirth: '1992-05-15'
   },
   {
     id: 2,
-    name: "Fraser Hobday",
-    position: "Goalkeeper",
+    name: 'Daniel Hoban',
+    position: 'Goalkeeper',
+    imageUrl: '/lovable-uploads/players/goalkeeper2.jpg',
     number: 13,
-    image: profileImageUrl,
-    type: "player",
-    stats: {
-      appearances: 10,
-      cleanSheets: 4
-    },
-    biography: "Fraser provides strong competition for the goalkeeper position and has made vital saves when called upon."
+    nationality: 'Scottish',
+    height: '6\'1"'
   },
-  
-  // Defenders
   {
     id: 3,
-    name: "Jevan Anderson",
-    position: "Defender",
+    name: 'Jevan Anderson',
+    position: 'Defender',
+    imageUrl: '/lovable-uploads/players/defender1.jpg',
     number: 2,
-    image: profileImageUrl,
-    type: "player",
-    stats: {
-      appearances: 24,
-      goals: 1,
-      assists: 2
-    },
-    biography: "Jevan is a strong, consistent defender who brings professional experience to the backline."
+    nationality: 'Scottish',
+    previousClubs: ['Burton Albion', 'Formartine United']
   },
   {
     id: 4,
-    name: "Darryn Kelly",
-    position: "Defender",
-    number: 4,
-    image: profileImageUrl,
-    type: "player",
-    stats: {
-      appearances: 22,
-      goals: 3,
-      assists: 1
-    },
-    biography: "A commanding centre-back with excellent aerial ability and leadership qualities."
+    name: 'Dayle Robertson',
+    position: 'Forward',
+    imageUrl: '/lovable-uploads/players/forward1.jpg',
+    number: 9,
+    nationality: 'Scottish',
+    previousClubs: ['St. Johnstone']
   },
-  
-  // Midfielders
   {
     id: 5,
-    name: "Kane Winton",
-    position: "Midfielder",
-    number: 6,
-    image: profileImageUrl,
-    type: "player",
-    stats: {
-      appearances: 26,
-      goals: 3,
-      assists: 5
-    },
-    biography: "Kane is the engine room of the team, breaking up opposition attacks and starting our own with intelligent passing."
+    name: 'Kane Winton',
+    position: 'Midfielder',
+    imageUrl: '/lovable-uploads/players/midfielder1.jpg',
+    number: 8,
+    nationality: 'Scottish'
   },
   {
     id: 6,
-    name: "Michael Philipson",
-    position: "Midfielder",
-    number: 8,
-    image: profileImageUrl,
-    type: "player",
-    stats: {
-      appearances: 25,
-      goals: 7,
-      assists: 9
-    },
-    biography: "A creative midfielder with excellent vision and passing ability. Michael creates numerous chances each game."
+    name: 'Mark Gilmour',
+    position: 'Midfielder',
+    imageUrl: '/lovable-uploads/players/midfielder2.jpg',
+    number: 6,
+    nationality: 'Scottish'
   },
-  
-  // Forwards
   {
     id: 7,
-    name: "Mark Gilmour",
-    position: "Forward",
-    number: 9,
-    image: profileImageUrl,
-    type: "player",
-    stats: {
-      appearances: 28,
-      goals: 15,
-      assists: 6
-    },
-    biography: "Mark is a clinical striker with excellent movement and finishing ability. Top scorer last season."
-  },
-  {
-    id: 8,
-    name: "Liam Duell",
-    position: "Forward",
-    number: 11,
-    image: profileImageUrl,
-    type: "player",
-    stats: {
-      appearances: 25,
-      goals: 12,
-      assists: 8
-    },
-    biography: "A pacy winger who loves to take on defenders and create chances for teammates or finish himself."
-  },
-  
-  // Management
-  {
-    id: 9,
-    name: "Josh Winton",
-    role: "Manager",
-    image: profileImageUrl,
-    type: "management",
-    bio: "Josh has been with the club for many years and has led the team to multiple successes in recent seasons.",
-    experience: "5 years"
-  },
-  {
-    id: 10,
-    name: "Tommy Forbes",
-    role: "Assistant Manager",
-    image: profileImageUrl,
-    type: "management",
-    bio: "Tommy brings a wealth of tactical knowledge to the coaching staff and works closely with the players on match preparation.",
-    experience: "3 years"
-  },
-  {
-    id: 11,
-    name: "Mark Robb",
-    role: "First Team Coach",
-    image: profileImageUrl,
-    type: "management",
-    bio: "Mark focuses on player development and implementing the team's playing style through focused training sessions.",
-    experience: "2 years"
-  },
-  
-  // Officials
-  {
-    id: 12,
-    name: "Brian Winton",
-    role: "Club President",
-    image: profileImageUrl,
-    type: "official",
-    bio: "Brian has been instrumental in the club's progress and development over the past decade.",
-    experience: "10 years"
-  },
-  {
-    id: 13,
-    name: "Allan Hale",
-    role: "Club Secretary",
-    image: profileImageUrl,
-    type: "official",
-    bio: "Allan handles all the administrative aspects of the club, ensuring smooth operations behind the scenes.",
-    experience: "8 years"
-  },
-  {
-    id: 14,
-    name: "Hugh Robertson",
-    role: "Club Treasurer",
-    image: profileImageUrl,
-    type: "official",
-    bio: "Hugh oversees the club's finances and has helped secure important sponsorship deals.",
-    experience: "7 years"
+    name: 'Michael Philipson',
+    position: 'Defender',
+    imageUrl: '/lovable-uploads/players/defender2.jpg',
+    number: 4,
+    nationality: 'Scottish'
   }
 ];
 
-interface TeamStore {
-  teamMembers: TeamMember[];
-  addTeamMember: (member: TeamMember) => void;
-  updateTeamMember: (member: TeamMember) => void;
-  deleteTeamMember: (id: number) => void;
-  getPlayersByPosition: (position: string) => TeamMember[];
-  getManagementStaff: () => TeamMember[];
-  getClubOfficials: () => TeamMember[];
-  clearAllTeamMembers: () => void;
-}
+const staff: StaffMember[] = [
+  {
+    id: 1,
+    name: 'Josh Winton',
+    role: 'Manager',
+    imageUrl: '/lovable-uploads/staff/manager.jpg',
+    bio: 'Former club captain who took over as manager in 2023.'
+  },
+  {
+    id: 2,
+    name: 'Paul Lawson',
+    role: 'Assistant Manager',
+    imageUrl: '/lovable-uploads/staff/assistant.jpg',
+    bio: 'Former professional with Aberdeen and Ross County.'
+  }
+];
 
-export const useTeamStore = create<TeamStore>()(
-  persist(
-    (set, get) => ({
-      teamMembers: initialTeamMembers,
-      
-      addTeamMember: (member) => {
-        set((state) => ({
-          teamMembers: [...state.teamMembers, member]
-        }));
-      },
-      
-      updateTeamMember: (member) => {
-        set((state) => ({
-          teamMembers: state.teamMembers.map((m) => 
-            m.id === member.id ? member : m
-          )
-        }));
-      },
-      
-      deleteTeamMember: (id) => {
-        set((state) => ({
-          teamMembers: state.teamMembers.filter((m) => m.id !== id)
-        }));
-      },
-      
-      getPlayersByPosition: (position) => {
-        const players = get().teamMembers.filter(m => m.type === 'player');
-        return position === "All" 
-          ? players 
-          : players.filter(p => p.position === position);
-      },
-      
-      getManagementStaff: () => {
-        return get().teamMembers.filter(m => m.type === 'management');
-      },
-      
-      getClubOfficials: () => {
-        return get().teamMembers.filter(m => m.type === 'official');
-      },
-      
-      clearAllTeamMembers: () => set({ teamMembers: [] })
-    }),
-    {
-      name: 'team-storage'
+// Create the store
+export const useTeamStore = create<TeamState>((set, get) => ({
+  players,
+  staff,
+  isLoading: false,
+  error: null,
+  
+  getPlayersByPosition: (position: string) => {
+    const { players } = get();
+    if (position === 'All') {
+      return players;
     }
-  )
-);
+    return players.filter(player => player.position === position);
+  },
+  
+  fetchTeamData: async () => {
+    // This is a placeholder for when we eventually fetch team data from an API
+    set({ isLoading: true, error: null });
+    
+    try {
+      // In the future, this will be replaced with an actual API call
+      // For now, we'll just simulate a delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // The data is already set in the initial state, so we don't need to update it
+      // When we implement the API, we would do something like:
+      // set({ players: playerData, staff: staffData, isLoading: false });
+      
+      set({ isLoading: false });
+    } catch (error) {
+      console.error('Error fetching team data:', error);
+      set({ 
+        error: error instanceof Error ? error.message : 'An unknown error occurred', 
+        isLoading: false 
+      });
+    }
+  }
+}));

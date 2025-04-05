@@ -6,18 +6,38 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { TeamStats } from '@/components/league/types';
 import { Badge } from "@/components/ui/badge";
-import { Download, RefreshCw } from "lucide-react";
-import { fetchLeagueTableFromSupabase, getLastUpdateTime } from '@/services/supabase/leagueDataService';
+import { AlertTriangle, Download, RefreshCw } from "lucide-react";
+import { fetchLeagueTableFromSupabase, getLastUpdateTime, triggerLeagueDataScrape } from '@/services/supabase/leagueDataService';
+import { toast } from "sonner";
 
 const ScrapedDataTable: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [leagueTable, setLeagueTable] = useState<TeamStats[]>([]);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [hasInvalidData, setHasInvalidData] = useState<boolean>(false);
 
   // Load data on component mount
   useEffect(() => {
     loadScrapedData();
   }, []);
+
+  // Function to check for data validity
+  const validateData = (data: TeamStats[]) => {
+    // Check for numeric team names or other invalid data
+    const invalidTeams = data.filter(team => {
+      // Check if team name is missing, numeric, or very short
+      return !team.team || !isNaN(Number(team.team)) || team.team.length <= 2;
+    });
+
+    if (invalidTeams.length > 0) {
+      setHasInvalidData(true);
+      console.error('Invalid team data detected:', invalidTeams);
+      return false;
+    }
+
+    setHasInvalidData(false);
+    return true;
+  };
 
   // Function to load data
   const loadScrapedData = async () => {
@@ -26,6 +46,9 @@ const ScrapedDataTable: React.FC = () => {
       const data = await fetchLeagueTableFromSupabase();
       setLeagueTable(data || []);
       
+      // Validate the data
+      validateData(data);
+      
       // Get last updated time from Supabase
       const lastUpdate = await getLastUpdateTime();
       if (lastUpdate) {
@@ -33,6 +56,36 @@ const ScrapedDataTable: React.FC = () => {
       }
     } catch (error) {
       console.error('Failed to load scraped data:', error);
+      toast.error('Failed to load league table data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Function to trigger a fresh scrape
+  const handleRefreshData = async () => {
+    setIsLoading(true);
+    try {
+      toast.info('Refreshing league table data...');
+      const data = await triggerLeagueDataScrape(true);
+      setLeagueTable(data || []);
+      
+      // Validate the data
+      const isValid = validateData(data);
+      if (!isValid) {
+        toast.warning('Some team names may be invalid. Check the data.');
+      } else {
+        toast.success('Data refreshed successfully');
+      }
+      
+      // Update last scrape time
+      const lastUpdate = await getLastUpdateTime();
+      if (lastUpdate) {
+        setLastUpdated(lastUpdate);
+      }
+    } catch (error) {
+      console.error('Failed to refresh data:', error);
+      toast.error('Failed to refresh league table data');
     } finally {
       setIsLoading(false);
     }
@@ -59,6 +112,7 @@ const ScrapedDataTable: React.FC = () => {
       }, 0);
     } catch (error) {
       console.error('Failed to export data:', error);
+      toast.error('Failed to export data');
     }
   };
 
@@ -93,7 +147,7 @@ const ScrapedDataTable: React.FC = () => {
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
-          <Button size="sm" onClick={loadScrapedData}>
+          <Button size="sm" onClick={handleRefreshData}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
@@ -103,6 +157,18 @@ const ScrapedDataTable: React.FC = () => {
         {lastUpdated && (
           <div className="text-sm text-muted-foreground mb-4">
             Last updated: {new Date(lastUpdated).toLocaleString()}
+          </div>
+        )}
+        
+        {hasInvalidData && (
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+            <div className="flex items-center">
+              <AlertTriangle className="h-5 w-5 text-yellow-400 mr-2" />
+              <p className="font-medium text-yellow-800">Data Quality Warning</p>
+            </div>
+            <p className="text-sm text-yellow-700 mt-1">
+              Some team names appear to be invalid (numeric or missing). Try refreshing the data or check the scraper configuration.
+            </p>
           </div>
         )}
         
@@ -125,9 +191,18 @@ const ScrapedDataTable: React.FC = () => {
             </TableHeader>
             <TableBody>
               {leagueTable.map((team, index) => (
-                <TableRow key={index}>
+                <TableRow key={index} className={!isNaN(Number(team.team)) ? "bg-yellow-50" : ""}>
                   <TableCell>{team.position}</TableCell>
-                  <TableCell className="font-medium">{team.team}</TableCell>
+                  <TableCell className="font-medium">
+                    {!isNaN(Number(team.team)) ? (
+                      <span className="text-yellow-600 flex items-center">
+                        <AlertTriangle className="h-4 w-4 mr-1" />
+                        {team.team} (Invalid)
+                      </span>
+                    ) : (
+                      team.team
+                    )}
+                  </TableCell>
                   <TableCell>{team.played}</TableCell>
                   <TableCell>{team.won}</TableCell>
                   <TableCell>{team.drawn}</TableCell>

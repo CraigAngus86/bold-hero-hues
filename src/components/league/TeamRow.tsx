@@ -20,8 +20,15 @@ const TeamRow = ({ team }: TeamRowProps) => {
   const goalDifference = team.goalDifference || 0;
   const points = team.points || 0;
   const form = team.form || [];
+  
+  // Check for invalid team name
+  const teamName = team.team || '';
+  const isInvalidTeamName = !team.team || !isNaN(Number(team.team)) || team.team.length <= 2;
 
-  console.log('Rendering team row:', team);
+  // If we detect an invalid team name, log it for debugging
+  if (isInvalidTeamName) {
+    console.warn('Invalid team name detected:', team.team, team);
+  }
 
   return (
     <TableRow 
@@ -45,7 +52,7 @@ const TeamRow = ({ team }: TeamRowProps) => {
               />
             )}
           </div>
-          <span>{team.team}</span>
+          <span>{teamName}</span>
         </div>
       </TableCell>
       <TableCell className="text-center">{played}</TableCell>

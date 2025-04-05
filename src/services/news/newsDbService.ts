@@ -22,7 +22,7 @@ export async function getArticles(options?: NewsQueryOptions): Promise<{ data: N
     // Start building the query
     let query = supabase
       .from('news_articles')
-      .select('*', { count: 'exact' });
+      .select('*', { count: 'exact' }) as any;
 
     // Apply filters if provided
     if (category) {
@@ -62,11 +62,11 @@ export async function getArticles(options?: NewsQueryOptions): Promise<{ data: N
  */
 export async function getArticleById(id: string): Promise<NewsArticle | null> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase
       .from('news_articles')
       .select('*')
       .eq('id', id)
-      .single();
+      .single() as any);
 
     if (error) {
       throw error;
@@ -85,11 +85,11 @@ export async function getArticleById(id: string): Promise<NewsArticle | null> {
  */
 export async function getArticleBySlug(slug: string): Promise<NewsArticle | null> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase
       .from('news_articles')
       .select('*')
       .eq('slug', slug)
-      .single();
+      .single() as any);
 
     if (error) {
       throw error;
@@ -116,11 +116,11 @@ export async function createArticle(articleData: CreateNewsArticleData): Promise
         .replace(/\s+/g, '-');
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase
       .from('news_articles')
       .insert([articleData])
       .select()
-      .single();
+      .single() as any);
 
     if (error) {
       throw error;
@@ -151,12 +151,12 @@ export async function createArticle(articleData: CreateNewsArticleData): Promise
  */
 export async function updateArticle(id: string, articleData: UpdateNewsArticleData): Promise<{ data: NewsArticle | null; error: Error | null }> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase
       .from('news_articles')
-      .update(articleData)
+      .update(articleData as any)
       .eq('id', id)
       .select()
-      .single();
+      .single() as any);
 
     if (error) {
       throw error;
@@ -187,10 +187,10 @@ export async function updateArticle(id: string, articleData: UpdateNewsArticleDa
  */
 export async function deleteArticle(id: string): Promise<{ success: boolean; error: Error | null }> {
   try {
-    const { error } = await supabase
+    const { error } = await (supabase
       .from('news_articles')
       .delete()
-      .eq('id', id);
+      .eq('id', id) as any);
 
     if (error) {
       throw error;
@@ -209,12 +209,12 @@ export async function deleteArticle(id: string): Promise<{ success: boolean; err
  */
 export async function getFeaturedArticles(limit = 3): Promise<NewsArticle[]> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase
       .from('news_articles')
       .select('*')
       .eq('is_featured', true)
       .order('publish_date', { ascending: false })
-      .limit(limit);
+      .limit(limit) as any);
 
     if (error) {
       throw error;
@@ -233,16 +233,16 @@ export async function getFeaturedArticles(limit = 3): Promise<NewsArticle[]> {
  */
 export async function getNewsCategories(): Promise<string[]> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase
       .from('news_articles')
-      .select('category');
+      .select('category') as any);
 
     if (error) {
       throw error;
     }
 
     // Extract unique categories
-    const categories = [...new Set(data.map(item => item.category))];
+    const categories = [...new Set(data.map((item: any) => item.category))];
     return categories;
   } catch (error) {
     console.error('Error fetching news categories:', error);
@@ -259,7 +259,7 @@ export async function isSlugAvailable(slug: string, excludeId?: string): Promise
     let query = supabase
       .from('news_articles')
       .select('id')
-      .eq('slug', slug);
+      .eq('slug', slug) as any;
     
     if (excludeId) {
       query = query.neq('id', excludeId);
@@ -312,7 +312,7 @@ export async function generateUniqueSlug(title: string): Promise<string> {
 export async function migrateExistingNewsData(newsItems: any[]): Promise<{ success: boolean; message: string }> {
   try {
     // First check if there are any articles already in the database
-    const { count } = await supabase.from('news_articles').select('*', { count: 'exact', head: true });
+    const { count } = await (supabase.from('news_articles').select('*', { count: 'exact', head: true }) as any);
     
     if (count && count > 0) {
       return { 
@@ -336,7 +336,7 @@ export async function migrateExistingNewsData(newsItems: any[]): Promise<{ succe
     }));
     
     // Insert data
-    const { error } = await supabase.from('news_articles').insert(articlesData);
+    const { error } = await (supabase.from('news_articles').insert(articlesData as any) as any);
     
     if (error) {
       throw error;

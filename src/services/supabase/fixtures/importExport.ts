@@ -17,7 +17,8 @@ export const importHistoricFixtures = async (jsonData: ScrapedFixture[]): Promis
       return false;
     }
     
-    const result = await storeFixtures(jsonData, 'manual-import');
+    const source = 'manual-import';
+    const result = await storeFixtures(jsonData, source);
     
     if (result.success) {
       toast.success(`Successfully imported ${jsonData.length} fixtures`);

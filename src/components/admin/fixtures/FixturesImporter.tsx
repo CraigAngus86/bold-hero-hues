@@ -66,9 +66,8 @@ const FixturesImporter = () => {
         return;
       }
 
-      // Import fixtures
-      const source = `historic-import-${new Date().toISOString().split('T')[0]}`;
-      const success = await importHistoricFixtures(fixtures, source);
+      // Import fixtures - fix here: remove the second argument
+      const success = await importHistoricFixtures(fixtures);
       
       if (success) {
         setSuccess(true);

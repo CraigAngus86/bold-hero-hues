@@ -10,18 +10,18 @@ const adaptTeamMemberToPlayer = (member) => {
     id: member.id,
     name: member.name,
     position: member.position || '',
-    imageUrl: member.image || '/placeholder-player.png', // Add default image if none exists
-    number: member.number || 0
+    imageUrl: member.image_url || '/placeholder.svg',
+    number: member.jersey_number || 0
   };
 };
 
 const TeamGrid = () => {
   const [selectedPosition, setSelectedPosition] = useState("All");
-  const { getPlayersByPosition, fetchTeamMembers, loading } = useTeamStore();
+  const { getPlayersByPosition, loadTeamMembers, isLoading } = useTeamStore();
   
   useEffect(() => {
-    fetchTeamMembers();
-  }, [fetchTeamMembers]);
+    loadTeamMembers();
+  }, [loadTeamMembers]);
   
   const positions = ["All", "Goalkeeper", "Defender", "Midfielder", "Forward"];
   
@@ -32,7 +32,7 @@ const TeamGrid = () => {
   // Get players by position and adapt them to the format expected by PlayerList
   const players = getPlayersByPosition(selectedPosition).map(adaptTeamMemberToPlayer);
 
-  if (loading) {
+  if (isLoading) {
     return <div className="text-center py-8">Loading players...</div>;
   }
 

@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
 import { TeamMember, MemberType } from '@/types/team';
-import { fetchTeamMembers, addTeamMember, updateTeamMember, deleteTeamMember } from './teamDbService';
+import { fetchTeamMembers, createTeamMember, updateTeamMember, deleteTeamMember } from './teamDbService';
 import { toast } from 'sonner';
 
 export { type TeamMember, type MemberType } from '@/types/team';
@@ -20,6 +20,8 @@ export interface TeamStore {
   updatePlayer: (id: string, player: Partial<TeamMember>) => Promise<void>;
   deletePlayer: (id: string) => Promise<void>;
   loadTeamMembers: () => Promise<void>;
+  fetchTeamMembers: () => Promise<void>; // Alias for loadTeamMembers
+  loading: boolean; // Alias for isLoading
 }
 
 export const useTeamStore = create<TeamStore>((set, get) => ({
@@ -28,8 +30,12 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
   officials: [],
   teamMembers: [],
   isLoading: false,
+  loading: false, // Alias for isLoading
 
   getPlayersByPosition: (position) => {
+    if (position === "All") {
+      return get().players;
+    }
     return get().players.filter(player => 
       player.position?.toLowerCase() === position.toLowerCase()
     );
@@ -61,21 +67,21 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 
   addPlayer: async (player) => {
     try {
-      set({ isLoading: true });
-      await addTeamMember({ ...player, member_type: 'player' });
+      set({ isLoading: true, loading: true });
+      await createTeamMember({ ...player, member_type: 'player' });
       await get().loadTeamMembers();
       toast.success(`${player.name} added to the squad`);
     } catch (error) {
       console.error("Error adding player:", error);
       toast.error("Failed to add player");
     } finally {
-      set({ isLoading: false });
+      set({ isLoading: false, loading: false });
     }
   },
 
   updatePlayer: async (id, player) => {
     try {
-      set({ isLoading: true });
+      set({ isLoading: true, loading: true });
       await updateTeamMember(id, player);
       await get().loadTeamMembers();
       toast.success("Player updated successfully");
@@ -83,13 +89,13 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
       console.error("Error updating player:", error);
       toast.error("Failed to update player");
     } finally {
-      set({ isLoading: false });
+      set({ isLoading: false, loading: false });
     }
   },
 
   deletePlayer: async (id) => {
     try {
-      set({ isLoading: true });
+      set({ isLoading: true, loading: true });
       await deleteTeamMember(id);
       await get().loadTeamMembers();
       toast.success("Player removed from squad");
@@ -97,30 +103,40 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
       console.error("Error deleting player:", error);
       toast.error("Failed to delete player");
     } finally {
-      set({ isLoading: false });
+      set({ isLoading: false, loading: false });
     }
   },
 
   loadTeamMembers: async () => {
     try {
-      set({ isLoading: true });
-      const members = await fetchTeamMembers();
+      set({ isLoading: true, loading: true });
+      const response = await fetchTeamMembers();
       
-      const players = members.filter(member => member.member_type === 'player');
-      const management = members.filter(member => member.member_type === 'management');
-      const officials = members.filter(member => member.member_type === 'official');
-      
-      set({ 
-        players,
-        management,
-        officials,
-        teamMembers: members
-      });
+      if (response.success) {
+        const members = response.data;
+        const players = members.filter(member => member.member_type === 'player');
+        const management = members.filter(member => member.member_type === 'management');
+        const officials = members.filter(member => member.member_type === 'official');
+        
+        set({ 
+          players,
+          management,
+          officials,
+          teamMembers: members
+        });
+      } else {
+        toast.error("Failed to load team data");
+      }
     } catch (error) {
       console.error("Error loading team members:", error);
       toast.error("Failed to load team data");
     } finally {
-      set({ isLoading: false });
+      set({ isLoading: false, loading: false });
     }
   },
+
+  // Alias for loadTeamMembers
+  fetchTeamMembers: async () => {
+    return get().loadTeamMembers();
+  }
 }));

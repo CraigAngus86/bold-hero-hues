@@ -27,7 +27,7 @@ export async function fetchTeamMembersByType(memberType: MemberType): Promise<Db
 /**
  * Fetch all team members (active)
  */
-export async function fetchAllTeamMembers(): Promise<DbServiceResponse<TeamMember[]>> {
+export async function fetchTeamMembers(): Promise<DbServiceResponse<TeamMember[]>> {
   return handleDbOperation(
     async () => {
       const { data, error } = await supabase
@@ -140,7 +140,7 @@ export async function fetchManagementTeam(): Promise<DbServiceResponse<TeamMembe
   );
 }
 
-// New function to get all team members (for admin management)
+// Function to get all team members (for admin management)
 export async function getAllTeamMembers(): Promise<DbServiceResponse<TeamMember[]>> {
   return handleDbOperation(
     async () => {
@@ -156,3 +156,7 @@ export async function getAllTeamMembers(): Promise<DbServiceResponse<TeamMember[
     'Failed to fetch all team members'
   );
 }
+
+// Add alias for compatibility
+export const addTeamMember = createTeamMember;
+export const fetchAllTeamMembers = getAllTeamMembers;

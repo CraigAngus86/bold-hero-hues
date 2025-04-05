@@ -1,10 +1,10 @@
 
 import { useState, useEffect } from 'react';
 import OfficialCard from './OfficialCard';
-import { useTeamStore } from '@/services/teamService';
+import { useTeamStore, TeamMember } from '@/services/teamService';
 
 export default function ClubOfficials() {
-  const [officials, setOfficials] = useState([]);
+  const [officials, setOfficials] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const { teamMembers } = useTeamStore();
   

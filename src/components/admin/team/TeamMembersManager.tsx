@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -5,34 +6,35 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { PlusCircle, Edit, Trash } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { PlusCircle, Edit, Trash, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useTeamStore, TeamMember, MemberType } from '@/services/teamService';
-import { addTeamMember, updateTeamMember, deleteTeamMember, fetchTeamMembers } from '@/services/teamDbService';
+import { createTeamMember, updateTeamMember, deleteTeamMember, getAllTeamMembers } from '@/services/teamDbService';
 import PlayerImageUploader from './PlayerImageUploader';
 
 const TeamMembersManager = () => {
-  const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentMember, setCurrentMember] = useState<TeamMember | null>(null);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
+  const { loadTeamMembers } = useTeamStore();
   
   useEffect(() => {
-    loadTeamMembers();
+    loadTeamMemberData();
   }, []);
   
-  const loadTeamMembers = async () => {
+  const loadTeamMemberData = async () => {
     setLoading(true);
     try {
-      const members = await fetchTeamMembers();
-      setTeamMembers(members);
+      const response = await getAllTeamMembers();
+      if (response.success) {
+        setTeamMembers(response.data);
+      } else {
+        toast.error("Failed to load team members");
+      }
     } catch (error) {
       console.error("Error loading team members:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load team members."
-      });
+      toast.error("Failed to load team members");
     } finally {
       setLoading(false);
     }
@@ -69,9 +71,14 @@ const TeamMembersManager = () => {
   // Function to handle member deletion
   const handleDeleteMember = async (id: string) => {
     try {
-      await deleteTeamMember(id);
-      loadTeamMembers();
-      toast.success("Team member deleted successfully");
+      const response = await deleteTeamMember(id);
+      if (response.success) {
+        await loadTeamMemberData();
+        await loadTeamMembers();
+        toast.success("Team member deleted successfully");
+      } else {
+        toast.error("Failed to delete team member");
+      }
     } catch (error) {
       console.error("Error deleting team member:", error);
       toast.error("Failed to delete team member");
@@ -86,28 +93,28 @@ const TeamMembersManager = () => {
     try {
       if (currentMember.id) {
         // Update existing member
-        await updateTeamMember(currentMember.id, currentMember);
-        toast({
-          title: "Team member updated",
-          description: "The team member has been successfully updated."
-        });
+        const response = await updateTeamMember(currentMember.id, currentMember);
+        if (response.success) {
+          toast.success("Team member updated successfully");
+        } else {
+          toast.error("Failed to update team member");
+        }
       } else {
         // Add new member
-        await addTeamMember(currentMember);
-        toast({
-          title: "Team member added",
-          description: "A new team member has been successfully added."
-        });
+        const response = await createTeamMember(currentMember);
+        if (response.success) {
+          toast.success("Team member added successfully");
+        } else {
+          toast.error("Failed to add team member");
+        }
       }
       
-      loadTeamMembers();
+      await loadTeamMemberData();
+      await loadTeamMembers();
       closeDialog();
     } catch (error) {
       console.error("Error saving team member:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save team member."
-      });
+      toast.error("Failed to save team member");
     }
   };
   
@@ -122,7 +129,9 @@ const TeamMembersManager = () => {
       </div>
       
       {loading ? (
-        <div className="text-center py-4">Loading team members...</div>
+        <div className="flex justify-center items-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        </div>
       ) : (
         <Table>
           <TableHeader>
@@ -174,7 +183,10 @@ const TeamMembersManager = () => {
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="type" className="text-right text-sm font-medium">Type</Label>
-                <Select onValueChange={(value) => setCurrentMember(prev => prev ? {...prev, member_type: value as MemberType} : null)} defaultValue={currentMember?.member_type || 'player'}>
+                <Select 
+                  value={currentMember?.member_type}
+                  onValueChange={(value) => setCurrentMember(prev => prev ? {...prev, member_type: value as MemberType} : null)}
+                >
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select a type" />
                   </SelectTrigger>

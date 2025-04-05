@@ -1,12 +1,13 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Sponsor } from '@/types/sponsors';
-import { useSponsorStore } from '@/services/sponsorsService';
+import { useSponsorsStore } from '@/services/sponsorsService';
 
 const SponsorsCarousel = () => {
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
   const [loading, setLoading] = useState(true);
-  const getActiveSponsors = useSponsorStore((state) => state.getActiveSponsors);
+  const getActiveSponsors = useSponsorsStore((state) => state.getActiveSponsors);
   
   const placeholder = '/placeholder.svg';
   

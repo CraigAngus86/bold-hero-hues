@@ -2,9 +2,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { getFeaturedArticles } from '@/services/news/db/listing';
 import { NewsArticle } from '@/types';
+import { useCallback, useMemo } from 'react';
 
 export const useFeaturedArticles = (limit: number = 4) => {
-  return useQuery<NewsArticle[], Error>({
+  const query = useQuery<NewsArticle[], Error>({
     queryKey: ['featuredNews', limit],
     queryFn: async () => {
       try {
@@ -16,4 +17,14 @@ export const useFeaturedArticles = (limit: number = 4) => {
       }
     }
   });
+
+  // Extract article IDs for excluding from other components
+  const articleIds = useMemo(() => {
+    return query.data ? query.data.map(article => article.id) : [];
+  }, [query.data]);
+
+  return {
+    ...query,
+    articleIds
+  };
 };

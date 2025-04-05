@@ -74,8 +74,9 @@ export async function uploadImage(
         dimensions = await getImageDimensions(file);
       }
       
-      // Store metadata if provided
+      // Store metadata using raw SQL or RPC since TypeScript isn't aware of the image_metadata table
       if (metadata || dimensions) {
+        // Using Supabase's rpc method to store metadata
         const metadataToStore = {
           bucket_id: bucketId,
           storage_path: data.path,
@@ -83,12 +84,11 @@ export async function uploadImage(
           alt_text: metadata?.alt_text || file.name.split('.')[0],
           description: metadata?.description,
           tags: metadata?.tags,
-          dimensions: dimensions ? { width: dimensions.width, height: dimensions.height } : undefined
+          dimensions: dimensions ? JSON.stringify({ width: dimensions.width, height: dimensions.height }) : null
         };
         
-        await supabase
-          .from('image_metadata')
-          .insert([metadataToStore]);
+        // Use raw SQL or rpc to insert metadata
+        await supabase.rpc('store_image_metadata', metadataToStore).maybeSingle();
       }
 
       return {
@@ -139,13 +139,13 @@ export async function getImages(
             .from(bucketId)
             .getPublicUrl(filePath);
             
-          // Try to get metadata for this image
+          // Get metadata using rpc function instead of direct table access
           const { data: metadataData } = await supabase
-            .from('image_metadata')
-            .select('*')
-            .eq('bucket_id', bucketId)
-            .eq('storage_path', filePath)
-            .single();
+            .rpc('get_image_metadata', { 
+              p_bucket_id: bucketId,
+              p_storage_path: filePath
+            })
+            .maybeSingle();
 
           return {
             id: item.id,
@@ -177,12 +177,11 @@ export async function deleteImage(
 ): Promise<DbServiceResponse<boolean>> {
   return handleDbOperation(
     async () => {
-      // First delete metadata
-      await supabase
-        .from('image_metadata')
-        .delete()
-        .eq('bucket_id', bucketId)
-        .eq('storage_path', path);
+      // Delete metadata using rpc function
+      await supabase.rpc('delete_image_metadata', {
+        p_bucket_id: bucketId,
+        p_storage_path: path
+      });
       
       // Then delete the image
       const { error } = await supabase
@@ -243,15 +242,13 @@ export async function moveImage(
 
       if (uploadError) throw uploadError;
 
-      // Update metadata
-      await supabase
-        .from('image_metadata')
-        .update({ 
-          bucket_id: destinationBucketId,
-          storage_path: destinationPath
-        })
-        .eq('bucket_id', sourceBucketId)
-        .eq('storage_path', sourcePath);
+      // Update metadata using rpc function
+      await supabase.rpc('move_image_metadata', {
+        p_source_bucket_id: sourceBucketId,
+        p_source_path: sourcePath,
+        p_dest_bucket_id: destinationBucketId,
+        p_dest_path: destinationPath
+      });
 
       // Finally delete from old location
       const { error: deleteError } = await supabase
@@ -306,11 +303,14 @@ export async function updateImageMetadata(
 ): Promise<DbServiceResponse<boolean>> {
   return handleDbOperation(
     async () => {
-      const { error } = await supabase
-        .from('image_metadata')
-        .update(metadata)
-        .eq('bucket_id', bucketId)
-        .eq('storage_path', path);
+      // Update metadata using rpc function
+      const { error } = await supabase.rpc('update_image_metadata', {
+        p_bucket_id: bucketId,
+        p_storage_path: path,
+        p_alt_text: metadata.alt_text,
+        p_description: metadata.description,
+        p_tags: metadata.tags
+      });
         
       if (error) throw error;
       return true;
@@ -328,12 +328,11 @@ export async function getImageMetadata(
 ): Promise<DbServiceResponse<any>> {
   return handleDbOperation(
     async () => {
-      const { data, error } = await supabase
-        .from('image_metadata')
-        .select('*')
-        .eq('bucket_id', bucketId)
-        .eq('storage_path', path)
-        .single();
+      // Get metadata using rpc function
+      const { data, error } = await supabase.rpc('get_image_metadata', {
+        p_bucket_id: bucketId,
+        p_storage_path: path
+      }).maybeSingle();
         
       if (error) throw error;
       return data;

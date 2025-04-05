@@ -32,36 +32,39 @@ export function useSupabaseFetch<T>(
   const [error, setError] = useState<Error | PostgrestError | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+    
     const fetchData = async () => {
+      if (!isMounted) return;
+      
       try {
         setLoading(true);
         
-        // Start the query
-        let query = supabase.from(tableName);
+        // Use type assertion to avoid complex type analysis
+        const baseQuery = supabase.from(tableName) as any;
         
-        // Select columns
-        const selectQuery = options?.select 
-          ? query.select(options.select)
-          : query.select('*');
-          
-        // Apply filters if any
-        let filteredQuery = selectQuery;
+        // Build query step by step
+        const selectClause = options?.select || '*';
+        let query = baseQuery.select(selectClause);
+        
+        // Apply filters
         if (options?.match) {
           Object.entries(options.match).forEach(([key, value]) => {
-            filteredQuery = filteredQuery.eq(key, value);
+            query = query.eq(key, value);
           });
         }
         
-        // Apply ordering if any
-        let orderedQuery = filteredQuery;
+        // Apply ordering
         if (options?.order) {
-          orderedQuery = filteredQuery.order(options.order.column, { 
+          query = query.order(options.order.column, { 
             ascending: options.order.ascending 
           });
         }
         
         // Execute the query
-        const { data: result, error: queryError } = await orderedQuery;
+        const { data: result, error: queryError } = await query;
+        
+        if (!isMounted) return;
         
         if (queryError) {
           throw queryError;
@@ -69,14 +72,21 @@ export function useSupabaseFetch<T>(
         
         setData(result as T[]);
       } catch (err) {
+        if (!isMounted) return;
         console.error('Error fetching data:', err);
         setError(err as Error | PostgrestError);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchData();
+    
+    return () => {
+      isMounted = false;
+    };
   }, [tableName, JSON.stringify(options)]);
 
   return { data, loading, error };
@@ -94,36 +104,39 @@ export function useDynamicSupabaseFetch<T>(
   const [error, setError] = useState<Error | PostgrestError | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+    
     const fetchData = async () => {
+      if (!isMounted) return;
+      
       try {
         setLoading(true);
         
-        // Cast to any to bypass TypeScript's strict checking for dynamic tables
-        const query = (supabase as any).from(tableName);
+        // Use any type to bypass TypeScript checks completely
+        const query = supabase.from(tableName) as any;
         
-        // Select columns
-        const selectQuery = options?.select 
-          ? query.select(options.select)
-          : query.select('*');
-          
-        // Apply filters if any
-        let filteredQuery = selectQuery;
+        // Build query step by step
+        const selectClause = options?.select || '*';
+        let builtQuery = query.select(selectClause);
+        
+        // Apply filters
         if (options?.match) {
           Object.entries(options.match).forEach(([key, value]) => {
-            filteredQuery = filteredQuery.eq(key, value);
+            builtQuery = builtQuery.eq(key, value);
           });
         }
         
-        // Apply ordering if any
-        let orderedQuery = filteredQuery;
+        // Apply ordering
         if (options?.order) {
-          orderedQuery = filteredQuery.order(options.order.column, { 
+          builtQuery = builtQuery.order(options.order.column, { 
             ascending: options.order.ascending 
           });
         }
         
         // Execute the query
-        const { data: result, error: queryError } = await orderedQuery;
+        const { data: result, error: queryError } = await builtQuery;
+        
+        if (!isMounted) return;
         
         if (queryError) {
           throw queryError;
@@ -131,14 +144,21 @@ export function useDynamicSupabaseFetch<T>(
         
         setData(result as T[]);
       } catch (err) {
+        if (!isMounted) return;
         console.error('Error fetching data:', err);
         setError(err as Error | PostgrestError);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchData();
+    
+    return () => {
+      isMounted = false;
+    };
   }, [tableName, JSON.stringify(options)]);
 
   return { data, loading, error };

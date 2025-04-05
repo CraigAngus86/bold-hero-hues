@@ -132,7 +132,7 @@ export default function FixturesImporter() {
         )}
         
         {validationResult && (
-          <Alert variant={validationResult.valid ? "default" : "warning"}>
+          <Alert variant={validationResult.valid ? "default" : "destructive"}>
             <AlertDescription>
               {validationResult.valid ? (
                 <div className="flex items-center">

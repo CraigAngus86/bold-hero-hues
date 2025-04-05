@@ -1,17 +1,20 @@
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Upload } from 'lucide-react';
-import { DropZoneProps } from './types';
+import { useImageUploaderContext } from './ImageUploaderContext';
 
-export const DropZone: React.FC<DropZoneProps> = ({
-  acceptedTypes,
-  maxSizeMB,
-  onFileSelected,
-  dragActive,
-  setDragActive,
-  inputId,
-}) => {
-  const handleDrag = React.useCallback((e: React.DragEvent<HTMLDivElement>) => {
+interface DropZoneProps {
+  inputId: string;
+}
+
+export const DropZone: React.FC<DropZoneProps> = ({ inputId }) => {
+  const {
+    dragActive,
+    setDragActive,
+    handleFileSelection
+  } = useImageUploaderContext();
+  
+  const handleDrag = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     if (e.type === 'dragenter' || e.type === 'dragover') {
@@ -21,19 +24,19 @@ export const DropZone: React.FC<DropZoneProps> = ({
     }
   }, [setDragActive]);
   
-  const handleDrop = React.useCallback((e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
     
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      onFileSelected(e.dataTransfer.files[0]);
+      handleFileSelection(e.dataTransfer.files[0]);
     }
-  }, [setDragActive, onFileSelected]);
+  }, [setDragActive, handleFileSelection]);
   
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      onFileSelected(e.target.files[0]);
+      handleFileSelection(e.target.files[0]);
     }
   };
 
@@ -55,7 +58,6 @@ export const DropZone: React.FC<DropZoneProps> = ({
         type="file"
         className="hidden"
         onChange={handleFileInputChange}
-        accept={acceptedTypes}
       />
       <div className="flex flex-col items-center">
         <Upload className="h-10 w-10 text-gray-400 mb-2" />
@@ -63,7 +65,7 @@ export const DropZone: React.FC<DropZoneProps> = ({
           Drag & drop or click to upload image
         </p>
         <p className="text-xs text-gray-500 mt-1">
-          {acceptedTypes.split(',').join(', ')} files up to {maxSizeMB}MB
+          Supported formats up to {useImageUploaderContext().maxSizeMB}MB
         </p>
       </div>
     </div>

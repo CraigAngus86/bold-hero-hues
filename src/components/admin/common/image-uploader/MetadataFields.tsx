@@ -4,33 +4,22 @@ import { Tag, X } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { useImageUploaderContext } from './ImageUploaderContext';
 
-interface MetadataFieldsProps {
-  altText: string;
-  setAltText: (text: string) => void;
-  imageDescription: string;
-  setImageDescription: (desc: string) => void;
-  imageTags: string[];
-  setImageTags: (tags: string[]) => void;
-  tagInput: string;
-  setTagInput: (input: string) => void;
-  handleAddTag: () => void;
-  handleRemoveTag: (tag: string) => void;
-  handleTagKeyDown: (e: React.KeyboardEvent) => void;
-}
+export const MetadataFields: React.FC = () => {
+  const {
+    altText,
+    setAltText,
+    imageDescription,
+    setImageDescription,
+    imageTags,
+    tagInput,
+    setTagInput,
+    handleAddTag,
+    handleRemoveTag,
+    handleTagKeyDown
+  } = useImageUploaderContext();
 
-export const MetadataFields: React.FC<MetadataFieldsProps> = ({
-  altText,
-  setAltText,
-  imageDescription,
-  setImageDescription,
-  imageTags,
-  tagInput,
-  setTagInput,
-  handleAddTag,
-  handleRemoveTag,
-  handleTagKeyDown,
-}) => {
   return (
     <div className="mt-4 space-y-3">
       <div>

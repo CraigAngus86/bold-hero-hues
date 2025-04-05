@@ -19,33 +19,3 @@ export interface ImageUploaderProps {
     quality?: number;
   };
 }
-
-export interface DropZoneProps {
-  acceptedTypes: string;
-  maxSizeMB: number;
-  onFileSelected: (file: File) => void;
-  dragActive: boolean;
-  setDragActive: (active: boolean) => void;
-  inputId: string;
-}
-
-export interface ImagePreviewProps {
-  previewUrl: string;
-  aspectRatioClass: string;
-  altText: string;
-  onClear: () => void;
-  allowMetadata: boolean;
-  imageDescription: string;
-  setAltText: (text: string) => void;
-  setImageDescription: (desc: string) => void;
-  imageTags: string[];
-  setImageTags: (tags: string[]) => void;
-  tagInput: string;
-  setTagInput: (input: string) => void;
-  handleAddTag: () => void;
-  handleRemoveTag: (tag: string) => void;
-  handleTagKeyDown: (e: React.KeyboardEvent) => void;
-  isUploading: boolean;
-  progress: number;
-  onUpload: () => void;
-}

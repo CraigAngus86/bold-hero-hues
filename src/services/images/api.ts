@@ -5,6 +5,13 @@ import { getImageDimensions } from './utils';
 import { ImageMetadata, StoredImageMetadata } from './types';
 import { handleDbOperation, DbServiceResponse } from '../utils/dbService';
 
+type RpcFunction = 
+  | 'store_image_metadata' 
+  | 'get_image_metadata' 
+  | 'delete_image_metadata' 
+  | 'move_image_metadata' 
+  | 'update_image_metadata';
+
 /**
  * Upload an image to a specific bucket
  */
@@ -48,7 +55,7 @@ export async function uploadImage(
       if (metadata || dimensions) {
         // Using Supabase's rpc method to store metadata
         const { error: metadataError } = await supabase
-          .rpc('store_image_metadata' as any, {
+          .rpc<any>('store_image_metadata' as RpcFunction, {
             bucket_id: bucketId,
             storage_path: data.path,
             file_name: fileName,
@@ -111,7 +118,7 @@ export async function getImages(
             
           // Get metadata using rpc function
           const { data: metadataData, error: metadataError } = await supabase
-            .rpc('get_image_metadata' as any, { 
+            .rpc<StoredImageMetadata>('get_image_metadata' as RpcFunction, { 
               p_bucket_id: bucketId,
               p_storage_path: filePath
             });
@@ -153,7 +160,7 @@ export async function deleteImage(
     async () => {
       // Delete metadata using rpc function
       await supabase
-        .rpc('delete_image_metadata' as any, {
+        .rpc<any>('delete_image_metadata' as RpcFunction, {
           p_bucket_id: bucketId,
           p_storage_path: path
         });
@@ -219,7 +226,7 @@ export async function moveImage(
 
       // Update metadata using rpc function
       const { error: moveError } = await supabase
-        .rpc('move_image_metadata' as any, {
+        .rpc<any>('move_image_metadata' as RpcFunction, {
           p_source_bucket_id: sourceBucketId,
           p_source_path: sourcePath,
           p_dest_bucket_id: destinationBucketId,
@@ -283,7 +290,7 @@ export async function updateImageMetadata(
     async () => {
       // Update metadata using rpc function
       const { error } = await supabase
-        .rpc('update_image_metadata' as any, {
+        .rpc<any>('update_image_metadata' as RpcFunction, {
           p_bucket_id: bucketId,
           p_storage_path: path,
           p_alt_text: metadata.alt_text,
@@ -309,13 +316,13 @@ export async function getImageMetadata(
     async () => {
       // Get metadata using rpc function
       const { data, error } = await supabase
-        .rpc('get_image_metadata' as any, {
+        .rpc<StoredImageMetadata>('get_image_metadata' as RpcFunction, {
           p_bucket_id: bucketId,
           p_storage_path: path
         });
         
       if (error) throw error;
-      return data as StoredImageMetadata; // Type assertion for the returned data
+      return data;
     },
     `Failed to get metadata for image ${path}`
   );

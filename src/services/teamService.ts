@@ -1,262 +1,155 @@
 
-import { supabase } from '@/services/supabase/supabaseClient';
-import { TeamMember, DBTeamMember, convertToTeamMember } from '@/types/team';
-import { handleDbOperation, DbServiceResponse } from './utils/dbService';
 import { create } from 'zustand';
+import { createTeamMember, deleteTeamMember, fetchTeamMembers, fetchTeamMembersByType, updateTeamMember } from './teamDbService';
+import { toast } from 'sonner';
 
-/**
- * Get all team members
- */
-export async function getAllTeamMembers(): Promise<DbServiceResponse<TeamMember[]>> {
-  return handleDbOperation(
-    async () => {
-      const { data, error } = await supabase
-        .from('team_members')
-        .select('*')
-        .eq('is_active', true)
-        .order('name');
-
-      if (error) throw error;
-
-      // Convert from DB format to the TeamMember type
-      const members: TeamMember[] = data.map(item => convertToTeamMember(item as DBTeamMember));
-
-      return members;
-    },
-    'Failed to load team members'
-  );
-}
-
-/**
- * Get team members by type (player, management, official)
- */
-export async function getTeamMembersByType(type: 'player' | 'management' | 'official'): Promise<DbServiceResponse<TeamMember[]>> {
-  return handleDbOperation(
-    async () => {
-      const { data, error } = await supabase
-        .from('team_members')
-        .select('*')
-        .eq('member_type', type)
-        .eq('is_active', true)
-        .order('name');
-
-      if (error) throw error;
-
-      // Convert from DB format to the TeamMember type
-      const members: TeamMember[] = data.map(item => convertToTeamMember(item as DBTeamMember));
-
-      return members;
-    },
-    `Failed to load ${type} team members`
-  );
-}
-
-/**
- * Get team member by ID
- */
-export async function getTeamMemberById(id: string): Promise<DbServiceResponse<TeamMember>> {
-  return handleDbOperation(
-    async () => {
-      const { data, error } = await supabase
-        .from('team_members')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error) throw error;
-
-      return convertToTeamMember(data as DBTeamMember);
-    },
-    'Failed to load team member details'
-  );
-}
-
-/**
- * Create team member
- */
-export async function createTeamMember(member: Omit<DBTeamMember, 'id' | 'created_at' | 'updated_at'>): Promise<DbServiceResponse<TeamMember>> {
-  return handleDbOperation(
-    async () => {
-      const { data, error } = await supabase
-        .from('team_members')
-        .insert([member])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      return convertToTeamMember(data as DBTeamMember);
-    },
-    'Failed to create team member'
-  );
-}
-
-/**
- * Update team member
- */
-export async function updateTeamMember(id: string, updates: Partial<DBTeamMember>): Promise<DbServiceResponse<TeamMember>> {
-  return handleDbOperation(
-    async () => {
-      const { data, error } = await supabase
-        .from('team_members')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      return convertToTeamMember(data as DBTeamMember);
-    },
-    'Failed to update team member'
-  );
-}
-
-/**
- * Toggle team member active status
- */
-export async function toggleTeamMemberStatus(id: string, isActive: boolean): Promise<DbServiceResponse<boolean>> {
-  return handleDbOperation(
-    async () => {
-      const { error } = await supabase
-        .from('team_members')
-        .update({ is_active: isActive })
-        .eq('id', id);
-
-      if (error) throw error;
-
-      return true;
-    },
-    'Failed to update team member status'
-  );
-}
-
-/**
- * Delete team member
- */
-export async function deleteTeamMember(id: string): Promise<DbServiceResponse<boolean>> {
-  return handleDbOperation(
-    async () => {
-      const { error } = await supabase
-        .from('team_members')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      return true;
-    },
-    'Failed to delete team member'
-  );
-}
-
-/**
- * Update team member statistics
- */
-export async function updateTeamMemberStats(id: string, stats: Record<string, number>): Promise<DbServiceResponse<boolean>> {
-  return handleDbOperation(
-    async () => {
-      const { error } = await supabase
-        .from('team_members')
-        .update({ stats })
-        .eq('id', id);
-
-      if (error) throw error;
-
-      return true;
-    },
-    'Failed to update team member statistics'
-  );
-}
-
-// Create a function to convert TeamMember to DBTeamMember
-// This replaces the duplicate function imported from types/team.ts
-function mapTeamMemberToDb(member: TeamMember): Partial<DBTeamMember> {
-  return {
-    name: member.name,
-    image_url: member.image,
-    position: member.position,
-    jersey_number: member.number,
-    member_type: member.type,
-    role: member.role,
-    bio: member.bio,
-    experience: member.experience,
-    nationality: member.nationality,
-    previous_clubs: member.previousClubs,
-    stats: member.stats
+export interface TeamMember {
+  id: number;
+  name: string;
+  type: 'player' | 'management' | 'official';
+  position?: string;
+  role?: string;
+  number?: number;
+  image: string;
+  bio: string;
+  stats?: {
+    appearances: number;
+    goals: number;
+    assists: number;
   };
+  experience?: string;
 }
 
-// Create a Zustand store for team members
-interface TeamState {
+interface TeamStore {
   teamMembers: TeamMember[];
   loading: boolean;
-  error: Error | null;
   fetchTeamMembers: () => Promise<void>;
+  addTeamMember: (member: Omit<TeamMember, 'id'>) => Promise<void>;
+  updateTeamMember: (member: TeamMember) => Promise<void>;
+  deleteTeamMember: (id: number) => Promise<void>;
   getPlayersByPosition: (position: string) => TeamMember[];
-  getManagementStaff: () => TeamMember[];
+  getManagementTeam: () => TeamMember[];
   getClubOfficials: () => TeamMember[];
-  addTeamMember: (member: TeamMember) => void;
-  updateTeamMember: (member: TeamMember) => void;
-  deleteTeamMember: (id: number) => void;
 }
 
-export const useTeamStore = create<TeamState>((set, get) => ({
+// Adapter to convert from DB model to UI model
+const toUiModel = (dbModel: any): TeamMember => ({
+  id: dbModel.id,
+  name: dbModel.name,
+  type: dbModel.member_type,
+  position: dbModel.position,
+  role: dbModel.member_type !== 'player' ? dbModel.position : undefined,
+  number: dbModel.jersey_number,
+  image: dbModel.image_url || '',
+  bio: dbModel.bio || '',
+  stats: dbModel.stats,
+  experience: dbModel.experience
+});
+
+// Adapter to convert from UI model to DB model
+const toDbModel = (uiModel: Omit<TeamMember, 'id'>) => ({
+  name: uiModel.name,
+  member_type: uiModel.type,
+  position: uiModel.type === 'player' ? uiModel.position : uiModel.role,
+  jersey_number: uiModel.number,
+  image_url: uiModel.image,
+  bio: uiModel.bio,
+  stats: uiModel.stats,
+  experience: uiModel.experience,
+  is_active: true
+});
+
+export const useTeamStore = create<TeamStore>((set, get) => ({
   teamMembers: [],
   loading: false,
-  error: null,
+  
   fetchTeamMembers: async () => {
-    set({ loading: true, error: null });
+    set({ loading: true });
     try {
-      const response = await getAllTeamMembers();
-      if (response.success) {
-        set({ teamMembers: response.data || [] });
+      const result = await fetchTeamMembers();
+      if (result.success && result.data) {
+        set({ teamMembers: result.data.map(toUiModel) });
       } else {
-        set({ error: new Error(response.message || 'Failed to fetch team members') });
+        toast.error('Failed to fetch team members');
       }
     } catch (error) {
-      set({ error: error instanceof Error ? error : new Error('Unknown error') });
+      console.error('Error fetching team members:', error);
+      toast.error('Failed to fetch team members');
     } finally {
       set({ loading: false });
     }
   },
-  getPlayersByPosition: (position: string) => {
+  
+  addTeamMember: async (member) => {
+    try {
+      const result = await createTeamMember(toDbModel(member));
+      if (result.success && result.data) {
+        set((state) => ({
+          teamMembers: [...state.teamMembers, toUiModel(result.data)]
+        }));
+        toast.success('Team member added successfully');
+      } else {
+        toast.error('Failed to add team member');
+      }
+    } catch (error) {
+      console.error('Error adding team member:', error);
+      toast.error('Failed to add team member');
+    }
+  },
+  
+  updateTeamMember: async (member) => {
+    try {
+      const result = await updateTeamMember(String(member.id), toDbModel(member));
+      if (result.success) {
+        set((state) => ({
+          teamMembers: state.teamMembers.map((m) => 
+            m.id === member.id ? member : m
+          )
+        }));
+        toast.success('Team member updated successfully');
+      } else {
+        toast.error('Failed to update team member');
+      }
+    } catch (error) {
+      console.error('Error updating team member:', error);
+      toast.error('Failed to update team member');
+    }
+  },
+  
+  deleteTeamMember: async (id) => {
+    try {
+      const result = await deleteTeamMember(String(id));
+      if (result.success) {
+        set((state) => ({
+          teamMembers: state.teamMembers.filter((m) => m.id !== id)
+        }));
+        toast.success('Team member deleted successfully');
+      } else {
+        toast.error('Failed to delete team member');
+      }
+    } catch (error) {
+      console.error('Error deleting team member:', error);
+      toast.error('Failed to delete team member');
+    }
+  },
+  
+  getPlayersByPosition: (position) => {
     const { teamMembers } = get();
-    if (position === 'All') {
+    if (position === "All") {
       return teamMembers.filter(member => member.type === 'player');
     }
     return teamMembers.filter(
       member => member.type === 'player' && member.position === position
     );
   },
-  getManagementStaff: () => {
+  
+  getManagementTeam: () => {
     const { teamMembers } = get();
     return teamMembers.filter(member => member.type === 'management');
   },
+  
   getClubOfficials: () => {
     const { teamMembers } = get();
     return teamMembers.filter(member => member.type === 'official');
-  },
-  addTeamMember: (member: TeamMember) => {
-    const { teamMembers } = get();
-    set({ teamMembers: [...teamMembers, member] });
-  },
-  updateTeamMember: (member: TeamMember) => {
-    const { teamMembers } = get();
-    set({
-      teamMembers: teamMembers.map(m => m.id === member.id ? member : m)
-    });
-  },
-  deleteTeamMember: (id: number) => {
-    const { teamMembers } = get();
-    set({
-      teamMembers: teamMembers.filter(m => m.id !== id)
-    });
   }
 }));
-
-// Export our local function to be used in other files when needed
-export { mapTeamMemberToDb as convertToDBTeamMember };
-
-// Re-export TeamMember type to be used in components that import from this file
-export type { TeamMember };

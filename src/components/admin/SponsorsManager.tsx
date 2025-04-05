@@ -9,14 +9,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { PlusCircle, Edit, Trash, ExternalLink } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useSponsorsStore, Sponsor } from '@/services/sponsorsService';
+import SponsorLogoUploader from './common/SponsorLogoUploader';
 
 const tierOptions = ['platinum', 'gold', 'silver', 'bronze'] as const;
 
 const SponsorsManager = () => {
   const { toast } = useToast();
-  const { sponsors, addSponsor, updateSponsor, deleteSponsor } = useSponsorsStore();
+  const { sponsors, addSponsor, updateSponsor, deleteSponsor, fetchSponsors } = useSponsorsStore();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentSponsor, setCurrentSponsor] = useState<Sponsor | null>(null);
+  
+  // Refresh sponsors data when component mounts
+  useState(() => {
+    fetchSponsors();
+  });
   
   const openNewDialog = () => {
     setCurrentSponsor({
@@ -72,6 +78,19 @@ const SponsorsManager = () => {
     closeDialog();
   };
   
+  const handleLogoUploaded = (imageUrl: string) => {
+    if (currentSponsor) {
+      setCurrentSponsor({
+        ...currentSponsor,
+        logoUrl: imageUrl
+      });
+      toast({
+        title: "Logo uploaded",
+        description: "The logo has been successfully uploaded."
+      });
+    }
+  };
+  
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -85,6 +104,7 @@ const SponsorsManager = () => {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-12">Logo</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Tier</TableHead>
             <TableHead>Website</TableHead>
@@ -94,6 +114,17 @@ const SponsorsManager = () => {
         <TableBody>
           {sponsors.map((sponsor) => (
             <TableRow key={sponsor.id}>
+              <TableCell>
+                {sponsor.logoUrl && (
+                  <div className="w-8 h-8 rounded overflow-hidden bg-white flex items-center justify-center">
+                    <img 
+                      src={sponsor.logoUrl} 
+                      alt={`${sponsor.name} logo`} 
+                      className="max-w-full max-h-full object-contain" 
+                    />
+                  </div>
+                )}
+              </TableCell>
               <TableCell className="font-medium">{sponsor.name}</TableCell>
               <TableCell className="capitalize">{sponsor.tier}</TableCell>
               <TableCell>
@@ -125,69 +156,89 @@ const SponsorsManager = () => {
       </Table>
       
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-[550px]">
+        <DialogContent className="sm:max-w-[650px]">
           <DialogHeader>
             <DialogTitle>{currentSponsor?.id && sponsors.some(item => item.id === currentSponsor.id) ? 'Edit Sponsor' : 'Add Sponsor'}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSave}>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="name" className="text-right text-sm font-medium">Name</label>
-                <Input
-                  id="name"
-                  value={currentSponsor?.name || ''}
-                  onChange={(e) => setCurrentSponsor(prev => prev ? {...prev, name: e.target.value} : null)}
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="logoUrl" className="text-right text-sm font-medium">Logo URL</label>
-                <Input
-                  id="logoUrl"
-                  value={currentSponsor?.logoUrl || ''}
-                  onChange={(e) => setCurrentSponsor(prev => prev ? {...prev, logoUrl: e.target.value} : null)}
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="website" className="text-right text-sm font-medium">Website</label>
-                <Input
-                  id="website"
-                  value={currentSponsor?.website || ''}
-                  onChange={(e) => setCurrentSponsor(prev => prev ? {...prev, website: e.target.value} : null)}
-                  className="col-span-3"
-                  placeholder="https://example.com"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="tier" className="text-right text-sm font-medium">Tier</label>
-                <Select 
-                  value={currentSponsor?.tier}
-                  onValueChange={(value: 'platinum' | 'gold' | 'silver' | 'bronze') => 
-                    setCurrentSponsor(prev => prev ? {...prev, tier: value} : null)
-                  }
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select tier" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {tierOptions.map(tier => (
-                      <SelectItem key={tier} value={tier} className="capitalize">{tier}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-start gap-4">
-                <label htmlFor="description" className="text-right text-sm font-medium">Description</label>
-                <Textarea
-                  id="description"
-                  value={currentSponsor?.description || ''}
-                  onChange={(e) => setCurrentSponsor(prev => prev ? {...prev, description: e.target.value} : null)}
-                  className="col-span-3"
-                  rows={3}
-                />
+            <div className="grid gap-6 py-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="grid grid-cols-4 items-center gap-2">
+                    <label htmlFor="name" className="text-right text-sm font-medium">Name</label>
+                    <Input
+                      id="name"
+                      value={currentSponsor?.name || ''}
+                      onChange={(e) => setCurrentSponsor(prev => prev ? {...prev, name: e.target.value} : null)}
+                      className="col-span-3"
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-2">
+                    <label htmlFor="website" className="text-right text-sm font-medium">Website</label>
+                    <Input
+                      id="website"
+                      value={currentSponsor?.website || ''}
+                      onChange={(e) => setCurrentSponsor(prev => prev ? {...prev, website: e.target.value} : null)}
+                      className="col-span-3"
+                      placeholder="https://example.com"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-2">
+                    <label htmlFor="tier" className="text-right text-sm font-medium">Tier</label>
+                    <Select 
+                      value={currentSponsor?.tier}
+                      onValueChange={(value: 'platinum' | 'gold' | 'silver' | 'bronze') => 
+                        setCurrentSponsor(prev => prev ? {...prev, tier: value} : null)
+                      }
+                    >
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Select tier" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {tierOptions.map(tier => (
+                          <SelectItem key={tier} value={tier} className="capitalize">{tier}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-2">
+                    <label htmlFor="logoUrl" className="text-right text-sm font-medium">Logo URL</label>
+                    <Input
+                      id="logoUrl"
+                      value={currentSponsor?.logoUrl || ''}
+                      onChange={(e) => setCurrentSponsor(prev => prev ? {...prev, logoUrl: e.target.value} : null)}
+                      className="col-span-3"
+                      placeholder="https://example.com/logo.png"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-start gap-2">
+                    <label htmlFor="description" className="text-right text-sm font-medium">Description</label>
+                    <Textarea
+                      id="description"
+                      value={currentSponsor?.description || ''}
+                      onChange={(e) => setCurrentSponsor(prev => prev ? {...prev, description: e.target.value} : null)}
+                      className="col-span-3"
+                      rows={3}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Upload Logo</label>
+                  <SponsorLogoUploader onUploadComplete={handleLogoUploaded} />
+                  {currentSponsor?.logoUrl && (
+                    <div className="mt-4">
+                      <p className="text-sm font-medium mb-2">Current Logo</p>
+                      <div className="h-32 w-full bg-white rounded border flex items-center justify-center p-2">
+                        <img 
+                          src={currentSponsor.logoUrl} 
+                          alt="Current logo" 
+                          className="max-h-full max-w-full object-contain" 
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             <DialogFooter>

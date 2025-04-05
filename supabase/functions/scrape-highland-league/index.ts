@@ -1,219 +1,198 @@
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.38/deno-dom-wasm.ts";
+// Follow this setup guide to integrate the Deno language server with your editor:
+// https://deno.land/manual/getting_started/setup_your_environment
+// This enables autocomplete, go to definition, etc.
 
-// Define the CORS headers
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.1'
+import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
+import * as cheerio from 'https://esm.sh/cheerio@1.0.0-rc.12'
+
+// CORS headers for browser requests
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+}
 
-// Structure for a scraped fixture
-interface ScrapedFixture {
-  id?: string;
-  date: string;
-  time: string;
-  homeTeam: string;
-  awayTeam: string;
-  competition: string;
-  venue?: string;
-  isCompleted?: boolean;
-  homeScore?: number;
-  awayScore?: number;
+interface LeagueTableEntry {
+  position: number
+  team: string
+  played: number
+  won: number
+  drawn: number
+  lost: number
+  goalsFor: number
+  goalsAgainst: number
+  goalDifference: number
+  points: number
+  form: string[]
+  logo?: string
 }
 
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders })
   }
 
-  try {
-    // Get request parameters
-    const { action = 'fixtures' } = await req.json();
-    const fixtures: ScrapedFixture[] = [];
-    
-    console.log(`Scraping Highland League ${action}`);
-    
-    // Scrape from Highland Football League website
-    if (action === 'fixtures') {
-      const url = 'https://www.highlandfootballleague.com/fixtures-results/';
-      const response = await fetch(url);
-      const html = await response.text();
-      fixtures.push(...await scrapeFixtures(html));
-    } else if (action === 'results') {
-      const url = 'https://www.highlandfootballleague.com/fixtures-results/results/';
-      const response = await fetch(url);
-      const html = await response.text();
-      fixtures.push(...await scrapeResults(html));
-    } else {
-      throw new Error(`Unknown action: ${action}`);
-    }
+  // Get authorization header
+  const authHeader = req.headers.get('Authorization')
+  if (!authHeader) {
+    return new Response(JSON.stringify({ error: 'No authorization header' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  }
 
-    return new Response(
-      JSON.stringify({ success: true, fixtures, count: fixtures.length }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  } catch (error) {
-    console.error('Error scraping fixtures:', error);
+  // Create a Supabase client with the auth header
+  const supabaseClient = createClient(
+    // Supabase API URL - env var exported by default.
+    Deno.env.get('SUPABASE_URL') ?? '',
+    // Supabase API ANON KEY - env var exported by default.
+    Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+    // Create client with Auth header of the user that called the function.
+    // This way your row-level-security (RLS) policies are applied.
+    { global: { headers: { Authorization: authHeader } } }
+  )
+
+  // Create log entry for this scrape operation
+  const { data: logData, error: logError } = await supabaseClient
+    .from('scrape_logs')
+    .insert({
+      source: 'highland_league',
+      status: 'started'
+    })
+    .select()
+    .single()
+
+  if (logError) {
+    console.error('Error creating log entry:', logError)
+    return new Response(JSON.stringify({ error: 'Failed to create log entry' }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  }
+
+  const logId = logData.id
+
+  try {
+    const url = 'https://highlandfootballleague.com/league-table/'
+    const response = await fetch(url)
     
-    return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message || 'An error occurred while scraping fixtures',
-        fixtures: []
-      }),
-      { 
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    if (!response.ok) {
+      throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`)
+    }
+    
+    const htmlContent = await response.text()
+    const $ = cheerio.load(htmlContent)
+    const tableRows = $('table.sp-league-table tbody tr')
+    
+    const leagueTable: LeagueTableEntry[] = []
+    
+    tableRows.each((index, element) => {
+      const cells = $(element).find('td')
+      
+      // Extract form icons and convert to form array
+      const formCell = $(cells[10])
+      const formIcons = formCell.find('i')
+      const form: string[] = []
+      
+      formIcons.each((_, icon) => {
+        const classes = $(icon).attr('class') || ''
+        if (classes.includes('fa-check')) form.push('W')
+        else if (classes.includes('fa-minus')) form.push('D')
+        else if (classes.includes('fa-times')) form.push('L')
+      })
+      
+      // Extract logo URL if available (typically found in the first column)
+      let logoUrl = ''
+      const logoImg = $(cells[1]).find('img')
+      if (logoImg.length > 0) {
+        logoUrl = logoImg.attr('src') || ''
       }
-    );
-  }
-});
-
-// Function to scrape fixtures from HTML
-async function scrapeFixtures(html: string): Promise<ScrapedFixture[]> {
-  try {
-    const fixtures: ScrapedFixture[] = [];
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    if (!doc) return fixtures;
-
-    // Find fixture tables
-    const fixtureTables = doc.querySelectorAll('.avia-data-table');
-    
-    for (const table of fixtureTables) {
-      // Get competition from table header
-      const caption = table.querySelector('caption')?.textContent.trim();
-      const competition = caption || 'Highland League';
       
-      // Process each row
-      const rows = table.querySelectorAll('tbody tr');
-      
-      for (const row of rows) {
-        const cells = row.querySelectorAll('td');
-        if (cells.length < 3) continue;
-        
-        // Extract data from cells
-        const dateParts = cells[0].textContent.trim().split(' ');
-        const date = dateParts.slice(0, 3).join(' '); // Date format: "Saturday 6th April"
-        const time = dateParts.length > 3 ? dateParts[3] : '15:00';
-        
-        const teams = cells[1].textContent.trim().split(' v ');
-        if (teams.length !== 2) continue;
-        
-        const homeTeam = teams[0].trim();
-        const awayTeam = teams[1].trim();
-        const venue = cells[2]?.textContent.trim() || '';
-        
-        fixtures.push({
-          date: formatDate(date),
-          time,
-          homeTeam,
-          awayTeam,
-          competition,
-          venue,
-          isCompleted: false
-        });
+      // Create the table entry
+      const tableEntry: LeagueTableEntry = {
+        position: parseInt($(cells[0]).text().trim(), 10),
+        team: $(cells[1]).text().trim(),
+        played: parseInt($(cells[2]).text().trim(), 10),
+        won: parseInt($(cells[3]).text().trim(), 10),
+        drawn: parseInt($(cells[4]).text().trim(), 10),
+        lost: parseInt($(cells[5]).text().trim(), 10),
+        goalsFor: parseInt($(cells[6]).text().trim(), 10),
+        goalsAgainst: parseInt($(cells[7]).text().trim(), 10),
+        goalDifference: parseInt($(cells[8]).text().trim(), 10),
+        points: parseInt($(cells[9]).text().trim(), 10),
+        form,
+        logo: logoUrl || ''
       }
-    }
-    
-    return fixtures;
-  } catch (error) {
-    console.error('Error parsing fixtures:', error);
-    return [];
-  }
-}
-
-// Function to scrape results from HTML
-async function scrapeResults(html: string): Promise<ScrapedFixture[]> {
-  try {
-    const results: ScrapedFixture[] = [];
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    if (!doc) return results;
-
-    // Find result tables
-    const resultTables = doc.querySelectorAll('.avia-data-table');
-    
-    for (const table of resultTables) {
-      // Get competition from table header
-      const caption = table.querySelector('caption')?.textContent.trim();
-      const competition = caption || 'Highland League';
       
-      // Process each row
-      const rows = table.querySelectorAll('tbody tr');
-      
-      for (const row of rows) {
-        const cells = row.querySelectorAll('td');
-        if (cells.length < 3) continue;
-        
-        // Extract data from cells
-        const dateText = cells[0].textContent.trim();
-        const date = formatDate(dateText);
-        
-        const matchDetails = cells[1].textContent.trim();
-        const scoreMatch = matchDetails.match(/(.+?)\s+(\d+)\s*[-:]\s*(\d+)\s+(.+)/);
-        
-        if (!scoreMatch) continue;
-        
-        const [, homeTeam, homeScoreStr, awayScoreStr, awayTeam] = scoreMatch;
-        const homeScore = parseInt(homeScoreStr, 10);
-        const awayScore = parseInt(awayScoreStr, 10);
-        
-        results.push({
-          date,
-          time: '15:00', // Default time as it's often not provided for results
-          homeTeam: homeTeam.trim(),
-          awayTeam: awayTeam.trim(),
-          competition,
-          isCompleted: true,
-          homeScore,
-          awayScore
-        });
-      }
+      leagueTable.push(tableEntry)
+    })
+    
+    // Clear existing data and insert new data
+    const { error: deleteError } = await supabaseClient
+      .from('highland_league_table')
+      .delete()
+      .not('id', 'is', null) // Delete all rows
+    
+    if (deleteError) {
+      throw new Error(`Error clearing table data: ${deleteError.message}`)
     }
     
-    return results;
+    // Insert new data
+    const { data: insertedData, error: insertError } = await supabaseClient
+      .from('highland_league_table')
+      .insert(leagueTable)
+      .select()
+    
+    if (insertError) {
+      throw new Error(`Error inserting data: ${insertError.message}`)
+    }
+    
+    // Update log entry with success
+    await supabaseClient
+      .from('scrape_logs')
+      .update({
+        status: 'completed',
+        items_found: leagueTable.length,
+        items_added: insertedData.length
+      })
+      .eq('id', logId)
+    
+    // Return the scraped data
+    return new Response(JSON.stringify({
+      success: true,
+      data: leagueTable,
+      count: leagueTable.length,
+      message: `Successfully scraped and updated Highland League table with ${leagueTable.length} entries`
+    }), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
   } catch (error) {
-    console.error('Error parsing results:', error);
-    return [];
+    console.error('Scraping error:', error)
+    
+    // Update log entry with error
+    await supabaseClient
+      .from('scrape_logs')
+      .update({
+        status: 'failed',
+        error_message: error instanceof Error ? error.message : String(error)
+      })
+      .eq('id', logId)
+    
+    // Return error response
+    return new Response(JSON.stringify({
+      success: false,
+      error: error instanceof Error ? error.message : String(error)
+    }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
   }
-}
+})
 
-// Helper function to format date strings
-function formatDate(dateStr: string): string {
-  try {
-    // Convert text date like "Saturday 6th April 2023" to ISO format
-    const months = {
-      'January': 0, 'February': 1, 'March': 2, 'April': 3, 'May': 4, 'June': 5,
-      'July': 6, 'August': 7, 'September': 8, 'October': 9, 'November': 10, 'December': 11
-    };
-    
-    // Extract parts from the date string
-    const parts = dateStr.replace(/(\d+)(st|nd|rd|th)/, '$1').split(' ');
-    if (parts.length < 2) return new Date().toISOString().split('T')[0];
-    
-    // Handle different date formats
-    let day, month, year;
-    
-    // Check if the format includes a day name (e.g., "Saturday 6th April")
-    if (parts.length >= 3 && isNaN(parseInt(parts[0]))) {
-      day = parseInt(parts[1], 10);
-      month = months[parts[2]] || 0;
-    } else {
-      day = parseInt(parts[0], 10);
-      month = months[parts[1]] || 0;
-    }
-    
-    // Use current year if not specified
-    year = parts.find(p => p.length === 4 && !isNaN(parseInt(p)))
-      ? parseInt(parts.find(p => p.length === 4 && !isNaN(parseInt(p))), 10)
-      : new Date().getFullYear();
-    
-    // Create and format the date
-    const date = new Date(year, month, day);
-    return date.toISOString().split('T')[0];
-  } catch (error) {
-    console.error('Error formatting date:', error, dateStr);
-    return new Date().toISOString().split('T')[0];
-  }
-}
+// To invoke:
+// curl -i --location --request POST 'http://localhost:54321/functions/v1/scrape-highland-league' \
+//   --header 'Authorization: Bearer <supabase-jwt-token>' \
+//   --header 'Content-Type: application/json'

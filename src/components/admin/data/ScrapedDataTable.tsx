@@ -68,7 +68,7 @@ const ScrapedDataTable: React.FC = () => {
   const handleRefreshData = async () => {
     setIsLoading(true);
     try {
-      toast.info('Refreshing league table data...');
+      toast.info('Refreshing league table data...', { duration: 5000 });
       const data = await triggerLeagueDataScrape();
       setLeagueTable(data || []);
       
@@ -112,6 +112,8 @@ const ScrapedDataTable: React.FC = () => {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       }, 0);
+      
+      toast.success('Data exported successfully');
     } catch (error) {
       console.error('Failed to export data:', error);
       toast.error('Failed to export data');
@@ -135,10 +137,10 @@ const ScrapedDataTable: React.FC = () => {
   }
 
   return (
-    <Card className="mt-6">
-      <CardHeader className="flex flex-row items-center justify-between">
+    <Card className="mt-6 border-team-blue/10 shadow-md">
+      <CardHeader className="flex flex-row items-center justify-between bg-gray-50 rounded-t-lg border-b">
         <div>
-          <CardTitle>Highland League Table Data</CardTitle>
+          <CardTitle className="text-team-blue">Highland League Table Data</CardTitle>
           <div className="text-sm text-muted-foreground mt-1">
             Displaying {leagueTable.length} teams from Supabase
           </div>
@@ -149,7 +151,7 @@ const ScrapedDataTable: React.FC = () => {
           onRefresh={handleRefreshData}
         />
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-6">
         <LastUpdatedInfo lastUpdated={lastUpdated} />
         
         {hasInvalidData && <DataWarningAlert />}

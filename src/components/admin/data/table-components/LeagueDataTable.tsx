@@ -13,21 +13,21 @@ interface LeagueDataTableProps {
  */
 export const LeagueDataTable: React.FC<LeagueDataTableProps> = ({ leagueTable }) => {
   return (
-    <div className="border rounded-md overflow-auto max-h-96">
+    <div className="border rounded-md overflow-auto max-h-96 shadow-sm">
       <Table>
-        <TableHeader>
+        <TableHeader className="bg-gray-50 sticky top-0 z-10">
           <TableRow>
-            <TableHead className="w-12">Pos</TableHead>
-            <TableHead>Team</TableHead>
-            <TableHead className="w-12">P</TableHead>
-            <TableHead className="w-12">W</TableHead>
-            <TableHead className="w-12">D</TableHead>
-            <TableHead className="w-12">L</TableHead>
-            <TableHead className="w-12">GF</TableHead>
-            <TableHead className="w-12">GA</TableHead>
-            <TableHead className="w-12">GD</TableHead>
-            <TableHead className="w-12">Pts</TableHead>
-            <TableHead className="w-24">Form</TableHead>
+            <TableHead className="w-12 font-semibold">Pos</TableHead>
+            <TableHead className="font-semibold">Team</TableHead>
+            <TableHead className="w-12 font-semibold">P</TableHead>
+            <TableHead className="w-12 font-semibold">W</TableHead>
+            <TableHead className="w-12 font-semibold">D</TableHead>
+            <TableHead className="w-12 font-semibold">L</TableHead>
+            <TableHead className="w-12 font-semibold">GF</TableHead>
+            <TableHead className="w-12 font-semibold">GA</TableHead>
+            <TableHead className="w-12 font-semibold">GD</TableHead>
+            <TableHead className="w-12 font-semibold">Pts</TableHead>
+            <TableHead className="w-24 font-semibold">Form</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -36,7 +36,9 @@ export const LeagueDataTable: React.FC<LeagueDataTableProps> = ({ leagueTable })
           ))}
           {leagueTable.length === 0 && (
             <TableRow>
-              <TableCell colSpan={11} className="text-center py-4">No data found. Try refreshing.</TableCell>
+              <TableCell colSpan={11} className="text-center py-6 text-gray-500">
+                No data found. Try refreshing.
+              </TableCell>
             </TableRow>
           )}
         </TableBody>

@@ -1,28 +1,36 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Download, RefreshCw } from "lucide-react";
+import { RefreshCw, Download } from "lucide-react";
 
 interface DataActionsProps {
-  onExport: () => void;
   onRefresh: () => void;
+  onExport: () => void;
 }
 
 /**
- * Component displaying action buttons for the data table
+ * Component with action buttons for data operations
  */
-export const DataActions: React.FC<DataActionsProps> = ({ onExport, onRefresh }) => {
+export const DataActions: React.FC<DataActionsProps> = ({ onRefresh, onExport }) => {
   return (
-    <div className="flex items-center space-x-2">
-      <Badge variant="default">Supabase Data</Badge>
-      <Button size="sm" variant="outline" onClick={onExport}>
-        <Download className="h-4 w-4 mr-2" />
+    <div className="flex space-x-2">
+      <Button 
+        onClick={onExport} 
+        variant="outline" 
+        size="sm"
+        className="flex items-center"
+      >
+        <Download className="h-4 w-4 mr-1.5" />
         Export
       </Button>
-      <Button size="sm" onClick={onRefresh}>
-        <RefreshCw className="h-4 w-4 mr-2" />
-        Refresh
+      <Button
+        onClick={onRefresh}
+        variant="default"
+        size="sm"
+        className="bg-team-blue hover:bg-team-navy flex items-center"
+      >
+        <RefreshCw className="h-4 w-4 mr-1.5" />
+        Refresh Data
       </Button>
     </div>
   );

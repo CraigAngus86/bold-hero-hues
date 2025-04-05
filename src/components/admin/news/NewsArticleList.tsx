@@ -242,7 +242,9 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
               <SelectContent>
                 <SelectItem value="">All Categories</SelectItem>
                 {categories && categories.map((category, index) => (
-                  <SelectItem key={index} value={category}>{category}</SelectItem>
+                  <SelectItem key={index} value={category || "_empty"}>
+                    {category || "Uncategorized"}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -284,3 +286,4 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
     </Card>
   );
 };
+

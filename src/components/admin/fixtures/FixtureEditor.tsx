@@ -124,6 +124,9 @@ const FixtureEditor: React.FC<FixtureEditorProps> = ({ fixtureId, onSave, onCanc
         if (error) throw error;
         
         if (data) {
+          // Check if match_report exists in the data
+          const match_report = 'match_report' in data ? data.match_report : '';
+          
           form.reset({
             date: data.date,
             time: data.time || '15:00',
@@ -136,7 +139,7 @@ const FixtureEditor: React.FC<FixtureEditorProps> = ({ fixtureId, onSave, onCanc
             away_score: data.away_score,
             ticket_link: data.ticket_link || '',
             season: data.season || '2024-2025',
-            match_report: data.match_report || '',
+            match_report: match_report || '',
           });
         }
       } catch (error) {
@@ -182,7 +185,7 @@ const FixtureEditor: React.FC<FixtureEditorProps> = ({ fixtureId, onSave, onCanc
         // Create new fixture
         const { error } = await supabase
           .from('fixtures')
-          .insert([{
+          .insert({
             date: values.date,
             time: values.time,
             home_team: values.home_team,
@@ -195,7 +198,7 @@ const FixtureEditor: React.FC<FixtureEditorProps> = ({ fixtureId, onSave, onCanc
             ticket_link: values.ticket_link,
             season: values.season,
             match_report: values.match_report,
-          }]);
+          });
         
         if (error) throw error;
         

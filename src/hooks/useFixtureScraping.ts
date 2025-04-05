@@ -17,6 +17,56 @@ export const useFixtureScraping = () => {
   const [results, setResults] = useState<ScrapedFixture[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0); // Add progress state
+
+  // Generic scrape function that both handleFetchFromBBC and handleFetchFromHFL will use
+  const scrapeFixtures = async (source: string, customParam?: string) => {
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+    setResults([]);
+    setProgress(0);
+    
+    try {
+      // Set up progress tracking
+      const progressInterval = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 90) return prev;
+          return prev + 10;
+        });
+      }, 500);
+      
+      // Call supabase function with appropriate action
+      const { data, error } = await supabase.functions.invoke('scrape-fixtures', {
+        body: { 
+          action: source,
+          params: customParam ? { url: customParam } : undefined
+        }
+      });
+      
+      clearInterval(progressInterval);
+      setProgress(100);
+      
+      if (error) throw new Error(error.message);
+      
+      if (data?.success) {
+        setSuccess(`Successfully fetched ${data.fixtures.length} fixtures from ${source}`);
+        setResults(data.fixtures);
+        toast.success(`Found ${data.fixtures.length} fixtures`);
+        return data.fixtures;
+      } else {
+        throw new Error(data?.message || `No fixtures found from ${source}`);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : `Failed to fetch fixtures from ${source}`;
+      setError(errorMessage);
+      toast.error(`Failed to fetch fixtures from ${source}`);
+      console.error(`Error fetching from ${source}:`, err);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Test fetch for debugging
   const handleTestFetch = async () => {
@@ -53,80 +103,12 @@ export const useFixtureScraping = () => {
 
   // Fetch from BBC Sport
   const handleFetchFromBBC = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      setSuccess(null);
-      
-      // Call scrapeAndStoreFixtures with 'bbc' source
-      const response = await scrapeAndStoreFixtures('bbc', []);
-      
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to scrape fixtures from BBC Sport');
-      }
-      
-      // Call supabase function as fallback if needed
-      const { data, error } = await supabase.functions.invoke('scrape-fixtures', {
-        body: { action: 'bbc' }
-      });
-      
-      if (error) {
-        throw new Error(`Edge function error: ${error.message}`);
-      }
-      
-      if (data?.success && data.fixtures && Array.isArray(data.fixtures)) {
-        setResults(data.fixtures);
-        setSuccess(`Successfully scraped ${data.fixtures.length} fixtures from BBC Sport`);
-        toast.success(`Scraped ${data.fixtures.length} fixtures from BBC Sport`);
-      } else {
-        throw new Error(data?.message || 'No fixtures returned from BBC Sport');
-      }
-    } catch (error) {
-      console.error('Error fetching from BBC:', error);
-      setError(`BBC Sport fetch failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      toast.error('Failed to fetch fixtures from BBC Sport');
-    } finally {
-      setIsLoading(false);
-    }
+    return scrapeFixtures('bbc');
   };
 
   // Fetch from Highland League
   const handleFetchFromHFL = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      setSuccess(null);
-      
-      // Call scrapeAndStoreFixtures with 'highland-league' source
-      const response = await scrapeAndStoreFixtures('highland-league', []);
-      
-      if (!response.success) {
-        throw new Error(response.message || 'Highland League scraper not implemented yet');
-      }
-      
-      // Call supabase function as fallback if needed
-      const { data, error } = await supabase.functions.invoke('scrape-fixtures', {
-        body: { action: 'hfl' }
-      });
-      
-      if (error) {
-        throw new Error(`Edge function error: ${error.message}`);
-      }
-      
-      if (data?.success && data.fixtures && Array.isArray(data.fixtures)) {
-        setResults(data.fixtures);
-        setSuccess(`Successfully scraped ${data.fixtures.length} fixtures from Highland League`);
-        toast.success(`Scraped ${data.fixtures.length} fixtures from Highland League`);
-      } else {
-        throw new Error(data?.message || 'No fixtures returned from Highland League');
-      }
-    } catch (error) {
-      console.error('Error fetching from Highland League:', error);
-      setError(`Highland League fetch failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      toast.error('Failed to fetch fixtures from Highland League');
-    } finally {
-      setIsLoading(false);
-    }
+    return scrapeFixtures('hfl');
   };
 
   // Export fixtures as JSON
@@ -166,6 +148,8 @@ export const useFixtureScraping = () => {
     results,
     error,
     success,
+    progress,
+    scrapeFixtures,
     handleTestFetch,
     handleFetchFromBBC,
     handleFetchFromHFL,

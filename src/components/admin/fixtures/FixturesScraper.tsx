@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -64,7 +65,7 @@ const FixturesScraper: React.FC = () => {
         <CardTitle>Scrape Fixtures</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Alert variant="outline">
+        <Alert variant="default">
           <AlertTitle>Select a Source</AlertTitle>
           <AlertDescription>
             Choose a source to scrape fixtures from.
@@ -133,7 +134,7 @@ const FixturesScraper: React.FC = () => {
           )}
           
           {scrapedMatches.length > 0 && (
-            <Alert variant="success">
+            <Alert variant="default">
               <Check className="h-4 w-4" />
               <AlertTitle>Scraped Matches</AlertTitle>
               <AlertDescription>

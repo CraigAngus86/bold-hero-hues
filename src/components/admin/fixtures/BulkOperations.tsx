@@ -210,7 +210,7 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({ onRefreshData }) => {
         </TabsList>
         
         <TabsContent value="import" className="space-y-4">
-          <Alert variant="outline">
+          <Alert variant="default">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Import CSV</AlertTitle>
             <AlertDescription>
@@ -251,7 +251,7 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({ onRefreshData }) => {
         </TabsContent>
         
         <TabsContent value="export" className="space-y-4">
-          <Alert variant="outline">
+          <Alert variant="default">
             <AlertTitle>Export Fixtures</AlertTitle>
             <AlertDescription>
               Download all fixtures as a CSV file for backup or editing.

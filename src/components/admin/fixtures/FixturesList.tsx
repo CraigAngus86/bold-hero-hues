@@ -7,25 +7,26 @@ import {
   TableHead, 
   TableHeader, 
   TableRow 
-} from '@/components/ui/table';
+} from '@/components/ui/Table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Edit, Trash, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
-import { format } from 'date-fns';
 import { formatDate } from '@/components/fixtures/types';
 
 interface FixturesListProps {
   fixtures: any[];
   onEdit?: (fixture: any) => void;
   onDelete?: (fixtureId: string) => void;
+  onExport?: () => void;
 }
 
 export const FixturesList: React.FC<FixturesListProps> = ({ 
   fixtures, 
   onEdit, 
-  onDelete 
+  onDelete,
+  onExport 
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);

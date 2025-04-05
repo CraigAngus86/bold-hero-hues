@@ -6,3 +6,5 @@ export { default as ScraperActionButtons } from './ScraperActionButtons';
 export { default as ScraperDocumentation } from './ScraperDocumentation';
 export { default as ScraperStatusAlerts } from './ScraperStatusAlerts';
 export { default as FixturesManager } from './FixturesManager';
+export { default as CalendarView } from './CalendarView';
+export { DateRange } from './DateRange';

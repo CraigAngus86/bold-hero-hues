@@ -14,6 +14,7 @@ import LeagueTable from "./pages/LeagueTable";
 import Stadium from "./pages/Stadium";
 import Tickets from "./pages/Tickets";
 import Admin from "./pages/Admin";
+import FixturesAdmin from "./pages/admin/Fixtures";
 import NotFound from "./pages/NotFound";
 
 // Scroll to top component that triggers on route change
@@ -55,6 +56,7 @@ const App = () => {
               <Route path="/stadium" element={<Stadium />} />
               <Route path="/tickets" element={<Tickets />} />
               <Route path="/admin" element={<Admin />} />
+              <Route path="/admin/fixtures" element={<FixturesAdmin />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

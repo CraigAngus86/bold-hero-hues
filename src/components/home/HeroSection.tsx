@@ -67,7 +67,12 @@ const HeroSection: React.FC = () => {
       '/lovable-uploads/4651b18c-bc2e-4e02-96ab-8993f8dfc145.png',
       '/lovable-uploads/7f997ef4-9019-4660-9e9e-4e230d7b1eb3.png',
       '/lovable-uploads/ba4e2b09-12ed-48ad-a4ba-1162ab87ad70.png',
-      '/lovable-uploads/banks-o-dee-dark-logo.png',
+      '/lovable-uploads/02654c64-77bc-4a05-ae93-7c8173d0dc3c.png',
+      '/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png',
+      '/lovable-uploads/587f8bd1-4140-4179-89f8-dc2ac1b2e072.png',
+      '/lovable-uploads/940ac3a1-b89d-40c9-957e-217a64371120.png',
+      '/lovable-uploads/9cecca5c-daf2-4f52-a6ca-06e02ca9ea44.png',
+      '/lovable-uploads/b937e144-e94f-4e75-881f-1e560c6b520a.png',
       '/lovable-uploads/cb95b9fb-0f2d-42ef-9788-10509a80ed6e.png'
     ];
     return heroImages[index % heroImages.length];
@@ -163,13 +168,13 @@ const HeroSection: React.FC = () => {
         {articles.map((_, index) => (
           <button
             key={index}
+            onClick={() => selectSlide(index)}
             className={cn(
               "w-2 h-2 rounded-full transition-all",
               currentSlide === index 
                 ? "bg-white w-6" 
-                : "bg-white/50 hover:bg-white/80"
+                : "bg-white/40 scale-75 hover:bg-white/60"
             )}
-            onClick={() => selectSlide(index)}
             aria-label={`Go to slide ${index + 1}`}
           />
         ))}

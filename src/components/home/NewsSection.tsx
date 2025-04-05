@@ -6,7 +6,6 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Typography } from '@/components/ui';
 import { getArticles } from '@/services/news/db/listing';
-import { NewsArticle } from '@/types';
 import { formatDate } from '@/services/news/utils';
 import NewsCard from '@/components/news/NewsCard';
 import NewsSectionSkeleton from './NewsSectionSkeleton';
@@ -75,7 +74,12 @@ const NewsSection: React.FC<NewsSectionProps> = ({
       '/lovable-uploads/73ac703f-7365-4abb-811e-159280ad234b.png',
       '/lovable-uploads/940ac3a1-b89d-40c9-957e-217a64371120.png',
       '/lovable-uploads/9cecca5c-daf2-4f52-a6ca-06e02ca9ea44.png',
-      '/lovable-uploads/b937e144-e94f-4e75-881f-1e560c6b520a.png'
+      '/lovable-uploads/b937e144-e94f-4e75-881f-1e560c6b520a.png',
+      '/lovable-uploads/0c8edeaf-c67c-403f-90f0-61b390e5e89a.png',
+      '/lovable-uploads/4651b18c-bc2e-4e02-96ab-8993f8dfc145.png',
+      '/lovable-uploads/7f997ef4-9019-4660-9e9e-4e230d7b1eb3.png',
+      '/lovable-uploads/ba4e2b09-12ed-48ad-a4ba-1162ab87ad70.png',
+      '/lovable-uploads/cb95b9fb-0f2d-42ef-9788-10509a80ed6e.png'
     ];
     return localImages[index % localImages.length];
   };

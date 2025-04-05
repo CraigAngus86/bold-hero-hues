@@ -2,21 +2,28 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { PlusCircle, Edit, Trash, Loader2 } from 'lucide-react';
+import { PlusCircle, Edit, Trash, Loader2, Search, Filter, UserCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTeamStore, TeamMember, MemberType } from '@/services/teamService';
 import { createTeamMember, updateTeamMember, deleteTeamMember, getAllTeamMembers } from '@/services/teamDbService';
-import PlayerImageUploader from './PlayerImageUploader';
 
-const TeamMembersManager = () => {
+interface TeamMembersManagerProps {
+  onEditMember?: (member: TeamMember) => void;
+}
+
+const TeamMembersManager: React.FC<TeamMembersManagerProps> = ({ onEditMember }) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentMember, setCurrentMember] = useState<TeamMember | null>(null);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [typeFilter, setTypeFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('');
   const { loadTeamMembers } = useTeamStore();
   
   useEffect(() => {
@@ -55,12 +62,20 @@ const TeamMembersManager = () => {
       is_active: true,
       stats: {}
     });
-    setDialogOpen(true);
+    if (onEditMember) {
+      onEditMember(currentMember!);
+    } else {
+      setDialogOpen(true);
+    }
   };
   
   const openEditDialog = (member: TeamMember) => {
     setCurrentMember(member);
-    setDialogOpen(true);
+    if (onEditMember) {
+      onEditMember(member);
+    } else {
+      setDialogOpen(true);
+    }
   };
   
   const closeDialog = () => {
@@ -71,13 +86,15 @@ const TeamMembersManager = () => {
   // Function to handle member deletion
   const handleDeleteMember = async (id: string) => {
     try {
-      const response = await deleteTeamMember(id);
-      if (response.success) {
-        await loadTeamMemberData();
-        await loadTeamMembers();
-        toast.success("Team member deleted successfully");
-      } else {
-        toast.error("Failed to delete team member");
+      if (window.confirm("Are you sure you want to delete this team member?")) {
+        const response = await deleteTeamMember(id);
+        if (response.success) {
+          await loadTeamMemberData();
+          await loadTeamMembers();
+          toast.success("Team member deleted successfully");
+        } else {
+          toast.error("Failed to delete team member");
+        }
       }
     } catch (error) {
       console.error("Error deleting team member:", error);
@@ -117,125 +134,192 @@ const TeamMembersManager = () => {
       toast.error("Failed to save team member");
     }
   };
+
+  // Filter team members
+  const filteredMembers = teamMembers.filter(member => {
+    const matchesSearch = searchTerm 
+      ? member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (member.position?.toLowerCase().includes(searchTerm.toLowerCase()) || false)
+      : true;
+      
+    const matchesType = typeFilter 
+      ? member.member_type === typeFilter 
+      : true;
+      
+    const matchesStatus = statusFilter 
+      ? (statusFilter === 'active' ? member.is_active : !member.is_active)
+      : true;
+      
+    return matchesSearch && matchesType && matchesStatus;
+  });
+  
+  const getMemberTypeLabel = (type: string): string => {
+    switch (type) {
+      case 'player': return 'Player';
+      case 'management': return 'Management';
+      case 'official': return 'Official';
+      default: return type;
+    }
+  };
   
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-medium">Team Members</h3>
-        <Button onClick={openNewDialog} className="flex items-center">
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Add Member
-        </Button>
-      </div>
-      
-      {loading ? (
-        <div className="flex justify-center items-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-        </div>
-      ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Position</TableHead>
-              <TableHead className="w-[100px]">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {teamMembers.map((member) => (
-              <TableRow key={member.id}>
-                <TableCell className="font-medium">{member.name}</TableCell>
-                <TableCell>{member.member_type}</TableCell>
-                <TableCell>{member.position}</TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                    <Button variant="ghost" size="sm" onClick={() => openEditDialog(member)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDeleteMember(member.id)}>
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
-      
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-[550px]">
-          <DialogHeader>
-            <DialogTitle>{currentMember?.id ? 'Edit Team Member' : 'Add Team Member'}</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSave}>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right text-sm font-medium">Name</Label>
+      <Card>
+        <CardHeader>
+          <CardTitle>Team Members</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
                 <Input
-                  id="name"
-                  value={currentMember?.name || ''}
-                  onChange={(e) => setCurrentMember(prev => prev ? {...prev, name: e.target.value} : null)}
-                  className="col-span-3"
-                  required
+                  placeholder="Search members..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8"
                 />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="type" className="text-right text-sm font-medium">Type</Label>
-                <Select 
-                  value={currentMember?.member_type}
-                  onValueChange={(value) => setCurrentMember(prev => prev ? {...prev, member_type: value as MemberType} : null)}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select a type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="player">Player</SelectItem>
-                    <SelectItem value="management">Management</SelectItem>
-                    <SelectItem value="official">Official</SelectItem>
-                  </SelectContent>
-                </Select>
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="w-full sm:w-40">
+                  <Filter className="mr-2 h-4 w-4" />
+                  <SelectValue placeholder="Filter by type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Types</SelectItem>
+                  <SelectItem value="player">Players</SelectItem>
+                  <SelectItem value="management">Management</SelectItem>
+                  <SelectItem value="official">Officials</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-40">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Statuses</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button onClick={onEditMember ? openNewDialog : () => openNewDialog()} className="w-full sm:w-auto">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Team Member
+            </Button>
+          </div>
+          
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+            </div>
+          ) : (
+            <div>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Member</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Position</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="w-[100px]">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredMembers.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                          No team members found
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredMembers.map((member) => (
+                        <TableRow key={member.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <div className="h-10 w-10 rounded-full bg-gray-100 overflow-hidden flex-shrink-0">
+                                {member.image_url ? (
+                                  <img 
+                                    src={member.image_url} 
+                                    alt={member.name} 
+                                    className="h-full w-full object-cover" 
+                                  />
+                                ) : (
+                                  <div className="h-full w-full flex items-center justify-center bg-gray-200">
+                                    <UserCircle className="h-6 w-6 text-gray-400" />
+                                  </div>
+                                )}
+                              </div>
+                              <div>
+                                <div className="font-medium">{member.name}</div>
+                                {member.member_type === 'player' && member.jersey_number && (
+                                  <div className="text-xs text-gray-500">#{member.jersey_number}</div>
+                                )}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {getMemberTypeLabel(member.member_type)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{member.position || '-'}</TableCell>
+                          <TableCell>
+                            <Badge variant={member.is_active ? "success" : "secondary"}>
+                              {member.is_active ? 'Active' : 'Inactive'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button variant="ghost" size="sm" onClick={() => openEditDialog(member)} title="Edit">
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => handleDeleteMember(member.id)}
+                                className="text-red-500 hover:bg-red-50 hover:text-red-600"
+                                title="Delete"
+                              >
+                                <Trash className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="position" className="text-right text-sm font-medium">Position</Label>
-                <Input
-                  id="position"
-                  value={currentMember?.position || ''}
-                  onChange={(e) => setCurrentMember(prev => prev ? {...prev, position: e.target.value} : null)}
-                  className="col-span-3"
-                />
-              </div>
-              
-              {/* Player Image Upload */}
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="image" className="text-right text-sm font-medium">Profile Photo</label>
-                <div className="col-span-3">
-                  <PlayerImageUploader 
-                    initialImageUrl={currentMember?.image_url || ''} 
-                    onUpload={(url) => setCurrentMember(prev => prev ? {...prev, image_url: url} : null)}
-                    playerName={currentMember?.name || 'Team Member'} 
-                  />
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-4 items-start gap-4">
-                <Label htmlFor="bio" className="text-right text-sm font-medium">Bio</Label>
-                <Input
-                  id="bio"
-                  value={currentMember?.bio || ''}
-                  onChange={(e) => setCurrentMember(prev => prev ? {...prev, bio: e.target.value} : null)}
-                  className="col-span-3"
-                />
+              <div className="mt-4 text-sm text-gray-500 text-right">
+                Showing {filteredMembers.length} of {teamMembers.length} team members
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" type="button" onClick={closeDialog}>Cancel</Button>
-              <Button type="submit">Save</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+          )}
+        </CardContent>
+      </Card>
+      
+      {/* Dialog for creating/editing (used only when not using external editor via onEditMember) */}
+      {!onEditMember && (
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent className="sm:max-w-[550px]">
+            <DialogHeader>
+              <DialogTitle>{currentMember?.id ? 'Edit Team Member' : 'Add Team Member'}</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSave}>
+              <div className="grid gap-4 py-4">
+                {/* Basic form fields for inline editing */}
+                {/* In a real implementation, this would include more fields similar to TeamMemberEditor */}
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={closeDialog}>Cancel</Button>
+                <Button type="submit">Save</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };

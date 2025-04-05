@@ -67,7 +67,7 @@ const quickActions = [
   { title: 'Add News Article', icon: Newspaper, link: '/admin/news' },
   { title: 'Add Fixture', icon: Calendar, link: '/admin/fixtures/new' },
   { title: 'Upload Media', icon: Image, link: '/admin/media/upload' },
-  { title: 'Add Team Member', icon: Users, link: '/admin/team/new' },
+  { title: 'Add Team Member', icon: Users, link: '/admin/team' },
   { title: 'Add Sponsor', icon: Award, link: '/admin/sponsors/new' },
 ];
 

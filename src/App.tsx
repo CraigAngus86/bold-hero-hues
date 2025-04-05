@@ -17,6 +17,7 @@ import { Toaster } from './components/ui/sonner';
 import Admin from './pages/Admin';
 import AdminDashboard from './pages/admin/Dashboard';
 import NewsManagement from './pages/admin/NewsManagement';
+import TeamManagement from './pages/admin/TeamManagement';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -49,6 +50,7 @@ function App() {
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/news" element={<NewsManagement />} />
+            <Route path="/admin/team" element={<TeamManagement />} />
             
             {/* Catch-all for other admin routes */}
             <Route path="/admin/*" element={<Admin />} />

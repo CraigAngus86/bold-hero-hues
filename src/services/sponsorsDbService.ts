@@ -1,15 +1,15 @@
 
 import { supabase } from '@/services/supabase/supabaseClient';
 import { DBSponsor, Sponsor, convertToSponsor } from '@/types';
-import { showErrorToUser } from '@/utils/errorHandling';
+import { showErrorToUser, createAppError, ErrorType } from '@/utils/errorHandling';
 
 /**
  * Get all sponsors
  */
 export async function getAllSponsors(): Promise<Sponsor[]> {
   try {
-    const { data, error } = await supabase
-      .from('sponsors')
+    // Cast supabase.from to any to bypass type checking until Supabase types are updated
+    const { data, error } = await (supabase.from('sponsors') as any)
       .select('*')
       .order('name');
 
@@ -28,8 +28,8 @@ export async function getAllSponsors(): Promise<Sponsor[]> {
  */
 export async function getSponsorsByTier(tier: 'platinum' | 'gold' | 'silver' | 'bronze'): Promise<Sponsor[]> {
   try {
-    const { data, error } = await supabase
-      .from('sponsors')
+    // Cast supabase.from to any to bypass type checking until Supabase types are updated
+    const { data, error } = await (supabase.from('sponsors') as any)
       .select('*')
       .eq('tier', tier)
       .order('name');
@@ -49,8 +49,8 @@ export async function getSponsorsByTier(tier: 'platinum' | 'gold' | 'silver' | '
  */
 export async function getActiveSponsors(): Promise<Sponsor[]> {
   try {
-    const { data, error } = await supabase
-      .from('sponsors')
+    // Cast supabase.from to any to bypass type checking until Supabase types are updated
+    const { data, error } = await (supabase.from('sponsors') as any)
       .select('*')
       .eq('is_active', true)
       .order('name');
@@ -70,8 +70,8 @@ export async function getActiveSponsors(): Promise<Sponsor[]> {
  */
 export async function getSponsorById(id: string): Promise<Sponsor | null> {
   try {
-    const { data, error } = await supabase
-      .from('sponsors')
+    // Cast supabase.from to any to bypass type checking until Supabase types are updated
+    const { data, error } = await (supabase.from('sponsors') as any)
       .select('*')
       .eq('id', id)
       .single();
@@ -91,8 +91,8 @@ export async function getSponsorById(id: string): Promise<Sponsor | null> {
  */
 export async function createSponsor(sponsor: Omit<DBSponsor, 'id' | 'created_at' | 'updated_at'>): Promise<Sponsor | null> {
   try {
-    const { data, error } = await supabase
-      .from('sponsors')
+    // Cast supabase.from to any to bypass type checking until Supabase types are updated
+    const { data, error } = await (supabase.from('sponsors') as any)
       .insert([sponsor])
       .select()
       .single();
@@ -112,8 +112,8 @@ export async function createSponsor(sponsor: Omit<DBSponsor, 'id' | 'created_at'
  */
 export async function updateSponsor(id: string, updates: Partial<DBSponsor>): Promise<Sponsor | null> {
   try {
-    const { data, error } = await supabase
-      .from('sponsors')
+    // Cast supabase.from to any to bypass type checking until Supabase types are updated
+    const { data, error } = await (supabase.from('sponsors') as any)
       .update(updates)
       .eq('id', id)
       .select()
@@ -134,8 +134,8 @@ export async function updateSponsor(id: string, updates: Partial<DBSponsor>): Pr
  */
 export async function toggleSponsorStatus(id: string, isActive: boolean): Promise<boolean> {
   try {
-    const { error } = await supabase
-      .from('sponsors')
+    // Cast supabase.from to any to bypass type checking until Supabase types are updated
+    const { error } = await (supabase.from('sponsors') as any)
       .update({ is_active: isActive })
       .eq('id', id);
 
@@ -154,8 +154,8 @@ export async function toggleSponsorStatus(id: string, isActive: boolean): Promis
  */
 export async function deleteSponsor(id: string): Promise<boolean> {
   try {
-    const { error } = await supabase
-      .from('sponsors')
+    // Cast supabase.from to any to bypass type checking until Supabase types are updated
+    const { error } = await (supabase.from('sponsors') as any)
       .delete()
       .eq('id', id);
 

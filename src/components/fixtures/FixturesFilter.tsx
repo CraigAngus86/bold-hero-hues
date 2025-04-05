@@ -63,7 +63,7 @@ const FixturesFilter = ({
             </SelectTrigger>
             <SelectContent>
               {availableMonths.map((month) => (
-                <SelectItem key={month} value={month}>
+                <SelectItem key={month} value={month || "all-months"}>
                   {month}
                 </SelectItem>
               ))}
@@ -76,7 +76,7 @@ const FixturesFilter = ({
             </SelectTrigger>
             <SelectContent>
               {competitions.map((comp) => (
-                <SelectItem key={comp} value={comp}>
+                <SelectItem key={comp} value={comp || "all-competitions"}>
                   {comp}
                 </SelectItem>
               ))}

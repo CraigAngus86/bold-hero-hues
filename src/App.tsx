@@ -16,6 +16,7 @@ import Tickets from "@/pages/Tickets";
 import Admin from "@/pages/Admin";
 import FixturesAdmin from "@/pages/admin/Fixtures";
 import NotFound from "@/pages/NotFound";
+import { MainLayout } from "@/components/layout";
 
 // Scroll to top component that triggers on route change
 const ScrollToTop = () => {
@@ -26,6 +27,15 @@ const ScrollToTop = () => {
   }, [pathname]);
 
   return null;
+};
+
+// Layout wrapper for pages
+const PageWithLayout = ({ Component }: { Component: React.ComponentType }) => {
+  return (
+    <MainLayout>
+      <Component />
+    </MainLayout>
+  );
 };
 
 const App = () => {

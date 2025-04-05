@@ -33,3 +33,7 @@ export * from './toggle';
 export * from './toggle-group';
 export * from './tooltip';
 export * from './use-toast';
+
+// Export new UI components
+export { default as Table } from './Table';
+export { default as Loading } from './Loading';

@@ -1,44 +1,46 @@
 
 import React from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import Table from '@/components/ui/Table';
+import type { TableColumn } from '@/components/ui/Table';
 
 interface DataTableProps<T> {
   data: T[];
-  columns: {
-    key: string;
-    header: string;
-    render?: (item: T) => React.ReactNode;
-  }[];
+  columns: TableColumn<T>[];
+  isLoading?: boolean;
+  onRowClick?: (item: T) => void;
+  title?: string;
+  description?: string;
   className?: string;
+  emptyMessage?: string;
 }
 
-function DataTable<T>({ data, columns, className }: DataTableProps<T>) {
+function DataTable<T extends Record<string, any>>({
+  data,
+  columns,
+  isLoading = false,
+  onRowClick,
+  title,
+  description,
+  className,
+  emptyMessage = "No data available",
+}: DataTableProps<T>) {
   return (
-    <div className={`w-full overflow-auto ${className || ''}`}>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            {columns.map((column) => (
-              <TableHead key={column.key}>{column.header}</TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data.map((item, index) => (
-            <TableRow key={index}>
-              {columns.map((column) => (
-                <TableCell key={`${index}-${column.key}`}>
-                  {column.render 
-                    ? column.render(item)
-                    // @ts-ignore - We allow dynamic access to item properties
-                    : item[column.key]
-                  }
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+    <div className={className}>
+      {(title || description) && (
+        <div className="mb-4">
+          {title && <h2 className="text-xl font-semibold">{title}</h2>}
+          {description && <p className="text-sm text-gray-500">{description}</p>}
+        </div>
+      )}
+      <div className="rounded-md border">
+        <Table
+          data={data}
+          columns={columns}
+          isLoading={isLoading}
+          onRowClick={onRowClick}
+          noDataMessage={emptyMessage}
+        />
+      </div>
     </div>
   );
 }

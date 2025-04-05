@@ -23,13 +23,7 @@ export function useSupabaseFetch<T>(
       try {
         setLoading(true);
         
-        let query = supabase.from(table);
-        
-        if (options?.select) {
-          query = query.select(options.select);
-        } else {
-          query = query.select('*');
-        }
+        let query = supabase.from(table).select(options?.select || '*');
         
         if (options?.match) {
           Object.entries(options.match).forEach(([key, value]) => {
@@ -47,7 +41,7 @@ export function useSupabaseFetch<T>(
         
         if (queryError) throw queryError;
         
-        setData(result || []);
+        setData((result || []) as T[]);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Unknown error occurred'));
       } finally {
@@ -79,14 +73,9 @@ export function useDynamicSupabaseFetch<T>(
       try {
         setLoading(true);
         
-        // Using 'any' to bypass TypeScript's strict checking
-        let query = (supabase as any).from(table);
-        
-        if (options?.select) {
-          query = query.select(options.select);
-        } else {
-          query = query.select('*');
-        }
+        // Using type assertion to bypass TypeScript's strict checking
+        const baseQuery = supabase.from(table as any);
+        let query = baseQuery.select(options?.select || '*');
         
         if (options?.match) {
           Object.entries(options.match).forEach(([key, value]) => {
@@ -104,7 +93,7 @@ export function useDynamicSupabaseFetch<T>(
         
         if (queryError) throw queryError;
         
-        setData(result || []);
+        setData((result || []) as T[]);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Unknown error occurred'));
       } finally {

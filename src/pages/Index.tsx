@@ -4,8 +4,7 @@ import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/home/HeroSection';
 import NewsSection from '@/components/home/NewsSection';
 import FixturesSection from '@/components/FixturesSection';
-import SocialMediaFeed from '@/components/SocialMediaFeed';
-import FanZoneModern from '@/components/home/FanZoneModern';
+import SocialFanSection from '@/components/home/SocialFanSection';
 import MediaGalleryModern from '@/components/home/MediaGalleryModern';
 import SponsorsSection from '@/components/home/SponsorsSection';
 import Footer from '@/components/Footer';
@@ -35,14 +34,9 @@ const Index = () => {
         <FixturesSection />
       </ErrorBoundary>
       
-      {/* Social Media Feed */}
+      {/* Combined Social Media and Fan Zone Section */}
       <ErrorBoundary>
-        <SocialMediaFeed />
-      </ErrorBoundary>
-      
-      {/* Fan Zone - Modern Implementation */}
-      <ErrorBoundary>
-        <FanZoneModern />
+        <SocialFanSection />
       </ErrorBoundary>
       
       {/* Media Gallery - Modern Implementation */}

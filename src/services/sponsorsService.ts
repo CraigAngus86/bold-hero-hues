@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
 import { Sponsor } from '@/types/sponsors';
-import { fetchSponsors } from './sponsorsDbService';
+import { fetchSponsors, getAllSponsors, fetchSponsorById, createSponsor, updateSponsor, deleteSponsor } from './sponsorsDbService';
 import { toast } from 'sonner';
 
 export interface SponsorsStore {
@@ -46,6 +46,9 @@ export const useSponsorsStore = create<SponsorsStore>((set, get) => ({
     return get().sponsors.filter(sponsor => sponsor.is_active);
   },
 }));
+
+// Re-export functions from sponsorsDbService for easier access
+export { getAllSponsors, fetchSponsorById, createSponsor, updateSponsor, deleteSponsor } from './sponsorsDbService';
 
 // For backward compatibility 
 export const useSponsorStore = useSponsorsStore;

@@ -7,16 +7,20 @@ import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { useImageUpload } from '@/services/imageService';
 
 interface SponsorLogoUploaderProps {
+  initialImageUrl?: string;  // Make this prop optional and available
   onUploadComplete?: (imageUrl: string) => void;
+  onUpload?: (imageUrl: string) => void;  // Add compatibility with both naming conventions
   className?: string;
 }
 
 export function SponsorLogoUploader({
+  initialImageUrl = null,
   onUploadComplete,
+  onUpload,
   className = '',
 }: SponsorLogoUploaderProps) {
   const [dragActive, setDragActive] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(initialImageUrl);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { upload, isUploading, progress } = useImageUpload();
   
@@ -67,10 +71,10 @@ export function SponsorLogoUploader({
   };
   
   const clearSelection = () => {
-    if (previewUrl) {
+    if (previewUrl && !initialImageUrl) {
       URL.revokeObjectURL(previewUrl);
     }
-    setPreviewUrl(null);
+    setPreviewUrl(initialImageUrl);
     setSelectedFile(null);
   };
   
@@ -82,7 +86,8 @@ export function SponsorLogoUploader({
       if (result.success && result.data) {
         toast.success('Logo uploaded successfully');
         clearSelection();
-        onUploadComplete?.(result.data.url);
+        if (onUploadComplete) onUploadComplete(result.data.url);
+        if (onUpload) onUpload(result.data.url); // Support both callback functions
       }
     } catch (error) {
       console.error('Failed to upload logo:', error);

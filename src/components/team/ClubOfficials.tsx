@@ -6,13 +6,19 @@ import { useTeamStore, TeamMember } from '@/services/teamService';
 export default function ClubOfficials() {
   const [officials, setOfficials] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
-  const { teamMembers } = useTeamStore();
+  const { teamMembers, loadTeamMembers } = useTeamStore();
   
   useEffect(() => {
+    // Load team members if not already loaded
+    if (teamMembers.length === 0) {
+      loadTeamMembers();
+    }
+    
+    // Filter officials from team members
     const filteredOfficials = teamMembers.filter(member => member.member_type === 'official');
     setOfficials(filteredOfficials);
     setLoading(false);
-  }, [teamMembers]);
+  }, [teamMembers, loadTeamMembers]);
   
   if (loading) {
     return <div className="text-center py-10">Loading club officials...</div>;

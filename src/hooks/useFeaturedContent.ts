@@ -1,65 +1,77 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 import { NewsArticle } from '@/types/news';
+import { Fixture } from '@/types/fixtures';
 import { TeamStats } from '@/types/fixtures';
 
-export interface FeaturedContentData {
+interface UseFeaturedContentResult {
   featuredArticle: NewsArticle | null;
-  nextMatch: any | null; // Using any for fixture since there are type inconsistencies
+  nextMatch: Fixture | null;
   leaguePosition: TeamStats | null;
   isLoading: boolean;
   error: Error | null;
 }
 
-export const useFeaturedContent = (): FeaturedContentData => {
+export const useFeaturedContent = (): UseFeaturedContentResult => {
   const [featuredArticle, setFeaturedArticle] = useState<NewsArticle | null>(null);
-  const [nextMatch, setNextMatch] = useState<any | null>(null);
+  const [nextMatch, setNextMatch] = useState<Fixture | null>(null);
   const [leaguePosition, setLeaguePosition] = useState<TeamStats | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  
+
   useEffect(() => {
     const fetchFeaturedContent = async () => {
       setIsLoading(true);
-      setError(null);
       
       try {
         // Fetch featured article
-        const { data: articles, error: articlesError } = await supabase
+        const { data: featuredData, error: featuredError } = await supabase
           .from('news_articles')
           .select('*')
           .eq('is_featured', true)
           .order('publish_date', { ascending: false })
-          .limit(1);
-        
-        if (articlesError) throw articlesError;
+          .limit(1)
+          .single();
+          
+        if (featuredError && featuredError.code !== 'PGRST116') {
+          console.error('Error fetching featured article:', featuredError);
+        } else {
+          setFeaturedArticle(featuredData || null);
+        }
         
         // Fetch next match
-        const { data: matches, error: matchesError } = await supabase
+        const { data: nextMatchData, error: nextMatchError } = await supabase
           .from('fixtures')
           .select('*')
           .eq('is_next_match', true)
-          .limit(1);
+          .limit(1)
+          .single();
+          
+        if (nextMatchError && nextMatchError.code !== 'PGRST116') {
+          console.error('Error fetching next match:', nextMatchError);
+        } else {
+          setNextMatch(nextMatchData || null);
+        }
         
-        if (matchesError) throw matchesError;
-        
-        // Fetch league position (Banks o' Dee FC)
-        const { data: teamStats, error: statsError } = await supabase
+        // Fetch league position data
+        const { data: leagueData, error: leagueError } = await supabase
           .from('highland_league_table')
           .select('*')
           .eq('team', 'Banks o\' Dee')
           .single();
+          
+        if (leagueError && leagueError.code !== 'PGRST116') {
+          console.error('Error fetching league position:', leagueError);
+        } else {
+          setLeaguePosition(leagueData || null);
+        }
         
-        if (statsError && statsError.code !== 'PGRST116') throw statsError;
-        
-        // Update state with fetched data
-        setFeaturedArticle(articles && articles.length > 0 ? articles[0] : null);
-        setNextMatch(matches && matches.length > 0 ? matches[0] : null);
-        setLeaguePosition(teamStats || null);
       } catch (err) {
         console.error('Error fetching featured content:', err);
         setError(err instanceof Error ? err : new Error('Failed to fetch featured content'));
+        toast.error('Failed to load featured content');
       } finally {
         setIsLoading(false);
       }
@@ -76,3 +88,5 @@ export const useFeaturedContent = (): FeaturedContentData => {
     error
   };
 };
+
+export default useFeaturedContent;

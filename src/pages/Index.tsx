@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { Navbar } from '@/components/layout';
-import { Footer } from '@/components/layout';
+import { Navbar, Footer } from '@/components/layout';
 import EnhancedHero from '@/components/home/EnhancedHero';
 import FeaturedContentGrid from '@/components/home/FeaturedContentGrid';
 import NewsGrid from '@/components/home/NewsGrid';

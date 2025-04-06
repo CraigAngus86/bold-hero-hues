@@ -15,6 +15,11 @@ export interface HeroSlide {
   is_active: boolean;
 }
 
+export interface BreakingNews {
+  active: boolean;
+  message: string;
+}
+
 export interface UseHeroSlidesResult {
   slides: HeroSlide[];
   currentIndex: number;
@@ -27,6 +32,7 @@ export interface UseHeroSlidesResult {
   nextMatch: any;
   latestResult: any;
   recentResults: any[];
+  breakingNews?: BreakingNews;
 }
 
 export const useHeroSlides = (): UseHeroSlidesResult => {
@@ -37,6 +43,7 @@ export const useHeroSlides = (): UseHeroSlidesResult => {
   const [nextMatch, setNextMatch] = useState<any>(null);
   const [latestResult, setLatestResult] = useState<any>(null);
   const [recentResults, setRecentResults] = useState<any[]>([]);
+  const [breakingNews, setBreakingNews] = useState<BreakingNews | undefined>(undefined);
 
   // Function to fetch hero slides
   useEffect(() => {
@@ -120,6 +127,25 @@ export const useHeroSlides = (): UseHeroSlidesResult => {
           
         setRecentResults(recentResultsData || []);
         
+        // Fetch breaking news
+        const { data: breakingNewsData } = await supabase
+          .from('site_settings')
+          .select('*')
+          .eq('key', 'breaking_news')
+          .single();
+          
+        if (breakingNewsData && breakingNewsData.value) {
+          try {
+            const newsData = JSON.parse(breakingNewsData.value);
+            setBreakingNews({
+              active: newsData.active || false,
+              message: newsData.message || ''
+            });
+          } catch (err) {
+            console.error('Error parsing breaking news:', err);
+          }
+        }
+        
       } catch (err) {
         console.error('Error fetching hero data:', err);
         setError(err instanceof Error ? err : new Error('Failed to fetch hero data'));
@@ -164,7 +190,8 @@ export const useHeroSlides = (): UseHeroSlidesResult => {
     goToPrevSlide,
     nextMatch,
     latestResult,
-    recentResults
+    recentResults,
+    breakingNews
   };
 };
 

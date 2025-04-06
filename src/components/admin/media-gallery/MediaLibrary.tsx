@@ -1,493 +1,560 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { useDebounce } from '@/hooks/useDebounce';
-import { 
-  Search, 
-  Filter, 
-  SortDesc, 
-  RotateCcw, 
-  ChevronLeft, 
-  ChevronRight,
-  Info,
-  Loader
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from 'react';
+import { Grid, Search, FilterX, Filter, RefreshCw, SlidersHorizontal, Download } from 'lucide-react';
+import useDebounce from '@/hooks/useDebounce';
+import { ImageMetadata } from '@/services/images';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
 import {
-  Card,
-  CardContent,
-  CardFooter
-} from '@/components/ui/card';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from '@/components/ui/popover';
-import { Badge } from '@/components/ui/badge';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { 
-  getImages,
-  BucketType,
-  ImageMetadata
-} from '@/services/images';
 import MediaCard from './MediaCard';
 import MediaDetailsDialog from './MediaDetailsDialog';
-import { format } from 'date-fns';
 
-// Define available media buckets
-const MEDIA_BUCKETS: BucketType[] = ['images'];
+// Mock data for initial development until Supabase integration is complete
+const mockImages: ImageMetadata[] = [
+  {
+    id: '1',
+    name: 'match-photo-1.jpg',
+    url: '/lovable-uploads/banks-o-dee-logo.png',
+    alt_text: 'Match day photo',
+    type: 'image/jpeg',
+    size: 250000,
+    width: 1200,
+    height: 800,
+    createdAt: '2024-01-15T10:30:00',
+    updatedAt: '2024-01-15T10:30:00',
+    tags: ['match', 'team'],
+    categories: ['Match Day'],
+    bucket: 'images',
+    path: '/media/match-photo-1.jpg',
+  },
+  {
+    id: '2',
+    name: 'team-photo-2023.jpg',
+    url: '/lovable-uploads/cb95b9fb-0f2d-42ef-9788-10509a80ed6e.png',
+    alt_text: 'Team photo from 2023 season',
+    type: 'image/jpeg',
+    size: 500000,
+    width: 1600,
+    height: 1000,
+    createdAt: '2023-09-05T14:20:00',
+    updatedAt: '2023-09-05T14:20:00',
+    tags: ['team', 'season'],
+    categories: ['Team'],
+    bucket: 'images',
+    path: '/media/team-photo-2023.jpg',
+  },
+  {
+    id: '3',
+    name: 'stadium-aerial.jpg',
+    url: '/lovable-uploads/73ac703f-7365-4abb-811e-159280ad234b.png',
+    alt_text: 'Aerial view of Spain Park',
+    type: 'image/jpeg',
+    size: 750000,
+    width: 2000,
+    height: 1500,
+    createdAt: '2023-06-12T09:15:00',
+    updatedAt: '2023-06-12T09:15:00',
+    tags: ['stadium', 'aerial'],
+    categories: ['Stadium'],
+    bucket: 'images',
+    path: '/media/stadium-aerial.jpg',
+  },
+  {
+    id: '4',
+    name: 'celebration-video.mp4',
+    url: '/video-placeholder.jpg',
+    alt_text: 'Team celebration after winning',
+    type: 'video/mp4',
+    size: 5000000,
+    width: 1920,
+    height: 1080,
+    createdAt: '2024-03-20T17:45:00',
+    updatedAt: '2024-03-20T17:45:00',
+    tags: ['celebration', 'victory'],
+    categories: ['Match Day'],
+    bucket: 'videos',
+    path: '/media/celebration-video.mp4',
+  }
+];
 
-const MediaLibrary = () => {
+// Mock categories for filtering
+const mockCategories = [
+  { id: '1', name: 'Match Day' },
+  { id: '2', name: 'Team' },
+  { id: '3', name: 'Stadium' },
+  { id: '4', name: 'Fans' },
+];
+
+const MediaLibrary: React.FC = () => {
   // State management
-  const [mediaItems, setMediaItems] = useState<ImageMetadata[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedMedia, setSelectedMedia] = useState<ImageMetadata | null>(null);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-
-  // Filter state
   const [searchTerm, setSearchTerm] = useState('');
-  const [filter, setFilter] = useState({
-    mediaType: 'all', // all, image, video
-    dateRange: 'all',  // all, today, week, month, year
-    category: 'all'
-  });
-  const [sortOrder, setSortOrder] = useState({
-    field: 'createdAt', // name, createdAt, size
-    direction: 'desc' // asc, desc
-  });
-
-  // Pagination settings
-  const itemsPerPage = 12;
-
-  // Debounce search term to avoid excessive API calls
+  const [images, setImages] = useState<ImageMetadata[]>(mockImages);
+  const [filteredImages, setFilteredImages] = useState<ImageMetadata[]>(mockImages);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [sortBy, setSortBy] = useState<string>('newest');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(12);
+  const [selectedMedia, setSelectedMedia] = useState<ImageMetadata[]>([]);
+  const [activeMedia, setActiveMedia] = useState<ImageMetadata | null>(null);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Use debounced search term to prevent excessive filtering
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
-
-  // Fetch media items from Supabase storage
+  
+  // Calculate pagination
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentImages = filteredImages.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredImages.length / itemsPerPage);
+  
+  // Filter and sort images whenever the filter criteria change
   useEffect(() => {
-    const fetchMediaItems = async () => {
-      setIsLoading(true);
-      try {
-        let allMedia: ImageMetadata[] = [];
-        
-        // Fetch from each bucket
-        for (const bucket of MEDIA_BUCKETS) {
-          const { success, data, error } = await getImages(bucket);
-          
-          if (success && data) {
-            allMedia = [...allMedia, ...data];
-          } else if (error) {
-            console.error(`Error fetching from ${bucket}:`, error);
-            setError(error as Error);
-          }
-        }
-        
-        setMediaItems(allMedia);
-      } catch (err) {
-        console.error('Error fetching media:', err);
-        setError(err as Error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchMediaItems();
-  }, []);
-
-  // Apply filters and sorting
-  const filteredMedia = useMemo(() => {
-    // Start with all media items
-    let result = [...mediaItems];
+    let result = [...images];
     
     // Apply search filter
     if (debouncedSearchTerm) {
-      result = result.filter(item => 
-        item.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+      result = result.filter(img => 
+        img.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        img.tags?.some(tag => tag.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) ||
+        img.alt_text?.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
       );
     }
     
-    // Apply type filter
-    if (filter.mediaType !== 'all') {
-      result = result.filter(item => {
-        if (filter.mediaType === 'image') {
-          return item.type.startsWith('image/');
-        } else if (filter.mediaType === 'video') {
-          return item.type.startsWith('video/');
-        }
-        return true;
-      });
+    // Apply category filter
+    if (selectedCategory) {
+      result = result.filter(img => 
+        img.categories?.includes(selectedCategory)
+      );
     }
     
-    // Apply date filter
-    if (filter.dateRange !== 'all') {
-      const now = new Date();
-      let cutoffDate = new Date();
-      
-      switch (filter.dateRange) {
-        case 'today':
-          cutoffDate.setHours(0, 0, 0, 0);
-          break;
-        case 'week':
-          cutoffDate.setDate(now.getDate() - 7);
-          break;
-        case 'month':
-          cutoffDate.setMonth(now.getMonth() - 1);
-          break;
-        case 'year':
-          cutoffDate.setFullYear(now.getFullYear() - 1);
-          break;
-        default:
-          break;
-      }
-      
-      result = result.filter(item => {
-        const itemDate = new Date(item.createdAt);
-        return itemDate >= cutoffDate;
-      });
+    // Apply sorting
+    switch(sortBy) {
+      case 'newest':
+        result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        break;
+      case 'oldest':
+        result.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        break;
+      case 'name':
+        result.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'size':
+        result.sort((a, b) => b.size - a.size);
+        break;
+      default:
+        break;
     }
     
-    // Sort the results
-    result.sort((a, b) => {
-      if (sortOrder.field === 'name') {
-        return sortOrder.direction === 'asc' 
-          ? a.name.localeCompare(b.name) 
-          : b.name.localeCompare(a.name);
-      } else if (sortOrder.field === 'size') {
-        return sortOrder.direction === 'asc' 
-          ? a.size - b.size 
-          : b.size - a.size;
-      } else {
-        // Default: sort by date
-        return sortOrder.direction === 'asc' 
-          ? new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime() 
-          : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      }
-    });
-    
-    return result;
-  }, [mediaItems, debouncedSearchTerm, filter, sortOrder]);
+    setFilteredImages(result);
+    setCurrentPage(1); // Reset to first page after filtering
+  }, [debouncedSearchTerm, selectedCategory, sortBy, images]);
   
-  // Calculate pagination
-  const totalPages = Math.ceil(filteredMedia.length / itemsPerPage);
-  const paginatedMedia = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredMedia.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredMedia, currentPage, itemsPerPage]);
-
-  // Handle media selection
-  const toggleMediaSelection = (id: string) => {
-    setSelectedItems(prevSelected => {
-      if (prevSelected.includes(id)) {
-        return prevSelected.filter(item => item !== id);
-      } else {
-        return [...prevSelected, id];
-      }
-    });
-  };
-
-  // Select/deselect all media
-  const toggleSelectAll = () => {
-    if (selectedItems.length === paginatedMedia.length) {
-      setSelectedItems([]);
+  // Handle selecting/deselecting media items
+  const toggleSelectMedia = (media: ImageMetadata) => {
+    if (selectedMedia.some(item => item.id === media.id)) {
+      setSelectedMedia(selectedMedia.filter(item => item.id !== media.id));
     } else {
-      setSelectedItems(paginatedMedia.map(item => item.id));
+      setSelectedMedia([...selectedMedia, media]);
     }
   };
-
+  
+  // Handle opening the details dialog
+  const openDetailsDialog = (media: ImageMetadata) => {
+    setActiveMedia(media);
+    setIsDetailsDialogOpen(true);
+  };
+  
   // Handle bulk actions
   const handleBulkAction = (action: string) => {
-    if (selectedItems.length === 0) {
-      toast.error("No items selected");
+    if (selectedMedia.length === 0) {
+      toast.warning('No media selected');
       return;
     }
-
-    switch (action) {
-      case "delete":
-        toast("Delete functionality will be implemented in a future update");
+    
+    switch(action) {
+      case 'delete':
+        // In a real implementation, this would call a service to delete the media
+        setImages(images.filter(img => !selectedMedia.some(selected => selected.id === img.id)));
+        setSelectedMedia([]);
+        toast.success(`Deleted ${selectedMedia.length} items`);
         break;
-      case "tag":
-        toast("Bulk tagging functionality will be implemented in a future update");
-        break;
-      case "gallery":
-        toast("Gallery assignment functionality will be implemented in a future update");
+      case 'download':
+        toast.info(`Downloading ${selectedMedia.length} items`);
+        // In a real implementation, this would prepare a zip file or trigger multiple downloads
         break;
       default:
         break;
     }
   };
-
-  // Reset all filters
-  const resetFilters = () => {
+  
+  // Generate pagination items
+  const renderPaginationItems = () => {
+    const items = [];
+    
+    // Previous button
+    items.push(
+      <PaginationItem key="prev">
+        <PaginationPrevious 
+          onClick={() => setCurrentPage(old => Math.max(1, old - 1))}
+          disabled={currentPage === 1} 
+        />
+      </PaginationItem>
+    );
+    
+    // First page
+    items.push(
+      <PaginationItem key={1}>
+        <PaginationLink 
+          onClick={() => setCurrentPage(1)}
+          isActive={currentPage === 1}
+        >
+          1
+        </PaginationLink>
+      </PaginationItem>
+    );
+    
+    // Ellipsis if needed
+    if (currentPage > 3) {
+      items.push(
+        <PaginationItem key="ellipsis1">
+          <PaginationEllipsis />
+        </PaginationItem>
+      );
+    }
+    
+    // Pages around current page
+    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+      if (i === 1 || i === totalPages) continue;
+      items.push(
+        <PaginationItem key={i}>
+          <PaginationLink 
+            onClick={() => setCurrentPage(i)}
+            isActive={currentPage === i}
+          >
+            {i}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+    
+    // Ellipsis if needed
+    if (currentPage < totalPages - 2) {
+      items.push(
+        <PaginationItem key="ellipsis2">
+          <PaginationEllipsis />
+        </PaginationItem>
+      );
+    }
+    
+    // Last page if there's more than one page
+    if (totalPages > 1) {
+      items.push(
+        <PaginationItem key={totalPages}>
+          <PaginationLink 
+            onClick={() => setCurrentPage(totalPages)}
+            isActive={currentPage === totalPages}
+          >
+            {totalPages}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+    
+    // Next button
+    items.push(
+      <PaginationItem key="next">
+        <PaginationNext 
+          onClick={() => setCurrentPage(old => Math.min(totalPages, old + 1))}
+          disabled={currentPage === totalPages} 
+        />
+      </PaginationItem>
+    );
+    
+    return items;
+  };
+  
+  // Handle clearing all filters
+  const clearFilters = () => {
     setSearchTerm('');
-    setFilter({
-      mediaType: 'all',
-      dateRange: 'all',
-      category: 'all'
-    });
-    setSortOrder({
-      field: 'createdAt',
-      direction: 'desc'
-    });
+    setSelectedCategory('');
+    setSortBy('newest');
+    setCurrentPage(1);
   };
-
-  // Handle media item click to view details
-  const handleMediaClick = (item: ImageMetadata) => {
-    setSelectedMedia(item);
-    setIsDetailsOpen(true);
+  
+  // Select all visible items on the current page
+  const selectAllVisible = (checked: boolean) => {
+    if (checked) {
+      // Add all current page items that aren't already selected
+      const newSelectedIds = new Set([...selectedMedia.map(item => item.id)]);
+      const newSelectedMedia = [...selectedMedia];
+      
+      currentImages.forEach(image => {
+        if (!newSelectedIds.has(image.id)) {
+          newSelectedIds.add(image.id);
+          newSelectedMedia.push(image);
+        }
+      });
+      
+      setSelectedMedia(newSelectedMedia);
+    } else {
+      // Remove current page items from selection
+      const currentIds = new Set(currentImages.map(item => item.id));
+      setSelectedMedia(selectedMedia.filter(item => !currentIds.has(item.id)));
+    }
   };
+  
+  // Check if all visible items on current page are selected
+  const areAllVisibleSelected = () => {
+    if (currentImages.length === 0) return false;
+    const selectedIds = new Set(selectedMedia.map(item => item.id));
+    return currentImages.every(image => selectedIds.has(image.id));
+  };
+  
+  // Handle refreshing the media library
+  const refreshMediaLibrary = () => {
+    setIsLoading(true);
+    // Simulate an API call delay
+    setTimeout(() => {
+      setIsLoading(false);
+      toast.success('Media library refreshed');
+    }, 1000);
+  };
+  
+  // Render loading state
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-team-blue"></div>
+        <p className="mt-4 text-gray-500">Loading media...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Toolbar with search, filters, and actions */}
-      <div className="flex flex-col md:flex-row gap-4 items-end">
-        <div className="relative w-full md:w-64">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-          <Input
-            placeholder="Search media..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
-          />
+    <div className="space-y-4">
+      {/* Toolbar */}
+      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+        <div className="flex flex-1 gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search media..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={() => setIsFilterOpen(!isFilterOpen)}
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={refreshMediaLibrary}
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
         </div>
         
-        <div className="flex-1 flex flex-wrap gap-2 md:gap-4">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="flex items-center gap-2">
-                <Filter size={16} />
-                <span>Filter</span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-72">
-              <div className="space-y-4">
-                <h3 className="font-medium">Filter Media</h3>
-                
-                <div className="space-y-2">
-                  <Label>Media Type</Label>
-                  <Select 
-                    value={filter.mediaType} 
-                    onValueChange={(value) => setFilter({...filter, mediaType: value})}
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          {selectedMedia.length > 0 && (
+            <>
+              <Badge variant="outline" className="mr-2">
+                {selectedMedia.length} selected
+              </Badge>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    Actions
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Bulk Actions</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => handleBulkAction('download')}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Download
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => handleBulkAction('delete')}
+                    className="text-red-600"
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Media</SelectItem>
-                      <SelectItem value="image">Images</SelectItem>
-                      <SelectItem value="video">Videos</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Date Range</Label>
-                  <Select 
-                    value={filter.dateRange}
-                    onValueChange={(value) => setFilter({...filter, dateRange: value})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select date range" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Time</SelectItem>
-                      <SelectItem value="today">Today</SelectItem>
-                      <SelectItem value="week">Last 7 Days</SelectItem>
-                      <SelectItem value="month">Last 30 Days</SelectItem>
-                      <SelectItem value="year">Last Year</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Category</Label>
-                  <Select 
-                    value={filter.category}
-                    onValueChange={(value) => setFilter({...filter, category: value})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
-                      <SelectItem value="match">Match Day</SelectItem>
-                      <SelectItem value="team">Team</SelectItem>
-                      <SelectItem value="stadium">Stadium</SelectItem>
-                      <SelectItem value="fans">Fans</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full mt-2"
-                  onClick={resetFilters}
-                >
-                  <RotateCcw size={14} className="mr-2" />
-                  Reset Filters
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
+                    <FilterX className="h-4 w-4 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          )}
           
-          <Select
-            value={`${sortOrder.field}-${sortOrder.direction}`}
-            onValueChange={(value) => {
-              const [field, direction] = value.split('-');
-              setSortOrder({ field, direction });
-            }}
-          >
-            <SelectTrigger className="w-auto min-w-[160px]">
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="createdAt-desc">Newest First</SelectItem>
-              <SelectItem value="createdAt-asc">Oldest First</SelectItem>
-              <SelectItem value="name-asc">Name (A-Z)</SelectItem>
-              <SelectItem value="name-desc">Name (Z-A)</SelectItem>
-              <SelectItem value="size-desc">Size (Largest)</SelectItem>
-              <SelectItem value="size-asc">Size (Smallest)</SelectItem>
+              <SelectItem value="newest">Newest first</SelectItem>
+              <SelectItem value="oldest">Oldest first</SelectItem>
+              <SelectItem value="name">Name (A-Z)</SelectItem>
+              <SelectItem value="size">Size (largest)</SelectItem>
             </SelectContent>
           </Select>
         </div>
-
-        <div className="flex gap-2">
-          {selectedItems.length > 0 && (
-            <Select
-              onValueChange={(value) => handleBulkAction(value)}
-              value=""
-            >
-              <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="Bulk Actions" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="delete">Delete Selected</SelectItem>
-                <SelectItem value="tag">Add Tags</SelectItem>
-                <SelectItem value="gallery">Add to Gallery</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
-        </div>
       </div>
-
-      {selectedItems.length > 0 && (
-        <div className="flex items-center justify-between bg-muted p-2 rounded-md">
-          <div className="flex items-center">
-            <Checkbox 
-              checked={selectedItems.length === paginatedMedia.length}
-              onCheckedChange={toggleSelectAll}
-              id="select-all"
-            />
-            <Label htmlFor="select-all" className="ml-2">
-              {selectedItems.length} items selected
-            </Label>
-          </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setSelectedItems([])}
-          >
-            Clear Selection
-          </Button>
-        </div>
-      )}
-
-      {/* Media Grid */}
-      {isLoading ? (
-        <div className="flex flex-col items-center justify-center h-64">
-          <Loader className="h-8 w-8 animate-spin text-gray-500 mb-4" />
-          <p className="text-gray-500">Loading media library...</p>
-        </div>
-      ) : error ? (
-        <div className="flex flex-col items-center justify-center h-64">
-          <div className="text-red-500 mb-2">
-            <Info size={40} />
-          </div>
-          <h3 className="text-lg font-medium text-red-500 mb-2">
-            Error loading media
-          </h3>
-          <p className="text-gray-500 mb-4">
-            {error.message || "There was an error loading the media library."}
-          </p>
-          <Button onClick={() => window.location.reload()}>
-            Retry Loading
-          </Button>
-        </div>
-      ) : paginatedMedia.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-64 border border-dashed rounded-lg">
-          <div className="text-gray-400 mb-2">
-            <Image size={40} />
-          </div>
-          <h3 className="text-lg font-medium text-gray-500 mb-2">
-            No media found
-          </h3>
-          <p className="text-gray-500 mb-4 text-center max-w-md">
-            {debouncedSearchTerm ? 
-              "No media matches your search. Try different keywords or filters." : 
-              "Your media library is empty. Upload some media to get started."
-            }
-          </p>
-          {debouncedSearchTerm && (
-            <Button onClick={resetFilters} variant="outline">
-              Clear Filters
-            </Button>
-          )}
-        </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-            {paginatedMedia.map((item) => (
-              <MediaCard
-                key={item.id}
-                media={item}
-                isSelected={selectedItems.includes(item.id)}
-                onSelect={() => toggleMediaSelection(item.id)}
-                onClick={() => handleMediaClick(item)}
-              />
-            ))}
-          </div>
-          
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center mt-6 space-x-2">
-              <Button
-                variant="outline"
-                size="icon"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              
-              <div className="text-sm">
-                Page {currentPage} of {totalPages}
+      
+      {/* Filters panel */}
+      {isFilterOpen && (
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex flex-wrap gap-4 items-end">
+              <div className="space-y-2 min-w-[200px]">
+                <label className="text-sm font-medium">Category</label>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="All Categories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Categories</SelectItem>
+                    {mockCategories.map(category => (
+                      <SelectItem key={category.id} value={category.name}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
-              <Button
-                variant="outline"
-                size="icon"
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              >
-                <ChevronRight className="h-4 w-4" />
+              <div className="space-y-2 min-w-[200px]">
+                <label className="text-sm font-medium">File Type</label>
+                <Select>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="All Types" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Types</SelectItem>
+                    <SelectItem value="image">Images</SelectItem>
+                    <SelectItem value="video">Videos</SelectItem>
+                    <SelectItem value="document">Documents</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <Button variant="outline" onClick={clearFilters}>
+                <FilterX className="h-4 w-4 mr-2" />
+                Clear Filters
               </Button>
             </div>
-          )}
-        </>
+          </CardContent>
+        </Card>
       )}
-
-      {/* Media Details Dialog */}
-      {selectedMedia && (
+      
+      {/* Selection controls */}
+      {filteredImages.length > 0 && (
+        <div className="flex items-center gap-2">
+          <Checkbox 
+            id="select-all"
+            checked={areAllVisibleSelected()}
+            onCheckedChange={selectAllVisible}
+          />
+          <label htmlFor="select-all" className="text-sm text-muted-foreground">
+            Select all on this page
+          </label>
+        </div>
+      )}
+      
+      {/* Media grid */}
+      {filteredImages.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+          {currentImages.map((image) => (
+            <MediaCard
+              key={image.id}
+              media={image}
+              isSelected={selectedMedia.some(item => item.id === image.id)}
+              onSelect={() => toggleSelectMedia(image)}
+              onClick={() => openDetailsDialog(image)}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <Grid className="h-12 w-12 text-gray-400 mb-4" />
+          <h3 className="text-lg font-medium">No media found</h3>
+          <p className="text-gray-500 max-w-md mt-2">
+            No media matches your current filters. Try adjusting your search or clear all filters to see all media.
+          </p>
+        </div>
+      )}
+      
+      {/* Pagination */}
+      {filteredImages.length > 0 && (
+        <Pagination>
+          <PaginationContent>
+            {renderPaginationItems()}
+          </PaginationContent>
+        </Pagination>
+      )}
+      
+      {/* Media details dialog */}
+      {activeMedia && (
         <MediaDetailsDialog
-          media={selectedMedia}
-          isOpen={isDetailsOpen}
-          onClose={() => setIsDetailsOpen(false)}
+          media={activeMedia}
+          isOpen={isDetailsDialogOpen}
+          onClose={() => setIsDetailsDialogOpen(false)}
+          onSave={(updatedMedia) => {
+            // Update the media item in the array
+            setImages(images.map(img => 
+              img.id === updatedMedia.id ? updatedMedia : img
+            ));
+            
+            // Also update in selectedMedia if it exists there
+            setSelectedMedia(selectedMedia.map(img => 
+              img.id === updatedMedia.id ? updatedMedia : img
+            ));
+            
+            setActiveMedia(updatedMedia);
+            toast.success('Media details updated');
+          }}
+          onDelete={(mediaId) => {
+            // Remove the media item from arrays
+            setImages(images.filter(img => img.id !== mediaId));
+            setSelectedMedia(selectedMedia.filter(img => img.id !== mediaId));
+            setIsDetailsDialogOpen(false);
+            toast.success('Media deleted');
+          }}
+          categories={mockCategories.map(c => c.name)}
         />
       )}
     </div>

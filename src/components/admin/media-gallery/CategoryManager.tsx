@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Table, 
@@ -7,7 +6,7 @@ import {
   TableHead, 
   TableHeader, 
   TableRow 
-} from '@/components/ui/table';
+} from '@/components/ui/Table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
@@ -433,7 +432,10 @@ const CategoryManager: React.FC = () => {
         <CardContent>
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <div className="w-full">
-              <Select onValueChange={setMergeType} defaultValue="category">
+              <Select 
+                onValueChange={(value: 'category' | 'tag') => setMergeType(value)} 
+                defaultValue="category"
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>

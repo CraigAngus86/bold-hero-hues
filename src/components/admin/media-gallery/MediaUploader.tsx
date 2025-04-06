@@ -1,166 +1,117 @@
 
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { toast } from 'sonner';
 import { 
-  Upload, 
+  UploadCloud, 
+  FileType, 
+  AlertCircle, 
+  CheckCircle2, 
   X, 
-  FileImage, 
-  FileVideo,
-  Image,
-  Film,
-  Check,
-  AlertCircle,
-  Loader2
+  Image as ImageIcon, 
+  FileVideo
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import { Separator } from '@/components/ui/separator';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
-import { useImageUpload } from '@/services/images/hooks';
-import { BucketType, ImageMetadata, ImageOptimizationOptions } from '@/services/images/types';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 
-interface FileUploadItem {
+// Mock categories for the demo
+const mockCategories = [
+  { id: '1', name: 'Match Day' },
+  { id: '2', name: 'Team' },
+  { id: '3', name: 'Stadium' },
+  { id: '4', name: 'Fans' },
+];
+
+interface UploadFile {
   id: string;
   file: File;
   preview: string;
-  status: 'pending' | 'uploading' | 'success' | 'error';
   progress: number;
+  status: 'queued' | 'uploading' | 'success' | 'error';
   error?: string;
-  metadata: {
-    altText: string;
-    description: string;
-    tags: string[];
-    optimizationOptions: ImageOptimizationOptions;
+  metadata?: {
+    title?: string;
+    alt_text?: string;
+    description?: string;
+    categories?: string[];
+    tags?: string[];
   };
 }
 
 const MediaUploader: React.FC = () => {
-  const [files, setFiles] = useState<FileUploadItem[]>([]);
+  // State for the file uploads
+  const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
-  const [folderPath, setFolderPath] = useState('');
-  const [optimizationPreset, setOptimizationPreset] = useState('medium');
-  const { upload } = useImageUpload();
-
-  // Image optimization presets
-  const optimizationPresets = {
-    none: {
-      maxWidth: undefined,
-      maxHeight: undefined,
-      quality: 1,
-      preserveAspectRatio: true,
-    },
-    low: {
-      maxWidth: 1024,
-      maxHeight: 1024,
-      quality: 0.5,
-      preserveAspectRatio: true,
-    },
-    medium: {
-      maxWidth: 1600,
-      maxHeight: 1600,
-      quality: 0.75,
-      preserveAspectRatio: true,
-    },
-    high: {
-      maxWidth: 2048,
-      maxHeight: 2048,
-      quality: 0.9,
-      preserveAspectRatio: true,
-    },
-  };
-
-  // Process and validate dropped files
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [allMetadata, setAllMetadata] = useState({
+    categories: [] as string[],
+    tags: '' as string,
+  });
+  
+  // Configure the dropzone
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    const newFiles = acceptedFiles.map((file) => {
-      const isImage = file.type.startsWith('image/');
-      const isVideo = file.type.startsWith('video/');
-      
-      // Create a preview URL
-      let preview = URL.createObjectURL(file);
+    const newFiles = acceptedFiles.map(file => {
+      // Generate preview URLs for images
+      const preview = file.type.startsWith('image/') 
+        ? URL.createObjectURL(file) 
+        : file.type.startsWith('video/')
+          ? '/video-placeholder.jpg' // Use a placeholder for video previews
+          : '/file-placeholder.jpg'; // Use a placeholder for other file types
       
       return {
         id: Math.random().toString(36).substr(2, 9),
         file,
         preview,
-        status: 'pending' as const,
         progress: 0,
+        status: 'queued' as const,
         metadata: {
-          altText: '',
+          title: file.name.split('.')[0], // Default title is filename without extension
+          alt_text: '',
           description: '',
+          categories: [],
           tags: [],
-          optimizationOptions: optimizationPresets[optimizationPreset as keyof typeof optimizationPresets],
         }
       };
     });
-
-    setFiles((prevFiles) => [...prevFiles, ...newFiles]);
-  }, [optimizationPreset]);
-
-  // Configure dropzone
-  const { 
-    getRootProps, 
-    getInputProps, 
-    isDragActive,
-    open
-  } = useDropzone({
+    
+    setUploadFiles([...uploadFiles, ...newFiles]);
+    toast.success(`Added ${acceptedFiles.length} files to upload queue`);
+  }, [uploadFiles]);
+  
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    maxSize: 10485760, // 10MB
-    noClick: files.length > 0, // Disable click if files are already added
     accept: {
       'image/*': [],
       'video/*': [],
+      'application/pdf': [],
     }
   });
-
-  // Remove file from the list
-  const removeFile = (id: string) => {
-    setFiles((prevFiles) => {
-      const updatedFiles = prevFiles.filter((file) => file.id !== id);
-      
-      // Release object URL to avoid memory leaks
-      const fileToRemove = prevFiles.find((file) => file.id === id);
-      if (fileToRemove) {
-        URL.revokeObjectURL(fileToRemove.preview);
-      }
-      
-      return updatedFiles;
-    });
-  };
-
-  // Update file metadata
-  const updateFileMetadata = (id: string, field: string, value: any) => {
-    setFiles((prevFiles) => 
-      prevFiles.map((file) => {
-        if (file.id === id) {
-          return {
-            ...file,
-            metadata: {
-              ...file.metadata,
-              [field]: value
-            }
-          };
-        }
-        return file;
-      })
-    );
-  };
-
-  // Get file extension
-  const getFileExtension = (filename: string): string => {
-    return filename.split('.').pop()?.toUpperCase() || '';
-  };
-
+  
   // Format file size
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
@@ -169,327 +120,287 @@ const MediaUploader: React.FC = () => {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
-
-  // Upload all files
-  const uploadAllFiles = async () => {
-    if (files.length === 0) return;
+  
+  // Update metadata for a specific file
+  const updateMetadata = (id: string, field: string, value: any) => {
+    setUploadFiles(uploadFiles.map(file => {
+      if (file.id === id) {
+        return {
+          ...file,
+          metadata: {
+            ...file.metadata,
+            [field]: value
+          }
+        };
+      }
+      return file;
+    }));
+  };
+  
+  // Apply metadata to all files
+  const applyMetadataToAll = () => {
+    setUploadFiles(uploadFiles.map(file => ({
+      ...file,
+      metadata: {
+        ...file.metadata,
+        categories: allMetadata.categories,
+        tags: allMetadata.tags ? allMetadata.tags.split(',').map(t => t.trim()) : [],
+      }
+    })));
+    
+    toast.success('Metadata applied to all files');
+  };
+  
+  // Remove a file from the upload queue
+  const removeFile = (id: string) => {
+    setUploadFiles(uploadFiles.filter(file => file.id !== id));
+    toast.info('File removed from queue');
+  };
+  
+  // Clear all files from the upload queue
+  const clearQueue = () => {
+    setUploadFiles([]);
+    toast.info('Upload queue cleared');
+  };
+  
+  // Simulate file upload
+  const startUpload = async () => {
+    if (uploadFiles.length === 0) return;
     
     setIsUploading(true);
+    setUploadProgress(0);
     
-    // Process files sequentially to avoid overwhelming the server
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
+    // Update all files to uploading status
+    setUploadFiles(uploadFiles.map(file => ({
+      ...file,
+      status: 'uploading',
+      progress: 0
+    })));
+    
+    // Simulate uploading each file
+    let completed = 0;
+    const totalFiles = uploadFiles.length;
+    
+    for (const file of uploadFiles) {
+      // Update this file to uploading status
+      setUploadFiles(prevFiles => prevFiles.map(f => 
+        f.id === file.id ? { ...f, status: 'uploading' } : f
+      ));
       
-      if (file.status === 'success') continue;
-      
-      try {
-        // Update status to uploading
-        setFiles((prevFiles) => 
-          prevFiles.map((f) => 
-            f.id === file.id ? { ...f, status: 'uploading' as const } : f
-          )
-        );
+      // Simulate progress updates
+      for (let progress = 0; progress <= 100; progress += 10) {
+        await new Promise(resolve => setTimeout(resolve, 100));
         
-        // Upload the file
-        const result = await upload(
-          file.file,
-          'images' as BucketType,
-          folderPath || undefined,
-          true, // optimize
-          {
-            alt_text: file.metadata.altText,
-            description: file.metadata.description,
-            tags: file.metadata.tags.length > 0 ? file.metadata.tags : undefined,
-          },
-          file.metadata.optimizationOptions
-        );
-        
-        // Update file status based on result
-        setFiles((prevFiles) => 
-          prevFiles.map((f) => {
-            if (f.id === file.id) {
-              return { 
-                ...f, 
-                status: result.success ? 'success' as const : 'error' as const,
-                progress: 100,
-                error: result.success ? undefined : (result.error as any)?.message || 'Upload failed'
-              };
-            }
-            return f;
-          })
-        );
-        
-      } catch (error) {
-        console.error('Error uploading file:', error);
-        
-        setFiles((prevFiles) => 
-          prevFiles.map((f) => {
-            if (f.id === file.id) {
-              return { 
-                ...f, 
-                status: 'error' as const, 
-                error: (error as Error).message || 'Unknown error occurred'
-              };
-            }
-            return f;
-          })
-        );
+        // Update file progress
+        setUploadFiles(prevFiles => prevFiles.map(f => 
+          f.id === file.id ? { ...f, progress } : f
+        ));
       }
+      
+      // Mark as complete
+      setUploadFiles(prevFiles => prevFiles.map(f => 
+        f.id === file.id ? { ...f, status: 'success', progress: 100 } : f
+      ));
+      
+      // Update overall progress
+      completed++;
+      setUploadProgress(Math.floor((completed / totalFiles) * 100));
     }
     
+    // All done!
     setIsUploading(false);
-    
-    // Check if all uploads were successful
-    const successCount = files.filter(f => f.status === 'success').length;
-    if (successCount === files.length) {
-      toast.success(`Successfully uploaded ${successCount} files`);
-    } else if (successCount > 0) {
-      toast.info(`Uploaded ${successCount} of ${files.length} files`);
-    } else {
-      toast.error('Failed to upload files');
-    }
+    toast.success(`Successfully uploaded ${uploadFiles.length} files`);
   };
-
-  // Clear all files
-  const clearAllFiles = () => {
-    // Clean up previews
-    files.forEach(file => {
-      URL.revokeObjectURL(file.preview);
-    });
-    
-    setFiles([]);
+  
+  // Preview component for each file
+  const FilePreview = ({ file }: { file: UploadFile }) => {
+    return (
+      <Card className="overflow-hidden">
+        <div className="relative aspect-square bg-muted">
+          {file.status === 'uploading' && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
+              <Progress value={file.progress} className="w-1/2" />
+            </div>
+          )}
+          
+          {file.status === 'success' && (
+            <div className="absolute top-2 right-2 z-10">
+              <CheckCircle2 className="h-6 w-6 text-green-500" />
+            </div>
+          )}
+          
+          {file.status === 'error' && (
+            <div className="absolute top-2 right-2 z-10">
+              <AlertCircle className="h-6 w-6 text-red-500" />
+            </div>
+          )}
+          
+          {file.file.type.startsWith('image/') ? (
+            <img 
+              src={file.preview} 
+              alt={file.metadata?.alt_text || file.file.name}
+              className="w-full h-full object-cover" 
+            />
+          ) : file.file.type.startsWith('video/') ? (
+            <div className="w-full h-full flex items-center justify-center bg-gray-900">
+              <FileVideo className="h-12 w-12 text-gray-400" />
+            </div>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <FileType className="h-12 w-12 text-gray-400" />
+            </div>
+          )}
+          
+          <button 
+            onClick={() => removeFile(file.id)}
+            className="absolute top-2 left-2 bg-white dark:bg-gray-800 rounded-full p-1 shadow-lg"
+          >
+            <X className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+          </button>
+        </div>
+        
+        <CardContent className="p-3">
+          <div className="truncate text-sm font-medium">{file.file.name}</div>
+          <div className="flex items-center justify-between mt-1">
+            <Badge variant="outline" className="text-xs">
+              {file.file.type.split('/')[0]}
+            </Badge>
+            <span className="text-xs text-muted-foreground">
+              {formatFileSize(file.file.size)}
+            </span>
+          </div>
+          
+          <div className="mt-3">
+            <Input
+              placeholder="Title"
+              value={file.metadata?.title || ''}
+              onChange={(e) => updateMetadata(file.id, 'title', e.target.value)}
+              className="mb-2"
+            />
+            <Input
+              placeholder="Alt Text"
+              value={file.metadata?.alt_text || ''}
+              onChange={(e) => updateMetadata(file.id, 'alt_text', e.target.value)}
+              className="mb-2"
+            />
+          </div>
+        </CardContent>
+      </Card>
+    );
   };
-
-  // Count files by status
-  const countByStatus = (status: 'pending' | 'uploading' | 'success' | 'error') => {
-    return files.filter(file => file.status === status).length;
-  };
-
+  
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="md:col-span-2">
-          <div
-            {...getRootProps()}
-            className={`border-2 border-dashed rounded-lg p-6 transition-colors ${
-              isDragActive ? 'border-primary bg-primary/10' : 'border-gray-300'
-            } ${files.length > 0 ? 'h-64 overflow-y-auto' : 'h-96 flex items-center justify-center'}`}
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Upload Media</CardTitle>
+          <CardDescription>
+            Drag and drop files or click to browse. Supported formats: images, videos, and PDFs.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div 
+            {...getRootProps()} 
+            className={`border-2 border-dashed rounded-lg p-10 cursor-pointer flex flex-col items-center justify-center text-center ${
+              isDragActive ? 'border-primary bg-primary/5' : 'border-gray-300 dark:border-gray-600'
+            }`}
           >
             <input {...getInputProps()} />
-            
-            {files.length === 0 ? (
-              <div className="text-center">
-                <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">
-                  Drag & drop files here
-                </h3>
-                <p className="text-sm text-gray-500 mb-4">
-                  or click to browse your device
-                </p>
-                <Button onClick={open}>
-                  Select Files
+            <UploadCloud className="h-12 w-12 text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium mb-1">
+              {isDragActive ? 'Drop files here' : 'Drag and drop files'}
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              or click to browse your device
+            </p>
+            <Button type="button">Select Files</Button>
+          </div>
+        </CardContent>
+      </Card>
+      
+      {uploadFiles.length > 0 && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Upload Queue</CardTitle>
+              <CardDescription>
+                {uploadFiles.length} file{uploadFiles.length !== 1 ? 's' : ''} ready to upload
+              </CardDescription>
+            </div>
+            {!isUploading && (
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={clearQueue}>
+                  Clear All
+                </Button>
+                <Button onClick={startUpload}>
+                  Upload All
                 </Button>
               </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-medium">Upload Queue ({files.length})</h3>
-                  <div className="flex items-center gap-2">
-                    <Button size="sm" variant="outline" onClick={open}>
-                      Add Files
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={clearAllFiles}>
-                      Clear All
-                    </Button>
+            )}
+          </CardHeader>
+          
+          <CardContent>
+            <Tabs defaultValue="files">
+              <TabsList className="mb-4">
+                <TabsTrigger value="files">Files</TabsTrigger>
+                <TabsTrigger value="batch-metadata">Batch Metadata</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="files">
+                {isUploading && (
+                  <div className="mb-6">
+                    <p className="mb-2 text-center font-medium">Uploading files...</p>
+                    <Progress value={uploadProgress} />
                   </div>
-                </div>
+                )}
                 
-                <div className="space-y-2">
-                  {files.map((file) => (
-                    <Card key={file.id} className="overflow-hidden">
-                      <CardContent className="p-3">
-                        <div className="flex justify-between items-center">
-                          <div className="flex items-center gap-3">
-                            <div className="h-12 w-12 bg-muted rounded flex items-center justify-center overflow-hidden">
-                              {file.file.type.startsWith('image/') ? (
-                                <img 
-                                  src={file.preview} 
-                                  alt="Preview" 
-                                  className="h-full w-full object-cover"
-                                />
-                              ) : file.file.type.startsWith('video/') ? (
-                                <Film className="h-6 w-6 text-gray-400" />
-                              ) : (
-                                <FileImage className="h-6 w-6 text-gray-400" />
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="truncate font-medium text-sm">
-                                {file.file.name}
-                              </div>
-                              <div className="text-xs text-muted-foreground mt-0.5">
-                                {getFileExtension(file.file.name)} • {formatFileSize(file.file.size)}
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center gap-2">
-                            {file.status === 'pending' && (
-                              <Button 
-                                size="icon" 
-                                variant="ghost" 
-                                onClick={() => removeFile(file.id)}
-                                className="h-8 w-8"
-                              >
-                                <X size={16} />
-                              </Button>
-                            )}
-                            {file.status === 'uploading' && (
-                              <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                            )}
-                            {file.status === 'success' && (
-                              <Check className="h-5 w-5 text-green-500" />
-                            )}
-                            {file.status === 'error' && (
-                              <AlertCircle className="h-5 w-5 text-red-500" />
-                            )}
-                          </div>
-                        </div>
-                        
-                        {file.status === 'uploading' && (
-                          <Progress value={file.progress} className="h-1 mt-2" />
-                        )}
-                        
-                        {file.status === 'error' && (
-                          <p className="text-xs text-red-500 mt-1">{file.error}</p>
-                        )}
-                      </CardContent>
-                    </Card>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                  {uploadFiles.map((file) => (
+                    <FilePreview key={file.id} file={file} />
                   ))}
                 </div>
-              </div>
-            )}
-          </div>
-        </div>
-        
-        <div>
-          <Card>
-            <CardContent className="p-4 space-y-4">
-              <h3 className="font-medium">Upload Settings</h3>
+              </TabsContent>
               
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  <Label>Target Folder</Label>
-                  <Input
-                    placeholder="e.g., news/2025 (optional)"
-                    value={folderPath}
-                    onChange={(e) => setFolderPath(e.target.value)}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Optimization Level</Label>
-                  <Select 
-                    value={optimizationPreset} 
-                    onValueChange={setOptimizationPreset}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select optimization" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">None (Original Quality)</SelectItem>
-                      <SelectItem value="low">Low (Smaller Size)</SelectItem>
-                      <SelectItem value="medium">Medium (Recommended)</SelectItem>
-                      <SelectItem value="high">High (Best Quality)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                {files.length > 0 && (
-                  <>
-                    <Separator />
-                    
-                    <div className="pt-2">
-                      <div className="flex justify-between text-sm mb-2">
-                        <span>Files to upload:</span>
-                        <span>{countByStatus('pending')}</span>
-                      </div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span>Uploaded:</span>
-                        <span className="text-green-500">{countByStatus('success')}</span>
-                      </div>
-                      <div className="flex justify-between text-sm mb-4">
-                        <span>Failed:</span>
-                        <span className="text-red-500">{countByStatus('error')}</span>
-                      </div>
-                      
-                      <Button
-                        className="w-full"
-                        onClick={uploadAllFiles}
-                        disabled={isUploading || countByStatus('pending') === 0}
-                      >
-                        {isUploading ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Uploading...
-                          </>
-                        ) : (
-                          <>Upload {countByStatus('pending')} Files</>
-                        )}
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-          
-          {files.length === 1 && (
-            <Card className="mt-4">
-              <CardContent className="p-4 space-y-4">
-                <h3 className="font-medium">File Metadata</h3>
-                
-                <div className="space-y-3">
+              <TabsContent value="batch-metadata">
+                <div className="space-y-4 max-w-xl mx-auto">
                   <div className="space-y-2">
-                    <Label>Alt Text</Label>
-                    <Input
-                      placeholder="Describe this image"
-                      value={files[0].metadata.altText}
-                      onChange={(e) => updateFileMetadata(files[0].id, 'altText', e.target.value)}
-                    />
+                    <label className="font-medium text-sm">Categories (Apply to all files)</label>
+                    <Select 
+                      value={allMetadata.categories[0] || ''} 
+                      onValueChange={(value) => setAllMetadata({...allMetadata, categories: [value]})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {mockCategories.map(cat => (
+                          <SelectItem key={cat.id} value={cat.name}>
+                            {cat.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   <div className="space-y-2">
-                    <Label>Description</Label>
-                    <Textarea
-                      placeholder="Add a description"
-                      value={files[0].metadata.description}
-                      onChange={(e) => updateFileMetadata(files[0].id, 'description', e.target.value)}
-                      rows={3}
+                    <label className="font-medium text-sm">Tags (Apply to all files)</label>
+                    <Input 
+                      placeholder="Enter tags separated by commas"
+                      value={allMetadata.tags}
+                      onChange={(e) => setAllMetadata({...allMetadata, tags: e.target.value})}
                     />
+                    <p className="text-xs text-muted-foreground">E.g., match, team, celebration</p>
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label>Tags (comma separated)</Label>
-                    <Input
-                      placeholder="e.g., match day, team, news"
-                      value={files[0].metadata.tags.join(', ')}
-                      onChange={(e) => {
-                        const tags = e.target.value
-                          .split(',')
-                          .map(tag => tag.trim())
-                          .filter(tag => tag.length > 0);
-                        
-                        updateFileMetadata(files[0].id, 'tags', tags);
-                      }}
-                    />
-                  </div>
+                  <Button onClick={applyMetadataToAll} className="w-full">
+                    Apply to All Files
+                  </Button>
                 </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

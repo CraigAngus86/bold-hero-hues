@@ -1,447 +1,282 @@
 
-import React, { useState, useEffect } from 'react';
-import { ImageMetadata, updateImageMetadata } from '@/services/images';
+import React, { useState } from 'react';
+import { ImageMetadata } from '@/services/images';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogClose,
+  DialogDescription,
 } from '@/components/ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormDescription,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Separator } from '@/components/ui/separator';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { FileImage, FileVideo, File as FileIcon, Trash, Save, Calendar, Clock, Paintbrush, Tag as TagIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Switch } from '@/components/ui/switch';
-import { useForm } from 'react-hook-form';
-import { X, FileImage, FileVideo, Info, Trash, Download, PenLine, Tag, Plus } from 'lucide-react';
-import { toast } from 'sonner';
-import { format } from 'date-fns';
 
 interface MediaDetailsDialogProps {
   media: ImageMetadata;
   isOpen: boolean;
   onClose: () => void;
-  onUpdate?: (updatedMedia: ImageMetadata) => void;
-}
-
-interface MediaFormData {
-  altText: string;
-  description: string;
-  isFeatured: boolean;
-  caption: string;
-  tags: string[];
+  onSave: (updatedMedia: ImageMetadata) => void;
+  onDelete: (mediaId: string) => void;
+  categories?: string[];
 }
 
 const MediaDetailsDialog: React.FC<MediaDetailsDialogProps> = ({
   media,
   isOpen,
   onClose,
-  onUpdate,
+  onSave,
+  onDelete,
+  categories = [],
 }) => {
-  const [tagInput, setTagInput] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-
-  const isImage = media.type.startsWith('image/');
-  const isVideo = media.type.startsWith('video/');
+  const [editedMedia, setEditedMedia] = useState<ImageMetadata>(media);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [newTag, setNewTag] = useState('');
   
-  // Initialize form
-  const form = useForm<MediaFormData>({
-    defaultValues: {
-      altText: media.alt_text || '',
-      description: media.description || '',
-      isFeatured: false,
-      caption: '',
-      tags: media.tags || [],
-    },
-  });
-
-  // Reset form when media changes
-  useEffect(() => {
-    if (isOpen) {
-      form.reset({
-        altText: media.alt_text || '',
-        description: media.description || '',
-        isFeatured: false,
-        caption: '',
-        tags: media.tags || [],
-      });
-      setIsEditing(false);
-    }
-  }, [media, isOpen, form]);
-
-  // Format creation date
-  const formatDate = (dateString: string): string => {
-    try {
-      return format(new Date(dateString), 'PPP p');
-    } catch (e) {
-      return 'Unknown date';
-    }
+  // Handle input changes
+  const handleChange = (field: keyof ImageMetadata, value: any) => {
+    setEditedMedia({
+      ...editedMedia,
+      [field]: value,
+    });
   };
-
-  // Format file size
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  
+  // Handle saving changes
+  const handleSave = () => {
+    onSave(editedMedia);
+    onClose();
   };
-
-  // Handle tag input
-  const handleAddTag = () => {
-    if (tagInput.trim() && !form.getValues().tags.includes(tagInput.trim())) {
-      const updatedTags = [...form.getValues().tags, tagInput.trim()];
-      form.setValue('tags', updatedTags);
-      setTagInput('');
+  
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+  };
+  
+  // Add a new tag
+  const addTag = () => {
+    if (!newTag.trim()) return;
+    
+    const tags = [...(editedMedia.tags || [])];
+    if (!tags.includes(newTag.trim().toLowerCase())) {
+      tags.push(newTag.trim().toLowerCase());
+      handleChange('tags', tags);
     }
+    setNewTag('');
   };
-
-  const handleTagKeyDown = (e: React.KeyboardEvent) => {
+  
+  // Remove a tag
+  const removeTag = (tag: string) => {
+    const tags = editedMedia.tags?.filter(t => t !== tag) || [];
+    handleChange('tags', tags);
+  };
+  
+  // Handle pressing Enter in the tag input
+  const handleTagKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      handleAddTag();
+      addTag();
     }
   };
-
-  const removeTag = (tag: string) => {
-    const updatedTags = form.getValues().tags.filter(t => t !== tag);
-    form.setValue('tags', updatedTags);
-  };
-
-  // Handle form submission
-  const onSubmit = async (data: MediaFormData) => {
-    setIsSaving(true);
-    
-    try {
-      // Update metadata in Supabase
-      const { success, error } = await updateImageMetadata(
-        media.bucketType,
-        media.url.split('/').pop() || '', // Extract the path from the URL
-        {
-          alt_text: data.altText,
-          description: data.description,
-          tags: data.tags,
-        }
-      );
-      
-      if (success) {
-        toast.success("Media details updated successfully");
-        
-        // Update local state with new values
-        const updatedMedia = {
-          ...media,
-          alt_text: data.altText,
-          description: data.description,
-          tags: data.tags
-        };
-        
-        if (onUpdate) {
-          onUpdate(updatedMedia);
-        }
-        
-        setIsEditing(false);
-      } else {
-        toast.error(`Failed to update: ${error}`);
-      }
-    } catch (err) {
-      console.error('Error updating media:', err);
-      toast.error("Failed to update media details");
-    } finally {
-      setIsSaving(false);
+  
+  // Determine the appropriate icon for the media type
+  const getMediaTypeIcon = () => {
+    if (editedMedia.type.startsWith('image/')) {
+      return <FileImage className="h-5 w-5" />;
+    } else if (editedMedia.type.startsWith('video/')) {
+      return <FileVideo className="h-5 w-5" />;
+    } else {
+      return <FileIcon className="h-5 w-5" />;
     }
   };
-
-  const handleDelete = () => {
-    toast("Delete functionality will be implemented in a future update");
-  };
-
-  const handleDownload = () => {
-    // Create a temporary anchor element
-    const link = document.createElement('a');
-    link.href = media.url;
-    link.download = media.name;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
+  
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[800px] p-0 max-h-[80vh] overflow-hidden">
-        <DialogHeader className="p-4 border-b">
-          <DialogTitle className="flex items-center justify-between">
-            <span>{isEditing ? 'Edit Media Details' : 'Media Details'}</span>
-            <DialogClose className="rounded-full h-6 w-6 flex items-center justify-center">
-              <X className="h-4 w-4" />
-            </DialogClose>
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[calc(80vh-120px)] overflow-auto p-6">
-          {/* Media preview */}
-          <div className="flex flex-col h-full">
-            <div className="bg-muted rounded-md flex items-center justify-center overflow-hidden mb-4" style={{ minHeight: '200px' }}>
-              {isImage ? (
+    <>
+      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Media Details</DialogTitle>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="aspect-square bg-muted rounded-md overflow-hidden flex items-center justify-center">
+              {editedMedia.type.startsWith('image/') ? (
                 <img
-                  src={media.url}
-                  alt={media.alt_text || media.name}
-                  className="max-w-full max-h-[400px] object-contain"
+                  src={editedMedia.url}
+                  alt={editedMedia.alt_text || editedMedia.name}
+                  className="w-full h-full object-contain"
                 />
-              ) : isVideo ? (
-                <video
-                  src={media.url}
-                  controls
-                  className="max-w-full max-h-[400px]"
-                />
+              ) : editedMedia.type.startsWith('video/') ? (
+                <div className="w-full h-full flex items-center justify-center bg-gray-900">
+                  <FileVideo className="h-16 w-16 text-gray-400" />
+                </div>
               ) : (
-                <div className="flex flex-col items-center justify-center p-8">
-                  <FileImage className="h-16 w-16 text-gray-400 mb-2" />
-                  <span className="text-sm text-gray-500">Preview not available</span>
+                <div className="w-full h-full flex items-center justify-center">
+                  <FileIcon className="h-16 w-16 text-gray-400" />
                 </div>
               )}
             </div>
             
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium">File Information</h3>
-              <div className="text-sm text-muted-foreground space-y-1">
-                <p><strong>Name:</strong> {media.name}</p>
-                <p><strong>Type:</strong> {media.type}</p>
-                <p><strong>Size:</strong> {formatFileSize(media.size)}</p>
-                <p><strong>Uploaded:</strong> {formatDate(media.createdAt)}</p>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Title</label>
+                <Input 
+                  value={editedMedia.name || ''} 
+                  onChange={(e) => handleChange('name', e.target.value)} 
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Alt Text</label>
+                <Input 
+                  value={editedMedia.alt_text || ''} 
+                  onChange={(e) => handleChange('alt_text', e.target.value)} 
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Description</label>
+                <Textarea 
+                  value={editedMedia.description || ''} 
+                  onChange={(e) => handleChange('description', e.target.value)}
+                  rows={3}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Categories</label>
+                <div className="flex flex-wrap gap-2">
+                  {categories.map(category => (
+                    <Badge 
+                      key={category}
+                      variant={editedMedia.categories?.includes(category) ? "default" : "outline"}
+                      className="cursor-pointer"
+                      onClick={() => {
+                        const current = editedMedia.categories || [];
+                        const updated = current.includes(category)
+                          ? current.filter(c => c !== category)
+                          : [...current, category];
+                        handleChange('categories', updated);
+                      }}
+                    >
+                      {category}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Tags</label>
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  {editedMedia.tags?.map(tag => (
+                    <Badge 
+                      key={tag}
+                      variant="secondary"
+                      className="gap-1"
+                    >
+                      {tag}
+                      <button onClick={() => removeTag(tag)} className="ml-1">
+                        ×
+                      </button>
+                    </Badge>
+                  ))}
+                  
+                  {(editedMedia.tags?.length || 0) === 0 && (
+                    <span className="text-xs text-muted-foreground">No tags</span>
+                  )}
+                </div>
                 
-                {media.dimensions && (
-                  <p><strong>Dimensions:</strong> {media.dimensions.width} x {media.dimensions.height}</p>
-                )}
+                <div className="flex gap-2">
+                  <Input 
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    onKeyPress={handleTagKeyPress}
+                    placeholder="Add a tag"
+                  />
+                  <Button type="button" onClick={addTag}>Add</Button>
+                </div>
               </div>
             </div>
           </div>
-
-          {/* Media details */}
-          <div className="space-y-4">
-            <Tabs defaultValue="details">
-              <TabsList className="w-full">
-                <TabsTrigger value="details" className="flex-1">Details</TabsTrigger>
-                <TabsTrigger value="usage" className="flex-1">Usage</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="details" className="space-y-4 pt-4">
-                {isEditing ? (
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                      <FormField
-                        control={form.control}
-                        name="altText"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Alt Text</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Describe this image" {...field} />
-                            </FormControl>
-                            <FormDescription>
-                              Describe the image for accessibility purposes
-                            </FormDescription>
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Description</FormLabel>
-                            <FormControl>
-                              <Textarea 
-                                placeholder="Enter a description" 
-                                className="resize-none"
-                                rows={3}
-                                {...field}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="caption"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Caption</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Enter caption" {...field} />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="tags"
-                        render={() => (
-                          <FormItem>
-                            <FormLabel>Tags</FormLabel>
-                            <div className="flex flex-wrap gap-2 mb-2">
-                              {form.getValues().tags.map((tag) => (
-                                <Badge key={tag} variant="secondary" className="px-2 py-1">
-                                  {tag}
-                                  <X
-                                    className="h-3 w-3 ml-1 cursor-pointer"
-                                    onClick={() => removeTag(tag)}
-                                  />
-                                </Badge>
-                              ))}
-                            </div>
-                            <div className="flex gap-2">
-                              <Input
-                                placeholder="Add a tag"
-                                value={tagInput}
-                                onChange={(e) => setTagInput(e.target.value)}
-                                onKeyDown={handleTagKeyDown}
-                              />
-                              <Button 
-                                type="button" 
-                                variant="outline" 
-                                onClick={handleAddTag}
-                              >
-                                <Plus size={16} />
-                              </Button>
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="isFeatured"
-                        render={({ field }) => (
-                          <FormItem className="flex items-center justify-between">
-                            <div>
-                              <FormLabel>Featured</FormLabel>
-                              <FormDescription>
-                                Mark this media as featured
-                              </FormDescription>
-                            </div>
-                            <FormControl>
-                              <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setIsEditing(false)}
-                        >
-                          Cancel
-                        </Button>
-                        <Button 
-                          type="submit"
-                          disabled={isSaving}
-                        >
-                          {isSaving ? 'Saving...' : 'Save Changes'}
-                        </Button>
-                      </div>
-                    </form>
-                  </Form>
-                ) : (
-                  <div className="space-y-6">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-medium">Alt Text</h3>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8"
-                          onClick={() => setIsEditing(true)}
-                        >
-                          <PenLine size={14} className="mr-1" /> Edit
-                        </Button>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        {media.alt_text || "No alt text provided"}
-                      </p>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <h3 className="text-sm font-medium">Description</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {media.description || "No description provided"}
-                      </p>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <h3 className="text-sm font-medium">Tags</h3>
-                      <div className="flex flex-wrap gap-1">
-                        {media.tags && media.tags.length > 0 ? (
-                          media.tags.map((tag) => (
-                            <Badge key={tag} variant="secondary">
-                              {tag}
-                            </Badge>
-                          ))
-                        ) : (
-                          <span className="text-sm text-muted-foreground">No tags added</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </TabsContent>
-              
-              <TabsContent value="usage" className="pt-4">
-                <div className="space-y-4">
-                  <div className="bg-muted p-4 rounded-md flex items-center justify-center">
-                    <Info size={16} className="text-muted-foreground mr-2" />
-                    <p className="text-sm text-muted-foreground">
-                      Usage tracking will be implemented in a future update.
-                    </p>
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
-        </div>
-
-        <DialogFooter className="p-4 border-t">
-          <div className="flex justify-between w-full">
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleDelete}
-            >
-              <Trash size={16} className="mr-2" /> Delete
-            </Button>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDownload}
-              >
-                <Download size={16} className="mr-2" /> Download
-              </Button>
+          
+          <Separator className="my-4" />
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div>
+              <span className="text-muted-foreground flex items-center gap-1">
+                {getMediaTypeIcon()} Type
+              </span>
+              <p className="font-medium">{editedMedia.type}</p>
+            </div>
+            
+            <div>
+              <span className="text-muted-foreground flex items-center gap-1">
+                <Calendar className="h-4 w-4" /> Created
+              </span>
+              <p className="font-medium">{formatDate(editedMedia.createdAt)}</p>
+            </div>
+            
+            <div>
+              <span className="text-muted-foreground flex items-center gap-1">
+                <Paintbrush className="h-4 w-4" /> Dimensions
+              </span>
+              <p className="font-medium">
+                {editedMedia.width}×{editedMedia.height}
+              </p>
+            </div>
+            
+            <div>
+              <span className="text-muted-foreground flex items-center gap-1">
+                <TagIcon className="h-4 w-4" /> Size
+              </span>
+              <p className="font-medium">
+                {Math.round(editedMedia.size / 1024)} KB
+              </p>
             </div>
           </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          
+          <DialogFooter className="gap-2">
+            <Button 
+              variant="destructive" 
+              onClick={() => setIsDeleteDialogOpen(true)}
+            >
+              <Trash className="h-4 w-4 mr-2" />
+              Delete
+            </Button>
+            <Button onClick={handleSave}>
+              <Save className="h-4 w-4 mr-2" />
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete "{editedMedia.name}". This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              onDelete(editedMedia.id);
+              setIsDeleteDialogOpen(false);
+            }} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
 

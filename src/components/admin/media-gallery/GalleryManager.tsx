@@ -1,550 +1,520 @@
 
 import React, { useState } from 'react';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Plus, 
+  Pencil, 
+  Trash, 
+  Save, 
+  X, 
+  Image as ImageIcon, 
+  MoveHorizontal
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogTrigger,
-  DialogClose,
-  DialogDescription,
 } from '@/components/ui/dialog';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  Plus,
-  Edit,
-  Trash,
-  MoreVertical,
-  Image,
-  MoveUp,
-  MoveDown,
-  Images,
-  Search,
-  GridIcon,
-  ListIcon,
-  Star,
-  X
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
-// Gallery types
+// Types for our gallery data
 interface Gallery {
   id: string;
   name: string;
-  slug: string;
   description: string;
-  coverImage: string | null;
-  itemCount: number;
+  slug: string;
+  imageCount: number;
+  featuredImage?: string;
   createdAt: string;
 }
 
-interface GalleryItem {
-  id: string;
-  url: string;
-  name: string;
-  type: string;
-  isFeatured: boolean;
-}
-
-// Initial mock data
-const initialGalleries: Gallery[] = [
+// Mock data for galleries
+const mockGalleries: Gallery[] = [
   {
     id: '1',
-    name: 'Highland League Cup Final',
-    slug: 'highland-league-cup-final',
-    description: 'Photos from the Highland League Cup Final 2025',
-    coverImage: '/lovable-uploads/587f8bd1-4140-4179-89f8-dc2ac1b2e072.png',
-    itemCount: 12,
-    createdAt: '2025-03-15T10:00:00Z',
+    name: 'Match Day Photos',
+    description: 'Photos from recent matches at Spain Park',
+    slug: 'match-day-photos',
+    imageCount: 24,
+    featuredImage: '/lovable-uploads/banks-o-dee-logo.png',
+    createdAt: '2024-01-20T12:00:00',
   },
   {
     id: '2',
+    name: 'Team Training',
+    description: 'Photos from team training sessions',
+    slug: 'team-training',
+    imageCount: 15,
+    featuredImage: '/lovable-uploads/cb95b9fb-0f2d-42ef-9788-10509a80ed6e.png',
+    createdAt: '2024-02-05T15:30:00',
+  },
+  {
+    id: '3',
     name: 'Stadium Renovation',
+    description: 'Documentation of stadium improvements',
     slug: 'stadium-renovation',
-    description: 'Progress photos of Spain Park renovation',
-    coverImage: '/lovable-uploads/8f2cd33f-1e08-494a-9aaa-65792ee9418a.png',
-    itemCount: 8,
-    createdAt: '2025-02-20T10:00:00Z',
-  },
-  {
-    id: '3',
-    name: 'Team Photos 2025',
-    slug: 'team-photos-2025',
-    description: 'Official team photos for the 2025 season',
-    coverImage: '/lovable-uploads/4651b18c-bc2e-4e02-96ab-8993f8dfc145.png',
-    itemCount: 20,
-    createdAt: '2025-01-10T10:00:00Z',
+    imageCount: 8,
+    createdAt: '2024-03-12T09:45:00',
   },
 ];
 
-const galleryItems: GalleryItem[] = [
-  {
-    id: '1',
-    url: '/lovable-uploads/587f8bd1-4140-4179-89f8-dc2ac1b2e072.png',
-    name: 'Team celebration',
-    type: 'image/png',
-    isFeatured: true,
-  },
-  {
-    id: '2',
-    url: '/lovable-uploads/4651b18c-bc2e-4e02-96ab-8993f8dfc145.png',
-    name: 'Trophy presentation',
-    type: 'image/png',
-    isFeatured: false,
-  },
-  {
-    id: '3',
-    url: '/lovable-uploads/8f2cd33f-1e08-494a-9aaa-65792ee9418a.png',
-    name: 'Match action',
-    type: 'image/png',
-    isFeatured: false,
-  },
-];
+// Interface for the new or edited gallery form data
+interface GalleryFormData {
+  id?: string;
+  name: string;
+  description: string;
+  featuredImage?: string;
+}
 
 const GalleryManager: React.FC = () => {
   // State
-  const [galleries, setGalleries] = useState<Gallery[]>(initialGalleries);
-  const [activeTab, setActiveTab] = useState('list');
-  const [selectedGallery, setSelectedGallery] = useState<Gallery | null>(null);
-  const [galleryView, setGalleryView] = useState<'grid' | 'list'>('grid');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [items, setItems] = useState<GalleryItem[]>(galleryItems);
-  
-  // Form state
+  const [galleries, setGalleries] = useState<Gallery[]>(mockGalleries);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-  });
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [formData, setFormData] = useState<GalleryFormData>({ name: '', description: '' });
+  const [selectedGallery, setSelectedGallery] = useState<Gallery | null>(null);
+  const [editMode, setEditMode] = useState<boolean>(false);
   
-  // Handle creating a new gallery
+  // Generate a slug from a gallery name
+  const generateSlug = (name: string): string => {
+    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  };
+  
+  // Handle form submission for new gallery
   const handleCreateGallery = () => {
     if (!formData.name.trim()) {
-      toast.error('Gallery name cannot be empty');
+      toast.error('Gallery name is required');
       return;
     }
     
-    const slug = formData.name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
-      
     const newGallery: Gallery = {
       id: Math.random().toString(36).substr(2, 9),
       name: formData.name,
-      slug,
       description: formData.description,
-      coverImage: null,
-      itemCount: 0,
+      slug: generateSlug(formData.name),
+      imageCount: 0,
+      featuredImage: formData.featuredImage,
       createdAt: new Date().toISOString(),
     };
     
     setGalleries([...galleries, newGallery]);
-    setFormData({ name: '', description: '' });
     setIsAddDialogOpen(false);
+    setFormData({ name: '', description: '' });
     toast.success('Gallery created successfully');
   };
   
-  // Handle editing a gallery
-  const handleEditGallery = (gallery: Gallery) => {
-    // This would open an edit dialog in a real implementation
-    // For now we'll just navigate to the gallery details
-    setSelectedGallery(gallery);
-    setActiveTab('details');
+  // Handle updating an existing gallery
+  const handleUpdateGallery = () => {
+    if (!selectedGallery || !formData.name.trim()) {
+      toast.error('Gallery name is required');
+      return;
+    }
+    
+    const updatedGalleries = galleries.map(gallery => {
+      if (gallery.id === selectedGallery.id) {
+        return {
+          ...gallery,
+          name: formData.name,
+          description: formData.description,
+          slug: generateSlug(formData.name),
+          featuredImage: formData.featuredImage || gallery.featuredImage,
+        };
+      }
+      return gallery;
+    });
+    
+    setGalleries(updatedGalleries);
+    setSelectedGallery(null);
+    setEditMode(false);
+    toast.success('Gallery updated successfully');
   };
   
   // Handle deleting a gallery
-  const handleDeleteGallery = (gallery: Gallery) => {
-    setGalleries(galleries.filter(g => g.id !== gallery.id));
-    toast.success(`Gallery "${gallery.name}" deleted successfully`);
-  };
-  
-  // Handle setting a featured image
-  const handleSetFeatured = (itemId: string) => {
-    setItems(items.map(item => ({
-      ...item,
-      isFeatured: item.id === itemId
-    })));
+  const handleDeleteGallery = () => {
+    if (!selectedGallery) return;
     
-    toast.success('Featured image updated');
+    setGalleries(galleries.filter(gallery => gallery.id !== selectedGallery.id));
+    setIsDeleteDialogOpen(false);
+    setSelectedGallery(null);
+    toast.success('Gallery deleted successfully');
   };
   
-  // Handle removing an item from gallery
-  const handleRemoveItem = (itemId: string) => {
-    setItems(items.filter(item => item.id !== itemId));
-    toast.success('Item removed from gallery');
+  // Start editing a gallery
+  const startEditGallery = (gallery: Gallery) => {
+    setSelectedGallery(gallery);
+    setFormData({
+      id: gallery.id,
+      name: gallery.name,
+      description: gallery.description,
+      featuredImage: gallery.featuredImage,
+    });
+    setEditMode(true);
   };
   
-  // Handle reordering items
-  const handleMoveItem = (itemId: string, direction: 'up' | 'down') => {
-    const index = items.findIndex(item => item.id === itemId);
-    if (index < 0) return;
-    
-    if (direction === 'up' && index > 0) {
-      const newItems = [...items];
-      [newItems[index], newItems[index - 1]] = [newItems[index - 1], newItems[index]];
-      setItems(newItems);
-    } else if (direction === 'down' && index < items.length - 1) {
-      const newItems = [...items];
-      [newItems[index], newItems[index + 1]] = [newItems[index + 1], newItems[index]];
-      setItems(newItems);
-    }
+  // Format the date for display
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
   };
-
+  
+  // Open the add dialog
+  const openAddDialog = () => {
+    setFormData({ name: '', description: '' });
+    setIsAddDialogOpen(true);
+  };
+  
   return (
     <div className="space-y-6">
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="flex justify-between items-center mb-4">
+      <Tabs defaultValue="all">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
           <TabsList>
-            <TabsTrigger value="list" onClick={() => setSelectedGallery(null)}>Gallery List</TabsTrigger>
-            {selectedGallery && (
-              <TabsTrigger value="details">
-                {selectedGallery.name}
-              </TabsTrigger>
-            )}
+            <TabsTrigger value="all">All Galleries</TabsTrigger>
+            <TabsTrigger value="published">Published</TabsTrigger>
+            <TabsTrigger value="drafts">Drafts</TabsTrigger>
           </TabsList>
           
-          {activeTab === 'list' && (
-            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Gallery
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Create New Gallery</DialogTitle>
-                  <DialogDescription>
-                    Create a new gallery to organize your media items.
-                  </DialogDescription>
-                </DialogHeader>
-                
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="gallery-name">Gallery Name</Label>
-                    <Input
-                      id="gallery-name"
-                      placeholder="Enter gallery name"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="gallery-description">Description</Label>
-                    <Textarea
-                      id="gallery-description"
-                      placeholder="Enter gallery description"
-                      rows={3}
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    />
-                  </div>
-                </div>
-                
-                <DialogFooter>
-                  <DialogClose asChild>
-                    <Button variant="outline">Cancel</Button>
-                  </DialogClose>
-                  <Button onClick={handleCreateGallery}>Create Gallery</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          )}
+          <Button onClick={openAddDialog}>
+            <Plus className="mr-2 h-4 w-4" /> Create Gallery
+          </Button>
         </div>
         
-        <TabsContent value="list" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {galleries.map((gallery) => (
-              <Card key={gallery.id} className="overflow-hidden">
-                <div className="aspect-video bg-muted relative">
-                  {gallery.coverImage ? (
-                    <img 
-                      src={gallery.coverImage} 
-                      alt={gallery.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Images className="h-12 w-12 text-gray-400" />
-                    </div>
-                  )}
-                  
-                  <div className="absolute top-2 right-2">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="secondary" size="icon" className="h-8 w-8">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEditGallery(gallery)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDeleteGallery(gallery)}>
-                          <Trash className="h-4 w-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-                
-                <CardHeader className="p-4 pb-0">
-                  <CardTitle className="text-lg">
-                    <button 
-                      className="hover:underline text-left"
-                      onClick={() => {
-                        setSelectedGallery(gallery);
-                        setActiveTab('details');
-                      }}
-                    >
-                      {gallery.name}
-                    </button>
-                  </CardTitle>
-                  <CardDescription className="line-clamp-2">
-                    {gallery.description || 'No description provided'}
-                  </CardDescription>
-                </CardHeader>
-                
-                <CardContent className="p-4 pb-0">
-                  <div className="text-sm text-muted-foreground">
-                    {gallery.itemCount} items
-                  </div>
-                </CardContent>
-                
-                <CardFooter className="p-4">
-                  <Button 
-                    variant="secondary" 
-                    className="w-full"
-                    onClick={() => {
-                      setSelectedGallery(gallery);
-                      setActiveTab('details');
-                    }}
-                  >
-                    <Image className="h-4 w-4 mr-2" />
-                    View Gallery
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="details" className="space-y-6">
-          {selectedGallery && (
-            <>
-              <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-                <div>
-                  <h2 className="text-2xl font-bold">{selectedGallery.name}</h2>
-                  <p className="text-muted-foreground mt-1">
-                    {selectedGallery.description || 'No description provided'}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="relative w-full md:w-64">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-                    <Input
-                      placeholder="Search in gallery..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-9"
-                    />
-                  </div>
-                  <Button variant="outline" size="icon" onClick={() => setGalleryView(galleryView === 'grid' ? 'list' : 'grid')}>
-                    {galleryView === 'grid' ? <ListIcon className="h-4 w-4" /> : <GridIcon className="h-4 w-4" />}
-                  </Button>
-                </div>
-              </div>
-              
-              <Separator />
-              
-              <div className="flex flex-col items-center">
-                <div className={cn(
-                  galleryView === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4' : 'w-full'
-                )}>
-                  {items.length === 0 ? (
-                    <div className="col-span-full flex flex-col items-center justify-center py-12 border-2 border-dashed border-gray-300 rounded-md">
-                      <Images className="h-12 w-12 text-gray-400 mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-1">No items in this gallery</h3>
-                      <p className="text-gray-500 text-center max-w-md mb-4">
-                        Add media items from the library to populate this gallery.
-                      </p>
-                      <Button>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Items
-                      </Button>
-                    </div>
-                  ) : (
-                    <>
-                      {galleryView === 'grid' ? (
-                        // Grid view
-                        items.map((item) => (
-                          <Card key={item.id} className="overflow-hidden">
-                            <div className="aspect-square bg-muted relative">
-                              <img 
-                                src={item.url}
-                                alt={item.name}
-                                className="w-full h-full object-cover"
-                              />
-                              {item.isFeatured && (
-                                <div className="absolute top-2 left-2 bg-yellow-500 text-white p-1 rounded-md">
-                                  <Star className="h-3 w-3" />
+        <TabsContent value="all" className="space-y-4">
+          {galleries.length === 0 ? (
+            <Card>
+              <CardContent className="py-8 text-center">
+                <ImageIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium mb-2">No galleries yet</h3>
+                <p className="text-gray-500 mb-4">Create your first gallery to organize your media.</p>
+                <Button onClick={openAddDialog}>Create Gallery</Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Galleries</CardTitle>
+                <CardDescription>Manage your media galleries</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead className="hidden md:table-cell">Slug</TableHead>
+                      <TableHead className="text-center">Images</TableHead>
+                      <TableHead className="hidden md:table-cell">Created</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {galleries.map(gallery => (
+                      <TableRow key={gallery.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
+                              {gallery.featuredImage ? (
+                                <img 
+                                  src={gallery.featuredImage} 
+                                  alt={gallery.name} 
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div className="h-full w-full flex items-center justify-center">
+                                  <ImageIcon className="h-5 w-5 text-gray-400" />
                                 </div>
                               )}
-                              <div className="absolute top-2 right-2">
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="secondary" size="icon" className="h-8 w-8">
-                                      <MoreVertical className="h-4 w-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    {!item.isFeatured && (
-                                      <DropdownMenuItem onClick={() => handleSetFeatured(item.id)}>
-                                        <Star className="h-4 w-4 mr-2" />
-                                        Set as Featured
-                                      </DropdownMenuItem>
-                                    )}
-                                    <DropdownMenuItem onClick={() => handleMoveItem(item.id, 'up')}>
-                                      <MoveUp className="h-4 w-4 mr-2" />
-                                      Move Up
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleMoveItem(item.id, 'down')}>
-                                      <MoveDown className="h-4 w-4 mr-2" />
-                                      Move Down
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleRemoveItem(item.id)}>
-                                      <X className="h-4 w-4 mr-2" />
-                                      Remove from Gallery
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
+                            </div>
+                            <div>
+                              <div className="font-medium">{gallery.name}</div>
+                              <div className="text-xs text-muted-foreground truncate max-w-[200px]">
+                                {gallery.description || 'No description'}
                               </div>
                             </div>
-                            <CardContent className="p-3">
-                              <div className="truncate font-medium text-sm">
-                                {item.name}
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))
-                      ) : (
-                        // List view
-                        <div className="space-y-2 w-full">
-                          {items.map((item, index) => (
-                            <div 
-                              key={item.id}
-                              className={cn(
-                                "flex items-center gap-3 p-2 rounded-md",
-                                item.isFeatured ? "bg-yellow-50 border border-yellow-200" : "hover:bg-gray-50"
-                              )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell text-muted-foreground">
+                          {gallery.slug}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant="outline">{gallery.imageCount}</Badge>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell text-muted-foreground">
+                          {formatDate(gallery.createdAt)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-1">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => {
+                                startEditGallery(gallery);
+                              }}
                             >
-                              <div className="flex-shrink-0 w-12 h-12 bg-muted rounded overflow-hidden">
-                                <img 
-                                  src={item.url}
-                                  alt={item.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                              <div className="flex-grow min-w-0">
-                                <p className="font-medium text-sm truncate">
-                                  {item.name}
-                                  {item.isFeatured && (
-                                    <span className="ml-2 inline-flex items-center text-yellow-600 text-xs">
-                                      <Star className="h-3 w-3 mr-1" /> Featured
-                                    </span>
-                                  )}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  Position: {index + 1}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                {!item.isFeatured && (
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon"
-                                    onClick={() => handleSetFeatured(item.id)}
-                                    className="h-8 w-8"
-                                  >
-                                    <Star className="h-4 w-4" />
-                                  </Button>
-                                )}
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon"
-                                  onClick={() => handleMoveItem(item.id, 'up')}
-                                  disabled={index === 0}
-                                  className="h-8 w-8"
-                                >
-                                  <MoveUp className="h-4 w-4" />
-                                </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon"
-                                  onClick={() => handleMoveItem(item.id, 'down')}
-                                  disabled={index === items.length - 1}
-                                  className="h-8 w-8"
-                                >
-                                  <MoveDown className="h-4 w-4" />
-                                </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon"
-                                  onClick={() => handleRemoveItem(item.id)}
-                                  className="h-8 w-8 text-red-500 hover:text-red-600"
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </>
-                  )}
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => {
+                                setSelectedGallery(gallery);
+                                setIsDeleteDialogOpen(true);
+                              }}
+                            >
+                              <Trash className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="published">
+          <Card>
+            <CardContent className="py-8 text-center">
+              <p className="text-gray-500">
+                Published galleries feature will be available in a future update.
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="drafts">
+          <Card>
+            <CardContent className="py-8 text-center">
+              <p className="text-gray-500">
+                Draft galleries feature will be available in a future update.
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+      
+      {/* Edit gallery panel */}
+      {editMode && selectedGallery && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Edit Gallery</CardTitle>
+              <CardDescription>
+                Update gallery information and manage images
+              </CardDescription>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setEditMode(false)}>
+              <X className="h-4 w-4" />
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Gallery Name</label>
+                  <Input 
+                    value={formData.name} 
+                    onChange={(e) => setFormData({...formData, name: e.target.value})} 
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">URL Slug</label>
+                  <Input 
+                    value={generateSlug(formData.name)}
+                    disabled
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Automatically generated from the gallery name
+                  </p>
                 </div>
               </div>
               
-              <div className="flex justify-end mt-6">
-                <Button onClick={() => toast('Add Media functionality will be implemented in a future update')}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Media to Gallery
-                </Button>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Description</label>
+                <Textarea 
+                  value={formData.description} 
+                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  rows={3}
+                />
               </div>
-            </>
-          )}
-        </TabsContent>
-      </Tabs>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Featured Image</label>
+                <div className="flex items-center gap-4">
+                  <div className="h-20 w-20 rounded-md overflow-hidden bg-gray-100 border">
+                    {formData.featuredImage ? (
+                      <img 
+                        src={formData.featuredImage} 
+                        alt="Featured" 
+                        className="h-full w-full object-cover" 
+                      />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center">
+                        <ImageIcon className="h-8 w-8 text-gray-300" />
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <Button variant="outline" size="sm">
+                      Choose Image
+                    </Button>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Select an image to represent this gallery in listings
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+          <Separator />
+          <CardHeader>
+            <CardTitle>Gallery Content</CardTitle>
+            <CardDescription>
+              Manage images in this gallery
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {selectedGallery.imageCount === 0 ? (
+              <div className="text-center py-8">
+                <ImageIcon className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+                <h3 className="text-lg font-medium mb-2">No images in this gallery</h3>
+                <p className="text-gray-500 mb-4 max-w-md mx-auto">
+                  Add images from your media library or upload new images directly to this gallery.
+                </p>
+                <Button>Add Images</Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">
+                    {selectedGallery.imageCount} images
+                  </p>
+                  <Button variant="outline" size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add More
+                  </Button>
+                </div>
+                
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                  {[...Array(Math.min(selectedGallery.imageCount, 6))].map((_, i) => (
+                    <Card key={i} className="overflow-hidden">
+                      <div className="aspect-square relative group">
+                        <img 
+                          src={i % 2 === 0 ? '/lovable-uploads/banks-o-dee-logo.png' : '/lovable-uploads/cb95b9fb-0f2d-42ef-9788-10509a80ed6e.png'} 
+                          alt={`Gallery image ${i+1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                          <div className="flex gap-1">
+                            <Button variant="secondary" size="icon" className="h-8 w-8">
+                              <MoveHorizontal className="h-4 w-4" />
+                            </Button>
+                            <Button variant="secondary" size="icon" className="h-8 w-8">
+                              <Trash className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+                
+                {selectedGallery.imageCount > 6 && (
+                  <div className="text-center">
+                    <Button variant="link">View All {selectedGallery.imageCount} Images</Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+          <CardFooter className="flex justify-between">
+            <Button variant="outline" onClick={() => setEditMode(false)}>Cancel</Button>
+            <Button onClick={handleUpdateGallery}>
+              <Save className="h-4 w-4 mr-2" />
+              Save Changes
+            </Button>
+          </CardFooter>
+        </Card>
+      )}
+      
+      {/* Add Gallery Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Gallery</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Gallery Name</label>
+              <Input 
+                value={formData.name} 
+                onChange={(e) => setFormData({...formData, name: e.target.value})} 
+                placeholder="Enter gallery name"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Description</label>
+              <Textarea 
+                value={formData.description} 
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                placeholder="Enter gallery description"
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateGallery}>
+              Create Gallery
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Delete Gallery Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the gallery "{selectedGallery?.name}". 
+              {selectedGallery?.imageCount ? ` This gallery contains ${selectedGallery.imageCount} images.` : ''}
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteGallery} 
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

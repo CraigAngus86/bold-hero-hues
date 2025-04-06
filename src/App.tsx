@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import {
   BrowserRouter as Router,
@@ -39,7 +40,7 @@ function App() {
 
   useEffect(() => {
     // Set document title on initial load
-    document.title = 'Banks o’ Dee FC';
+    document.title = 'Banks o' Dee FC';
   }, []);
 
   return (
@@ -99,10 +100,14 @@ function App() {
                 </AuthenticatedRoute>
               }
             />
-            {
-              path: "/admin/league-table-management",
-              element: <AuthenticatedRoute><AdminLayout><LeagueTableManagement /></AdminLayout></AuthenticatedRoute>
-            },
+            <Route
+              path="/admin/league-table-management"
+              element={
+                <AuthenticatedRoute>
+                  <AdminLayout><LeagueTableManagement /></AdminLayout>
+                </AuthenticatedRoute>
+              }
+            />
           </Routes>
         </Router>
         <Toaster />

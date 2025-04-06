@@ -1,4 +1,6 @@
 
+import { Match } from '@/components/fixtures/types';
+
 export interface Fixture {
   id: string;
   home_team: string;

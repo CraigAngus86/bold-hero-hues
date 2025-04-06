@@ -1,19 +1,38 @@
 
-export interface TeamMember {
+/**
+ * Team related type definitions
+ */
+
+export interface TeamStats {
   id: string;
-  name: string;
-  member_type: 'player' | 'management' | 'official';
-  position?: string;
-  image_url?: string;
-  bio?: string;
-  nationality?: string;
-  jersey_number?: number;
-  previous_clubs?: string[];
-  experience?: string;
-  is_active?: boolean;
-  stats?: Record<string, any>;
-  created_at?: string;
-  updated_at?: string;
+  team: string;
+  position: number;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
+  points: number;
+  wins?: number;
+  losses?: number;
+  draws?: number;
+  goalsScored?: number;
+  goalsConceded?: number;
 }
 
-export type MemberType = 'player' | 'management' | 'official';
+export interface Player {
+  id: string;
+  name: string;
+  position: string;
+  imageUrl?: string;
+  number?: number;
+  dateOfBirth?: string;
+  nationality?: string;
+  height?: string;
+  weight?: string;
+  // Add other player properties as needed
+}
+
+// Add other team-related interfaces here as needed

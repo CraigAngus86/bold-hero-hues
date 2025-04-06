@@ -85,6 +85,18 @@ export const imageUploadConfigs = {
       quality: 80,
       format: 'webp' as const
     }
+  },
+  sponsors: {
+    bucketName: 'sponsors',
+    allowedTypes: 'image/jpeg,image/png,image/svg+xml',
+    maxSizeMB: 5,
+    bucket: 'sponsors' as BucketType,
+    optimizationOptions: {
+      maxWidth: 800,
+      maxHeight: 600,
+      quality: 90,
+      format: 'webp' as const
+    }
   }
 };
 
@@ -98,7 +110,7 @@ export function useImageUpload(options?: Partial<UseImageUploadOptions>): UseIma
   const [abortController, setAbortController] = useState<AbortController | null>(null);
   
   const bucket = options?.bucket || 'general';
-  const config = imageUploadConfigs[bucket];
+  const config = imageUploadConfigs[bucket] || imageUploadConfigs.general;
   
   const resetState = useCallback(() => {
     setUploading(false);
@@ -128,17 +140,22 @@ export function useImageUpload(options?: Partial<UseImageUploadOptions>): UseIma
       return { success: false, error: error.message };
     }
 
+    // Get allowed types from the config or use default
+    const allowedTypes = config.allowedTypes || 'image/jpeg,image/png';
+    
     // Validate file type
-    if (config.allowedTypes && !config.allowedTypes.includes(file.type)) {
-      const error = new Error(`File type not allowed. Allowed types: ${config.allowedTypes}`);
+    if (allowedTypes && !allowedTypes.includes(file.type)) {
+      const error = new Error(`File type not allowed. Allowed types: ${allowedTypes}`);
       setError(error);
       return { success: false, error: error.message };
     }
 
+    // Get max size from config or use default
+    const maxSizeBytes = (config.maxSizeMB || 5) * 1024 * 1024;
+    
     // Validate file size
-    const maxSizeBytes = config.maxSizeMB * 1024 * 1024;
     if (file.size > maxSizeBytes) {
-      const error = new Error(`File size exceeds maximum allowed (${config.maxSizeMB}MB)`);
+      const error = new Error(`File size exceeds maximum allowed (${config.maxSizeMB || 5}MB)`);
       setError(error);
       return { success: false, error: error.message };
     }
@@ -267,6 +284,12 @@ export async function createFolder(bucket: BucketType, folderPath: string): Prom
 }
 
 // Export image metadata types and helper functions
-export type { BucketType, ImageOptimizationOptions, StoredImageMetadata, ImageDimensions, ImageUploadResult };
-export { createFolder };
+export type { 
+  BucketType, 
+  ImageOptimizationOptions, 
+  StoredImageMetadata, 
+  ImageDimensions, 
+  ImageUploadResult 
+};
 
+// Removing the duplicate export of createFolder that was causing the error

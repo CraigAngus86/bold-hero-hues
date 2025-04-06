@@ -15,8 +15,12 @@ export const fixtureToMatch = (fixture: Fixture | FixtureExtended): Match => {
     competition: fixture.competition,
     venue: fixture.venue || '',
     isCompleted: fixture.is_completed || false,
-    homeScore: fixture.home_score !== undefined ? fixture.home_score : null,
-    awayScore: fixture.away_score !== undefined ? fixture.away_score : null,
+    homeScore: fixture.home_score !== undefined && fixture.home_score !== null 
+      ? Number(fixture.home_score) 
+      : null,
+    awayScore: fixture.away_score !== undefined && fixture.away_score !== null 
+      ? Number(fixture.away_score) 
+      : null,
     ticketLink: fixture.ticket_link,
     season: fixture.season,
     match_report: fixture.match_report,

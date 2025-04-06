@@ -32,6 +32,10 @@ export interface StoredImageMetadata {
   created_at?: string;
   updated_at?: string;
   created_by?: string;
+  folder?: string;
+  createdAt?: string; // Alias for created_at
+  updatedAt?: string; // Alias for updated_at
+  categories?: string[]; // For categorization
 }
 
 // Alias for StoredImageMetadata to be used in components that expect ImageMetadata
@@ -40,9 +44,9 @@ export type ImageMetadata = StoredImageMetadata;
 export interface ImageUploadConfig {
   bucketName: string;
   folderPath?: string;
-  allowedTypes: string;
-  maxSizeMB: number;
-  bucket: BucketType;
+  allowedTypes?: string;
+  maxSizeMB?: number;
+  bucket?: BucketType;
   optimizationOptions?: ImageOptimizationOptions;
 }
 
@@ -53,6 +57,7 @@ export interface ImageUploadResult {
   metadata?: StoredImageMetadata;
   data?: {
     url: string;
+    path?: string;
     [key: string]: any;
   };
 }
@@ -63,6 +68,9 @@ export type UploadResult = ImageUploadResult;
 export interface UseImageUploadOptions {
   bucket: BucketType;
   folderPath?: string;
+  bucketName?: string;
+  allowedTypes?: string;
+  maxSizeMB?: number;
   onSuccess?: (url: string, metadata?: StoredImageMetadata) => void;
   onError?: (error: Error) => void;
   optimization?: ImageOptimizationOptions;

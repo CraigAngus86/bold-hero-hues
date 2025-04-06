@@ -21,7 +21,7 @@ export const TeamDataRow: React.FC<TeamDataRowProps> = ({ team }) => {
       return team.form;
     }
     
-    if (typeof team.form === 'string') {
+    if (typeof team.form === 'string' && team.form) {
       return team.form.split('');
     }
     

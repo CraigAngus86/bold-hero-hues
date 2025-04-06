@@ -1,58 +1,55 @@
 
 import React from 'react';
-import { motion } from 'framer-motion';
-import UpcomingFixtures from './UpcomingFixtures';
-import RecentResults from './RecentResults';
-import LeagueTablePreview from './LeagueTablePreview';
-import FixturesLoading from './FixturesLoading';
-import TicketButton from './TicketButton';
-import { useFixturesDisplay } from './hooks/useFixturesDisplay';
+import { Card, CardContent } from "@/components/ui/card";
+import FixturesList from "./FixturesList";
+import { LeagueTable } from "@/components/league/LeagueTable";
+import { useFixturesDisplay } from "./hooks/useFixturesDisplay";
+import { Match } from './types';
 
-const FixturesSectionContent: React.FC = () => {
-  const { leagueData, isLoading, upcomingMatches, recentResults, nextMatchWithTickets } = useFixturesDisplay();
-  
+interface FixturesSectionContentProps {
+  maxFixtures?: number;
+}
+
+const FixturesSectionContent: React.FC<FixturesSectionContentProps> = ({ maxFixtures = 5 }) => {
+  const { upcomingMatches, recentMatches, leagueData, isLoading } = useFixturesDisplay();
+
+  if (isLoading) {
+    return <div className="py-12 text-center">Loading fixtures data...</div>;
+  }
+
   return (
-    <section className="py-12 bg-team-navy">
-      <div className="container mx-auto px-3">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold text-white">
-              Results, Fixtures & League Table
-            </h2>
-            
-            <TicketButton nextMatchWithTickets={nextMatchWithTickets} />
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <Card className="md:col-span-2">
+        <CardContent className="p-4">
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold mb-3">Upcoming Fixtures</h3>
+            <FixturesList 
+              fixtures={upcomingMatches.slice(0, maxFixtures)} 
+              emptyMessage="No upcoming fixtures" 
+            />
           </div>
           
-          {isLoading ? (
-            <FixturesLoading />
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="md:col-span-1">
-                <div className="h-full">
-                  <RecentResults matches={recentResults} />
-                </div>
-              </div>
-              
-              <div className="md:col-span-1">
-                <div className="h-full">
-                  <UpcomingFixtures matches={upcomingMatches} />
-                </div>
-              </div>
-              
-              <div className="md:col-span-1">
-                <div className="h-full">
-                  <LeagueTablePreview leagueData={leagueData} />
-                </div>
-              </div>
-            </div>
-          )}
-        </motion.div>
-      </div>
-    </section>
+          <div>
+            <h3 className="text-lg font-semibold mb-3">Recent Results</h3>
+            <FixturesList 
+              fixtures={recentMatches.slice(0, maxFixtures)} 
+              emptyMessage="No recent results"
+              showScores={true}
+            />
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardContent className="p-4">
+          <h3 className="text-lg font-semibold mb-3">League Table</h3>
+          <LeagueTable 
+            teams={leagueData} 
+            simplified={true} 
+          />
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

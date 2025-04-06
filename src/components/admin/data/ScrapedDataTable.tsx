@@ -59,8 +59,10 @@ const ScrapedDataTable: React.FC = () => {
         goalsAgainst: item.goalsAgainst,
         goalDifference: item.goalDifference,
         points: item.points,
-        form: item.form || '',
+        form: Array.isArray(item.form) ? item.form : 
+              (typeof item.form === 'string' && item.form ? item.form.split('') : []),
         logo: item.logo || '',
+        last_updated: item.last_updated
       })) : [];
       
       setLeagueTable(typedData);
@@ -101,8 +103,10 @@ const ScrapedDataTable: React.FC = () => {
         goalsAgainst: item.goalsAgainst,
         goalDifference: item.goalDifference,
         points: item.points,
-        form: item.form || '',
+        form: Array.isArray(item.form) ? item.form : 
+              (typeof item.form === 'string' && item.form ? item.form.split('') : []),
         logo: item.logo || '',
+        last_updated: item.last_updated
       })) : [];
       
       setLeagueTable(typedData);

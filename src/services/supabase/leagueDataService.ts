@@ -20,7 +20,7 @@ export const fetchLeagueTableFromSupabase = async (): Promise<TeamStats[]> => {
     const formattedData = data.map(team => ({
       ...team,
       form: Array.isArray(team.form) ? team.form : 
-            typeof team.form === 'string' ? team.form.split('') : []
+            typeof team.form === 'string' && team.form ? team.form.split('') : []
     }));
     
     return formattedData;

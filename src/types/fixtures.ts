@@ -28,6 +28,9 @@ export interface FixtureExtended extends Fixture {
   match_report?: string;
   attendance?: string;
   referee?: string;
+  matchEvents?: any[];
+  lineups?: { homeTeam: any[]; awayTeam: any[] };
+  matchStats?: Record<string, any>;
 }
 
 export interface TeamStats {
@@ -70,4 +73,4 @@ export interface ImportResult {
 
 // Import and re-export the conversion functions from the utility file
 import { fixturesToMatches } from '@/utils/fixtureUtils';
-export const convertToMatches = fixturesToMatches;
+export { fixturesToMatches as convertToMatches };

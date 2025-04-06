@@ -16,12 +16,10 @@ const SystemLogs = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [logTypeFilter, setLogTypeFilter] = useState<string>('all');
   
-  // Load logs when component mounts
   useEffect(() => {
     loadLogs();
   }, []);
 
-  // Filter logs when search term or type filter changes
   useEffect(() => {
     filterLogs();
   }, [logs, searchTerm, logTypeFilter]);
@@ -41,12 +39,10 @@ const SystemLogs = () => {
   const filterLogs = () => {
     let filtered = [...logs];
     
-    // Apply type filter
     if (logTypeFilter !== 'all') {
       filtered = filtered.filter(log => log.type === logTypeFilter);
     }
     
-    // Apply search filter
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
       filtered = filtered.filter(log => 
@@ -57,8 +53,7 @@ const SystemLogs = () => {
     
     setFilteredLogs(filtered);
   };
-  
-  // Get badge color based on log type
+
   const getBadgeVariant = (type: string) => {
     switch (type.toLowerCase()) {
       case 'error':
@@ -76,7 +71,6 @@ const SystemLogs = () => {
     }
   };
 
-  // Get icon for log type
   const getLogTypeIcon = (type: string) => {
     switch (type.toLowerCase()) {
       case 'error':
@@ -96,7 +90,6 @@ const SystemLogs = () => {
 
   const handleExportLogs = async () => {
     try {
-      // Get filtered logs for export
       let logsToExport;
       if (logTypeFilter !== 'all') {
         logsToExport = await exportLogsAsJson(logTypeFilter);
@@ -104,7 +97,6 @@ const SystemLogs = () => {
         logsToExport = await exportLogsAsJson();
       }
       
-      // Convert to JSON string and create download link
       const dataStr = JSON.stringify(logsToExport, null, 2);
       const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
       

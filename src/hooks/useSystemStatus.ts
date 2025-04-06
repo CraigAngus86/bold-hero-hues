@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { getSystemStatus, type SystemStatusData } from '@/services/logs/systemLogsService';
+import { getSystemStatus, updateSystemCheckTimestamp, type SystemStatusData } from '@/services/logs/systemLogsService';
 
 export function useSystemStatus() {
   const [status, setStatus] = useState<SystemStatusData | null>(null);
@@ -13,6 +13,9 @@ export function useSystemStatus() {
       const data = await getSystemStatus();
       setStatus(data);
       setLastUpdated(new Date());
+      
+      // Update the timestamp in the database
+      await updateSystemCheckTimestamp();
     } catch (error) {
       console.error('Error fetching system status:', error);
     } finally {

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Download, Filter, TableProperties, RefreshCw } from "lucide-react";
+import { Download, Filter, TableProperties, RefreshCw, ChevronUp, ChevronDown } from "lucide-react";
 
 interface TableControlsBarProps {
   viewMode: string;
@@ -34,13 +34,13 @@ const TableControlsBar: React.FC<TableControlsBarProps> = ({
             </SelectItem>
             <SelectItem value="top-half">
               <div className="flex items-center gap-2">
-                <Filter size={14} />
+                <ChevronUp size={14} />
                 <span>Top Half</span>
               </div>
             </SelectItem>
             <SelectItem value="bottom-half">
               <div className="flex items-center gap-2">
-                <Filter size={14} />
+                <ChevronDown size={14} />
                 <span>Bottom Half</span>
               </div>
             </SelectItem>

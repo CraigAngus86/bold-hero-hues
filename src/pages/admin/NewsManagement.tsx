@@ -10,6 +10,7 @@ import { PlusCircle, Newspaper, Tag, Edit } from 'lucide-react';
 import { Typography } from '@/components/ui';
 import { useNewsCategories } from '@/hooks/useNewsCategories';
 import { NewsArticle } from '@/types';
+import { Helmet } from 'react-helmet-async';
 
 const { H2 } = Typography;
 
@@ -37,6 +38,9 @@ const NewsManagement: React.FC = () => {
 
   return (
     <AdminLayout>
+      <Helmet>
+        <title>News Management - Banks o' Dee FC Admin</title>
+      </Helmet>
       <div className="flex items-center justify-between mb-6">
         <H2>News Management</H2>
         {activeTab !== 'editor' && (

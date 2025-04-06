@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { ImageOptimizationOptions, UploadResult } from './types';
+import { BucketType, ImageOptimizationOptions, UploadResult, StoredImageMetadata } from './types';
 
 /**
  * Hook for handling image uploads
@@ -99,59 +99,49 @@ export function useImageUpload() {
     isUploading,
     uploadProgress,
     uploadError,
-    resetUpload
+    resetUpload,
+    // For backward compatibility
+    progress: uploadProgress
   };
 }
 
-export const imageUploadConfigs = {
-  playerPhoto: {
+export const imageUploadConfigs: Record<BucketType, ImageUploadConfig> = {
+  news: {
     maxSizeMB: 5,
-    acceptedTypes: ['image/jpeg', 'image/png'],
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
     dimensions: {
-      width: 500,
-      height: 500,
-      aspect: 1
-    },
-    folder: 'player_images'
+      minWidth: 800,
+      minHeight: 450,
+      maxWidth: 2000,
+      maxHeight: 1500
+    }
   },
-  sponsorLogo: {
+  team: {
+    maxSizeMB: 3,
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
+    dimensions: {
+      minWidth: 300,
+      minHeight: 300,
+      maxWidth: 1000,
+      maxHeight: 1000
+    }
+  },
+  sponsors: {
     maxSizeMB: 2,
-    acceptedTypes: ['image/jpeg', 'image/png', 'image/svg+xml'],
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
     dimensions: {
-      width: 300,
-      height: 200,
-      aspect: 1.5
-    },
-    folder: 'sponsor_logos'
+      maxWidth: 800,
+      maxHeight: 800
+    }
   },
-  newsImage: {
-    maxSizeMB: 5,
-    acceptedTypes: ['image/jpeg', 'image/png'],
-    dimensions: {
-      width: 1200,
-      height: 675,
-      aspect: 16/9
-    },
-    folder: 'news_images'
+  fixtures: {
+    maxSizeMB: 3,
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
   },
-  teamLogo: {
-    maxSizeMB: 2,
-    acceptedTypes: ['image/jpeg', 'image/png', 'image/svg+xml'],
-    dimensions: {
-      width: 200,
-      height: 200,
-      aspect: 1
-    },
-    folder: 'team_logos'
-  },
-  galleryImage: {
+  general: {
     maxSizeMB: 10,
-    acceptedTypes: ['image/jpeg', 'image/png'],
-    dimensions: {
-      width: 1920,
-      height: 1080,
-      aspect: 16/9
-    },
-    folder: 'gallery'
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'],
   }
 };
+
+export * from './types';

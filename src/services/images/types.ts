@@ -4,7 +4,7 @@ export interface ImageDimensions {
   height: number;
 }
 
-export interface StoredImageMetadata {
+export interface ImageMetadata {
   id: string;
   name: string;
   file_name: string;
@@ -17,14 +17,31 @@ export interface StoredImageMetadata {
   alt_text?: string;
   description?: string;
   tags?: string[];
+  categories?: string[];
   created_at: string;
   updated_at: string;
+  createdAt?: string;
+  updatedAt?: string;
   created_by?: string;
+  width?: number;
+  height?: number;
+}
+
+export interface StoredImageMetadata extends ImageMetadata {
+  name: string;
+  url: string;
+  type: string;
+  size: number;
 }
 
 export interface UploadResult {
-  publicUrl: string;
-  metadata: StoredImageMetadata;
+  success: boolean;
+  data?: {
+    publicUrl: string;
+    metadata: StoredImageMetadata;
+    url?: string;
+  };
+  error?: string;
 }
 
 export type BucketType = 'news' | 'team' | 'sponsors' | 'fixtures' | 'general';
@@ -36,10 +53,11 @@ export interface ImageOptimizationOptions {
   maxWidth?: number;
   maxHeight?: number;
   format?: 'webp' | 'jpeg' | 'png' | 'original';
+  folder?: string;
 }
 
 export interface ImageUploadConfig {
-  maxFileSize: number;
+  maxSizeMB: number;
   allowedTypes: string[];
   dimensions?: {
     minWidth?: number;

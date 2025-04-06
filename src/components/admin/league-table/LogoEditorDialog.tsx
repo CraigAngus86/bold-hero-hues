@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { updateTeamLogo } from '@/services/leagueService';
 import { useImageUpload } from '@/services/images/hooks';
 import { Loader2 } from 'lucide-react';
+import { BucketType } from '@/services/images/types';
 
 interface LogoEditorDialogProps {
   team: TeamStats;
@@ -33,7 +34,7 @@ const LogoEditorDialog: React.FC<LogoEditorDialogProps> = ({
     uploadFile,
     error 
   } = useImageUpload({
-    bucket: 'teams',
+    bucket: BucketType.TEAMS,
     folderPath: 'logos',
     maxSize: 2 * 1024 * 1024 // 2MB
   });

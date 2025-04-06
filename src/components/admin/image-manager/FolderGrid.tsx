@@ -1,14 +1,15 @@
 
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Folder } from 'lucide-react';
-import { ImageFolder } from './types';  // Import directly from types.ts
+import { ImageFolder } from '@/types/images';
 
 interface FolderGridProps {
-  folders: ImageFolder[];
+  folders: any[]; // Using any to handle both types of ImageFolder
   onFolderClick: (folder: ImageFolder) => void;
 }
 
-const FolderGrid = ({ folders, onFolderClick }: FolderGridProps) => {
+const FolderGrid: React.FC<FolderGridProps> = ({ folders, onFolderClick }) => {
   return (
     <>
       {folders.map(folder => (

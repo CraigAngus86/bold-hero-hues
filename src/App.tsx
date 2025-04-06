@@ -22,6 +22,7 @@ import SponsorsManagement from "./pages/admin/SponsorsManagement";
 import TicketsManagement from "./pages/admin/TicketsManagement";
 import FansManagement from "./pages/admin/FansManagement";
 import SettingsManagement from "./pages/admin/SettingsManagement";
+import Settings from "./pages/admin/Settings";
 
 function App() {
   return (
@@ -44,7 +45,7 @@ function App() {
             <Route path="/admin/sponsors" element={<SponsorsManagement />} />
             <Route path="/admin/tickets" element={<TicketsManagement />} />
             <Route path="/admin/fans" element={<FansManagement />} />
-            <Route path="/admin/settings" element={<SettingsManagement />} />
+            <Route path="/admin/settings" element={<Settings />} />
             
             {/* Not found route */}
             <Route path="*" element={<NotFound />} />

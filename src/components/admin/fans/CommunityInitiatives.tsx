@@ -623,8 +623,8 @@ const CommunityInitiatives = () => {
             <CardContent className="p-0">
               <DataTable
                 columns={columns}
-                data={filteredInitiatives}
-                noDataMessage="No initiatives found"
+                data={initiatives}
+                emptyMessage="No community initiatives found"
               />
             </CardContent>
           </Card>

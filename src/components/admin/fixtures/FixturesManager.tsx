@@ -2,30 +2,10 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/Table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Link, 
-  Calendar, 
-  Edit, 
-  ExternalLink, 
-  Loader2, 
-  Clock, 
-  Info, 
-  Image as ImageIcon,
-  FileText,
-  Activity,
-  Users,
-  Timer
-} from 'lucide-react';
+import { Link, Calendar, Edit, ExternalLink, Loader2, Clock, Info, Image as ImageIcon, FileText, Activity, Users, Timer } from 'lucide-react';
 import { toast } from 'sonner';
 import { Fixture } from '@/types/fixtures';
 import { format } from 'date-fns';

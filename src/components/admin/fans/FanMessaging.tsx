@@ -99,7 +99,6 @@ const templateHelpers = [
   { placeholder: '{year}', description: 'Current year' }
 ];
 
-// Simplified email editor for the prototype
 const EmailEditor = ({ value, onChange }) => {
   return (
     <div className="border rounded-md p-4">
@@ -133,7 +132,6 @@ const EmailEditor = ({ value, onChange }) => {
   );
 };
 
-// Component to display message analytics
 const MessageAnalytics = ({ message }) => {
   const openRate = message.audienceSize > 0 ? (message.opens / message.audienceSize * 100).toFixed(1) : '0';
   const clickRate = message.opens > 0 ? (message.clicks / message.opens * 100).toFixed(1) : '0';
@@ -162,7 +160,6 @@ const MessageAnalytics = ({ message }) => {
   );
 };
 
-// Audience selector component
 const AudienceSelector = ({ groups, selectedGroups, onSelectionChange }) => {
   const handleToggle = (groupId) => {
     if (selectedGroups.includes(groupId)) {
@@ -225,7 +222,6 @@ const FanMessaging = () => {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [currentMessage, setCurrentMessage] = useState(null);
   
-  // New message form state
   const [newMessage, setNewMessage] = useState({
     title: '',
     type: 'email',
@@ -238,22 +234,18 @@ const FanMessaging = () => {
     selectedTemplate: '',
   });
   
-  // Handle view message details
   const handleViewMessage = (message) => {
     setCurrentMessage(message);
     setIsViewDialogOpen(true);
   };
   
-  // Handle create message
   const handleCreateMessage = () => {
     if (!validateForm()) return;
     
-    // Calculate audience size
     const audienceSize = newMessage.selectedGroups
       .map(groupId => groups.find(g => g.id === groupId)?.count || 0)
       .reduce((acc, count) => acc + count, 0);
     
-    // Determine status based on scheduling
     const status = newMessage.isScheduled ? 'scheduled' : 'draft';
     const sentDate = (!newMessage.isScheduled || !newMessage.scheduledDate) 
       ? null 
@@ -264,7 +256,6 @@ const FanMessaging = () => {
           )
         ).toISOString();
     
-    // In a real implementation, we would save to the database
     const newMessageItem = {
       id: Date.now().toString(),
       title: newMessage.title,
@@ -284,16 +275,13 @@ const FanMessaging = () => {
     resetForm();
   };
   
-  // Handle send message now
   const handleSendNow = () => {
     if (!validateForm()) return;
     
-    // Calculate audience size
     const audienceSize = newMessage.selectedGroups
       .map(groupId => groups.find(g => g.id === groupId)?.count || 0)
       .reduce((acc, count) => acc + count, 0);
     
-    // In a real implementation, we would save to the database and send the message
     const newMessageItem = {
       id: Date.now().toString(),
       title: newMessage.title,
@@ -313,7 +301,6 @@ const FanMessaging = () => {
     resetForm();
   };
   
-  // Validate the form
   const validateForm = () => {
     if (!newMessage.title.trim()) {
       toast.error('Title is required');
@@ -343,7 +330,6 @@ const FanMessaging = () => {
     return true;
   };
   
-  // Reset the form
   const resetForm = () => {
     setNewMessage({
       title: '',
@@ -358,14 +344,12 @@ const FanMessaging = () => {
     });
   };
   
-  // Handle template selection
   const handleTemplateChange = (templateId) => {
     setNewMessage({
       ...newMessage,
       selectedTemplate: templateId
     });
     
-    // In a real implementation, we would load the template content
     const template = templates.find(t => t.id === templateId);
     if (template) {
       setNewMessage(prev => ({
@@ -377,11 +361,8 @@ const FanMessaging = () => {
     }
   };
   
-  // Filter messages based on activeTab and searchQuery
   const filteredMessages = messages.filter(message => {
-    // Filter by tab
     if (activeTab === 'all') {
-      // No filter
     } else if (activeTab === 'drafts') {
       if (message.status !== 'draft') return false;
     } else if (activeTab === 'sent') {
@@ -390,7 +371,6 @@ const FanMessaging = () => {
       if (message.status !== 'scheduled') return false;
     }
     
-    // Filter by search query
     if (searchQuery) {
       return message.title.toLowerCase().includes(searchQuery.toLowerCase());
     }
@@ -398,7 +378,6 @@ const FanMessaging = () => {
     return true;
   });
   
-  // Column definitions for the data table
   const columns = [
     { 
       key: 'title', 
@@ -691,15 +670,14 @@ const FanMessaging = () => {
             <CardContent className="p-0">
               <DataTable
                 columns={columns}
-                data={filteredMessages}
-                noDataMessage="No messages found"
+                data={messages}
+                emptyMessage="No messages found"
               />
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
       
-      {/* View Message Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
         {currentMessage && (
           <DialogContent className="max-w-3xl overflow-y-auto max-h-[90vh]">

@@ -845,8 +845,8 @@ const PollsAndSurveys = () => {
             <CardContent className="p-0">
               <DataTable
                 columns={columns}
-                data={filteredPolls}
-                noDataMessage="No polls or surveys found"
+                data={polls}
+                emptyMessage="No polls or surveys found"
               />
             </CardContent>
           </Card>

@@ -1,6 +1,6 @@
 
 import React, { useCallback } from 'react';
-import { Table, TableBody } from '@/components/ui/table'; // Updated to lowercase 'table'
+import { Table, TableBody } from '@/components/ui/table';
 import LeagueTableHeader from './LeagueTableHeader';
 import TeamRow from './TeamRow';
 import { TeamStats } from './types';

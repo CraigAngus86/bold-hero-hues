@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Edit, Trash2, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';

@@ -1,7 +1,6 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -11,10 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { Search, UserPlus, Edit, Trash2 } from 'lucide-react';
 
-// Define the user role type to fix the TypeScript error
 export type UserRole = 'admin' | 'editor' | 'viewer';
 
-// Define user data type
 export interface UserData {
   id: number;
   name: string;
@@ -34,7 +31,6 @@ const AdminUsersSection = () => {
     role: 'viewer',
   });
   
-  // Mock user data with the correct UserRole type
   const [users, setUsers] = useState<UserData[]>([
     { id: 1, name: 'Admin User', email: 'admin@banksofdee.com', role: 'admin', lastLogin: '2023-10-15 14:30' },
     { id: 2, name: 'Content Editor', email: 'editor@banksofdee.com', role: 'editor', lastLogin: '2023-10-14 09:45' },
@@ -166,7 +162,6 @@ const AdminUsersSection = () => {
           </TableBody>
         </Table>
         
-        {/* Add User Dialog */}
         <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
           <DialogContent>
             <DialogHeader>
@@ -216,7 +211,6 @@ const AdminUsersSection = () => {
           </DialogContent>
         </Dialog>
         
-        {/* Edit User Dialog */}
         <Dialog open={isEditUserOpen} onOpenChange={setIsEditUserOpen}>
           <DialogContent>
             <DialogHeader>

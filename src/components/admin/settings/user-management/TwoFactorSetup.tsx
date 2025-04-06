@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Card, 
@@ -22,7 +21,7 @@ import {
   TableHead, 
   TableHeader, 
   TableRow 
-} from '@/components/ui/Table';
+} from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 

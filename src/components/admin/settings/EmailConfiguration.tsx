@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Card,
@@ -30,7 +29,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/Table";
+} from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";

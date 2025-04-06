@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { TableCell, TableRow } from "@/components/ui/Table";
+import { TableCell, TableRow } from "@/components/ui/table";
 import { TeamStats } from '@/components/league/types';
 import { AlertTriangle } from "lucide-react";
 import { FormDisplay } from './FormDisplay';

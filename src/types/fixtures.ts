@@ -25,9 +25,9 @@ export interface Fixture {
 }
 
 export interface FixtureExtended extends Fixture {
-  match_report?: string;
-  attendance?: string;
-  referee?: string;
+  match_report: string;
+  attendance: string;
+  referee: string;
   matchEvents?: any[];
   lineups?: { homeTeam: any[]; awayTeam: any[] };
   matchStats?: Record<string, any>;

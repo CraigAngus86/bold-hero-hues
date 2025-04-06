@@ -1,6 +1,7 @@
 
-// Image service types
-export type BucketType = "avatars" | "posts" | "products" | "general" | "media" | "images";
+import { Json } from '@supabase/supabase-js';
+
+export type BucketType = 'avatars' | 'posts' | 'products' | 'general' | 'media' | 'images' | 'sponsors';
 
 export interface ImageDimensions {
   width: number;
@@ -11,81 +12,57 @@ export interface ImageOptimizationOptions {
   maxWidth?: number;
   maxHeight?: number;
   quality?: number;
-  format?: 'webp' | 'jpeg' | 'png';
-  resize?: boolean;
-  alt?: string;
+  format?: 'jpeg' | 'png' | 'webp';
+}
+
+export interface UseImageUploadOptions {
+  bucket?: BucketType;
+  folderPath?: string;
+  onSuccess?: (url: string) => void;
+  onError?: (error: Error) => void;
+}
+
+export interface ImageUploadConfig {
+  bucketName: string;
+  allowedTypes: string;
+  maxSizeMB: number;
+  bucket: BucketType;
+  optimizationOptions?: ImageOptimizationOptions;
 }
 
 export interface StoredImageMetadata {
   id: string;
+  bucket_id: string;
+  storage_path: string;
   name: string;
   file_name: string;
-  url: string;
-  storage_path: string;
-  bucket_id: string;
   type: string;
   size: number;
+  url: string;
   alt_text?: string;
   description?: string;
-  tags?: string[];
-  dimensions?: ImageDimensions;
   created_at?: string;
   updated_at?: string;
   created_by?: string;
-  folder?: string;
-  createdAt?: string; // Alias for created_at
-  updatedAt?: string; // Alias for updated_at
-  categories?: string[]; // For categorization
+  dimensions?: ImageDimensions;
+  categories?: string[];
+  tags?: string[];
 }
 
-// Alias for StoredImageMetadata to be used in components that expect ImageMetadata
-export type ImageMetadata = StoredImageMetadata;
-
-export interface ImageUploadConfig {
-  bucketName: string;
-  folderPath?: string;
-  allowedTypes?: string;
-  maxSizeMB?: number;
-  bucket?: BucketType;
-  optimizationOptions?: ImageOptimizationOptions;
-}
-
-export interface ImageUploadResult {
-  success: boolean;
-  url?: string;
-  error?: string;
-  metadata?: StoredImageMetadata;
-  data?: {
-    url: string;
-    path?: string;
-    [key: string]: any;
-  };
-}
-
-export type UploadResult = ImageUploadResult;
-
-// Image upload hooks
-export interface UseImageUploadOptions {
-  bucket: BucketType;
-  folderPath?: string;
-  bucketName?: string;
-  allowedTypes?: string;
-  maxSizeMB?: number;
-  onSuccess?: (url: string, metadata?: StoredImageMetadata) => void;
-  onError?: (error: Error) => void;
-  optimization?: ImageOptimizationOptions;
-}
-
-export interface UseImageUploadResult {
-  uploading: boolean;
-  isUploading: boolean;
-  progress: number;
-  uploadProgress: number;
-  error: Error | null;
-  uploadFile: (file: File, metadata?: Partial<StoredImageMetadata>) => Promise<ImageUploadResult>;
-  upload: (file: File, metadata?: Partial<StoredImageMetadata>) => Promise<ImageUploadResult>;
-  cancelUpload: () => void;
-  resetState: () => void;
+export interface ImageMetadata {
+  id: string;
+  file_name: string;
+  bucket_id: string;
+  storage_path: string;
+  url: string;
+  alt_text?: string;
+  description?: string;
+  created_at?: string;
+  updated_at?: string;
+  created_by?: string;
+  dimensions?: ImageDimensions;
+  categories?: string[];
+  tags?: string[];
 }
 
 export interface ImageFolder {
@@ -93,6 +70,26 @@ export interface ImageFolder {
   name: string;
   path: string;
   parentId?: string;
-  created_at?: string;
-  updated_at?: string;
+}
+
+export interface ImageUploadResult {
+  success: boolean;
+  error?: string;
+  url?: string;
+  metadata?: StoredImageMetadata;
+  data?: {
+    url: string;
+  };
+}
+
+export interface UseImageUploadResult {
+  uploading: boolean;
+  isUploading: boolean; 
+  progress: number;
+  uploadProgress: number;
+  error: Error | null;
+  upload: (file: File, metadata?: Partial<StoredImageMetadata>) => Promise<ImageUploadResult>;
+  uploadFile: (file: File, metadata?: Partial<StoredImageMetadata>) => Promise<ImageUploadResult>;
+  cancelUpload: () => void;
+  resetState: () => void;
 }

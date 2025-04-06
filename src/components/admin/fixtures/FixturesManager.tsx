@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -79,9 +80,9 @@ const FixturesManager = () => {
       
       const formattedFixtures = data.map(fixture => ({
         ...fixture,
-        matchReport: fixture.match_report,
-        attendance: fixture.attendance,
-        referee: fixture.referee,
+        match_report: fixture.match_report || '',
+        attendance: fixture.attendance || '',
+        referee: fixture.referee || '',
         matchEvents: [],
         lineups: { homeTeam: [], awayTeam: [] },
         matchStats: {}
@@ -108,7 +109,7 @@ const FixturesManager = () => {
 
   const handleOpenDetailsDialog = (fixture: FixtureExtended) => {
     setSelectedFixture(fixture);
-    setMatchReport(fixture.matchReport || '');
+    setMatchReport(fixture.match_report || '');
     setAttendance(fixture.attendance ? String(fixture.attendance) : '');
     setReferee(fixture.referee || '');
     setDetailsDialogOpen(true);
@@ -141,13 +142,13 @@ const FixturesManager = () => {
     if (!selectedFixture) return;
 
     try {
-      const attendanceNumber = attendance ? parseInt(attendance) : null;
+      const attendanceValue = attendance ? attendance : null;
       
       const { error } = await supabase
         .from('fixtures')
         .update({ 
           match_report: matchReport,
-          attendance: attendanceNumber,
+          attendance: attendanceValue,
           referee: referee
         })
         .eq('id', selectedFixture.id);
@@ -157,9 +158,8 @@ const FixturesManager = () => {
       setFixtures(fixtures.map(f => 
         f.id === selectedFixture.id ? {
           ...f, 
-          matchReport, 
           match_report: matchReport,
-          attendance: attendanceNumber || undefined,
+          attendance: attendanceValue || '',
           referee
         } : f
       ));
@@ -420,7 +420,7 @@ const FixturesManager = () => {
                   <Label htmlFor="attendance">Attendance</Label>
                   <Input 
                     id="attendance"
-                    type="number"
+                    type="text"
                     value={attendance}
                     onChange={e => setAttendance(e.target.value)}
                     placeholder="e.g. 1200"

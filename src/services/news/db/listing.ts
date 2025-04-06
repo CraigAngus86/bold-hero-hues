@@ -1,93 +1,113 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { NewsArticle, NewsQueryOptions } from '@/types';
+import { NewsArticle } from '@/types';
 
-export async function fetchNewsArticles(options: NewsQueryOptions = {}): Promise<{
-  articles: NewsArticle[];
-  count: number;
-}> {
+/**
+ * Fetches news articles with optional filtering
+ */
+export const fetchNewsArticles = async (options = {}) => {
   try {
-    // Build the base query
     let query = supabase
       .from('news_articles')
-      .select('*', { count: 'exact' });
+      .select('*');
     
-    // Apply filters
-    if (options.page !== undefined && options.pageSize !== undefined) {
-      const from = options.page * options.pageSize;
-      const to = from + options.pageSize - 1;
-      query = query.range(from, to);
-    } else if (options.limit) {
-      query = query.limit(options.limit);
-    }
-    
-    if (options.category && options.category !== 'All Categories') {
+    // Apply filters if provided in options
+    if (options.category) {
       query = query.eq('category', options.category);
     }
     
-    if (options.featured) {
-      query = query.eq('is_featured', true);
+    if (options.featured !== undefined) {
+      query = query.eq('is_featured', options.featured);
     }
     
     // Apply ordering
-    const orderBy = options.orderBy || 'publish_date';
-    const orderDirection = options.orderDirection || 'desc';
-    query = query.order(orderBy, { ascending: orderDirection === 'asc' });
+    if (options.orderBy) {
+      query = query.order(options.orderBy, { 
+        ascending: options.orderDirection === 'asc'
+      });
+    } else {
+      // Default ordering by publish_date, descending
+      query = query.order('publish_date', { ascending: false });
+    }
     
-    // Execute query
-    const { data, error, count } = await query;
+    const { data, error } = await query;
     
     if (error) throw error;
     
     return {
-      articles: data as NewsArticle[],
-      count: count || 0
+      success: true,
+      data,
+      count: data?.length || 0
     };
-    
   } catch (error) {
     console.error('Error fetching news articles:', error);
+    return {
+      success: false,
+      data: [],
+      count: 0,
+      error: error.message
+    };
+  }
+};
+
+/**
+ * Gets unique categories from news articles
+ */
+export const getNewsCategories = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('news_categories')
+      .select('name')
+      .order('name');
+    
+    if (error) throw error;
+    
+    return data.map(category => category.name);
+  } catch (error) {
+    console.error('Error fetching news categories:', error);
+    return [];
+  }
+};
+
+/**
+ * Toggles the featured status of a news article
+ */
+export const toggleArticleFeatured = async (id: string, featured: boolean) => {
+  try {
+    const { data, error } = await supabase
+      .from('news_articles')
+      .update({ is_featured: featured })
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    return data;
+  } catch (error) {
+    console.error('Error toggling article featured status:', error);
     throw error;
   }
-}
+};
 
-// Alias functions for backward compatibility
-export const getArticles = fetchNewsArticles;
-
-// Toggle article featured status
-export async function toggleArticleFeatured(
-  articleId: string, 
-  featured: boolean
-): Promise<{ success: boolean; error?: any }> {
+/**
+ * Delete a news article by ID
+ */
+export const deleteNewsArticle = async (id: string) => {
   try {
     const { error } = await supabase
       .from('news_articles')
-      .update({ is_featured: featured })
-      .eq('id', articleId);
+      .delete()
+      .eq('id', id);
     
     if (error) throw error;
     
     return { success: true };
   } catch (error) {
-    console.error('Error toggling article featured status:', error);
-    return { success: false, error };
-  }
-}
-
-// Get news categories
-export async function getNewsCategories(): Promise<string[]> {
-  try {
-    const { data, error } = await supabase
-      .from('news_articles')
-      .select('category')
-      .order('category', { ascending: true });
-    
-    if (error) throw error;
-    
-    // Extract unique categories
-    const categories = [...new Set(data.map(item => item.category))];
-    return categories;
-  } catch (error) {
-    console.error('Error fetching news categories:', error);
+    console.error('Error deleting news article:', error);
     throw error;
   }
-}
+};
+
+// Export aliases for backward compatibility
+export const getArticles = fetchNewsArticles;

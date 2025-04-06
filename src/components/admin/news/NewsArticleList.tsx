@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getNewsArticles, deleteNewsArticle, toggleArticleFeatured } from '@/services/newsService';
@@ -7,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Typography } from '@/components/ui';
-import DataTable from '@/components/tables/DataTable';
+import DataTable from '@/components/admin/common/DataTable';
 import { format } from 'date-fns';
 import { Eye, Trash2, Star, Edit, Search, Filter, Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -30,21 +29,17 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
   const [featuredFilter, setFeaturedFilter] = useState<boolean | undefined>(undefined);
   const queryClient = useQueryClient();
 
-  // Fetch news articles
   const { data: responseData, isLoading } = useQuery({
     queryKey: ['newsArticles'],
     queryFn: () => getNewsArticles({ orderBy: 'publish_date', orderDirection: 'desc' }),
   });
 
-  // Process the articles data, ensuring it's in the correct format
   const articles = React.useMemo(() => {
     if (!responseData) return [];
     
-    // Handle different response formats
     if (Array.isArray(responseData)) {
       return responseData;
     } else if (responseData && typeof responseData === 'object') {
-      // Handle DbServiceResponse format
       if ('success' in responseData && responseData.data) {
         if (Array.isArray(responseData.data)) {
           return responseData.data;
@@ -52,7 +47,6 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
           return responseData.data.data;
         }
       }
-      // Handle simple object with data property
       else if ('data' in responseData) {
         return Array.isArray(responseData.data) ? responseData.data : [];
       }
@@ -61,13 +55,11 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
     return [];
   }, [responseData]);
 
-  // Extract unique categories
   const categories = React.useMemo(() => {
     if (!articles || articles.length === 0) return [];
     return [...new Set(articles.map(article => article.category))];
   }, [articles]);
 
-  // Filter articles based on search term and category
   const filteredArticles = React.useMemo(() => {
     if (!articles || articles.length === 0) return [];
     
@@ -89,7 +81,6 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
     });
   }, [articles, searchTerm, selectedCategory, featuredFilter]);
 
-  // Delete article mutation
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteNewsArticle(id),
     onSuccess: () => {
@@ -102,7 +93,6 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
     },
   });
 
-  // Toggle featured status mutation
   const toggleFeaturedMutation = useMutation({
     mutationFn: ({ id, featured }: { id: string; featured: boolean }) => 
       toggleArticleFeatured(id, featured),
@@ -240,7 +230,6 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
-                {/* Changed from empty string to "all" */}
                 <SelectItem value="all">All Categories</SelectItem>
                 {categories && categories.map((category, index) => (
                   <SelectItem key={index} value={category || "_empty"}>
@@ -260,7 +249,6 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
                 <SelectValue placeholder="Featured Status" />
               </SelectTrigger>
               <SelectContent>
-                {/* Changed from empty string to "all" */}
                 <SelectItem value="all">All Articles</SelectItem>
                 <SelectItem value="featured">Featured Only</SelectItem>
                 <SelectItem value="not-featured">Not Featured</SelectItem>
@@ -288,3 +276,5 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
     </Card>
   );
 };
+
+export default NewsArticleList;

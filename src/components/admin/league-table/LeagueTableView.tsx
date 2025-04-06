@@ -1,148 +1,105 @@
 
 import React from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { TeamStats } from '@/components/league/types';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface LeagueTableViewProps {
-  leagueData: TeamStats[];
-  isLoading: boolean;
-  highlightTeam?: string;
+  leagueTable: TeamStats[];
 }
 
-const LeagueTableView: React.FC<LeagueTableViewProps> = ({ 
-  leagueData,
-  isLoading,
-  highlightTeam = "Banks o' Dee"
-}) => {
-  // Helper function to render form badges
-  const renderForm = (form?: string[]) => {
-    if (!form || !form.length) {
-      return <span className="text-gray-400">No form data</span>;
+const LeagueTableView = ({ leagueTable }: LeagueTableViewProps) => {
+  // Function to determine position badge based on position
+  const getPositionBadge = (position: number) => {
+    if (position === 1) {
+      return (
+        <Badge variant="success" className="w-6 h-6 rounded-full flex items-center justify-center p-0">
+          {position}
+        </Badge>
+      );
+    } else if (position >= 2 && position <= 3) {
+      return (
+        <Badge variant="secondary" className="w-6 h-6 rounded-full flex items-center justify-center p-0">
+          {position}
+        </Badge>
+      );
+    } else if (position >= 14) {
+      return (
+        <Badge variant="destructive" className="w-6 h-6 rounded-full flex items-center justify-center p-0">
+          {position}
+        </Badge>
+      );
+    } else {
+      return (
+        <Badge variant="outline" className="w-6 h-6 rounded-full flex items-center justify-center p-0">
+          {position}
+        </Badge>
+      );
     }
+  };
+
+  // Function to render form icons
+  const renderForm = (form: string[]) => {
+    if (!form || form.length === 0) return null;
     
     return (
       <div className="flex gap-1">
-        {form.map((result, i) => (
-          <Badge 
-            key={i}
-            variant={
-              result === 'W' ? 'success' : 
-              result === 'D' ? 'warning' : 
-              'destructive'
-            } 
-            className="h-6 w-6 flex items-center justify-center p-0 rounded-full"
-          >
-            {result}
-          </Badge>
-        ))}
+        {form.map((result, index) => {
+          let bgColor = "bg-gray-200";
+          if (result === "W") bgColor = "bg-green-500";
+          else if (result === "D") bgColor = "bg-amber-400";
+          else if (result === "L") bgColor = "bg-red-500";
+          
+          return (
+            <div 
+              key={index} 
+              className={`${bgColor} text-white w-5 h-5 flex items-center justify-center text-xs font-bold rounded-sm`}
+            >
+              {result}
+            </div>
+          );
+        })}
       </div>
     );
   };
-  
-  // Function to determine row styling based on position
-  const getRowClasses = (team: TeamStats, index: number) => {
-    const isHighlighted = team.team === highlightTeam;
-    const isPromotion = team.position === 1;
-    const isRelegation = index === leagueData.length - 1;
-    
-    if (isHighlighted) return "bg-team-blue/10 font-medium";
-    if (isPromotion) return "bg-green-50";
-    if (isRelegation) return "bg-red-50";
-    return "";
-  };
-  
-  // Loading skeleton
-  if (isLoading) {
-    return (
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-12">Pos</TableHead>
-              <TableHead>Team</TableHead>
-              <TableHead className="text-center">P</TableHead>
-              <TableHead className="text-center">W</TableHead>
-              <TableHead className="text-center">D</TableHead>
-              <TableHead className="text-center">L</TableHead>
-              <TableHead className="text-center">F</TableHead>
-              <TableHead className="text-center">A</TableHead>
-              <TableHead className="text-center">GD</TableHead>
-              <TableHead className="text-center">Pts</TableHead>
-              <TableHead>Form</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {Array.from({ length: 12 }).map((_, i) => (
-              <TableRow key={i}>
-                <TableCell><Skeleton className="h-5 w-5" /></TableCell>
-                <TableCell><Skeleton className="h-5 w-32" /></TableCell>
-                <TableCell><Skeleton className="h-5 w-5 mx-auto" /></TableCell>
-                <TableCell><Skeleton className="h-5 w-5 mx-auto" /></TableCell>
-                <TableCell><Skeleton className="h-5 w-5 mx-auto" /></TableCell>
-                <TableCell><Skeleton className="h-5 w-5 mx-auto" /></TableCell>
-                <TableCell><Skeleton className="h-5 w-5 mx-auto" /></TableCell>
-                <TableCell><Skeleton className="h-5 w-5 mx-auto" /></TableCell>
-                <TableCell><Skeleton className="h-5 w-5 mx-auto" /></TableCell>
-                <TableCell><Skeleton className="h-5 w-5 mx-auto" /></TableCell>
-                <TableCell><Skeleton className="h-5 w-20" /></TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    );
-  }
-  
-  // Empty state
-  if (leagueData.length === 0) {
-    return (
-      <div className="rounded-md border p-6 text-center">
-        <p className="text-gray-500">No league data available.</p>
-      </div>
-    );
-  }
-  
-  // Render table with data
+
   return (
-    <div className="rounded-md border">
+    <div className="overflow-x-auto">
       <Table>
         <TableHeader>
-          <TableRow className="bg-muted/50">
-            <TableHead className="w-12 text-center">Pos</TableHead>
+          <TableRow>
+            <TableHead className="w-12">Pos</TableHead>
             <TableHead>Team</TableHead>
             <TableHead className="text-center">P</TableHead>
             <TableHead className="text-center">W</TableHead>
             <TableHead className="text-center">D</TableHead>
             <TableHead className="text-center">L</TableHead>
-            <TableHead className="text-center">F</TableHead>
-            <TableHead className="text-center">A</TableHead>
+            <TableHead className="text-center">GF</TableHead>
+            <TableHead className="text-center">GA</TableHead>
             <TableHead className="text-center">GD</TableHead>
             <TableHead className="text-center">Pts</TableHead>
-            <TableHead>Form</TableHead>
+            <TableHead className="text-center hidden md:table-cell">Form</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {leagueData.map((team, index) => (
+          {leagueTable.map((team) => (
             <TableRow 
-              key={team.id || team.team} 
-              className={getRowClasses(team, index)}
+              key={team.id}
+              className={team.team === "Banks o' Dee" ? 'bg-blue-50 hover:bg-blue-100' : ''}
             >
-              <TableCell className="text-center font-semibold">{team.position}</TableCell>
-              <TableCell>
+              <TableCell className="text-center">
+                {getPositionBadge(team.position)}
+              </TableCell>
+              <TableCell className="font-medium">
                 <div className="flex items-center gap-2">
                   {team.logo && (
                     <img 
                       src={team.logo} 
                       alt={`${team.team} logo`} 
-                      className="h-5 w-5 object-contain"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }} 
+                      className="w-6 h-6 object-contain"
                     />
                   )}
-                  <span className={team.team === highlightTeam ? "font-bold" : ""}>
+                  <span className={team.team === "Banks o' Dee" ? 'font-bold text-team-blue' : ''}>
                     {team.team}
                   </span>
                 </div>
@@ -153,25 +110,17 @@ const LeagueTableView: React.FC<LeagueTableViewProps> = ({
               <TableCell className="text-center">{team.lost}</TableCell>
               <TableCell className="text-center">{team.goalsFor}</TableCell>
               <TableCell className="text-center">{team.goalsAgainst}</TableCell>
-              <TableCell className="text-center font-medium">
-                {team.goalDifference > 0 ? '+' : ''}{team.goalDifference}
+              <TableCell className="text-center">
+                {team.goalDifference > 0 ? `+${team.goalDifference}` : team.goalDifference}
               </TableCell>
               <TableCell className="text-center font-bold">{team.points}</TableCell>
-              <TableCell>{renderForm(team.form)}</TableCell>
+              <TableCell className="text-center hidden md:table-cell">
+                {renderForm(team.form || [])}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
-      <div className="p-2 text-xs text-gray-500 border-t">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-green-50 border"></div>
-          <span>Promotion position</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-red-50 border"></div>
-          <span>Relegation position</span>
-        </div>
-      </div>
     </div>
   );
 };

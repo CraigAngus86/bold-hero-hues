@@ -7,7 +7,7 @@ import { TeamStats } from '@/components/league/types';
 import { DataActions } from './table-components/DataActions';
 import { DataWarningAlert } from './table-components/DataWarningAlert';
 import { LastUpdatedInfo } from './table-components/LastUpdatedInfo';
-import { LeagueDataTable } from './table-components/LeagueDataTable';
+import LeagueDataTable from './table-components/LeagueDataTable';
 
 /**
  * Component for displaying and managing scraped league data

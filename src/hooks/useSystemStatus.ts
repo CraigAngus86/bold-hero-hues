@@ -1,113 +1,93 @@
 
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
 import { getLatestLogBySource } from '@/services/logs/systemLogsService';
-import { supabase } from '@/integrations/supabase/client';
 
-// Keys for React Query
-export const systemKeys = {
-  status: ['system', 'status'],
-};
-
-export type SystemStatus = 'online' | 'offline' | 'warning' | 'unknown';
-
-export interface SystemStatusData {
-  supabase: {
-    status: SystemStatus;
-    lastChecked: Date;
-  };
-  fixtures: {
-    status: SystemStatus;
-    lastChecked: Date;
-    metricValue?: string;
-  };
-  storage: {
-    status: SystemStatus;
-    lastChecked: Date;
-    metricValue?: string;
-  };
-  leagueTable: {
-    status: SystemStatus;
-    lastChecked: Date;
-    metricValue?: string;
-  };
+export interface SystemStatus {
+  status: 'healthy' | 'warning' | 'error' | 'unknown';
+  lastUpdated: Date | null;
+  message: string;
 }
 
-export const useSystemStatus = () => {
-  return useQuery({
-    queryKey: systemKeys.status,
-    queryFn: async (): Promise<SystemStatusData> => {
-      try {
-        // Get Supabase connection status (simple check)
-        const supabaseStatus = await checkSupabaseConnection();
-        
-        // Get scraper status from logs
-        const scraperLog = await getLatestLogBySource('bbc-scraper');
-        const storageLog = await getLatestLogBySource('storage-service');
-        const leagueTableLog = await getLatestLogBySource('league-table-scraper');
-
-        return {
-          supabase: {
-            status: supabaseStatus ? 'online' : 'offline',
-            lastChecked: new Date(),
-          },
-          fixtures: {
-            status: scraperLog?.type === 'error' ? 'offline' : 'online',
-            lastChecked: scraperLog?.timestamp ? new Date(scraperLog.timestamp) : new Date(),
-            metricValue: scraperLog?.timestamp 
-              ? `Last run: ${formatTimeAgo(new Date(scraperLog.timestamp))}`
-              : undefined,
-          },
-          storage: {
-            status: storageLog?.type === 'warning' ? 'warning' : 'online',
-            lastChecked: new Date(),
-            metricValue: '78% used', // Mock value
-          },
-          leagueTable: {
-            status: leagueTableLog?.type === 'error' ? 'offline' : 'online',
-            lastChecked: leagueTableLog?.timestamp ? new Date(leagueTableLog.timestamp) : new Date(),
-            metricValue: leagueTableLog?.timestamp 
-              ? `Last run: ${formatTimeAgo(new Date(leagueTableLog.timestamp))}`
-              : undefined,
-          },
-        };
-      } catch (error) {
-        console.error("Error checking system status:", error);
-        // Return default status on error
-        return {
-          supabase: { status: 'unknown', lastChecked: new Date() },
-          fixtures: { status: 'unknown', lastChecked: new Date() },
-          storage: { status: 'unknown', lastChecked: new Date() },
-          leagueTable: { status: 'unknown', lastChecked: new Date() },
-        };
-      }
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+export const useSystemStatus = (source: string, refreshInterval = 60000) => {
+  const [status, setStatus] = useState<SystemStatus>({
+    status: 'unknown',
+    lastUpdated: null,
+    message: 'Checking system status...'
   });
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  const checkStatus = async () => {
+    try {
+      setIsLoading(true);
+      const latestLog = await getLatestLogBySource(source);
+      
+      if (!latestLog) {
+        setStatus({
+          status: 'unknown',
+          lastUpdated: null,
+          message: 'No status information available'
+        });
+        return;
+      }
+
+      const lastUpdateTime = new Date(latestLog.timestamp);
+      const now = new Date();
+      const hoursSinceUpdate = (now.getTime() - lastUpdateTime.getTime()) / (1000 * 60 * 60);
+
+      let statusType: 'healthy' | 'warning' | 'error' | 'unknown' = 'unknown';
+      let message = latestLog.message;
+
+      // Determine status based on log type and time since last update
+      if (latestLog.type === 'error') {
+        statusType = 'error';
+      } else if (latestLog.type === 'warning' || hoursSinceUpdate > 24) {
+        statusType = 'warning';
+      } else if (latestLog.type === 'success' || latestLog.type === 'info') {
+        statusType = 'healthy';
+      }
+
+      // Add time warning if it's been too long
+      if (hoursSinceUpdate > 48) {
+        statusType = 'error';
+        message = `No updates for ${Math.floor(hoursSinceUpdate)} hours. System may be offline.`;
+      } else if (hoursSinceUpdate > 24) {
+        statusType = 'warning';
+        message = `Last update was ${Math.floor(hoursSinceUpdate)} hours ago`;
+      }
+
+      setStatus({
+        status: statusType,
+        lastUpdated: lastUpdateTime,
+        message
+      });
+
+    } catch (error) {
+      console.error('Error checking system status:', error);
+      setStatus({
+        status: 'error',
+        lastUpdated: null,
+        message: 'Failed to check system status'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    checkStatus();
+    
+    // Set up automatic refresh
+    const intervalId = setInterval(() => {
+      checkStatus();
+    }, refreshInterval);
+    
+    return () => clearInterval(intervalId);
+  }, [source, refreshInterval]);
+
+  return {
+    status,
+    isLoading,
+    refresh: checkStatus
+  };
 };
-
-// Helper function to check if Supabase is connected
-async function checkSupabaseConnection(): Promise<boolean> {
-  try {
-    const { data, error } = await supabase.from('settings').select('key').limit(1);
-    return !error && data !== null;
-  } catch (e) {
-    return false;
-  }
-}
-
-// Helper function to format time ago
-export function formatTimeAgo(date: Date): string {
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-  
-  if (diffHrs < 1) {
-    const diffMins = Math.floor(diffMs / (1000 * 60));
-    return `${diffMins} minutes ago`;
-  } else if (diffHrs < 24) {
-    return `${diffHrs} hours ago`;
-  } else {
-    const diffDays = Math.floor(diffHrs / 24);
-    return `${diffDays} days ago`;
-  }
-}

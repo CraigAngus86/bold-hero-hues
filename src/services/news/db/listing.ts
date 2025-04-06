@@ -49,3 +49,25 @@ export async function fetchNewsArticles(options: NewsQueryOptions = {}): Promise
     throw error;
   }
 }
+
+// Alias functions for backward compatibility
+export const getArticles = fetchNewsArticles;
+
+// Get news categories
+export async function getNewsCategories(): Promise<string[]> {
+  try {
+    const { data, error } = await supabase
+      .from('news_articles')
+      .select('category')
+      .order('category', { ascending: true });
+    
+    if (error) throw error;
+    
+    // Extract unique categories
+    const categories = [...new Set(data.map(item => item.category))];
+    return categories;
+  } catch (error) {
+    console.error('Error fetching news categories:', error);
+    throw error;
+  }
+}

@@ -169,9 +169,7 @@ const LeagueTableDashboard = () => {
           
           {/* League table display */}
           <LeagueTableView 
-            leagueData={filteredData} 
-            isLoading={isLoading} 
-            highlightTeam="Banks o' Dee"
+            leagueTable={filteredData}
           />
         </CardContent>
       </Card>

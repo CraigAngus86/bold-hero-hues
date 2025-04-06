@@ -194,6 +194,47 @@ export type Database = {
         }
         Relationships: []
       }
+      match_ticket_configs: {
+        Row: {
+          capacity: number | null
+          created_at: string | null
+          fixture_id: string
+          online_purchase_link: string | null
+          sales_close: string | null
+          sales_open: string | null
+          ticket_types: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          capacity?: number | null
+          created_at?: string | null
+          fixture_id: string
+          online_purchase_link?: string | null
+          sales_close?: string | null
+          sales_open?: string | null
+          ticket_types?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          capacity?: number | null
+          created_at?: string | null
+          fixture_id?: string
+          online_purchase_link?: string | null
+          sales_close?: string | null
+          sales_open?: string | null
+          ticket_types?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_ticket_configs_fixture_id_fkey"
+            columns: ["fixture_id"]
+            isOneToOne: true
+            referencedRelation: "fixtures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       news_articles: {
         Row: {
           author: string | null
@@ -314,6 +355,149 @@ export type Database = {
           items_updated?: number | null
           source?: string
           status?: string
+        }
+        Relationships: []
+      }
+      season_ticket_holders: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          email: string | null
+          first_name: string
+          id: string
+          last_name: string
+          notes: string | null
+          phone: string | null
+          renewal_status: string | null
+          season_id: string | null
+          season_ticket_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          email?: string | null
+          first_name: string
+          id?: string
+          last_name: string
+          notes?: string | null
+          phone?: string | null
+          renewal_status?: string | null
+          season_id?: string | null
+          season_ticket_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          email?: string | null
+          first_name?: string
+          id?: string
+          last_name?: string
+          notes?: string | null
+          phone?: string | null
+          renewal_status?: string | null
+          season_id?: string | null
+          season_ticket_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_ticket_holders_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "season_ticket_holders_season_ticket_id_fkey"
+            columns: ["season_ticket_id"]
+            isOneToOne: false
+            referencedRelation: "season_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      season_tickets: {
+        Row: {
+          available: boolean | null
+          benefits: string[] | null
+          category: string | null
+          created_at: string | null
+          description: string
+          id: string
+          name: string
+          price: number
+          savings_amount: number | null
+          season_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          available?: boolean | null
+          benefits?: string[] | null
+          category?: string | null
+          created_at?: string | null
+          description: string
+          id?: string
+          name: string
+          price: number
+          savings_amount?: number | null
+          season_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          available?: boolean | null
+          benefits?: string[] | null
+          category?: string | null
+          created_at?: string | null
+          description?: string
+          id?: string
+          name?: string
+          price?: number
+          savings_amount?: number | null
+          season_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_tickets_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seasons: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          end_date: string
+          id: string
+          matches_included: number
+          name: string
+          start_date: string
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          end_date: string
+          id?: string
+          matches_included: number
+          name: string
+          start_date: string
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          end_date?: string
+          id?: string
+          matches_included?: number
+          name?: string
+          start_date?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -662,6 +846,132 @@ export type Database = {
           position?: string | null
           previous_clubs?: string[] | null
           stats?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      ticket_sales: {
+        Row: {
+          created_at: string | null
+          customer_email: string | null
+          customer_name: string | null
+          fixture_id: string | null
+          id: string
+          payment_method: string | null
+          purchase_date: string | null
+          quantity: number
+          season_id: string | null
+          ticket_type_id: string | null
+          total_price: number
+        }
+        Insert: {
+          created_at?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          fixture_id?: string | null
+          id?: string
+          payment_method?: string | null
+          purchase_date?: string | null
+          quantity: number
+          season_id?: string | null
+          ticket_type_id?: string | null
+          total_price: number
+        }
+        Update: {
+          created_at?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          fixture_id?: string | null
+          id?: string
+          payment_method?: string | null
+          purchase_date?: string | null
+          quantity?: number
+          season_id?: string | null
+          ticket_type_id?: string | null
+          total_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_sales_fixture_id_fkey"
+            columns: ["fixture_id"]
+            isOneToOne: false
+            referencedRelation: "fixtures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_sales_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_systems: {
+        Row: {
+          api_endpoint: string | null
+          api_key: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_sync: string | null
+          name: string
+          updated_at: string | null
+          webhook_url: string | null
+        }
+        Insert: {
+          api_endpoint?: string | null
+          api_key?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sync?: string | null
+          name: string
+          updated_at?: string | null
+          webhook_url?: string | null
+        }
+        Update: {
+          api_endpoint?: string | null
+          api_key?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sync?: string | null
+          name?: string
+          updated_at?: string | null
+          webhook_url?: string | null
+        }
+        Relationships: []
+      }
+      ticket_types: {
+        Row: {
+          available: boolean | null
+          category: string | null
+          created_at: string | null
+          description: string
+          id: string
+          name: string
+          price: number
+          updated_at: string | null
+        }
+        Insert: {
+          available?: boolean | null
+          category?: string | null
+          created_at?: string | null
+          description: string
+          id?: string
+          name: string
+          price: number
+          updated_at?: string | null
+        }
+        Update: {
+          available?: boolean | null
+          category?: string | null
+          created_at?: string | null
+          description?: string
+          id?: string
+          name?: string
+          price?: number
           updated_at?: string | null
         }
         Relationships: []

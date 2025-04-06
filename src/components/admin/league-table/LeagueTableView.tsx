@@ -2,7 +2,7 @@
 import React from 'react';
 import { TeamStats } from '@/components/league/types';
 import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
 
 interface LeagueTableViewProps {
   leagueTable: TeamStats[];

@@ -14,6 +14,39 @@ export interface NewsArticle {
   author?: string;
 }
 
+// Add data type definitions for creating and updating news articles
+export interface CreateNewsArticleData {
+  title: string;
+  content: string;
+  image_url?: string;
+  category: string;
+  slug: string;
+  publish_date?: string;
+  is_featured?: boolean;
+  author?: string;
+}
+
+export interface UpdateNewsArticleData {
+  title?: string;
+  content?: string;
+  image_url?: string;
+  category?: string;
+  slug?: string;
+  publish_date?: string;
+  is_featured?: boolean;
+  author?: string;
+}
+
+// Add query options interface
+export interface NewsQueryOptions {
+  page?: number;
+  pageSize?: number;
+  category?: string;
+  featured?: boolean;
+  orderBy?: 'publish_date' | 'title' | 'created_at';
+  orderDirection?: 'asc' | 'desc';
+}
+
 // Add other necessary type definitions
 export interface TeamStats {
   id: string;

@@ -99,7 +99,15 @@ const NewsEditorRefactored = () => {
         // Update existing article
         const { error } = await supabase
           .from('news_articles')
-          .update(data)
+          .update({
+            title: data.title,
+            content: data.content,
+            image_url: data.image_url,
+            category: data.category,
+            author: data.author,
+            is_featured: data.is_featured,
+            slug: data.slug
+          })
           .eq('id', articleId);
 
         if (error) throw error;
@@ -108,7 +116,15 @@ const NewsEditorRefactored = () => {
         // Create new article
         const { error } = await supabase
           .from('news_articles')
-          .insert([data]);
+          .insert([{
+            title: data.title,
+            content: data.content,
+            image_url: data.image_url,
+            category: data.category,
+            author: data.author,
+            is_featured: data.is_featured,
+            slug: data.slug
+          }]);
 
         if (error) throw error;
         toast.success('Article created successfully');

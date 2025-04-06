@@ -5,7 +5,6 @@ import { Editor } from '@tinymce/tinymce-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
@@ -125,11 +124,15 @@ const NewsEditor = () => {
     try {
       const { data, error } = await supabase
         .from('news_articles')
-        .insert([{
-          ...formData,
+        .insert({
+          title: formData.title,
           content: editorContent,
           image_url: selectedImage,
-        }])
+          category: formData.category,
+          slug: formData.slug,
+          author: formData.author,
+          is_featured: formData.is_featured
+        })
         .select();
 
       if (error) throw error;
@@ -148,10 +151,10 @@ const NewsEditor = () => {
     
     try {
       const updates = {
-        title: formData.title || '',
-        content: formData.content || '',
-        category: formData.category || 'news',
-        slug: formData.slug || '',
+        title: formData.title,
+        content: formData.content,
+        category: formData.category,
+        slug: formData.slug,
         author: formData.author,
         image_url: formData.image_url,
         is_featured: formData.is_featured

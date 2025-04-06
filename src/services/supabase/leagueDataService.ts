@@ -98,3 +98,23 @@ export const triggerLeagueDataScrape = async (): Promise<TeamStats[]> => {
     return [];
   }
 };
+
+/**
+ * Clear the league data cache
+ */
+export const clearLeagueDataCache = async (): Promise<void> => {
+  try {
+    // Update the cache invalidation timestamp
+    const now = new Date().toISOString();
+    await supabase
+      .from('settings')
+      .upsert({ 
+        key: 'league_data_cache_invalidated', 
+        value: now 
+      }, { onConflict: 'key' });
+      
+    console.log('League data cache cleared at', now);
+  } catch (error) {
+    console.error('Error clearing league data cache:', error);
+  }
+};

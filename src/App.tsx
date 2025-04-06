@@ -24,6 +24,7 @@ import NewsManagement from './pages/admin/NewsManagement';
 import TeamManagement from './pages/admin/TeamManagement';
 import MediaGallery from './pages/admin/MediaGallery';
 import Team from './pages/Team';
+import SponsorsManagement from './pages/admin/SponsorsManagement'; // Import the SponsorsManagement component
 
 // Create a client
 const queryClient = new QueryClient({
@@ -66,7 +67,7 @@ function App() {
           <Route path="/admin/news" element={<NewsManagement />} />
           <Route path="/admin/team" element={<TeamManagement />} />
           <Route path="/admin/images" element={<MediaGallery />} />
-          <Route path="/admin/sponsors" element={<AdminLayout><div>Sponsors Management</div></AdminLayout>} />
+          <Route path="/admin/sponsors" element={<SponsorsManagement />} />
           <Route path="/admin/tickets" element={<AdminLayout><div>Tickets Management</div></AdminLayout>} />
           <Route path="/admin/fans" element={<AdminLayout><div>Fans Zone Management</div></AdminLayout>} />
           <Route path="/admin/settings" element={<AdminLayout><div>Settings</div></AdminLayout>} />

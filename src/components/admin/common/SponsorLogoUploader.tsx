@@ -28,10 +28,10 @@ export function SponsorLogoUploader({
   const { upload, isUploading, progress } = useImageUpload();
   
   // Use predefined config for sponsor images
-  const config = imageUploadConfigs.sponsor;
-  const maxSizeMB = config.maxSizeMB;
+  const config = imageUploadConfigs.sponsors; // Fixed from 'sponsor' to 'sponsors'
+  const maxSizeMB = config.maxSizeMB || 5; // Fallback size
   const maxSizeBytes = maxSizeMB * 1024 * 1024;
-  const acceptedTypes = config.acceptedTypes;
+  const acceptedTypes = config.acceptedTypes || 'image/png,image/jpeg,image/svg+xml';
   
   const handleDrag = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -94,13 +94,10 @@ export function SponsorLogoUploader({
         tags: ['sponsor', 'logo']
       };
       
-      const result = await upload(
-        selectedFile, 
-        'sponsor_logos',
-        'logos',
-        true, 
+      const result = await upload(selectedFile, {
+        folder: 'sponsor_logos',
         metadata
-      );
+      });
       
       if (result.success && result.data) {
         toast.success('Logo uploaded successfully');

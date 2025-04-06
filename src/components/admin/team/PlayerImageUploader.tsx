@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,7 +22,7 @@ export function PlayerImageUploader({
   const [dragActive, setDragActive] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(initialImageUrl || null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const { upload, isUploading, progress } = useImageUpload();
+  const { upload, isUploading, uploadProgress } = useImageUpload();
   
   const maxSizeMB = 5;
   const maxSizeBytes = maxSizeMB * 1024 * 1024;
@@ -81,10 +82,13 @@ export function PlayerImageUploader({
     if (!selectedFile) return;
     
     try {
-      const result = await upload(selectedFile, 'player_images', 'profiles');
+      const result = await upload(selectedFile, {
+        folder: 'player_images'
+      });
+      
       if (result.success && result.data) {
         toast.success(`${playerName ? playerName + "'s" : 'Player'} image uploaded successfully`);
-        onUpload(result.data.url);
+        onUpload(result.data.publicUrl);
         clearSelection();
       }
     } catch (error) {
@@ -150,7 +154,7 @@ export function PlayerImageUploader({
                 {isUploading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Uploading {progress}%
+                    Uploading {uploadProgress}%
                   </>
                 ) : (
                   'Upload Image'

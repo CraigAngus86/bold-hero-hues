@@ -46,13 +46,13 @@ export const FixturePreview: React.FC<FixturePreviewProps> = ({
   };
 
   // Determine if the fixture is completed
-  const isCompleted = fixture.isCompleted || 
-    (fixture.homeScore !== undefined && fixture.awayScore !== undefined);
+  const isCompleted = fixture.is_completed || 
+    (fixture.home_score !== undefined && fixture.away_score !== undefined);
 
   // Helper function to determine score display
   const getScoreDisplay = () => {
-    if (isCompleted && fixture.homeScore !== undefined && fixture.awayScore !== undefined) {
-      return `${fixture.homeScore} - ${fixture.awayScore}`;
+    if (isCompleted && fixture.home_score !== undefined && fixture.away_score !== undefined) {
+      return `${fixture.home_score} - ${fixture.away_score}`;
     }
     return 'vs';
   };
@@ -87,10 +87,10 @@ export const FixturePreview: React.FC<FixturePreviewProps> = ({
         {/* Teams section */}
         <div className="flex items-center justify-center space-x-4 my-4">
           <div className="text-right flex-1">
-            <div className="font-bold text-lg">{fixture.homeTeam}</div>
+            <div className="font-bold text-lg">{fixture.home_team}</div>
             {homeTeamLogo && (
               <div className="flex justify-end mt-2">
-                <img src={homeTeamLogo} alt={fixture.homeTeam} className="h-8 w-8 object-contain" />
+                <img src={homeTeamLogo} alt={fixture.home_team} className="h-8 w-8 object-contain" />
               </div>
             )}
           </div>
@@ -103,10 +103,10 @@ export const FixturePreview: React.FC<FixturePreviewProps> = ({
           </div>
           
           <div className="text-left flex-1">
-            <div className="font-bold text-lg">{fixture.awayTeam}</div>
+            <div className="font-bold text-lg">{fixture.away_team}</div>
             {awayTeamLogo && (
               <div className="flex justify-start mt-2">
-                <img src={awayTeamLogo} alt={fixture.awayTeam} className="h-8 w-8 object-contain" />
+                <img src={awayTeamLogo} alt={fixture.away_team} className="h-8 w-8 object-contain" />
               </div>
             )}
           </div>
@@ -135,10 +135,10 @@ export const FixturePreview: React.FC<FixturePreviewProps> = ({
         </div>
 
         {/* Ticket link */}
-        {showTicketLink && fixture.ticketLink && (
+        {showTicketLink && fixture.ticket_link && (
           <div className="mt-4 text-center">
             <a 
-              href={fixture.ticketLink}
+              href={fixture.ticket_link}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm"

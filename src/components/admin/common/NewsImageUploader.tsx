@@ -82,7 +82,11 @@ export function NewsImageUploader({
       const date = new Date();
       const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       
-      const result = await upload(selectedFile, 'news_images', yearMonth);
+      const result = await upload(selectedFile, {
+        folder: 'news_images',
+        subFolder: yearMonth
+      });
+      
       if (result.success && result.data) {
         toast.success('News image uploaded successfully');
         clearSelection();

@@ -1,9 +1,11 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileUp, Loader2, CheckSquare } from "lucide-react";
 import { importHistoricFixtures } from '@/services/supabase/fixtures/importExport';
-import { validateFixtureData, testFixturesImport } from '@/services/supabase/fixtures/testUtils';
+import validateFixtureData from '@/services/supabase/fixtures/testUtils';
+import testFixturesImport from '@/services/supabase/fixtures/testUtils';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ScrapedFixture } from '@/types/fixtures';

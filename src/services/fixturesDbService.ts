@@ -1,7 +1,7 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import { Fixture, convertToMatches } from '@/types/fixtures';
+import { Fixture, Match } from '@/types/fixtures';
 import { toast } from 'sonner';
+import { adaptFixtureToMatch, adaptFixturesToMatches } from '@/adapters/fixtureAdapter';
 
 /**
  * Get all fixtures with optional filtering
@@ -11,7 +11,7 @@ export async function getAllFixtures(options?: {
   competition?: string;
   upcoming?: boolean;
   limit?: number;
-}): Promise<Fixture[]> {
+}): Promise<Match[]> {
   try {
     let query = supabase
       .from('fixtures')
@@ -50,7 +50,7 @@ export async function getAllFixtures(options?: {
 
     if (error) throw error;
 
-    return convertToMatches(data as DBFixture[]);
+    return adaptFixturesToMatches(data as Fixture[]);
   } catch (error) {
     console.error('Failed to load fixtures:', error);
     toast.error('Failed to load fixtures data');
@@ -61,21 +61,21 @@ export async function getAllFixtures(options?: {
 /**
  * Get upcoming fixtures
  */
-export async function getUpcomingFixtures(limit = 5): Promise<Fixture[]> {
+export async function getUpcomingFixtures(limit = 5): Promise<Match[]> {
   return getAllFixtures({ upcoming: true, limit });
 }
 
 /**
  * Get completed fixtures (results)
  */
-export async function getResults(limit = 5): Promise<Fixture[]> {
+export async function getResults(limit = 5): Promise<Match[]> {
   return getAllFixtures({ upcoming: false, limit });
 }
 
 /**
  * Get fixture by ID
  */
-export async function getFixtureById(id: string): Promise<Fixture | null> {
+export async function getFixtureById(id: string): Promise<Match | null> {
   try {
     const { data, error } = await supabase
       .from('fixtures')
@@ -85,8 +85,7 @@ export async function getFixtureById(id: string): Promise<Fixture | null> {
 
     if (error) throw error;
 
-    const fixtures = convertToMatches([data as Fixture]);
-    return fixtures[0];
+    return adaptFixtureToMatch(data as Fixture);
   } catch (error) {
     console.error(`Failed to load fixture details for ID: ${id}`, error);
     toast.error('Failed to load fixture details');

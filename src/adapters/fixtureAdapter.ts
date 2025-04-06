@@ -14,8 +14,8 @@ export const adaptFixtureToMatch = (fixture: Fixture): Match => {
     competition: fixture.competition,
     venue: fixture.venue || '',
     isCompleted: fixture.is_completed || false,
-    homeScore: fixture.home_score !== null ? fixture.home_score : undefined,
-    awayScore: fixture.away_score !== null ? fixture.away_score : undefined,
+    homeScore: fixture.home_score !== undefined ? fixture.home_score : undefined,
+    awayScore: fixture.away_score !== undefined ? fixture.away_score : undefined,
     ticketLink: fixture.ticket_link,
     season: fixture.season,
     // Add additional properties as needed

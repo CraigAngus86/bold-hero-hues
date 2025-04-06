@@ -1,161 +1,147 @@
 
-import React, { createContext, useContext, useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import { useFolders } from './hooks';
-import { ImageFolder, ImageManagerContextType } from './types';
-import { v4 as uuidv4 } from 'uuid';
+import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { ImageFolder, ImageMetadata } from '@/types/images';
+import { getImageFolders, getImagesByFolder, createImageFolder } from '@/services/imageService';
+import { toast } from 'sonner';
 
-// Create context with default values
-const ImageManagerContext = createContext<ImageManagerContextType | undefined>(undefined);
-
-// Provider props
-interface ImageManagerProviderProps {
-  children: React.ReactNode;
+interface ImageManagerContextType {
+  folders: ImageFolder[];
+  currentFolder: ImageFolder | null;
+  images: ImageMetadata[];
+  selectedImage: ImageMetadata | null;
+  isLoading: boolean;
+  isLoadingImages: boolean;
+  loadFolders: () => Promise<void>;
+  loadImagesForFolder: (folderId: string) => Promise<void>;
+  selectFolder: (folder: ImageFolder | null) => void;
+  selectImage: (image: ImageMetadata | null) => void;
+  createFolder: (name: string, parentId?: string) => Promise<ImageFolder | null>;
+  refreshImages: () => Promise<void>;
 }
 
-// Provider component
-export const ImageManagerProvider: React.FC<ImageManagerProviderProps> = ({ children }) => {
-  const {
-    folders,
-    currentFolder,
-    subfolders,
-    breadcrumbs,
-    navigateToFolder,
-    navigateUp,
-    navigateToBreadcrumb
-  } = useFolders();
+const ImageManagerContext = createContext<ImageManagerContextType | undefined>(undefined);
 
-  const [images, setImages] = useState<any[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [newFolderDialogOpen, setNewFolderDialogOpen] = useState(false);
-  const [imageDialogOpen, setImageDialogOpen] = useState(false);
+export function useImageManager() {
+  const context = useContext(ImageManagerContext);
+  if (!context) {
+    throw new Error('useImageManager must be used within an ImageManagerProvider');
+  }
+  return context;
+}
 
-  // Create new folder
-  const createNewFolder = async (folderName: string): Promise<boolean> => {
+interface ImageManagerProviderProps {
+  children: ReactNode;
+}
+
+export function ImageManagerProvider({ children }: ImageManagerProviderProps) {
+  const [folders, setFolders] = useState<ImageFolder[]>([]);
+  const [currentFolder, setCurrentFolder] = useState<ImageFolder | null>(null);
+  const [images, setImages] = useState<ImageMetadata[]>([]);
+  const [selectedImage, setSelectedImage] = useState<ImageMetadata | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingImages, setIsLoadingImages] = useState(false);
+
+  const loadFolders = useCallback(async () => {
+    setIsLoading(true);
     try {
-      if (!currentFolder) return false;
-      
-      const newFolderId = uuidv4();
-      const newFolderPath = currentFolder.path === '/' 
-        ? `/${folderName}` 
-        : `${currentFolder.path}/${folderName}`;
-      
-      const newFolder = {
-        id: newFolderId,
-        name: folderName,
-        path: newFolderPath,
-        parent_id: currentFolder.id
-      };
-      
-      const { error } = await supabase
-        .from('image_folders')
-        .insert(newFolder);
-        
-      if (error) throw error;
-      
-      // Navigate to the new folder (adds it to the UI)
-      navigateToFolder({
-        ...newFolder,
-        parentId: newFolder.parent_id
-      });
-      
-      return true;
+      const folderData = await getImageFolders();
+      setFolders(folderData);
     } catch (error) {
-      console.error('Error creating folder:', error);
-      return false;
+      console.error('Error fetching folders:', error);
+      toast.error('Failed to load image folders');
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, []);
 
-  // Upload file
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
+  const selectFolder = useCallback((folder: ImageFolder | null) => {
+    setCurrentFolder(folder);
+    setSelectedImage(null);
     
+    if (folder) {
+      loadImagesForFolder(folder.id);
+    } else {
+      setImages([]);
+    }
+  }, []);
+
+  const loadImagesForFolder = useCallback(async (folderId: string) => {
+    const folder = folders.find(f => f.id === folderId);
+    if (!folder) return;
+
+    setIsLoadingImages(true);
     try {
-      setIsUploading(true);
-      
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        
-        // Create storage path
-        const folderPath = currentFolder?.path || '/';
-        const fileName = file.name;
-        
-        // Upload to Supabase Storage
-        const { error } = await supabase.storage
-          .from('images')
-          .upload(`${folderPath}/${fileName}`, file);
-          
-        if (error) throw error;
+      const imageData = await getImagesByFolder(folder.path);
+      setImages(imageData);
+    } catch (error) {
+      console.error('Error fetching images:', error);
+      toast.error('Failed to load images');
+    } finally {
+      setIsLoadingImages(false);
+    }
+  }, [folders]);
+
+  const selectImage = useCallback((image: ImageMetadata | null) => {
+    setSelectedImage(image);
+  }, []);
+
+  const createFolder = useCallback(async (name: string, parentId?: string): Promise<ImageFolder | null> => {
+    try {
+      // Determine the parent path
+      let parentPath = '';
+      if (parentId) {
+        const parent = folders.find(f => f.id === parentId);
+        if (parent) {
+          parentPath = parent.path.endsWith('/') ? parent.path : `${parent.path}/`;
+        }
       }
       
-      // Refresh images
-      loadImagesInCurrentFolder();
-    } catch (error) {
-      console.error('Error uploading files:', error);
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  // Load images in current folder
-  const loadImagesInCurrentFolder = async () => {
-    if (!currentFolder) return;
-    
-    try {
-      const { data, error } = await supabase.storage
-        .from('images')
-        .list(currentFolder.path);
-        
-      if (error) throw error;
+      // Create the new folder path
+      const folderPath = `${parentPath}${name}`;
       
-      // Filter out folders (objects that end with '/')
-      const imageFiles = data?.filter(item => !item.name.endsWith('/')) || [];
-      setImages(imageFiles);
-    } catch (error) {
-      console.error('Error loading images:', error);
-    }
-  };
-
-  // Get image URL
-  const getImageUrl = (fileName: string): string => {
-    if (!currentFolder) return '';
-    
-    const { data } = supabase.storage
-      .from('images')
-      .getPublicUrl(`${currentFolder.path}/${fileName}`);
+      // Create the folder
+      const newFolder = await createImageFolder(name, folderPath, parentId);
       
-    return data?.publicUrl || '';
-  };
+      if (newFolder) {
+        // Refresh the folder list
+        await loadFolders();
+        toast.success(`Folder "${name}" created successfully`);
+        return newFolder;
+      } else {
+        toast.error('Failed to create folder');
+        return null;
+      }
+    } catch (error) {
+      console.error('Error creating folder:', error);
+      toast.error('Failed to create folder');
+      return null;
+    }
+  }, [folders, loadFolders]);
 
-  // View image
-  const viewImage = (url: string) => {
-    setSelectedImage(url);
-    setImageDialogOpen(true);
-  };
+  const refreshImages = useCallback(async () => {
+    if (currentFolder) {
+      await loadImagesForFolder(currentFolder.id);
+    }
+  }, [currentFolder, loadImagesForFolder]);
 
-  // Context value
-  const value: ImageManagerContextType = {
+  // Load folders when the provider mounts
+  React.useEffect(() => {
+    loadFolders();
+  }, [loadFolders]);
+
+  const value = {
     folders,
     currentFolder,
-    subfolders,
     images,
-    breadcrumbs,
-    isUploading,
     selectedImage,
-    newFolderDialogOpen,
-    imageDialogOpen,
-    setNewFolderDialogOpen,
-    setImageDialogOpen,
-    setSelectedImage,
-    navigateToFolder,
-    navigateUp,
-    navigateToBreadcrumb,
-    createNewFolder,
-    handleFileUpload,
-    getImageUrl,
-    viewImage
+    isLoading,
+    isLoadingImages,
+    loadFolders,
+    loadImagesForFolder,
+    selectFolder,
+    selectImage,
+    createFolder,
+    refreshImages
   };
 
   return (
@@ -163,13 +149,4 @@ export const ImageManagerProvider: React.FC<ImageManagerProviderProps> = ({ chil
       {children}
     </ImageManagerContext.Provider>
   );
-};
-
-// Custom hook to use the image manager context
-export const useImageManager = (): ImageManagerContextType => {
-  const context = useContext(ImageManagerContext);
-  if (context === undefined) {
-    throw new Error('useImageManager must be used within an ImageManagerProvider');
-  }
-  return context;
-};
+}

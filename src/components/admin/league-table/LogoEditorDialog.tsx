@@ -3,10 +3,9 @@ import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
+  DialogFooter
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ImageUploader } from '@/components/common/ImageUploader';
@@ -35,7 +34,7 @@ const LogoEditorDialog: React.FC<LogoEditorDialogProps> = ({
   const handleSaveLogo = async () => {
     try {
       setIsSaving(true);
-      const success = await leagueService.updateTeamLogo(team.id || '', logoUrl);
+      const success = await leagueService.updateTeamLogo(String(team.id), logoUrl);
       
       if (success) {
         toast.success(`Logo updated for ${team.team}`);
@@ -61,9 +60,6 @@ const LogoEditorDialog: React.FC<LogoEditorDialogProps> = ({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Edit Team Logo</DialogTitle>
-          <DialogDescription>
-            Upload a new logo for {team.team}
-          </DialogDescription>
         </DialogHeader>
         
         <div className="grid gap-4 py-4">
@@ -81,13 +77,16 @@ const LogoEditorDialog: React.FC<LogoEditorDialogProps> = ({
               </div>
             )}
             
-            <ImageUploader
-              bucket={BucketType.TEAMS}
-              onUploadComplete={handleUploadComplete}
-              folderPath={`teams`}
-              isUploading={isUploading}
-              setIsUploading={setIsUploading}
-            />
+            <div className="w-full">
+              <p className="mb-2 text-sm font-medium">Upload New Logo:</p>
+              <ImageUploader 
+                onUploadComplete={handleUploadComplete}
+                isUploading={isUploading}
+                setIsUploading={setIsUploading}
+                bucketName={BucketType.TEAMS}
+                folderPath="teams"
+              />
+            </div>
           </div>
         </div>
         

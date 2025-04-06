@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
@@ -7,8 +8,8 @@ import SystemStatusPanel from '@/components/admin/dashboard/SystemStatusPanel';
 import RecentActivityPanel from '@/components/admin/dashboard/RecentActivityPanel';
 import QuickStatsPanel from '@/components/admin/dashboard/QuickStatsPanel';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
-import { SystemMetrics } from '@/types/system/status';
-import AdminLayout from '@/components/admin/layout';
+import { SystemStatus } from '@/types/system/status';
+import { AdminLayout } from '@/components/admin/layout';
 import { CalendarDays, FileText, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -37,9 +38,9 @@ const Dashboard = () => {
     refresh: refreshStatus 
   } = useSystemStatus();
   
-  const getMetricValue = (metric: keyof SystemMetrics | undefined, defaultValue: string | number = '0') => {
+  const getMetricValue = (metric: keyof SystemStatus['metrics'] | undefined, defaultValue: string | number = '0') => {
     if (!statusData?.metrics || metric === undefined) return defaultValue;
-    return (statusData.metrics as any)[metric] || defaultValue;
+    return statusData.metrics[metric] || defaultValue;
   };
   
   return (
@@ -180,7 +181,7 @@ const Dashboard = () => {
         </Tabs>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 mt-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">

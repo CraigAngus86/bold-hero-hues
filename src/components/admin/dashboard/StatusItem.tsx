@@ -4,7 +4,6 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { SystemStatusItemProps } from '@/types/system/status';
-import { LucideIcon } from 'lucide-react';
 
 interface StatusItemProps extends Omit<SystemStatusItemProps, 'icon'> {
   icon?: React.ElementType;

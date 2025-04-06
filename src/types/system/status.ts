@@ -1,34 +1,12 @@
 
-import { LucideIcon } from "lucide-react";
-import React from "react";
-
 export interface SystemStatusItemProps {
   name: string;
-  status: 'healthy' | 'degraded' | 'error' | 'unknown' | 'active' | 'warning' | 'info' | 'online' | 'offline';
-  lastChecked?: string;
-  metricValue?: string;
-  icon?: React.ElementType; // Changed from React.ReactNode to React.ElementType
-  tooltip?: string;
+  status?: 'healthy' | 'warning' | 'error' | 'info' | 'offline' | 'active' | 'degraded' | 'online';
+  metricValue?: string | number;
   count?: number;
+  icon?: React.ElementType;
   color?: string;
   viewAllLink?: string;
-}
-
-export interface SystemComponent {
-  id: string;
-  name: string;
-  status: string;
-  isHealthy: boolean;
-  lastChecked: string;
-}
-
-export interface SystemIncident {
-  id: string;
-  title: string;
-  description: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  date: string;
-  isResolved: boolean;
 }
 
 export interface SystemMetrics {
@@ -43,20 +21,34 @@ export interface SystemMetrics {
   dailyActiveUsers?: number;
 }
 
-export interface SystemStatus {
-  status: 'healthy' | 'warning' | 'error' | 'unknown';
+export interface SystemComponent {
+  name: string;
+  status: 'healthy' | 'warning' | 'error' | 'offline';
   lastUpdated: string;
-  message?: string;
-  isHealthy?: boolean;
-  components?: SystemComponent[];
-  incidents?: SystemIncident[];
-  metrics?: SystemMetrics;
-  uptime?: number;
+  details?: string;
 }
 
-export interface SystemStatusProps {
-  systems: SystemStatusItemProps[];
-  isLoading: boolean;
-  lastUpdated: Date;
-  onRefresh: () => void;
+export interface SystemIncident {
+  id: string;
+  title: string;
+  status: 'investigating' | 'identified' | 'monitoring' | 'resolved';
+  createdAt: string;
+  updatedAt: string;
+  message: string;
+  affectedComponents?: string[];
+}
+
+export interface SystemStatus {
+  status: 'operational' | 'degraded' | 'partial_outage' | 'major_outage' | 'unknown';
+  isHealthy?: boolean;
+  lastUpdated: string;
+  metrics: SystemMetrics;
+  components?: SystemComponent[];
+  incidents?: SystemIncident[];
+}
+
+export interface SystemStatusResponse {
+  success: boolean;
+  data?: SystemStatus;
+  error?: string;
 }

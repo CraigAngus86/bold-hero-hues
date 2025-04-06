@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Editor } from '@tinymce/tinymce-react';
@@ -41,6 +42,8 @@ const formSchema = z.object({
   }),
 });
 
+type FormValues = z.infer<typeof formSchema>;
+
 const NewsEditor = () => {
   const { articleId } = useParams<{ articleId: string }>();
   const navigate = useNavigate();
@@ -50,7 +53,7 @@ const NewsEditor = () => {
   const [editorContent, setEditorContent] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: '',
@@ -70,7 +73,7 @@ const NewsEditor = () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase
-        .from('news')
+        .from('news_articles')
         .select('*')
         .eq('id', articleId)
         .single();
@@ -79,10 +82,23 @@ const NewsEditor = () => {
         throw error;
       }
 
-      setArticle(data);
-      form.reset(data);
-      setEditorContent(data.content || '');
-      setSelectedImage(data.image_url || null);
+      if (data) {
+        const articleData = data as NewsArticle;
+        setArticle(articleData);
+        
+        form.reset({
+          title: articleData.title || '',
+          content: articleData.content || '',
+          image_url: articleData.image_url || '',
+          category: articleData.category || 'news',
+          author: articleData.author || '',
+          is_featured: articleData.is_featured || false,
+          slug: articleData.slug || '',
+        });
+        
+        setEditorContent(articleData.content || '');
+        setSelectedImage(articleData.image_url || null);
+      }
     } catch (error: any) {
       toast.error(`Failed to load article: ${error.message}`);
     } finally {
@@ -104,18 +120,16 @@ const NewsEditor = () => {
     form.setValue("image_url", imageUrl);
   };
 
-  const handleCreate = async (formData: any) => {
+  const handleCreate = async (formData: FormValues) => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase
-        .from('news')
-        .insert([
-          {
-            ...formData,
-            content: editorContent,
-            image_url: selectedImage,
-          },
-        ])
+        .from('news_articles')
+        .insert([{
+          ...formData,
+          content: editorContent,
+          image_url: selectedImage,
+        }])
         .select();
 
       if (error) throw error;
@@ -129,7 +143,7 @@ const NewsEditor = () => {
     }
   };
 
-  const handleUpdate = async (formData: any) => {
+  const handleUpdate = async (formData: FormValues) => {
     setIsLoading(true);
     
     try {
@@ -144,7 +158,7 @@ const NewsEditor = () => {
       };
       
       const { data, error } = await supabase
-        .from('news')
+        .from('news_articles')
         .update(updates)
         .eq('id', articleId)
         .select();
@@ -166,7 +180,7 @@ const NewsEditor = () => {
     setIsLoading(true);
     try {
       const { error } = await supabase
-        .from('news')
+        .from('news_articles')
         .delete()
         .eq('id', articleId);
 
@@ -181,7 +195,7 @@ const NewsEditor = () => {
     }
   };
 
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
+  const onSubmit = (data: FormValues) => {
     if (articleId) {
       handleUpdate(data);
     } else {

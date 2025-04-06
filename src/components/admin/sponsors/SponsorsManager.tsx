@@ -55,7 +55,7 @@ const SponsorsManager: React.FC = () => {
         </TabsList>
         
         <div className="mt-6">
-          {isLoading ? (
+          {isLoading && activeTab === 'sponsors' ? (
             <div className="flex justify-center items-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>

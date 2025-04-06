@@ -1,26 +1,30 @@
 
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-
+import { format } from 'date-fns';
+import { 
+  Calendar as CalendarIcon, 
+  CalendarRange, 
+  Globe, 
+  Loader2, 
+  Save, 
+  Users, 
+  X 
+} from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
@@ -28,50 +32,87 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { toast } from 'sonner';
+import { Card, CardContent } from '@/components/ui/card';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 import SponsorLogoUploader from '@/components/admin/common/SponsorLogoUploader';
-import { fetchSponsorById, createSponsor, updateSponsor } from '@/services/sponsorsDbService';
-import { Sponsor } from '@/types/sponsors';
+import SponsorContactsManager from './SponsorContactsManager';
+import SponsorCommunicationsLog from './SponsorCommunicationsLog';
+import SponsorDocumentsManager from './SponsorDocumentsManager';
+import { fetchSponsorById, createSponsor, updateSponsor, fetchSponsorshipTiers } from '@/services/sponsorsService';
+import { Sponsor, SponsorshipTier } from '@/types/sponsors';
+
+const formSchema = z.object({
+  name: z.string().min(2, "Sponsor name must be at least 2 characters"),
+  tier: z.string(),
+  description: z.string().optional(),
+  website_url: z.string().url("Please enter a valid URL").or(z.literal('')),
+  is_active: z.boolean().default(true),
+  start_date: z.date().optional().nullable(),
+  end_date: z.date().optional().nullable(),
+  renewal_status: z.string().optional(),
+  display_order: z.number().int().nonnegative().optional(),
+});
 
 interface SponsorEditorProps {
-  sponsorId: string | null; // null for new sponsor
+  sponsorId: string | null;
   onSaved: () => void;
   onCancel: () => void;
 }
 
-// Form validation schema
-const formSchema = z.object({
-  name: z.string().min(2, "Sponsor name must be at least 2 characters"),
-  website_url: z.string().url("Please enter a valid URL").or(z.literal("")),
-  description: z.string().optional(),
-  tier: z.enum(["platinum", "gold", "silver", "bronze"]),
-  is_active: z.boolean().default(true),
-  logo_url: z.string().optional(),
-});
-
-type FormValues = z.infer<typeof formSchema>;
-
-const SponsorEditor: React.FC<SponsorEditorProps> = ({ sponsorId, onSaved, onCancel }) => {
-  const isEditing = !!sponsorId;
+const SponsorEditor: React.FC<SponsorEditorProps> = ({
+  sponsorId,
+  onSaved,
+  onCancel,
+}) => {
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('details');
   
-  // Set up form
-  const form = useForm<FormValues>({
+  const isEditMode = !!sponsorId;
+  
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      website_url: "",
-      description: "",
-      tier: "bronze",
+      name: '',
+      tier: 'bronze',
+      description: '',
+      website_url: '',
       is_active: true,
-      logo_url: "",
+      start_date: null,
+      end_date: null,
+      renewal_status: 'active',
+      display_order: 999,
     },
   });
 
-  // Fetch sponsor data if editing
-  const { data: sponsorData, isLoading: isLoadingSponsor } = useQuery({
+  // Fetch tiers for dropdown
+  const { data: tiers, isLoading: isLoadingTiers } = useQuery({
+    queryKey: ['sponsorshipTiers'],
+    queryFn: async () => {
+      const response = await fetchSponsorshipTiers();
+      if (!response.success) {
+        throw new Error(response.error?.message || 'Failed to load tiers');
+      }
+      return response.data;
+    },
+  });
+
+  // Fetch sponsor data if in edit mode
+  const { data: sponsor, isLoading: isLoadingSponsor } = useQuery({
     queryKey: ['sponsor', sponsorId],
     queryFn: async () => {
       if (!sponsorId) return null;
+      
       const response = await fetchSponsorById(sponsorId);
       if (!response.success) {
         throw new Error(response.error?.message || 'Failed to load sponsor');
@@ -81,105 +122,231 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({ sponsorId, onSaved, onCan
     enabled: !!sponsorId,
   });
 
-  // Update form when sponsor data is loaded
+  // Update form with sponsor data when loaded
   useEffect(() => {
-    if (sponsorData) {
+    if (sponsor) {
+      setLogoUrl(sponsor.logo_url || null);
+      
       form.reset({
-        name: sponsorData.name,
-        website_url: sponsorData.website_url || "",
-        description: sponsorData.description || "",
-        tier: sponsorData.tier as "platinum" | "gold" | "silver" | "bronze",
-        is_active: sponsorData.is_active !== false, // Default to true if undefined
-        logo_url: sponsorData.logo_url || "",
+        name: sponsor.name,
+        tier: sponsor.tier,
+        description: sponsor.description || '',
+        website_url: sponsor.website_url || '',
+        is_active: sponsor.is_active !== false,
+        start_date: sponsor.start_date ? new Date(sponsor.start_date) : null,
+        end_date: sponsor.end_date ? new Date(sponsor.end_date) : null,
+        renewal_status: sponsor.renewal_status || 'active',
+        display_order: sponsor.display_order || 999,
       });
     }
-  }, [sponsorData, form]);
+  }, [sponsor, form]);
 
-  // Create/Update mutations
-  const createMutation = useMutation({
-    mutationFn: async (data: Omit<Sponsor, "id">) => {
-      const response = await createSponsor(data);
-      if (!response.success) {
-        throw new Error(response.error?.message || 'Failed to create sponsor');
-      }
-      return response.data;
-    },
-    onSuccess: () => {
-      toast.success("Sponsor created successfully");
-      onSaved();
-    },
-    onError: (error) => {
-      toast.error(`Error: ${error.message}`);
-    },
-  });
+  const handleLogoUpload = (url: string) => {
+    setLogoUrl(url);
+  };
 
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<Sponsor> }) => {
-      const response = await updateSponsor(id, data);
-      if (!response.success) {
-        throw new Error(response.error?.message || 'Failed to update sponsor');
-      }
-      return response.data;
-    },
-    onSuccess: () => {
-      toast.success("Sponsor updated successfully");
-      onSaved();
-    },
-    onError: (error) => {
-      toast.error(`Error: ${error.message}`);
-    },
-  });
-
-  const onSubmit = async (values: FormValues) => {
-    if (isEditing && sponsorId) {
-      updateMutation.mutate({ id: sponsorId, data: values });
-    } else {
-      // Ensure all required fields are present for creating a new sponsor
-      const sponsorData: Omit<Sponsor, "id"> = {
-        name: values.name, // name is guaranteed to exist due to the form validation
-        tier: values.tier,
-        is_active: values.is_active,
-        website_url: values.website_url || undefined,
-        description: values.description || undefined,
-        logo_url: values.logo_url || undefined
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      const sponsorData = {
+        ...values,
+        logo_url: logoUrl,
       };
       
-      createMutation.mutate(sponsorData);
+      // Remove undefined/null fields that shouldn't be sent
+      if (!sponsorData.description) delete sponsorData.description;
+      if (!sponsorData.website_url) delete sponsorData.website_url;
+      
+      let response;
+      if (isEditMode && sponsorId) {
+        response = await updateSponsor(sponsorId, sponsorData);
+      } else {
+        response = await createSponsor(sponsorData as Omit<Sponsor, 'id'>);
+      }
+
+      if (response.success) {
+        toast.success(isEditMode ? 'Sponsor updated successfully' : 'Sponsor created successfully');
+        onSaved();
+      } else {
+        toast.error(response.error?.message || 'Failed to save sponsor');
+      }
+    } catch (error) {
+      console.error('Error saving sponsor:', error);
+      toast.error('An error occurred while saving');
     }
   };
 
-  const handleLogoUpload = (imageUrl: string) => {
-    form.setValue('logo_url', imageUrl);
-  };
-
-  const isSubmitting = createMutation.isPending || updateMutation.isPending;
-
-  // Loading state
-  if (isEditing && isLoadingSponsor) {
-    return (
-      <div className="flex justify-center items-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+  const isLoading = isLoadingSponsor || isLoadingTiers || form.formState.isSubmitting;
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row gap-6">
-        <div className="flex-1 space-y-4">
-          <Card>
-            <CardContent className="pt-6">
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">
+          {isEditMode ? `Edit Sponsor: ${sponsor?.name}` : 'Add New Sponsor'}
+        </h2>
+        <div className="space-x-2">
+          <Button variant="outline" onClick={onCancel} disabled={isLoading}>
+            Cancel
+          </Button>
+          <Button 
+            type="button" 
+            onClick={form.handleSubmit(onSubmit)}
+            disabled={isLoading || !form.formState.isDirty}
+          >
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Save className="mr-2 h-4 w-4" />
+            Save Sponsor
+          </Button>
+        </div>
+      </div>
+
+      {isEditMode && sponsorId && (
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList>
+            <TabsTrigger value="details">Sponsor Details</TabsTrigger>
+            <TabsTrigger value="contacts">Contacts</TabsTrigger>
+            <TabsTrigger value="communications">Communications</TabsTrigger>
+            <TabsTrigger value="documents">Documents</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      )}
+
+      <TabsContent value="details" className={!isEditMode ? 'block' : ''}>
+        <Form {...form}>
+          <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Sponsor Name*</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Company/Organization Name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="tier"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Sponsorship Tier*</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a tier" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {isLoadingTiers ? (
+                            <div className="flex justify-center p-2">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            </div>
+                          ) : tiers?.length ? (
+                            tiers.map((tier: SponsorshipTier) => (
+                              <SelectItem key={tier.id} value={tier.name.toLowerCase()}>
+                                {tier.name}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <>
+                              <SelectItem value="platinum">Platinum</SelectItem>
+                              <SelectItem value="gold">Gold</SelectItem>
+                              <SelectItem value="silver">Silver</SelectItem>
+                              <SelectItem value="bronze">Bronze</SelectItem>
+                            </>
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Each tier comes with different benefits and visibility options
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="website_url"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Website URL</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Globe className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                          <Input placeholder="https://example.com" className="pl-8" {...field} />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="display_order"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Display Order</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={1}
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 999)}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Controls the order within each tier (lower numbers appear first)
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="name"
+                    name="start_date"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Sponsor Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter sponsor name" {...field} />
-                        </FormControl>
+                      <FormItem className="flex flex-col">
+                        <FormLabel>Start Date</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant={"outline"}
+                                className={cn(
+                                  "pl-3 text-left font-normal",
+                                  !field.value && "text-muted-foreground"
+                                )}
+                              >
+                                {field.value ? (
+                                  format(field.value, "PPP")
+                                ) : (
+                                  <span>Pick a date</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={field.value || undefined}
+                              onSelect={field.onChange}
+                              disabled={(date) =>
+                                date < new Date("1900-01-01")
+                              }
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -187,65 +354,71 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({ sponsorId, onSaved, onCan
 
                   <FormField
                     control={form.control}
-                    name="website_url"
+                    name="end_date"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Website URL</FormLabel>
-                        <FormControl>
-                          <Input placeholder="https://example.com" {...field} />
-                        </FormControl>
+                      <FormItem className="flex flex-col">
+                        <FormLabel>End Date</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant={"outline"}
+                                className={cn(
+                                  "pl-3 text-left font-normal",
+                                  !field.value && "text-muted-foreground"
+                                )}
+                              >
+                                {field.value ? (
+                                  format(field.value, "PPP")
+                                ) : (
+                                  <span>Pick a date</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={field.value || undefined}
+                              onSelect={field.onChange}
+                              disabled={(date) =>
+                                form.getValues().start_date &&
+                                date < form.getValues().start_date
+                              }
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+                </div>
 
+                <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="tier"
+                    name="renewal_status"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Sponsorship Tier</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          value={field.value}
+                        <FormLabel>Renewal Status</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          defaultValue={field.value || 'active'}
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select a tier" />
+                              <SelectValue placeholder="Select status" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="platinum">Platinum</SelectItem>
-                            <SelectItem value="gold">Gold</SelectItem>
-                            <SelectItem value="silver">Silver</SelectItem>
-                            <SelectItem value="bronze">Bronze</SelectItem>
+                            <SelectItem value="active">Active</SelectItem>
+                            <SelectItem value="pending">Pending Renewal</SelectItem>
+                            <SelectItem value="renewed">Renewed</SelectItem>
+                            <SelectItem value="expired">Expired</SelectItem>
                           </SelectContent>
                         </Select>
-                        <FormDescription>
-                          Different tiers may be displayed differently on the site
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Enter description of the sponsorship" 
-                            {...field} 
-                            value={field.value || ""}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          This may be displayed on the sponsor's detail page
-                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -255,108 +428,97 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({ sponsorId, onSaved, onCan
                     control={form.control}
                     name="is_active"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Active Status</FormLabel>
-                          <FormDescription>
-                            Only active sponsors are displayed on the website
-                          </FormDescription>
-                        </div>
+                      <FormItem className="flex flex-row items-end space-x-3 space-y-0 rounded-md border p-4">
                         <FormControl>
                           <Switch
                             checked={field.value}
                             onCheckedChange={field.onChange}
                           />
                         </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Active Status</FormLabel>
+                          <FormDescription>
+                            Display this sponsor on the website
+                          </FormDescription>
+                        </div>
                       </FormItem>
                     )}
                   />
-
-                  <div className="flex justify-end gap-2 pt-4">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={onCancel}
-                      disabled={isSubmitting}
-                    >
-                      Cancel
-                    </Button>
-                    <Button type="submit" disabled={isSubmitting}>
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          {isEditing ? 'Updating...' : 'Creating...'}
-                        </>
-                      ) : (
-                        isEditing ? 'Update Sponsor' : 'Create Sponsor'
-                      )}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="md:w-1/3 space-y-4">
-          <div>
-            <h3 className="text-lg font-medium mb-2">Sponsor Logo</h3>
-            <SponsorLogoUploader
-              initialImageUrl={form.watch('logo_url')}
-              onUpload={handleLogoUpload}
-              sponsorName={form.watch('name')}
-            />
-          </div>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <h3 className="text-lg font-medium mb-4">Preview</h3>
-              <div className="border rounded-lg p-4 flex flex-col items-center">
-                {form.watch('logo_url') ? (
-                  <img 
-                    src={form.watch('logo_url')} 
-                    alt="Sponsor logo preview" 
-                    className="max-h-32 max-w-full object-contain mb-3" 
-                  />
-                ) : (
-                  <div className="bg-gray-100 flex items-center justify-center h-32 w-full mb-3 rounded">
-                    <p className="text-gray-400 text-sm">No logo uploaded</p>
-                  </div>
-                )}
-                
-                <span className="font-medium">{form.watch('name') || 'Sponsor Name'}</span>
-                
-                {form.watch('website_url') && (
-                  <a 
-                    href={form.watch('website_url')} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-sm text-blue-600 hover:underline mt-1"
-                  >
-                    Visit Website
-                  </a>
-                )}
-                
-                <div className="mt-2">
-                  <Badge className={
-                    form.watch('tier') === 'platinum' ? 'bg-zinc-300' :
-                    form.watch('tier') === 'gold' ? 'bg-yellow-100 text-yellow-800' :
-                    form.watch('tier') === 'silver' ? 'bg-gray-100 text-gray-800' :
-                    'bg-amber-100 text-amber-800'
-                  }>
-                    {form.watch('tier')?.charAt(0).toUpperCase() + form.watch('tier')?.slice(1) || 'Bronze'}
-                  </Badge>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+
+              <div className="space-y-6">
+                <div>
+                  <div className="mb-2 block text-sm font-medium">
+                    Sponsor Logo
+                  </div>
+                  <SponsorLogoUploader 
+                    initialImageUrl={logoUrl} 
+                    onUploadComplete={handleLogoUpload} 
+                    sponsorName={form.getValues().name}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="About this sponsor..."
+                          className="min-h-[120px]"
+                          {...field}
+                          value={field.value || ''}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+          </form>
+        </Form>
+
+        {!isEditMode && (
+          <div className="mt-4 border-t pt-4 text-center text-sm text-muted-foreground">
+            <CalendarRange className="inline-block mr-2 h-4 w-4" />
+            Save the sponsor to manage contacts, communications, and documents
+          </div>
+        )}
+      </TabsContent>
+
+      {isEditMode && sponsorId && (
+        <>
+          <TabsContent value="contacts">
+            <Card>
+              <CardContent className="pt-6">
+                <SponsorContactsManager sponsorId={sponsorId} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="communications">
+            <Card>
+              <CardContent className="pt-6">
+                <SponsorCommunicationsLog sponsorId={sponsorId} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="documents">
+            <Card>
+              <CardContent className="pt-6">
+                <SponsorDocumentsManager sponsorId={sponsorId} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </>
+      )}
     </div>
   );
 };
 
 export default SponsorEditor;
-
-// Importing the Badge component that we're using in the preview
-import { Badge } from '@/components/ui/badge';

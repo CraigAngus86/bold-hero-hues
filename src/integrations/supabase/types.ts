@@ -335,14 +335,190 @@ export type Database = {
         }
         Relationships: []
       }
+      sponsor_communications: {
+        Row: {
+          contact_id: string | null
+          content: string | null
+          created_at: string | null
+          created_by: string | null
+          date: string | null
+          id: string
+          sponsor_id: string | null
+          subject: string
+          type: string
+        }
+        Insert: {
+          contact_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          date?: string | null
+          id?: string
+          sponsor_id?: string | null
+          subject: string
+          type: string
+        }
+        Update: {
+          contact_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          date?: string | null
+          id?: string
+          sponsor_id?: string | null
+          subject?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsor_communications_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "sponsor_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sponsor_communications_sponsor_id_fkey"
+            columns: ["sponsor_id"]
+            isOneToOne: false
+            referencedRelation: "sponsors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sponsor_contacts: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          primary_contact: boolean | null
+          role: string | null
+          sponsor_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          primary_contact?: boolean | null
+          role?: string | null
+          sponsor_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          primary_contact?: boolean | null
+          role?: string | null
+          sponsor_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsor_contacts_sponsor_id_fkey"
+            columns: ["sponsor_id"]
+            isOneToOne: false
+            referencedRelation: "sponsors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sponsor_display_settings: {
+        Row: {
+          carousel_speed: number | null
+          display_mode: string | null
+          id: string
+          max_logos_homepage: number | null
+          randomize_order: boolean | null
+          show_on_homepage: boolean | null
+          show_tier_headings: boolean | null
+          sponsors_per_row: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          carousel_speed?: number | null
+          display_mode?: string | null
+          id?: string
+          max_logos_homepage?: number | null
+          randomize_order?: boolean | null
+          show_on_homepage?: boolean | null
+          show_tier_headings?: boolean | null
+          sponsors_per_row?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          carousel_speed?: number | null
+          display_mode?: string | null
+          id?: string
+          max_logos_homepage?: number | null
+          randomize_order?: boolean | null
+          show_on_homepage?: boolean | null
+          show_tier_headings?: boolean | null
+          sponsors_per_row?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      sponsor_documents: {
+        Row: {
+          created_at: string | null
+          document_type: string
+          file_path: string
+          id: string
+          name: string
+          sponsor_id: string | null
+          upload_date: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          document_type: string
+          file_path: string
+          id?: string
+          name: string
+          sponsor_id?: string | null
+          upload_date?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          document_type?: string
+          file_path?: string
+          id?: string
+          name?: string
+          sponsor_id?: string | null
+          upload_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsor_documents_sponsor_id_fkey"
+            columns: ["sponsor_id"]
+            isOneToOne: false
+            referencedRelation: "sponsors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sponsors: {
         Row: {
           created_at: string | null
           description: string | null
+          display_order: number | null
+          end_date: string | null
           id: string
           is_active: boolean | null
           logo_url: string | null
           name: string
+          renewal_status: string | null
+          start_date: string | null
           tier: string | null
           updated_at: string | null
           website_url: string | null
@@ -350,10 +526,14 @@ export type Database = {
         Insert: {
           created_at?: string | null
           description?: string | null
+          display_order?: number | null
+          end_date?: string | null
           id?: string
           is_active?: boolean | null
           logo_url?: string | null
           name: string
+          renewal_status?: string | null
+          start_date?: string | null
           tier?: string | null
           updated_at?: string | null
           website_url?: string | null
@@ -361,13 +541,50 @@ export type Database = {
         Update: {
           created_at?: string | null
           description?: string | null
+          display_order?: number | null
+          end_date?: string | null
           id?: string
           is_active?: boolean | null
           logo_url?: string | null
           name?: string
+          renewal_status?: string | null
+          start_date?: string | null
           tier?: string | null
           updated_at?: string | null
           website_url?: string | null
+        }
+        Relationships: []
+      }
+      sponsorship_tiers: {
+        Row: {
+          benefits: string | null
+          color: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          order_position: number
+          updated_at: string | null
+        }
+        Insert: {
+          benefits?: string | null
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          order_position?: number
+          updated_at?: string | null
+        }
+        Update: {
+          benefits?: string | null
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          order_position?: number
+          updated_at?: string | null
         }
         Relationships: []
       }

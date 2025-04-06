@@ -1,41 +1,75 @@
 
-import { BucketType, ImageUploadConfig } from "./types";
+import { z } from 'zod';
 
-export const imageUploadConfigs: Record<BucketType, ImageUploadConfig> = {
+// Updated ImageUploadConfig interface with all required properties
+export interface ImageUploadConfig {
+  maxSizeMB: number;
+  minWidth?: number;
+  minHeight?: number;
+  maxWidth?: number;
+  maxHeight?: number;
+  acceptedTypes?: string[];
+  folder?: string;
+  maxFileSize?: number; // For backward compatibility 
+}
+
+// Validation schemas for image options
+export const imageUploadSchema = z.object({
+  maxSizeMB: z.number().default(5),
+  minWidth: z.number().optional(),
+  minHeight: z.number().optional(),
+  maxWidth: z.number().optional(),
+  maxHeight: z.number().optional(),
+  acceptedTypes: z.array(z.string()).optional(),
+  folder: z.string().optional()
+});
+
+export type ImageOptimizationOptions = {
+  folder?: string;
+  alt?: string;
+  description?: string;
+  tags?: string[];
+};
+
+// Pre-defined configs for different types of images
+export const imageUploadConfigs: Record<string, ImageUploadConfig> = {
+  profile: {
+    maxSizeMB: 1,
+    minWidth: 200,
+    minHeight: 200,
+    maxWidth: 800,
+    maxHeight: 800,
+    acceptedTypes: ['image/jpeg', 'image/png'],
+    folder: 'profile_images',
+    maxFileSize: 1 * 1024 * 1024 // 1MB
+  },
+  
   news: {
-    maxFileSize: 5 * 1024 * 1024, // 5MB
-    allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
-    dimensions: {
-      minWidth: 800,
-      minHeight: 450,
-      maxWidth: 2000,
-      maxHeight: 1500
-    }
+    maxSizeMB: 3,
+    minWidth: 800,
+    minHeight: 450,
+    acceptedTypes: ['image/jpeg', 'image/png', 'image/webp'],
+    folder: 'news_images',
+    maxFileSize: 3 * 1024 * 1024 // 3MB
   },
-  team: {
-    maxFileSize: 3 * 1024 * 1024, // 3MB
-    allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
-    dimensions: {
-      minWidth: 300,
-      minHeight: 300,
-      maxWidth: 1000,
-      maxHeight: 1000
-    }
-  },
+  
   sponsors: {
-    maxFileSize: 2 * 1024 * 1024, // 2MB
-    allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
-    dimensions: {
-      maxWidth: 800,
-      maxHeight: 800
-    }
+    maxSizeMB: 2,
+    maxWidth: 1200,
+    acceptedTypes: ['image/png', 'image/jpeg', 'image/svg+xml'],
+    folder: 'sponsor_logos',
+    maxFileSize: 2 * 1024 * 1024 // 2MB
   },
-  fixtures: {
-    maxFileSize: 3 * 1024 * 1024, // 3MB
-    allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
+  
+  team: {
+    maxSizeMB: 2,
+    folder: 'team_photos',
+    maxFileSize: 2 * 1024 * 1024 // 2MB
   },
+  
   general: {
-    maxFileSize: 10 * 1024 * 1024, // 10MB
-    allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'],
+    maxSizeMB: 5,
+    folder: 'uploads',
+    maxFileSize: 5 * 1024 * 1024 // 5MB
   }
 };

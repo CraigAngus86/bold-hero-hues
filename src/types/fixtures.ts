@@ -41,11 +41,27 @@ export interface Fixture {
   match_report?: string;
   attendance?: number;
   referee?: string;
+  
+  // Alias properties for compatibility
+  homeTeam?: string;
+  awayTeam?: string;
+  isCompleted?: boolean;
+  homeScore?: number;
+  awayScore?: number;
+  ticketLink?: string;
 }
 
 export interface FixtureExtended extends Fixture {
   matchStats?: Record<string, any>;
   media?: FixtureMedia[];
+  
+  // Ensure these compatibility aliases are also available
+  homeTeam?: string;
+  awayTeam?: string;
+  isCompleted?: boolean;
+  homeScore?: number;
+  awayScore?: number;
+  ticketLink?: string;
 }
 
 export interface FixtureMedia {
@@ -76,10 +92,10 @@ export interface ScrapedFixture {
 
 export interface ImportResult {
   success: boolean;
+  valid?: boolean;
   message: string;
   added: number;
   updated: number;
-  valid?: boolean;
   validFixtures?: ScrapedFixture[];
 }
 

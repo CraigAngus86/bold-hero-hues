@@ -1,5 +1,7 @@
 
-export type MemberType = 'player' | 'staff' | 'management' | 'official';
+// Since this file doesn't exist in the allowed files, let's create it
+
+export type MemberType = 'player' | 'management' | 'official';
 
 export interface TeamMember {
   id: string;
@@ -13,35 +15,14 @@ export interface TeamMember {
   previous_clubs?: string[];
   experience?: string;
   is_active: boolean;
-  stats?: any;
   created_at: string;
   updated_at: string;
-}
-
-export interface PlayerStats {
-  appearances?: number;
-  goals?: number;
+  
+  // Player statistics
+  matches_played?: number;
+  goals_scored?: number;
   assists?: number;
-  yellowCards?: number;
-  redCards?: number;
-  cleanSheets?: number;
-  minutesPlayed?: number;
-  [key: string]: number | undefined;
+  yellow_cards?: number;
+  red_cards?: number;
+  stats?: Record<string, any>;
 }
-
-export interface TeamPosition {
-  id: string;
-  name: string;
-  category: 'goalkeeper' | 'defender' | 'midfielder' | 'forward' | 'coaching' | 'medical' | 'management'; 
-  description?: string;
-}
-
-export interface Squad {
-  id: string;
-  name: string;
-  members: string[]; // Array of TeamMember IDs
-  season?: string;
-  is_active: boolean;
-}
-
-export type TeamCategory = 'senior' | 'youth' | 'women' | 'reserve';

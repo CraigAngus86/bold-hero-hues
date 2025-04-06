@@ -86,18 +86,15 @@ export function SponsorLogoUploader({
     if (!selectedFile) return;
     
     try {
-      const alt_text = `${sponsorName} logo`;
-      const description = `Logo for ${sponsorName}`;
-      const tags = ['sponsor', 'logo'];
-      
-      const result = await upload(selectedFile, {
+      const options = {
         folder: 'sponsor_logos',
-        alt: alt_text,
-        description: description,
-        tags: tags
-      });
+        description: `Logo for ${sponsorName}`,
+        tags: ['sponsor', 'logo']
+      };
       
-      if (result.success && result.data) {
+      const result = await upload(selectedFile, options);
+      
+      if (result.success && result.data && result.data.url) {
         toast.success('Logo uploaded successfully');
         clearSelection();
         if (onUploadComplete) onUploadComplete(result.data.url);

@@ -7,6 +7,9 @@ export interface ImageFolder {
   name: string;
   path: string;
   parentId: string | null;
+  parent_id?: string | null; // For compatibility with API responses
+  created_at?: string;
+  updated_at?: string;
 }
 
 /**
@@ -32,4 +35,19 @@ export interface ImageManagerContextType {
   handleFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   getImageUrl: (fileName: string) => string;
   viewImage: (url: string) => void;
+}
+
+// Define ImageMetadata type
+export interface ImageMetadata {
+  id: string;
+  file_name: string;
+  storage_path: string;
+  url: string;
+  alt_text?: string;
+  description?: string;
+  created_at?: string;
+  updated_at?: string;
+  bucket_id?: string;
+  tags?: string[];
+  dimensions?: any;
 }

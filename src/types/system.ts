@@ -8,5 +8,14 @@ export interface SystemStatusItemProps {
   color: string;
   icon: LucideIcon;
   viewAllLink: string;
-  status?: 'active' | 'warning' | 'error' | 'info';
+  status?: 'active' | 'warning' | 'error' | 'info' | 'healthy' | 'degraded' | 'unknown';
+}
+
+// Define SystemLog type that was missing
+export interface SystemLog {
+  id: string;
+  timestamp: string;
+  type: 'error' | 'info' | 'warning' | 'success';
+  message: string;
+  source: string;
 }

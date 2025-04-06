@@ -34,7 +34,10 @@ export const useNews = (options: UseNewsOptions): UseNewsResult => {
   return {
     isLoading,
     error: error as Error | null,
-    news: data?.success ? data : null,
+    news: data?.success ? { 
+      data: data.data || [], 
+      count: data.count 
+    } : null,
     refetch
   };
 };

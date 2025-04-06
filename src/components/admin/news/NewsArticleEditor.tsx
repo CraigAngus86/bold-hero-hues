@@ -35,6 +35,7 @@ const NewsArticleEditor: React.FC<NewsArticleEditorProps> = ({
   const [publishDate, setPublishDate] = useState<string>(
     new Date().toISOString().split('T')[0]
   );
+  const [slug, setSlug] = useState('');
 
   useEffect(() => {
     if (article) {
@@ -44,6 +45,7 @@ const NewsArticleEditor: React.FC<NewsArticleEditorProps> = ({
       setAuthor(article.author || '');
       setImageUrl(article.image_url || '');
       setIsFeatured(article.is_featured || false);
+      setSlug(article.slug || '');
       
       // Format the date for input[type="date"]
       if (article.publish_date) {
@@ -52,6 +54,17 @@ const NewsArticleEditor: React.FC<NewsArticleEditorProps> = ({
       }
     }
   }, [article]);
+
+  // Generate a slug from the title whenever title changes
+  useEffect(() => {
+    if (!article?.slug && title) {
+      const generatedSlug = title
+        .toLowerCase()
+        .replace(/[^\w\s]/gi, '')
+        .replace(/\s+/g, '-');
+      setSlug(generatedSlug);
+    }
+  }, [title, article]);
 
   const handleImageUploaded = (url: string) => {
     setImageUrl(url);
@@ -78,6 +91,7 @@ const NewsArticleEditor: React.FC<NewsArticleEditorProps> = ({
         image_url: imageUrl,
         is_featured: isFeatured,
         publish_date: formattedDate,
+        slug: slug || title.toLowerCase().replace(/[^\w\s]/gi, '').replace(/\s+/g, '-')
       };
 
       let result;
@@ -167,13 +181,23 @@ const NewsArticleEditor: React.FC<NewsArticleEditorProps> = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="content">Content *</Label>
+            <Label htmlFor="slug">URL Slug *</Label>
+            <Input
+              id="slug"
+              value={slug}
+              onChange={(e) => setSlug(e.target.value)}
+              placeholder="article-url-slug"
+              required
+            />
+            <p className="text-xs text-gray-500">This will be used in the article's URL</p>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Content *</Label>
             <RichTextEditor
-              id="content"
               value={content}
               onChange={setContent}
               placeholder="Write your article content here..."
-              className="min-h-[300px]"
             />
           </div>
 

@@ -6,12 +6,7 @@ import { fixturesKeys } from './useFixturesStats';
 import { leagueKeys } from './useLeagueStats';
 import { mediaKeys } from './useMediaStats';
 import { activityKeys } from './useActivityFeed';
-
-// Define system keys
-const systemKeys = {
-  status: ['system', 'status'],
-  logs: ['system', 'logs']
-};
+import { systemKeys } from './useSystemStatus';
 
 export const useDashboardRefresh = () => {
   const queryClient = useQueryClient();
@@ -37,5 +32,3 @@ export const useDashboardRefresh = () => {
   
   return { refreshAll };
 };
-
-export { systemKeys };

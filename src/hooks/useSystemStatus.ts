@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { getSystemStatus, SystemStatusData } from '@/services/logs/systemLogsService';
+import { getSystemStatus, type SystemStatusData } from '@/services/logs/systemLogsService';
 
 export function useSystemStatus() {
   const [status, setStatus] = useState<SystemStatusData | null>(null);
@@ -38,5 +38,11 @@ export function useSystemStatus() {
     refresh: fetchStatus
   };
 }
+
+// Define system keys for query invalidation
+export const systemKeys = {
+  status: ['system', 'status'],
+  logs: ['system', 'logs']
+};
 
 export type { SystemStatusData };

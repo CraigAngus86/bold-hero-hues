@@ -1,11 +1,24 @@
 
-// Find the Button with variant="warning" and change it to variant="destructive" or another valid variant
-// Just replace the specific Button component that has the warning variant:
+import React from 'react';
+import { Button } from '@/components/ui/button';
 
-<Button 
-  variant="destructive" // Changed from "warning" to "destructive"
-  size="sm"
-  onClick={clearLogsByType('error')}
->
-  Clear Errors
-</Button>
+// Exported component to ensure it can be imported properly
+export const SystemLogs = () => {
+  // Mock function for clearing logs by type
+  const clearLogsByType = (type: string) => () => {
+    console.log(`Clearing logs of type: ${type}`);
+    // Actual implementation would go here
+  };
+
+  return (
+    <Button 
+      variant="destructive" 
+      size="sm"
+      onClick={clearLogsByType('error')}
+    >
+      Clear Errors
+    </Button>
+  );
+};
+
+export default SystemLogs;

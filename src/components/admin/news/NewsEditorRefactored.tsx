@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Form } from "@/components/ui/form"
+import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input";
 import { useSupabase } from '@/hooks/useSupabase';
 import { NewsArticle } from '@/types';
@@ -62,7 +62,7 @@ const NewsEditorRefactored = () => {
       setIsLoading(true);
       try {
         const { data, error } = await supabase
-          .from('news')
+          .from('news_articles')
           .select('*')
           .eq('id', articleId)
           .single();
@@ -98,7 +98,7 @@ const NewsEditorRefactored = () => {
       if (articleId) {
         // Update existing article
         const { error } = await supabase
-          .from('news')
+          .from('news_articles')
           .update(data)
           .eq('id', articleId);
 
@@ -107,7 +107,7 @@ const NewsEditorRefactored = () => {
       } else {
         // Create new article
         const { error } = await supabase
-          .from('news')
+          .from('news_articles')
           .insert([data]);
 
         if (error) throw error;
@@ -128,7 +128,7 @@ const NewsEditorRefactored = () => {
     setIsLoading(true);
     try {
       const { error } = await supabase
-        .from('news')
+        .from('news_articles')
         .delete()
         .eq('id', articleId);
 
@@ -153,62 +153,62 @@ const NewsEditorRefactored = () => {
             description="Basic information about the article"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Form.Field
+              <FormField
                 control={form.control}
                 name="title"
                 render={({ field }) => (
-                  <Form.Item>
-                    <Form.Label>Title<span className="text-red-500 ml-1">*</span></Form.Label>
-                    <Form.Control>
+                  <FormItem>
+                    <FormLabel>Title<span className="text-red-500 ml-1">*</span></FormLabel>
+                    <FormControl>
                       <Input placeholder="Article title" {...field} />
-                    </Form.Control>
-                    <Form.Message />
-                  </Form.Item>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
               />
               
-              <Form.Field
+              <FormField
                 control={form.control}
                 name="slug"
                 render={({ field }) => (
-                  <Form.Item>
-                    <Form.Label>Slug<span className="text-red-500 ml-1">*</span></Form.Label>
-                    <Form.Control>
+                  <FormItem>
+                    <FormLabel>Slug<span className="text-red-500 ml-1">*</span></FormLabel>
+                    <FormControl>
                       <Input placeholder="article-slug" {...field} />
-                    </Form.Control>
-                    <Form.Description>
+                    </FormControl>
+                    <FormDescription>
                       Used in the URL: /news/{field.value}
-                    </Form.Description>
-                    <Form.Message />
-                  </Form.Item>
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
                 )}
               />
 
-              <Form.Field
+              <FormField
                 control={form.control}
                 name="category"
                 render={({ field }) => (
-                  <Form.Item>
-                    <Form.Label>Category<span className="text-red-500 ml-1">*</span></Form.Label>
-                    <Form.Control>
+                  <FormItem>
+                    <FormLabel>Category<span className="text-red-500 ml-1">*</span></FormLabel>
+                    <FormControl>
                       <Input placeholder="Category" {...field} />
-                    </Form.Control>
-                    <Form.Message />
-                  </Form.Item>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
               />
 
-              <Form.Field
+              <FormField
                 control={form.control}
                 name="author"
                 render={({ field }) => (
-                  <Form.Item>
-                    <Form.Label>Author</Form.Label>
-                    <Form.Control>
+                  <FormItem>
+                    <FormLabel>Author</FormLabel>
+                    <FormControl>
                       <Input placeholder="Author name" {...field} />
-                    </Form.Control>
-                    <Form.Message />
-                  </Form.Item>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
               />
             </div>
@@ -234,24 +234,24 @@ const NewsEditorRefactored = () => {
           </FormSection>
 
           <FormSection title="Publishing Options">
-            <Form.Field
+            <FormField
               control={form.control}
               name="is_featured"
               render={({ field }) => (
-                <Form.Item className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
-                    <Form.Label className="text-base">Featured Article</Form.Label>
-                    <Form.Description>
+                    <FormLabel className="text-base">Featured Article</FormLabel>
+                    <FormDescription>
                       Featured articles appear prominently on the homepage
-                    </Form.Description>
+                    </FormDescription>
                   </div>
-                  <Form.Control>
+                  <FormControl>
                     <Switch
                       checked={field.value}
                       onCheckedChange={field.onChange}
                     />
-                  </Form.Control>
-                </Form.Item>
+                  </FormControl>
+                </FormItem>
               )}
             />
           </FormSection>

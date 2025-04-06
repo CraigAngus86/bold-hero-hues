@@ -3,94 +3,86 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Form } from '@/components/ui/form';
-import { FormSection, FormImageField, FormRichTextField } from './index';
-import { Button } from '@/components/ui/button';
+import { 
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormDescription,
+  FormMessage
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { FormSection, FormImageField, FormRichTextField } from './index';
 
-/**
- * This is a demonstration component to show how to use the form components
- */
-
+// Demo schema for the form
 const formSchema = z.object({
-  title: z.string().min(3, 'Title must be at least 3 characters'),
-  content: z.string().min(10, 'Content must be at least 10 characters'),
+  title: z.string().min(5, { message: "Title must be at least 5 characters." }),
+  content: z.string().min(20, { message: "Content must be at least 20 characters." }),
   image: z.string().optional(),
 });
 
-type FormValues = z.infer<typeof formSchema>;
+type FormData = z.infer<typeof formSchema>;
 
-const FormComponentUsage: React.FC = () => {
-  const form = useForm<FormValues>({
+const FormComponentUsage = () => {
+  const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: '',
-      content: '',
-      image: '',
+      title: "",
+      content: "",
+      image: "",
     },
   });
 
-  const onSubmit = (data: FormValues) => {
-    console.log('Form data:', data);
-    toast.success('Form submitted successfully');
+  const onSubmit = (data: FormData) => {
+    console.log('Form submitted:', data);
+    // Handle form submission
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6">Form Components Demo</h2>
+    <div className="max-w-4xl mx-auto p-6">
+      <h2 className="text-2xl font-bold mb-6">Form Components Usage Example</h2>
       
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <FormSection 
-            title="Basic Information" 
-            description="Enter the basic information for this content."
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Form.Field
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <Form.Item>
-                    <Form.Label>Title<span className="text-red-500 ml-1">*</span></Form.Label>
-                    <Form.Control>
-                      <Input placeholder="Enter title" {...field} />
-                    </Form.Control>
-                    <Form.Message />
-                  </Form.Item>
-                )}
-              />
-              
-              <FormImageField
-                control={form.control}
-                name="image"
-                label="Featured Image"
-                description="Select an image to represent this content"
-              />
-            </div>
+          <FormSection title="Basic Information" description="Enter the basic details">
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Title <span className="text-red-500">*</span></FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter title" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </FormSection>
-          
-          <FormSection 
-            title="Content" 
-            description="Enter the main content."
-          >
+
+          <FormSection title="Content" description="Enter the main content">
             <FormRichTextField
               control={form.control}
               name="content"
-              label="Content"
+              label="Main Content"
               required
+              description="Rich text content with formatting options"
               height={300}
             />
           </FormSection>
-          
-          <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline">
-              Cancel
-            </Button>
-            <Button type="submit">
-              Save Changes
-            </Button>
-          </div>
+
+          <FormSection title="Media" description="Upload or select images">
+            <FormImageField
+              control={form.control}
+              name="image"
+              label="Featured Image"
+              description="Select an image from the media library or upload a new one"
+            />
+          </FormSection>
+
+          <Button type="submit">Submit Form</Button>
         </form>
       </Form>
     </div>

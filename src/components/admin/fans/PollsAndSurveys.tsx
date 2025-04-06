@@ -1,389 +1,1005 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import CustomTable from '@/components/ui/CustomTable';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 import { 
-  Search, 
-  PlusCircle, 
-  BarChart4, 
-  Edit, 
-  Trash, 
-  Copy,
-  ChevronRight,
-  Calendar,
+  BarChart, 
+  LineChart, 
+  PieChart,
   CheckSquare,
+  Calendar as CalendarIcon,
+  Plus,
+  Trash2,
+  ClipboardList,
   Eye,
-  X
+  PenLine,
+  ChevronDown,
+  Clock,
+  Search,
+  Calendar as CalendarDisplay,
+  PieChart as PieChartIcon,
+  MoveVertical
 } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
+import { Bar, Pie } from 'react-chartjs-2';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
+import { CSS } from '@dnd-kit/utilities';
+import DataTable from '@/components/admin/common/DataTable';
+import { Poll, PollQuestion, PollOption } from '@/types/fans';
+import { fetchPolls, fetchPollDetails, createPoll, addPollQuestion, addPollOption } from '@/services/fansDbService';
 
-// Mock data for polls and surveys
-const mockPolls = [
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement
+);
+
+// Status badge styles based on status
+const statusStyles = {
+  draft: 'bg-gray-100 text-gray-800',
+  active: 'bg-green-100 text-green-800',
+  scheduled: 'bg-purple-100 text-purple-800',
+  ended: 'bg-blue-100 text-blue-800',
+};
+
+// Sample polls data for demonstration
+const dummyPolls = [
   {
     id: '1',
-    title: 'Player of the Match vs Fraserburgh',
+    title: 'Player of the Month - April',
     type: 'poll',
-    createdAt: '2023-05-10T14:30:00',
-    startDate: '2023-05-10T15:00:00',
-    endDate: '2023-05-12T15:00:00',
-    status: 'active',
-    responses: 342,
+    status: 'ended',
+    createdAt: '2023-05-01T10:00:00Z',
+    startDate: '2023-04-01T00:00:00Z',
+    endDate: '2023-04-30T23:59:59Z',
+    responses: 142,
     questions: [
       {
-        id: 'q1',
-        text: 'Who was your Player of the Match?',
+        id: '1',
+        text: 'Select your player of the month for April',
+        type: 'single_choice',
         options: [
-          { id: 'o1', text: 'Mark Smith', votes: 124 },
-          { id: 'o2', text: 'Jamie Robertson', votes: 86 },
-          { id: 'o3', text: 'Lachlan Macleod', votes: 132 },
+          { id: '1', text: 'John Smith', votes: 42 },
+          { id: '2', text: 'Michael Johnson', votes: 57 },
+          { id: '3', text: 'Robert Wilson', votes: 31 },
+          { id: '4', text: 'David Thompson', votes: 12 },
         ]
       }
     ]
   },
   {
     id: '2',
-    title: 'Season Ticket Holder Feedback',
+    title: 'Match Day Experience Survey',
     type: 'survey',
-    createdAt: '2023-05-08T09:15:00',
-    startDate: '2023-05-09T10:00:00',
-    endDate: '2023-05-16T23:59:59',
     status: 'active',
-    responses: 87,
+    createdAt: '2023-05-05T14:30:00Z',
+    startDate: '2023-05-01T00:00:00Z',
+    endDate: '2023-05-31T23:59:59Z',
+    responses: 48,
     questions: [
       {
-        id: 'q1',
-        text: 'How would you rate your matchday experience?',
+        id: '1',
+        text: 'How would you rate your overall match day experience?',
+        type: 'rating'
+      },
+      {
+        id: '2',
+        text: 'Which amenities did you use?',
+        type: 'multiple_choice',
         options: [
-          { id: 'o1', text: 'Excellent', votes: 42 },
-          { id: 'o2', text: 'Good', votes: 31 },
-          { id: 'o3', text: 'Average', votes: 11 },
-          { id: 'o4', text: 'Poor', votes: 3 }
+          { id: '1', text: 'Food kiosk', votes: 35 },
+          { id: '2', text: 'Club shop', votes: 22 },
+          { id: '3', text: 'Bar', votes: 40 },
+          { id: '4', text: 'Toilet facilities', votes: 45 },
         ]
       },
       {
-        id: 'q2',
-        text: 'How satisfied are you with the catering options?',
-        options: [
-          { id: 'o1', text: 'Very satisfied', votes: 28 },
-          { id: 'o2', text: 'Satisfied', votes: 39 },
-          { id: 'o3', text: 'Dissatisfied', votes: 15 },
-          { id: 'o4', text: 'Very dissatisfied', votes: 5 }
-        ]
+        id: '3',
+        text: 'Do you have any suggestions for improvement?',
+        type: 'text'
       }
     ]
   },
   {
     id: '3',
-    title: 'New Kit Design Vote',
+    title: 'Kit Design Vote 2023/24',
     type: 'poll',
-    createdAt: '2023-05-02T11:45:00',
-    startDate: '2023-05-03T09:00:00',
-    endDate: '2023-05-09T23:59:59',
-    status: 'ended',
-    responses: 578,
+    status: 'scheduled',
+    createdAt: '2023-05-10T09:15:00Z',
+    startDate: '2023-06-01T00:00:00Z',
+    endDate: '2023-06-15T23:59:59Z',
+    responses: 0,
     questions: [
       {
-        id: 'q1',
-        text: 'Which home kit design do you prefer?',
+        id: '1',
+        text: 'Which kit design do you prefer for the 2023/24 season?',
+        type: 'single_choice',
         options: [
-          { id: 'o1', text: 'Design A - Traditional', votes: 243 },
-          { id: 'o2', text: 'Design B - Modern', votes: 187 },
-          { id: 'o3', text: 'Design C - Retro', votes: 148 }
-        ]
-      }
-    ]
-  },
-  {
-    id: '4',
-    title: 'Matchday Programme Feedback',
-    type: 'survey',
-    createdAt: '2023-04-28T10:30:00',
-    startDate: '2023-04-30T12:00:00',
-    endDate: '2023-05-07T23:59:59',
-    status: 'ended',
-    responses: 124,
-    questions: [
-      {
-        id: 'q1',
-        text: 'Do you purchase a matchday programme?',
-        options: [
-          { id: 'o1', text: 'Every match', votes: 34 },
-          { id: 'o2', text: 'Occasionally', votes: 52 },
-          { id: 'o3', text: 'Rarely', votes: 21 },
-          { id: 'o4', text: 'Never', votes: 17 }
+          { id: '1', text: 'Design A - Blue striped', votes: 0 },
+          { id: '2', text: 'Design B - Solid blue with gold trim', votes: 0 },
+          { id: '3', text: 'Design C - White away kit with blue accent', votes: 0 },
         ]
       }
     ]
   }
 ];
 
-// Status badge styles
-const statusStyles = {
-  active: 'bg-green-100 text-green-800',
-  ended: 'bg-gray-100 text-gray-800',
-  draft: 'bg-blue-100 text-blue-800',
-  scheduled: 'bg-yellow-100 text-yellow-800',
+// Sortable question item component
+const SortableQuestionItem = ({ id, question, onDelete }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="p-3 mb-2 border rounded-md bg-white"
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div {...attributes} {...listeners} className="cursor-move p-1">
+            <MoveVertical size={16} />
+          </div>
+          <div>
+            <p className="font-medium">{question.text}</p>
+            <div className="flex items-center mt-1">
+              <Badge variant="outline" className="mr-2">
+                {question.type === 'single_choice' ? 'Single Choice' : 
+                 question.type === 'multiple_choice' ? 'Multiple Choice' :
+                 question.type === 'text' ? 'Text Input' : 'Rating'}
+              </Badge>
+              {question.required && (
+                <Badge variant="secondary">Required</Badge>
+              )}
+            </div>
+          </div>
+        </div>
+        <Button 
+          variant="ghost" 
+          size="icon"
+          onClick={() => onDelete(id)}
+        >
+          <Trash2 size={16} />
+        </Button>
+      </div>
+
+      {/* Options if applicable */}
+      {(question.type === 'single_choice' || question.type === 'multiple_choice') && question.options && (
+        <div className="pl-8 mt-2">
+          {question.options.map((option, index) => (
+            <div key={option.id || index} className="flex items-center gap-2 mt-1 text-sm">
+              <div className="w-4 h-4 flex items-center justify-center border rounded-sm">
+                {question.type === 'single_choice' ? '○' : '□'}
+              </div>
+              <span>{option.text}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 };
 
-// Type badge styles
-const typeStyles = {
-  poll: 'bg-purple-100 text-purple-800',
-  survey: 'bg-indigo-100 text-indigo-800',
-};
-
-const PollsAndSurveys: React.FC = () => {
-  const [polls, setPolls] = useState(mockPolls);
-  const [searchQuery, setSearchQuery] = useState('');
+const PollsAndSurveys = () => {
   const [activeTab, setActiveTab] = useState('all');
-  const [selectedPoll, setSelectedPoll] = useState<string | null>(null);
+  const [polls, setPolls] = useState(dummyPolls);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [currentPoll, setCurrentPoll] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
   
-  // Filter polls based on search query and active tab
-  const filteredPolls = polls.filter(poll => {
-    // Filter by search query
-    const matchesSearch = 
-      poll.title.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    // Filter by tab
-    if (activeTab === 'all') return matchesSearch;
-    if (activeTab === 'active') return matchesSearch && poll.status === 'active';
-    if (activeTab === 'ended') return matchesSearch && poll.status === 'ended';
-    if (activeTab === 'draft') return matchesSearch && poll.status === 'draft';
-    if (activeTab === 'polls') return matchesSearch && poll.type === 'poll';
-    if (activeTab === 'surveys') return matchesSearch && poll.type === 'survey';
-    
-    return matchesSearch;
+  // New poll form state
+  const [newPoll, setNewPoll] = useState({
+    title: '',
+    description: '',
+    type: 'poll',
+    status: 'draft',
+    startDate: null,
+    endDate: null,
+    is_featured: false,
+    questions: []
   });
   
-  // Define table columns
+  // Question form state
+  const [newQuestion, setNewQuestion] = useState({
+    text: '',
+    type: 'single_choice',
+    required: true,
+    options: ['']
+  });
+  
+  // Add option to the current question form
+  const addOption = () => {
+    setNewQuestion({
+      ...newQuestion,
+      options: [...newQuestion.options, '']
+    });
+  };
+  
+  // Update option at specific index
+  const updateOption = (index, value) => {
+    const updatedOptions = [...newQuestion.options];
+    updatedOptions[index] = value;
+    setNewQuestion({
+      ...newQuestion,
+      options: updatedOptions
+    });
+  };
+  
+  // Remove option at specific index
+  const removeOption = (index) => {
+    const updatedOptions = [...newQuestion.options];
+    updatedOptions.splice(index, 1);
+    setNewQuestion({
+      ...newQuestion,
+      options: updatedOptions
+    });
+  };
+  
+  // Add question to the new poll
+  const addQuestion = () => {
+    if (!newQuestion.text.trim()) {
+      toast.error('Question text cannot be empty');
+      return;
+    }
+    
+    // For choice questions, validate at least one option
+    if ((newQuestion.type === 'single_choice' || newQuestion.type === 'multiple_choice') && 
+        (!newQuestion.options.length || !newQuestion.options[0].trim())) {
+      toast.error('Please add at least one option for choice questions');
+      return;
+    }
+    
+    const questionToAdd = {
+      id: `new-${Date.now()}`,
+      text: newQuestion.text,
+      type: newQuestion.type,
+      required: newQuestion.required,
+      options: newQuestion.type === 'single_choice' || newQuestion.type === 'multiple_choice'
+        ? newQuestion.options.filter(opt => opt.trim()).map((text, index) => ({ 
+            id: `new-option-${Date.now()}-${index}`, 
+            text,
+            votes: 0
+          }))
+        : []
+    };
+    
+    setNewPoll({
+      ...newPoll,
+      questions: [...newPoll.questions, questionToAdd]
+    });
+    
+    // Reset the question form
+    setNewQuestion({
+      text: '',
+      type: 'single_choice',
+      required: true,
+      options: ['']
+    });
+    
+    toast.success('Question added');
+  };
+  
+  // Remove question at specific index
+  const removeQuestion = (id) => {
+    setNewPoll({
+      ...newPoll,
+      questions: newPoll.questions.filter(q => q.id !== id)
+    });
+    toast.success('Question removed');
+  };
+  
+  // Reorder questions using dnd-kit
+  const onDragEnd = (event) => {
+    const { active, over } = event;
+    
+    if (active.id !== over.id) {
+      setNewPoll(prevPoll => {
+        const oldIndex = prevPoll.questions.findIndex(q => q.id === active.id);
+        const newIndex = prevPoll.questions.findIndex(q => q.id === over.id);
+        
+        return {
+          ...prevPoll,
+          questions: arrayMove(prevPoll.questions, oldIndex, newIndex)
+        };
+      });
+    }
+  };
+  
+  // Submit the new poll form
+  const handleCreatePoll = async () => {
+    if (!newPoll.title.trim()) {
+      toast.error('Title is required');
+      return;
+    }
+    
+    if (newPoll.questions.length === 0) {
+      toast.error('At least one question is required');
+      return;
+    }
+    
+    if (newPoll.status !== 'draft' && (!newPoll.startDate || !newPoll.endDate)) {
+      toast.error('Start and end dates are required for scheduled or active polls');
+      return;
+    }
+    
+    // In a real implementation, we would save to the database
+    toast.success(`${newPoll.type === 'poll' ? 'Poll' : 'Survey'} created successfully`);
+    
+    // Fake API call
+    const fakePoll = {
+      id: `new-${Date.now()}`,
+      title: newPoll.title,
+      type: newPoll.type,
+      status: newPoll.status,
+      createdAt: new Date().toISOString(),
+      startDate: newPoll.startDate ? new Date(newPoll.startDate).toISOString() : null,
+      endDate: newPoll.endDate ? new Date(newPoll.endDate).toISOString() : null,
+      responses: 0,
+      questions: newPoll.questions
+    };
+    
+    setPolls([fakePoll, ...polls]);
+    setCreateDialogOpen(false);
+    resetForm();
+  };
+  
+  // Reset the form
+  const resetForm = () => {
+    setNewPoll({
+      title: '',
+      description: '',
+      type: 'poll',
+      status: 'draft',
+      startDate: null,
+      endDate: null,
+      is_featured: false,
+      questions: []
+    });
+    setNewQuestion({
+      text: '',
+      type: 'single_choice',
+      required: true,
+      options: ['']
+    });
+  };
+  
+  // View poll details
+  const handleViewPoll = (poll) => {
+    setCurrentPoll(poll);
+    setViewDialogOpen(true);
+  };
+  
+  // Filter polls based on activeTab and searchQuery
+  const filteredPolls = polls.filter(poll => {
+    // Filter by tab
+    if (activeTab === 'all') {
+      // No filter
+    } else if (activeTab === 'polls') {
+      if (poll.type !== 'poll') return false;
+    } else if (activeTab === 'surveys') {
+      if (poll.type !== 'survey') return false;
+    } else if (activeTab === 'active') {
+      if (poll.status !== 'active') return false;
+    } else if (activeTab === 'draft') {
+      if (poll.status !== 'draft') return false;
+    }
+    
+    // Filter by search query
+    if (searchQuery) {
+      return poll.title.toLowerCase().includes(searchQuery.toLowerCase());
+    }
+    
+    return true;
+  });
+  
+  // DnD sensors for drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+  
+  // Generate chart data for poll questions
+  const generateChartData = (question) => {
+    if (!question.options) return null;
+    
+    const labels = question.options.map(opt => opt.text);
+    const data = question.options.map(opt => opt.votes);
+    
+    if (question.type === 'single_choice') {
+      return {
+        labels,
+        datasets: [
+          {
+            label: 'Votes',
+            data,
+            backgroundColor: [
+              'rgba(54, 162, 235, 0.6)',
+              'rgba(255, 99, 132, 0.6)',
+              'rgba(255, 206, 86, 0.6)',
+              'rgba(75, 192, 192, 0.6)',
+              'rgba(153, 102, 255, 0.6)',
+            ],
+            borderColor: [
+              'rgba(54, 162, 235, 1)',
+              'rgba(255, 99, 132, 1)',
+              'rgba(255, 206, 86, 1)',
+              'rgba(75, 192, 192, 1)',
+              'rgba(153, 102, 255, 1)',
+            ],
+            borderWidth: 1,
+          },
+        ],
+      };
+    } else {
+      return {
+        labels,
+        datasets: [
+          {
+            label: 'Responses',
+            data,
+            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1,
+          },
+        ],
+      };
+    }
+  };
+  
+  // Column definitions for the data table
   const columns = [
     { 
       key: 'title', 
-      title: 'Title',
-      render: (item: any) => (
-        <div className="flex items-center">
-          <span>{item.title}</span>
-          {item.status === 'active' && (
-            <Badge className="ml-2 bg-green-100 text-green-800">Live</Badge>
+      header: 'Title',
+      cell: (poll) => (
+        <div>
+          <div className="font-medium">{poll.title}</div>
+          <div className="flex items-center mt-1">
+            <Badge variant={poll.type === 'poll' ? 'default' : 'secondary'} className="mr-2">
+              {poll.type === 'poll' ? 'Poll' : 'Survey'}
+            </Badge>
+            <Badge variant="outline" className={statusStyles[poll.status]}>
+              {poll.status.charAt(0).toUpperCase() + poll.status.slice(1)}
+            </Badge>
+          </div>
+        </div>
+      ),
+      sortable: true
+    },
+    {
+      key: 'dates',
+      header: 'Schedule',
+      cell: (poll) => (
+        <div className="text-sm">
+          {poll.startDate && poll.endDate ? (
+            <>
+              <div className="flex items-center text-gray-700">
+                <Calendar className="h-3.5 w-3.5 mr-1.5" />
+                {new Date(poll.startDate).toLocaleDateString()} to {new Date(poll.endDate).toLocaleDateString()}
+              </div>
+              <div className="mt-1 text-gray-500">
+                Created: {new Date(poll.createdAt).toLocaleDateString()}
+              </div>
+            </>
+          ) : (
+            <div className="text-gray-500">
+              Created: {new Date(poll.createdAt).toLocaleDateString()}
+            </div>
           )}
         </div>
       )
     },
-    { 
-      key: 'type', 
-      title: 'Type',
-      render: (item: any) => (
-        <Badge className={typeStyles[item.type as keyof typeof typeStyles]}>
-          {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
-        </Badge>
-      )
+    {
+      key: 'stats',
+      header: 'Responses',
+      cell: (poll) => (
+        <div className="flex flex-col items-center">
+          <div className="text-xl font-semibold">{poll.responses}</div>
+          <div className="text-xs text-gray-500">
+            {poll.questions.length} question{poll.questions.length !== 1 ? 's' : ''}
+          </div>
+        </div>
+      ),
+      sortable: true
     },
-    { 
-      key: 'status', 
-      title: 'Status',
-      render: (item: any) => (
-        <Badge className={statusStyles[item.status as keyof typeof statusStyles]}>
-          {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
-        </Badge>
-      )
-    },
-    { 
-      key: 'dateRange', 
-      title: 'Date Range',
-      render: (item: any) => (
-        <span className="text-sm">
-          {new Date(item.startDate).toLocaleDateString()} - {new Date(item.endDate).toLocaleDateString()}
-        </span>
-      )
-    },
-    { 
-      key: 'responses', 
-      title: 'Responses',
-      render: (item: any) => (
-        <span className="font-medium">{item.responses}</span>
-      )
-    },
-    { 
-      key: 'actions', 
-      title: 'Actions',
-      render: (item: any) => (
-        <div className="flex space-x-2">
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            className="h-8 w-8 p-0 text-blue-600" 
-            onClick={() => setSelectedPoll(item.id)}
-          >
-            <BarChart4 size={16} />
+    {
+      key: 'actions',
+      header: 'Actions',
+      cell: (poll) => (
+        <div className="flex justify-end gap-2">
+          <Button variant="ghost" size="sm" onClick={() => handleViewPoll(poll)}>
+            <Eye size={16} />
           </Button>
-          <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-            <Edit size={16} />
+          <Button variant="ghost" size="sm">
+            <PenLine size={16} />
           </Button>
-          <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-            <Copy size={16} />
-          </Button>
-          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-600">
-            <Trash size={16} />
-          </Button>
+          {poll.status !== 'ended' && (
+            <Button variant="ghost" size="sm">
+              <Trash2 size={16} />
+            </Button>
+          )}
         </div>
       )
-    },
+    }
   ];
-  
-  // Find the selected poll for results view
-  const pollDetails = polls.find(poll => poll.id === selectedPoll);
   
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6">
-      {selectedPoll ? (
-        // Poll results view
-        <>
-          <div className="flex justify-between items-center mb-6">
-            <Button 
-              variant="ghost" 
-              className="flex items-center text-gray-600"
-              onClick={() => setSelectedPoll(null)}
-            >
-              <ChevronRight className="rotate-180 mr-1" size={16} />
-              Back to list
-            </Button>
-            <Badge className={typeStyles[pollDetails?.type as keyof typeof typeStyles]}>
-              {pollDetails?.type.charAt(0).toUpperCase() + pollDetails?.type.slice(1)}
-            </Badge>
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
+        <div>
+          <h2 className="text-xl font-semibold">Polls & Surveys</h2>
+          <p className="text-gray-600">Create and manage polls and surveys for fans</p>
+        </div>
+        
+        <div className="mt-4 md:mt-0 flex flex-col md:flex-row gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <Input
+              placeholder="Search polls..."
+              className="pl-9 w-full md:w-64"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
-          
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold">{pollDetails?.title}</h2>
-            <div className="flex flex-wrap gap-3 mt-2">
-              <Badge className={statusStyles[pollDetails?.status as keyof typeof statusStyles]}>
-                {pollDetails?.status.charAt(0).toUpperCase() + pollDetails?.status.slice(1)}
-              </Badge>
-              <div className="text-sm text-gray-500 flex items-center">
-                <Calendar size={14} className="mr-1" />
-                {new Date(pollDetails?.startDate || '').toLocaleDateString()} - {new Date(pollDetails?.endDate || '').toLocaleDateString()}
-              </div>
-              <div className="text-sm text-gray-500 flex items-center">
-                <CheckSquare size={14} className="mr-1" />
-                {pollDetails?.responses} responses
-              </div>
-            </div>
-          </div>
-          
-          <div className="space-y-8">
-            {pollDetails?.questions.map(question => (
-              <Card key={question.id}>
-                <CardHeader>
-                  <CardTitle className="text-lg">{question.text}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {question.options.map(option => {
-                      // Calculate percentage for this option
-                      const totalVotes = question.options.reduce((sum, opt) => sum + opt.votes, 0);
-                      const percentage = totalVotes > 0 ? Math.round((option.votes / totalVotes) * 100) : 0;
-                      
-                      return (
-                        <div key={option.id} className="space-y-1">
-                          <div className="flex justify-between text-sm">
-                            <span>{option.text}</span>
-                            <span className="text-gray-500">{option.votes} votes ({percentage}%)</span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-team-blue h-2 rounded-full" 
-                              style={{ width: `${percentage}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          
-          <div className="flex justify-between mt-8 pt-6 border-t">
-            <Button variant="outline">Export Results</Button>
-            <div className="space-x-2">
-              <Button variant="outline">Edit</Button>
-              <Button variant="outline" className="text-red-600">Delete</Button>
-            </div>
-          </div>
-        </>
-      ) : (
-        // Polls and surveys list view
-        <>
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
-            <div>
-              <h2 className="text-xl font-semibold">Polls & Surveys</h2>
-              <p className="text-gray-600">Manage fan polls and feedback surveys</p>
-            </div>
-            
-            <div className="mt-4 md:mt-0 flex flex-col md:flex-row gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                <Input
-                  placeholder="Search..."
-                  className="pl-9 w-full md:w-64"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              <Select defaultValue="latest">
-                <SelectTrigger className="w-full md:w-[180px]">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="latest">Latest first</SelectItem>
-                  <SelectItem value="oldest">Oldest first</SelectItem>
-                  <SelectItem value="responses">Most responses</SelectItem>
-                </SelectContent>
-              </Select>
+          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+            <DialogTrigger asChild>
               <Button className="flex items-center gap-2">
-                <PlusCircle size={16} />
+                <Plus size={16} />
                 <span>Create New</span>
               </Button>
-            </div>
-          </div>
-          
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <TabsList className="flex-wrap">
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="active">Active</TabsTrigger>
-              <TabsTrigger value="ended">Ended</TabsTrigger>
-              <TabsTrigger value="draft">Drafts</TabsTrigger>
-              <TabsTrigger value="polls">Polls</TabsTrigger>
-              <TabsTrigger value="surveys">Surveys</TabsTrigger>
-            </TabsList>
+            </DialogTrigger>
             
-            <TabsContent value={activeTab}>
-              <Card>
-                <CardContent className="p-0">
-                  <CustomTable
-                    columns={columns}
-                    data={filteredPolls}
-                    noDataMessage="No polls or surveys found"
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-          
-          <div className="border-t mt-8 pt-6 text-center text-sm text-gray-500">
-            <p>This is a demonstration with sample polls and surveys. In a future update, these will be stored in and retrieved from Supabase.</p>
-          </div>
-        </>
-      )}
+            <DialogContent className="max-w-3xl overflow-y-auto max-h-[90vh]">
+              <DialogHeader>
+                <DialogTitle>
+                  Create New {newPoll.type === 'poll' ? 'Poll' : 'Survey'}
+                </DialogTitle>
+              </DialogHeader>
+              
+              <div className="overflow-y-auto max-h-[calc(90vh-140px)]">
+                {/* Basic information */}
+                <div className="space-y-4 py-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="poll-title">Title</Label>
+                      <Input
+                        id="poll-title"
+                        value={newPoll.title}
+                        onChange={(e) => setNewPoll({...newPoll, title: e.target.value})}
+                        className="mt-1"
+                        placeholder="Enter title..."
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="poll-type">Type</Label>
+                      <Select
+                        value={newPoll.type}
+                        onValueChange={(value) => setNewPoll({...newPoll, type: value})}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="poll">Poll</SelectItem>
+                          <SelectItem value="survey">Survey</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="poll-description">Description (Optional)</Label>
+                    <Input
+                      id="poll-description"
+                      value={newPoll.description}
+                      onChange={(e) => setNewPoll({...newPoll, description: e.target.value})}
+                      className="mt-1"
+                      placeholder="Enter description..."
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="poll-status">Status</Label>
+                      <Select
+                        value={newPoll.status}
+                        onValueChange={(value) => setNewPoll({...newPoll, status: value})}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="draft">Draft</SelectItem>
+                          <SelectItem value="scheduled">Scheduled</SelectItem>
+                          <SelectItem value="active">Active</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="start-date">Start Date</Label>
+                      <div className="mt-1">
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !newPoll.startDate && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {newPoll.startDate ? format(new Date(newPoll.startDate), "PPP") : <span>Pick a date</span>}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={newPoll.startDate ? new Date(newPoll.startDate) : undefined}
+                              onSelect={(date) => setNewPoll({...newPoll, startDate: date?.toISOString()})}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="end-date">End Date</Label>
+                      <div className="mt-1">
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !newPoll.endDate && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {newPoll.endDate ? format(new Date(newPoll.endDate), "PPP") : <span>Pick a date</span>}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={newPoll.endDate ? new Date(newPoll.endDate) : undefined}
+                              onSelect={(date) => setNewPoll({...newPoll, endDate: date?.toISOString()})}
+                              initialFocus
+                              disabled={(date) => {
+                                return !newPoll.startDate ? false : date < new Date(newPoll.startDate);
+                              }}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="featured"
+                      checked={newPoll.is_featured}
+                      onCheckedChange={(checked) => setNewPoll({...newPoll, is_featured: checked})}
+                    />
+                    <Label htmlFor="featured">Feature this {newPoll.type === 'poll' ? 'poll' : 'survey'}</Label>
+                  </div>
+                </div>
+                
+                <div className="border-t my-4"></div>
+                
+                {/* Questions section */}
+                <div>
+                  <h3 className="text-lg font-medium mb-4">
+                    Questions ({newPoll.questions.length})
+                  </h3>
+                  
+                  {newPoll.questions.length > 0 && (
+                    <div className="mb-6">
+                      <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={onDragEnd}
+                        modifiers={[restrictToVerticalAxis]}
+                      >
+                        <SortableContext
+                          items={newPoll.questions.map(q => q.id)}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          {newPoll.questions.map((question) => (
+                            <SortableQuestionItem
+                              key={question.id}
+                              id={question.id}
+                              question={question}
+                              onDelete={removeQuestion}
+                            />
+                          ))}
+                        </SortableContext>
+                      </DndContext>
+                    </div>
+                  )}
+                  
+                  {/* Add question form */}
+                  <Card className="mb-4">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base">Add New Question</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="question-text">Question Text</Label>
+                          <Input
+                            id="question-text"
+                            value={newQuestion.text}
+                            onChange={(e) => setNewQuestion({...newQuestion, text: e.target.value})}
+                            className="mt-1"
+                            placeholder="Enter question text..."
+                          />
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="question-type">Question Type</Label>
+                            <Select
+                              value={newQuestion.type}
+                              onValueChange={(value) => setNewQuestion({
+                                ...newQuestion, 
+                                type: value,
+                                options: value === 'single_choice' || value === 'multiple_choice' ? [''] : []
+                              })}
+                            >
+                              <SelectTrigger className="mt-1">
+                                <SelectValue placeholder="Select type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="single_choice">Single Choice</SelectItem>
+                                <SelectItem value="multiple_choice">Multiple Choice</SelectItem>
+                                <SelectItem value="text">Text Input</SelectItem>
+                                <SelectItem value="rating">Rating</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div className="flex items-end">
+                            <div className="flex items-center space-x-2">
+                              <Switch
+                                id="required"
+                                checked={newQuestion.required}
+                                onCheckedChange={(checked) => setNewQuestion({...newQuestion, required: checked})}
+                              />
+                              <Label htmlFor="required">Required question</Label>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Options for choice questions */}
+                        {(newQuestion.type === 'single_choice' || newQuestion.type === 'multiple_choice') && (
+                          <div>
+                            <Label className="mb-2 block">Options</Label>
+                            <div className="space-y-2">
+                              {newQuestion.options.map((option, index) => (
+                                <div key={index} className="flex items-center gap-2">
+                                  <Input
+                                    value={option}
+                                    onChange={(e) => updateOption(index, e.target.value)}
+                                    placeholder={`Option ${index + 1}`}
+                                    className="flex-1"
+                                  />
+                                  {index > 0 && (
+                                    <Button 
+                                      variant="ghost" 
+                                      size="icon" 
+                                      onClick={() => removeOption(index)}
+                                      type="button"
+                                    >
+                                      <Trash2 size={16} />
+                                    </Button>
+                                  )}
+                                </div>
+                              ))}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={addOption}
+                                type="button"
+                                className="mt-2"
+                              >
+                                <Plus size={14} className="mr-1" /> Add Option
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                        
+                        <Button onClick={addQuestion} type="button" className="w-full">
+                          Add Question
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+              
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleCreatePoll}>
+                  Create {newPoll.type === 'poll' ? 'Poll' : 'Survey'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+      
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="grid grid-cols-5 lg:w-[600px]">
+          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="polls">Polls</TabsTrigger>
+          <TabsTrigger value="surveys">Surveys</TabsTrigger>
+          <TabsTrigger value="active">Active</TabsTrigger>
+          <TabsTrigger value="draft">Draft</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value={activeTab} className="pt-2">
+          <Card>
+            <CardContent className="p-0">
+              <DataTable
+                columns={columns}
+                data={filteredPolls}
+                noDataMessage="No polls or surveys found"
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+      
+      {/* View Poll/Survey Dialog */}
+      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+        {currentPoll && (
+          <DialogContent className="max-w-3xl overflow-y-auto max-h-[90vh]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                {currentPoll.title}
+                <Badge variant={currentPoll.type === 'poll' ? 'default' : 'secondary'} className="ml-2">
+                  {currentPoll.type === 'poll' ? 'Poll' : 'Survey'}
+                </Badge>
+                <Badge variant="outline" className={statusStyles[currentPoll.status]}>
+                  {currentPoll.status.charAt(0).toUpperCase() + currentPoll.status.slice(1)}
+                </Badge>
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="overflow-y-auto max-h-[calc(90vh-140px)]">
+              <div className="py-2">
+                <div className="flex flex-wrap gap-y-2 items-center text-sm text-gray-700 mb-4">
+                  <div className="flex items-center mr-4">
+                    <CalendarDisplay size={16} className="mr-1" />
+                    <span>
+                      {currentPoll.startDate && currentPoll.endDate 
+                        ? `${new Date(currentPoll.startDate).toLocaleDateString()} to ${new Date(currentPoll.endDate).toLocaleDateString()}`
+                        : 'No schedule set'}
+                    </span>
+                  </div>
+                  <div className="flex items-center mr-4">
+                    <Clock size={16} className="mr-1" />
+                    <span>Created: {new Date(currentPoll.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <ClipboardList size={16} className="mr-1" />
+                    <span>{currentPoll.questions.length} question{currentPoll.questions.length !== 1 ? 's' : ''}</span>
+                  </div>
+                </div>
+                
+                <div className="bg-blue-50 rounded-md p-4 mb-6 flex items-center gap-4">
+                  <div className="bg-blue-100 p-3 rounded-full">
+                    <PieChartIcon size={24} className="text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-blue-800">Total Responses</h3>
+                    <p className="text-2xl font-semibold text-blue-900">{currentPoll.responses}</p>
+                  </div>
+                </div>
+                
+                {/* Questions and Results */}
+                <div className="space-y-6">
+                  {currentPoll.questions.map((question, index) => (
+                    <Card key={question.id}>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-base">
+                          Question {index + 1}: {question.text}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {/* Chart or result display based on question type */}
+                        {question.type === 'single_choice' && (
+                          <div className="h-64 flex justify-center">
+                            <Pie data={generateChartData(question)} />
+                          </div>
+                        )}
+                        
+                        {question.type === 'multiple_choice' && (
+                          <div className="h-64">
+                            <Bar 
+                              data={generateChartData(question)} 
+                              options={{
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                  y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                      precision: 0
+                                    }
+                                  }
+                                }
+                              }} 
+                            />
+                          </div>
+                        )}
+                        
+                        {question.type === 'text' && (
+                          <div className="py-4 text-center text-gray-500">
+                            <p>Text responses are available in the detailed report</p>
+                          </div>
+                        )}
+                        
+                        {question.type === 'rating' && (
+                          <div className="py-4 text-center">
+                            <div className="inline-block bg-gray-100 rounded-lg p-4">
+                              <div className="text-3xl font-bold text-blue-600">4.3</div>
+                              <div className="text-sm text-gray-500">Average Rating</div>
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setViewDialogOpen(false)}>
+                Close
+              </Button>
+              <Button>
+                Export Results
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        )}
+      </Dialog>
     </div>
   );
 };

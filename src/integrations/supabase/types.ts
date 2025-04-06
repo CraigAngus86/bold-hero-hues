@@ -9,6 +9,662 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      community_initiatives: {
+        Row: {
+          created_at: string | null
+          date: string
+          description: string
+          end_date: string | null
+          id: string
+          impact_summary: string | null
+          location: string
+          participants_count: number | null
+          status: string
+          title: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          description: string
+          end_date?: string | null
+          id?: string
+          impact_summary?: string | null
+          location: string
+          participants_count?: number | null
+          status?: string
+          title: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          description?: string
+          end_date?: string | null
+          id?: string
+          impact_summary?: string | null
+          location?: string
+          participants_count?: number | null
+          status?: string
+          title?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      community_photos: {
+        Row: {
+          caption: string | null
+          created_at: string | null
+          id: string
+          image_url: string
+          initiative_id: string
+          order_position: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string | null
+          id?: string
+          image_url: string
+          initiative_id: string
+          order_position?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string | null
+          id?: string
+          image_url?: string
+          initiative_id?: string
+          order_position?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_photos_initiative_id_fkey"
+            columns: ["initiative_id"]
+            isOneToOne: false
+            referencedRelation: "community_initiatives"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_volunteers: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          initiative_id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          role: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          initiative_id: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          role?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          initiative_id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          role?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_volunteers_initiative_id_fkey"
+            columns: ["initiative_id"]
+            isOneToOne: false
+            referencedRelation: "community_initiatives"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fan_audience_groups: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      fan_content: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          featured: boolean | null
+          id: string
+          image_url: string | null
+          moderated_by: string | null
+          moderation_date: string | null
+          moderation_notes: string | null
+          status: string
+          submitted_by: string
+          submitted_on: string | null
+          title: string
+          type: string
+          updated_at: string | null
+          user_reputation: number | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          featured?: boolean | null
+          id?: string
+          image_url?: string | null
+          moderated_by?: string | null
+          moderation_date?: string | null
+          moderation_notes?: string | null
+          status?: string
+          submitted_by: string
+          submitted_on?: string | null
+          title: string
+          type: string
+          updated_at?: string | null
+          user_reputation?: number | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          featured?: boolean | null
+          id?: string
+          image_url?: string | null
+          moderated_by?: string | null
+          moderation_date?: string | null
+          moderation_notes?: string | null
+          status?: string
+          submitted_by?: string
+          submitted_on?: string | null
+          title?: string
+          type?: string
+          updated_at?: string | null
+          user_reputation?: number | null
+        }
+        Relationships: []
+      }
+      fan_message_analytics: {
+        Row: {
+          clicked_at: string | null
+          created_at: string | null
+          id: string
+          link_clicked: string | null
+          message_id: string
+          opened_at: string | null
+          subscriber_id: string | null
+        }
+        Insert: {
+          clicked_at?: string | null
+          created_at?: string | null
+          id?: string
+          link_clicked?: string | null
+          message_id: string
+          opened_at?: string | null
+          subscriber_id?: string | null
+        }
+        Update: {
+          clicked_at?: string | null
+          created_at?: string | null
+          id?: string
+          link_clicked?: string | null
+          message_id?: string
+          opened_at?: string | null
+          subscriber_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fan_message_analytics_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "fan_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fan_message_analytics_subscriber_id_fkey"
+            columns: ["subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "fan_subscribers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fan_message_recipients: {
+        Row: {
+          created_at: string | null
+          group_id: string | null
+          id: string
+          message_id: string
+          subscriber_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          group_id?: string | null
+          id?: string
+          message_id: string
+          subscriber_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          group_id?: string | null
+          id?: string
+          message_id?: string
+          subscriber_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fan_message_recipients_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "fan_audience_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fan_message_recipients_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "fan_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fan_message_recipients_subscriber_id_fkey"
+            columns: ["subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "fan_subscribers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fan_message_templates: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          name: string
+          subject: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          name: string
+          subject: string
+          type?: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+          subject?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      fan_messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          scheduled_for: string | null
+          sent_at: string | null
+          status: string
+          subject: string
+          template_id: string | null
+          title: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: string
+          subject: string
+          template_id?: string | null
+          title: string
+          type?: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          template_id?: string | null
+          title?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fan_messages_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "fan_message_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fan_poll_answers: {
+        Row: {
+          created_at: string | null
+          id: string
+          option_id: string | null
+          question_id: string
+          rating_value: number | null
+          response_id: string
+          text_answer: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          option_id?: string | null
+          question_id: string
+          rating_value?: number | null
+          response_id: string
+          text_answer?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          option_id?: string | null
+          question_id?: string
+          rating_value?: number | null
+          response_id?: string
+          text_answer?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fan_poll_answers_option_id_fkey"
+            columns: ["option_id"]
+            isOneToOne: false
+            referencedRelation: "fan_poll_options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fan_poll_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "fan_poll_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fan_poll_answers_response_id_fkey"
+            columns: ["response_id"]
+            isOneToOne: false
+            referencedRelation: "fan_poll_responses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fan_poll_options: {
+        Row: {
+          created_at: string | null
+          id: string
+          order_position: number | null
+          question_id: string
+          text: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          order_position?: number | null
+          question_id: string
+          text: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          order_position?: number | null
+          question_id?: string
+          text?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fan_poll_options_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "fan_poll_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fan_poll_questions: {
+        Row: {
+          created_at: string | null
+          id: string
+          order_position: number | null
+          poll_id: string
+          required: boolean | null
+          text: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          order_position?: number | null
+          poll_id: string
+          required?: boolean | null
+          text: string
+          type?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          order_position?: number | null
+          poll_id?: string
+          required?: boolean | null
+          text?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fan_poll_questions_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "fan_polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fan_poll_responses: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_anonymous: boolean | null
+          poll_id: string
+          respondent_email: string | null
+          respondent_name: string | null
+          submission_date: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_anonymous?: boolean | null
+          poll_id: string
+          respondent_email?: string | null
+          respondent_name?: string | null
+          submission_date?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_anonymous?: boolean | null
+          poll_id?: string
+          respondent_email?: string | null
+          respondent_name?: string | null
+          submission_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fan_poll_responses_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "fan_polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fan_polls: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          end_date: string | null
+          id: string
+          is_featured: boolean | null
+          published_at: string | null
+          start_date: string | null
+          status: string
+          title: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          is_featured?: boolean | null
+          published_at?: string | null
+          start_date?: string | null
+          status?: string
+          title: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          is_featured?: boolean | null
+          published_at?: string | null
+          start_date?: string | null
+          status?: string
+          title?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      fan_subscriber_groups: {
+        Row: {
+          created_at: string | null
+          group_id: string
+          subscriber_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          group_id: string
+          subscriber_id: string
+        }
+        Update: {
+          created_at?: string | null
+          group_id?: string
+          subscriber_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fan_subscriber_groups_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "fan_audience_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fan_subscriber_groups_subscriber_id_fkey"
+            columns: ["subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "fan_subscribers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fan_subscribers: {
+        Row: {
+          created_at: string | null
+          email: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          status: string
+          subscribed_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          status?: string
+          subscribed_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          status?: string
+          subscribed_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       fixtures: {
         Row: {
           away_score: number | null

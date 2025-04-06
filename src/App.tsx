@@ -19,6 +19,8 @@ import NotFoundPage from './pages/admin/NotFoundPage';
 import LeagueTableManagement from "./pages/admin/LeagueTableManagement";
 import FixturesManagement from './pages/admin/FixturesManagement';
 import Admin from './pages/Admin';
+import NewsManagement from './pages/admin/NewsManagement';
+import TeamManagement from './pages/admin/TeamManagement';
 
 function App() {
   useEffect(() => {
@@ -46,12 +48,10 @@ function App() {
         <Route path="/admin" element={<Admin />} />
         <Route path="/admin/fixtures" element={<AdminLayout><FixturesManagement /></AdminLayout>} />
         <Route path="/admin/league-table-management" element={<AdminLayout><LeagueTableManagement /></AdminLayout>} />
-        <Route path="/admin/news" element={<AdminLayout><div>News Management</div></AdminLayout>} />
-        <Route path="/admin/team" element={<AdminLayout><div>Team Management</div></AdminLayout>} />
+        <Route path="/admin/news" element={<AdminLayout><NewsManagement /></AdminLayout>} />
+        <Route path="/admin/team" element={<AdminLayout><TeamManagement /></AdminLayout>} />
         <Route path="/admin/images" element={<AdminLayout><div>Media Management</div></AdminLayout>} />
         <Route path="/admin/sponsors" element={<AdminLayout><div>Sponsors Management</div></AdminLayout>} />
-        
-        {/* Add more admin routes here as needed, all using AdminLayout */}
       </Routes>
       <Toaster />
     </HelmetProvider>

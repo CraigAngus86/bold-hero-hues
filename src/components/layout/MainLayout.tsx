@@ -110,6 +110,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <Footer />
     </div>
   );
-};
+}
 
 export default MainLayout;

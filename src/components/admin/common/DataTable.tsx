@@ -1,88 +1,69 @@
 
 import React from 'react';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Loader2 } from 'lucide-react';
 
-export interface ColumnDef<T> {
+interface Column<T> {
   key: string;
-  header: string;
+  header: React.ReactNode;
   cell: (item: T) => React.ReactNode;
-  sortable?: boolean;
 }
 
-export interface DataTableProps<T> {
-  columns: ColumnDef<T>[];
+interface DataTableProps<T> {
+  columns: Column<T>[];
   data: T[];
   isLoading?: boolean;
   emptyMessage?: string;
-  noDataMessage?: string; // Added for backward compatibility
   onRowClick?: (item: T) => void;
 }
 
-export const DataTable = <T,>({ 
-  columns, 
-  data, 
-  isLoading = false, 
+function DataTable<T>({
+  columns,
+  data,
+  isLoading = false,
   emptyMessage = 'No data available',
-  noDataMessage, // For backward compatibility
   onRowClick
-}: DataTableProps<T>) => {
-  const displayMessage = noDataMessage || emptyMessage;
-  
+}: DataTableProps<T>) {
   if (isLoading) {
     return (
-      <div className="w-full flex flex-col items-center justify-center py-8">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-2" />
-        <p className="text-muted-foreground text-sm">Loading data...</p>
+      <div className="flex justify-center items-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!data.length) {
+    return (
+      <div className="text-center p-8 text-muted-foreground">
+        {emptyMessage}
       </div>
     );
   }
 
   return (
-    <div className="w-full overflow-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          {columns.map((column) => (
+            <TableHead key={column.key}>{column.header}</TableHead>
+          ))}
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {data.map((item, index) => (
+          <TableRow 
+            key={index} 
+            onClick={onRowClick ? () => onRowClick(item) : undefined}
+            className={onRowClick ? "cursor-pointer" : ""}
+          >
             {columns.map((column) => (
-              <TableHead key={column.key.toString()}>
-                {column.header}
-              </TableHead>
+              <TableCell key={`${index}-${column.key}`}>{column.cell(item)}</TableCell>
             ))}
           </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data.length > 0 ? (
-            data.map((row, rowIndex) => (
-              <TableRow 
-                key={rowIndex} 
-                onClick={() => onRowClick && onRowClick(row)}
-                className={onRowClick ? 'cursor-pointer' : ''}
-              >
-                {columns.map((column, colIndex) => (
-                  <TableCell key={`${rowIndex}-${colIndex}`}>
-                    {column.cell(row)}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="text-center p-4">
-                {displayMessage}
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </div>
+        ))}
+      </TableBody>
+    </Table>
   );
-};
+}
 
 export default DataTable;

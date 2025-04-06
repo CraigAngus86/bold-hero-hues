@@ -1,85 +1,73 @@
 
-import { useState, useCallback } from 'react';
-import { toast } from 'sonner';
-import { SystemStatus } from '@/types';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
-// Default system status
-const defaultStatus: SystemStatus = {
-  storageUsage: {
-    total: 10000,
-    used: 2500,
-    percentage: 25
-  },
-  serverStatus: 'online',
-  databaseStatus: 'online',
-  newUsers24h: 0,
-  activeUsers: 0
+// Keys for React Query
+export const systemKeys = {
+  status: ['system', 'status'],
 };
 
-/**
- * Hook for fetching and managing system status
- */
-export const useSystemStatus = () => {
-  const [status, setStatus] = useState<SystemStatus>(defaultStatus);
-  const [isLoading, setIsLoading] = useState(false);
+export interface SystemStatusData {
+  status: 'healthy' | 'warning' | 'error';
+  databaseStatus: 'online' | 'degraded' | 'offline';
+  storageStatus: 'online' | 'degraded' | 'offline';
+  authStatus: 'online' | 'degraded' | 'offline';
+  uptimeHours: number;
+  lastIncident: string | null;
+  lastBackup: string | null;
+  version: string;
+}
 
-  const fetchSystemStatus = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      // Here we would normally make an API request to get the system status
-      // For now, use mock data with some randomization for demo purposes
-      
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      // Generate mock data with some randomness
-      const mockStatus: SystemStatus = {
-        lastBackup: new Date(Date.now() - Math.random() * 86400000).toISOString(),
-        storageUsage: {
-          total: 10000,
-          used: Math.floor(1000 + Math.random() * 4000),
-          percentage: 0 // Will calculate below
-        },
-        serverStatus: Math.random() > 0.9 ? 'degraded' : 'online',
-        databaseStatus: Math.random() > 0.95 ? 'degraded' : 'online',
-        newUsers24h: Math.floor(Math.random() * 10),
-        activeUsers: Math.floor(10 + Math.random() * 50)
-      };
-      
-      // Calculate percentage
-      mockStatus.storageUsage.percentage = Math.round(
-        (mockStatus.storageUsage.used / mockStatus.storageUsage.total) * 100
-      );
-      
-      // Add last error if status is degraded
-      if (mockStatus.serverStatus === 'degraded' || mockStatus.databaseStatus === 'degraded') {
-        mockStatus.lastError = {
-          timestamp: new Date().toISOString(),
-          message: 'Performance degradation detected in system resources'
+export const useSystemStatus = () => {
+  return useQuery({
+    queryKey: [...systemKeys.status],
+    queryFn: async (): Promise<SystemStatusData> => {
+      try {
+        // Check database connection
+        const { data: dbCheckData, error: dbError } = await supabase
+          .from('settings')
+          .select('key, value')
+          .eq('key', 'system_version')
+          .single();
+
+        // Check storage service
+        const { data: storageData, error: storageError } = await supabase.storage
+          .getBucket('images');
+
+        // Determine overall health status
+        let status: 'healthy' | 'warning' | 'error' = 'healthy';
+        if (dbError || storageError) {
+          status = 'error';
+        }
+
+        return {
+          status,
+          databaseStatus: dbError ? 'offline' : 'online',
+          storageStatus: storageError ? 'offline' : 'online',
+          authStatus: 'online', // Assuming auth is online, could add specific check
+          uptimeHours: 720, // Example: 30 days
+          lastIncident: null,
+          lastBackup: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // Yesterday
+          version: dbCheckData?.value || '1.0.0',
+        };
+      } catch (error) {
+        console.error("Error fetching system status:", error);
+        // Return degraded status if we can't get status
+        return {
+          status: 'warning',
+          databaseStatus: 'degraded',
+          storageStatus: 'degraded',
+          authStatus: 'degraded',
+          uptimeHours: 0,
+          lastIncident: new Date().toISOString(),
+          lastBackup: null,
+          version: '1.0.0',
         };
       }
-      
-      setStatus(mockStatus);
-      return mockStatus;
-    } catch (error) {
-      console.error('Error fetching system status:', error);
-      toast.error('Failed to fetch system status');
-      return status;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [status]);
-
-  // Initial fetch on hook mount
-  const refresh = useCallback(async () => {
-    return await fetchSystemStatus();
-  }, [fetchSystemStatus]);
-
-  return {
-    status,
-    isLoading,
-    refresh
-  };
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 };
 
-export default useSystemStatus;
+export type SystemStatus = 'healthy' | 'warning' | 'error';
+export { SystemStatusData };

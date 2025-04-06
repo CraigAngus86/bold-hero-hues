@@ -1,67 +1,56 @@
 
-import { ImageOptimizationOptions } from './types';
-
-/**
- * Default image optimization options
- */
-export const defaultOptimizationOptions: ImageOptimizationOptions = {
-  maxWidth: 1200,
-  maxHeight: 1200,
-  quality: 0.8
+// Configuration for image storage
+export const imageStorageConfig = {
+  allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+  maxSizeMB: 10, // Maximum file size in MB
+  buckets: {
+    news: 'news_images',
+    teams: 'player_images',
+    sponsors: 'sponsor_logos',
+    general: 'images',
+    media: 'media'
+  },
+  thumbnailSizes: {
+    small: 200,
+    medium: 400,
+    large: 800
+  },
+  defaultOptimization: {
+    maxWidth: 1920,
+    quality: 85
+  }
 };
 
-/**
- * Predefined optimization settings for different types of images
- */
-export const imageUploadConfigs = {
-  default: {
-    maxSizeMB: 5,
-    acceptedTypes: 'image/png,image/jpeg,image/webp',
-    optimizationOptions: defaultOptimizationOptions
+// Image formats by use case
+export const imageFormats = {
+  webDisplay: {
+    format: 'image/webp',
+    quality: 80
+  },
+  thumbnails: {
+    format: 'image/webp',
+    quality: 60
   },
   highQuality: {
-    maxSizeMB: 10,
-    acceptedTypes: 'image/png,image/jpeg',
-    optimizationOptions: {
-      maxWidth: 2400,
-      maxHeight: 2400,
-      quality: 0.9
-    }
-  },
-  thumbnail: {
-    maxSizeMB: 2,
-    acceptedTypes: 'image/png,image/jpeg,image/webp',
-    optimizationOptions: {
-      maxWidth: 400,
-      maxHeight: 400,
-      quality: 0.7
-    }
-  },
-  avatar: {
-    maxSizeMB: 1,
-    acceptedTypes: 'image/png,image/jpeg',
-    optimizationOptions: {
-      maxWidth: 256,
-      maxHeight: 256,
-      quality: 0.8
-    }
-  },
-  banner: {
-    maxSizeMB: 5,
-    acceptedTypes: 'image/png,image/jpeg',
-    optimizationOptions: {
-      maxWidth: 1920,
-      maxHeight: 1080,
-      quality: 0.8
-    }
-  },
-  sponsor: {
-    maxSizeMB: 3,
-    acceptedTypes: 'image/png,image/jpeg,image/svg+xml',
-    optimizationOptions: {
-      maxWidth: 800,
-      maxHeight: 600,
-      quality: 0.9
-    }
+    format: 'image/jpeg',
+    quality: 90
   }
+};
+
+// Default alt text patterns
+export const defaultAltPatterns = {
+  news: 'News image: {title}',
+  player: '{name} - Banks o\' Dee FC player',
+  sponsor: '{name} logo - Banks o\' Dee FC sponsor',
+  fixture: 'Match between {homeTeam} and {awayTeam}',
+  team: 'Banks o\' Dee FC team photo'
+};
+
+// Image path generators
+export const imagePaths = {
+  newsImage: (slug: string, filename: string) => `news/${slug}/${filename}`,
+  playerImage: (playerId: string, filename: string) => `players/${playerId}/${filename}`,
+  sponsorLogo: (sponsorId: string, filename: string) => `sponsors/${sponsorId}/${filename}`,
+  mediaImage: (category: string, filename: string) => `media/${category}/${filename}`,
+  fixtureImage: (fixtureId: string, filename: string) => `fixtures/${fixtureId}/${filename}`
 };

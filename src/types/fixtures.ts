@@ -1,80 +1,74 @@
 
-// Moving fixture types to a dedicated type file
-import { Match } from "@/components/fixtures/types";
-
-// Adding Fixture export to fix the import error
 export interface Fixture {
   id: string;
-  date: string;
-  time: string;
-  homeTeam: string;
-  awayTeam: string;
-  competition: string;
-  venue?: string;
-  isCompleted: boolean;
-  homeScore?: number;
-  awayScore?: number;
-  source?: string;
-  ticketLink?: string;
-  match_report?: string;
-  attendance?: number;
-  referee?: string;
-}
-
-export interface ScrapedFixture {
-  id?: string; // Make id optional as it might be generated later
-  date: string;
-  time: string;
-  homeTeam: string;
-  awayTeam: string;
-  competition: string;
-  venue?: string;
-  isCompleted: boolean;
-  homeScore?: number;
-  awayScore?: number;
-  source?: string;
-  ticketLink?: string;
-  match_report?: string;
-  attendance?: number;
-  referee?: string;
-}
-
-export interface DBFixture {
-  id: string;
-  date: string;
-  time: string;
   home_team: string;
   away_team: string;
+  date: string;
+  time: string;
+  venue: string;
   competition: string;
-  venue?: string;
+  season: string;
   is_completed: boolean;
   home_score?: number;
   away_score?: number;
-  source?: string;
-  created_at?: string;
-  updated_at?: string;
   ticket_link?: string;
+  source?: string;
+  import_date: string;
+  created_at: string;
+  updated_at: string;
   match_report?: string;
   attendance?: number;
   referee?: string;
 }
 
-// This function converts database fixtures to the Match type used in the UI components
-export function convertToMatches(fixtures: DBFixture[]): Match[] {
-  return fixtures.map(fixture => ({
-    id: fixture.id,
-    date: fixture.date,
-    time: fixture.time,
-    homeTeam: fixture.home_team,
-    awayTeam: fixture.away_team,
-    competition: fixture.competition,
-    venue: fixture.venue || 'TBD',
-    isCompleted: fixture.is_completed,
-    homeScore: fixture.home_score,
-    awayScore: fixture.away_score,
-    ticketLink: fixture.ticket_link,
-    match_report: fixture.match_report,
-    attendance: fixture.attendance,
-    referee: fixture.referee
-  }));
+export interface TeamStats {
+  id: string;
+  position: number;
+  team: string;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
+  points: number;
+  form?: string[];
+  logo?: string;
+}
+
+export interface Competition {
+  id: string;
+  name: string;
+  abbreviation?: string;
+  type: 'league' | 'cup' | 'friendly';
+  season_id?: string;
+}
+
+export interface Venue {
+  id: string;
+  name: string;
+  address?: string;
+  capacity?: number;
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
+}
+
+export interface Season {
+  id: string;
+  name: string;
+  start_date: string;
+  end_date: string;
+  is_current: boolean;
+}
+
+export interface FixtureFilter {
+  season?: string;
+  competition?: string;
+  team?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  status?: 'all' | 'upcoming' | 'completed';
 }

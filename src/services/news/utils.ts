@@ -1,50 +1,57 @@
 
-import { format, parseISO } from 'date-fns';
-
 /**
- * Format a date string to a human-readable format
+ * Format date for display
+ * @param dateString ISO date string
  */
 export const formatDate = (dateString: string): string => {
-  if (!dateString) return '';
-  
   try {
-    const date = parseISO(dateString);
-    return format(date, 'MMMM d, yyyy');
-  } catch (error) {
-    console.error('Error formatting date:', error);
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  } catch (e) {
     return dateString;
   }
 };
 
 /**
- * Format a date to database format (YYYY-MM-DD)
+ * Format date for DB storage
+ * @param dateString Date string in any format
  */
-export const getDbDateFormat = (date: Date): string => {
-  return format(date, 'yyyy-MM-dd');
+export const getDbDateFormat = (dateString: string): string => {
+  try {
+    const date = new Date(dateString);
+    return date.toISOString().split('T')[0]; // YYYY-MM-DD
+  } catch (e) {
+    return dateString;
+  }
 };
 
 /**
- * Format a date to ISO string with local timezone
+ * Get ISO date string
+ * @param date Optional date object, defaults to current date
  */
-export const getISODateString = (date: Date): string => {
+export const getISODateString = (date = new Date()): string => {
   return date.toISOString();
 };
 
 /**
- * Create an excerpt from HTML content
- * @param html HTML content
- * @param length Maximum length of the excerpt
+ * Create a short excerpt from content
+ * @param content HTML content string
+ * @param maxLength Maximum length of excerpt
  */
-export const createExcerpt = (html: string, length = 150): string => {
-  // Remove HTML tags
-  const text = html.replace(/<\/?[^>]+(>|$)/g, '');
+export const createExcerpt = (content: string, maxLength = 150): string => {
+  if (!content) return '';
   
-  // Truncate text to desired length
-  if (text.length <= length) return text;
+  // Strip HTML tags
+  const strippedContent = content.replace(/<[^>]*>/g, ' ');
   
-  // Find the last space before the cutoff
-  const cutoff = text.lastIndexOf(' ', length);
+  // Trim and limit length
+  if (strippedContent.length <= maxLength) {
+    return strippedContent.trim();
+  }
   
-  // Return the truncated text with ellipsis
-  return `${text.substring(0, cutoff >= 0 ? cutoff : length)}...`;
+  return strippedContent.substring(0, maxLength).trim() + '...';
 };

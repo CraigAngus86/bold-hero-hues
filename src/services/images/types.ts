@@ -12,7 +12,7 @@ export interface ImageOptimizationOptions {
 /**
  * Available bucket types
  */
-export type BucketType = 'images' | 'news' | 'teams' | 'sponsors' | 'media';
+export type BucketType = 'images' | 'news' | 'teams' | 'sponsors' | 'media' | 'news_images' | 'player_images' | 'sponsor_logos';
 
 /**
  * Stored image metadata
@@ -49,5 +49,8 @@ export interface UploadResult {
   url?: string;
   path?: string;
   id?: string;
+  data?: StoredImageMetadata;
   error?: any;
 }
+
+export type ImageMetadata = StoredImageMetadata;

@@ -47,7 +47,11 @@ export const useImageUploadHandlers = ({
   optimizationOptions,
   onUploadComplete
 }: UseImageUploadHandlersProps) => {
-  const { upload, isUploading, progress } = useImageUpload();
+  const { uploadFile, isUploading, progress } = useImageUpload({
+    bucket,
+    folderPath,
+    onSuccess: onUploadComplete
+  });
   
   const handleFileSelection = useCallback((file: File) => {
     if (file.size > maxSizeBytes) {
@@ -127,7 +131,7 @@ export const useImageUploadHandlers = ({
         tags: imageTags
       };
       
-      const result = await upload(
+      const result = await uploadFile(
         selectedFile, 
         uploadOptions
       );

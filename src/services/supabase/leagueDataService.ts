@@ -1,143 +1,129 @@
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { TeamStats } from '@/types/fixtures';
+import { Match } from '@/components/fixtures/types';
 
-/**
- * Fetch league table data from Supabase
- */
+// Get the most recent league table from Supabase
 export const fetchLeagueTableFromSupabase = async (): Promise<TeamStats[]> => {
   try {
     const { data, error } = await supabase
       .from('highland_league_table')
       .select('*')
       .order('position', { ascending: true });
-    
+      
     if (error) {
       throw error;
     }
     
-    return (data as TeamStats[]) || [];
+    // Ensure form is an array (since sometimes it might come as a string)
+    const formattedData = data.map(team => ({
+      ...team,
+      form: Array.isArray(team.form) ? team.form : 
+            typeof team.form === 'string' ? team.form.split('') : []
+    }));
+    
+    return formattedData;
   } catch (error) {
-    console.error('Error fetching league table:', error);
+    console.error('Error fetching league table from Supabase:', error);
+    toast.error('Failed to load league table data');
     return [];
   }
 };
 
-/**
- * Get the timestamp of the last update
- */
+// Get the last update time of the league table
 export const getLastUpdateTime = async (): Promise<string | null> => {
   try {
-    const { data, error } = await supabase
+    // First check the settings table for a dedicated last_updated value
+    const { data: settingsData, error: settingsError } = await supabase
       .from('settings')
       .select('value')
-      .eq('key', 'last_league_table_update')
+      .eq('key', 'league_table_last_updated')
       .single();
-    
-    if (error || !data) {
-      return null;
+      
+    if (!settingsError && settingsData) {
+      return settingsData.value;
     }
     
-    return data.value;
+    // Fall back to the most recent league table entry's updated_at time
+    const { data, error } = await supabase
+      .from('highland_league_table')
+      .select('created_at')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+      
+    if (error) {
+      throw error;
+    }
+    
+    return data?.created_at || null;
   } catch (error) {
     console.error('Error getting last update time:', error);
     return null;
   }
 };
 
-/**
- * Clear the Supabase cache for league data
- * This allows fresh data to be fetched
- */
-export const clearSupabaseCache = async (): Promise<boolean> => {
+// Clear Supabase cache for the league table
+export const clearSupabaseCache = async (): Promise<void> => {
   try {
-    // Update the cache invalidation timestamp
-    const now = new Date().toISOString();
-    await supabase
-      .from('settings')
-      .upsert({ 
-        key: 'league_data_cache_invalidated', 
-        value: now 
-      }, { onConflict: 'key' });
-      
-    console.log('Supabase league data cache cleared at', now);
-    return true;
+    // There's no direct way to clear the cache in Supabase client
+    // We can use a small request with cache-control headers to simulate a refresh
+    await fetch('/api/clear-cache?table=highland_league_table', {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
   } catch (error) {
-    console.error('Error clearing Supabase cache:', error);
-    return false;
+    console.error('Error clearing cache:', error);
   }
 };
 
-/**
- * Trigger a scrape of the league data
- */
-export const triggerLeagueDataScrape = async (): Promise<TeamStats[]> => {
+// Trigger the scraping of Highland League data from the source (e.g. BBC)
+export const triggerLeagueDataScrape = async (force: boolean = false): Promise<TeamStats[]> => {
   try {
-    // Log the scrape start
-    await supabase
-      .from('scrape_logs')
-      .insert({
-        source: 'highland_league_table',
-        status: 'initiated',
-        items_found: 0
-      });
+    const { data, error } = await supabase.functions.invoke('scrape-highland-league', {
+      body: { force }
+    });
     
-    // In a real app, we would call an edge function or lambda
-    // For now, we'll just return the current data
-    const data = await fetchLeagueTableFromSupabase();
-    
-    // Update the last scrape time
-    const now = new Date().toISOString();
-    await supabase
-      .from('settings')
-      .upsert({ 
-        key: 'last_league_table_update', 
-        value: now 
-      }, { onConflict: 'key' });
-    
-    // Log the scrape completion
-    await supabase
-      .from('scrape_logs')
-      .insert({
-        source: 'highland_league_table',
-        status: 'completed',
-        items_found: data.length,
-        items_updated: data.length
-      });
+    if (error) {
+      throw error;
+    }
     
     return data;
   } catch (error) {
     console.error('Error triggering league data scrape:', error);
-    
-    // Log the scrape error
-    await supabase
-      .from('scrape_logs')
-      .insert({
-        source: 'highland_league_table',
-        status: 'error',
-        error_message: error instanceof Error ? error.message : 'Unknown error',
-      });
-    
-    return [];
+    toast.error('Failed to scrape league data');
+    throw error;
   }
 };
 
-/**
- * Clear the league data cache
- */
-export const clearLeagueDataCache = async (): Promise<void> => {
+// Function to get all league data (table, fixtures, results)
+export const getLeagueData = async () => {
   try {
-    // Update the cache invalidation timestamp
-    const now = new Date().toISOString();
-    await supabase
-      .from('settings')
-      .upsert({ 
-        key: 'league_data_cache_invalidated', 
-        value: now 
-      }, { onConflict: 'key' });
-      
-    console.log('League data cache cleared at', now);
+    const [leagueTable, fixtures, results] = await Promise.all([
+      fetchLeagueTableFromSupabase(),
+      // Add your fixtures fetch here when implemented
+      [],
+      // Add your results fetch here when implemented
+      []
+    ]);
+    
+    return {
+      leagueTable, 
+      fixtures: fixtures as Match[], 
+      results: results as Match[]
+    };
   } catch (error) {
-    console.error('Error clearing league data cache:', error);
+    console.error('Error fetching league data:', error);
+    toast.error('Failed to load league data');
+    
+    return {
+      leagueTable: [],
+      fixtures: [],
+      results: []
+    };
   }
 };

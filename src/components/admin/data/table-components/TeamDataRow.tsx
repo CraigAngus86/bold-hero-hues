@@ -15,6 +15,19 @@ interface TeamDataRowProps {
 export const TeamDataRow: React.FC<TeamDataRowProps> = ({ team }) => {
   const isInvalidTeam = !isNaN(Number(team.team));
   
+  // Ensure form is always an array
+  const formArray = React.useMemo(() => {
+    if (Array.isArray(team.form)) {
+      return team.form;
+    }
+    
+    if (typeof team.form === 'string') {
+      return team.form.split('');
+    }
+    
+    return [];
+  }, [team.form]);
+  
   return (
     <TableRow className={isInvalidTeam ? "bg-yellow-50" : ""}>
       <TableCell>{team.position}</TableCell>
@@ -37,7 +50,7 @@ export const TeamDataRow: React.FC<TeamDataRowProps> = ({ team }) => {
       <TableCell>{team.goalDifference}</TableCell>
       <TableCell className="font-bold">{team.points}</TableCell>
       <TableCell>
-        <FormDisplay form={Array.isArray(team.form) ? team.form : (team.form ? team.form.split('') : [])} />
+        <FormDisplay form={formArray} />
       </TableCell>
     </TableRow>
   );

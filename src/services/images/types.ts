@@ -34,11 +34,16 @@ export interface StoredImageMetadata {
   created_by?: string;
 }
 
+// Alias for StoredImageMetadata to be used in components that expect ImageMetadata
+export type ImageMetadata = StoredImageMetadata;
+
 export interface ImageUploadConfig {
   bucketName: string;
   folderPath?: string;
   allowedTypes: string;
   maxSizeMB: number;
+  bucket: BucketType;
+  optimizationOptions?: ImageOptimizationOptions;
 }
 
 export interface ImageUploadResult {
@@ -46,7 +51,13 @@ export interface ImageUploadResult {
   url?: string;
   error?: string;
   metadata?: StoredImageMetadata;
+  data?: {
+    url: string;
+    [key: string]: any;
+  };
 }
+
+export type UploadResult = ImageUploadResult;
 
 // Image upload hooks
 export interface UseImageUploadOptions {
@@ -59,9 +70,21 @@ export interface UseImageUploadOptions {
 
 export interface UseImageUploadResult {
   uploading: boolean;
+  isUploading: boolean;
   progress: number;
+  uploadProgress: number;
   error: Error | null;
   uploadFile: (file: File, metadata?: Partial<StoredImageMetadata>) => Promise<ImageUploadResult>;
+  upload: (file: File, metadata?: Partial<StoredImageMetadata>) => Promise<ImageUploadResult>;
   cancelUpload: () => void;
   resetState: () => void;
+}
+
+export interface ImageFolder {
+  id: string;
+  name: string;
+  path: string;
+  parentId?: string;
+  created_at?: string;
+  updated_at?: string;
 }

@@ -69,5 +69,5 @@ export interface ImportResult {
 }
 
 // Import and re-export the conversion functions from the utility file
-import { fixturesToMatches as convertFixturesToMatches } from '@/utils/fixtureUtils';
-export const convertToMatches = convertFixturesToMatches;
+import { fixturesToMatches } from '@/utils/fixtureUtils';
+export const convertToMatches = fixturesToMatches;

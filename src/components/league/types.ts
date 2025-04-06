@@ -12,7 +12,8 @@ export interface TeamStats {
   points: number;
   form: string[];
   logo?: string;
-  id?: number; // Adding id property to interface since it's used in components
+  id?: string | number; // Updated to match the fixtures version
+  last_updated?: string;
 }
 
 // Mock data for testing and fallbacks

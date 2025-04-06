@@ -30,6 +30,7 @@ import Tickets from './pages/admin/Tickets';
 import Settings from './pages/admin/Settings';
 import Sponsors from './pages/admin/Sponsors';
 import LeagueTableManagement from './pages/admin/LeagueTableManagement';
+import FansManagement from './pages/admin/FansManagement';
 
 function App() {
   return (
@@ -61,6 +62,7 @@ function App() {
         <Route path="/admin/sponsors" element={<Sponsors />} />
         <Route path="/admin/league-table-management" element={<LeagueTableManagement />} />
         <Route path="/admin/settings" element={<Settings />} />
+        <Route path="/admin/fans" element={<FansManagement />} />
         
         {/* Catch-all route */}
         <Route path="*" element={<NotFound />} />

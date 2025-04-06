@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -41,6 +41,7 @@ const getNavItems = (): SidebarNavItem[] => [
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed, handleLogout }) => {
+  const location = useLocation();
   const navItems = getNavItems();
   
   return (

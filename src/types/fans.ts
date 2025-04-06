@@ -35,6 +35,7 @@ export interface PollOption {
   id: string;
   text: string;
   votes: number;
+  order_position?: number;
 }
 
 export interface PollQuestion {
@@ -75,6 +76,7 @@ export interface FanMessage {
   template: string;
   content?: string;
   subject?: string;
+  scheduledFor?: string | null;
 }
 
 export interface AudienceGroup {

@@ -8,7 +8,11 @@ import {
   PollOption, 
   FanMessage,
   AudienceGroup,
-  CommunityInitiative 
+  CommunityInitiative,
+  Subscriber,
+  MessageTemplate,
+  CommunityVolunteer,
+  CommunityPhoto
 } from '@/types/fans';
 import { toast } from 'sonner';
 
@@ -221,7 +225,7 @@ export const fetchPollDetails = async (pollId: string) => {
         ...poll,
         questions: questionsWithOptions,
         responses: count || 0
-      }
+      } as Poll
     };
   } catch (error) {
     console.error('Error fetching poll details:', error);
@@ -233,11 +237,21 @@ export const fetchPollDetails = async (pollId: string) => {
   }
 };
 
-export const createPoll = async (pollData: Omit<Poll, 'id' | 'created_at' | 'updated_at'>) => {
+export const createPoll = async (pollData: Omit<Poll, 'id' | 'createdAt' | 'questions' | 'responses'>) => {
   try {
     const { data, error } = await supabase
       .from('fan_polls')
-      .insert(pollData)
+      .insert({
+        title: pollData.title,
+        description: pollData.description,
+        type: pollData.type,
+        status: pollData.status,
+        start_date: pollData.startDate,
+        end_date: pollData.endDate,
+        is_featured: pollData.is_featured,
+        created_by: pollData.created_by,
+        published_at: pollData.published_at
+      })
       .select()
       .single();
     
@@ -257,11 +271,17 @@ export const createPoll = async (pollData: Omit<Poll, 'id' | 'created_at' | 'upd
   }
 };
 
-export const addPollQuestion = async (questionData: Omit<PollQuestion, 'id' | 'created_at' | 'updated_at'>) => {
+export const addPollQuestion = async (questionData: Omit<PollQuestion, 'id'>) => {
   try {
     const { data, error } = await supabase
       .from('fan_poll_questions')
-      .insert(questionData)
+      .insert({
+        poll_id: questionData.id,
+        text: questionData.text,
+        type: questionData.type,
+        required: questionData.required,
+        order_position: questionData.order_position
+      })
       .select()
       .single();
     
@@ -281,11 +301,15 @@ export const addPollQuestion = async (questionData: Omit<PollQuestion, 'id' | 'c
   }
 };
 
-export const addPollOption = async (optionData: Omit<PollOption, 'id' | 'created_at' | 'updated_at'>) => {
+export const addPollOption = async (optionData: Omit<PollOption, 'id'>) => {
   try {
     const { data, error } = await supabase
       .from('fan_poll_options')
-      .insert(optionData)
+      .insert({
+        question_id: optionData.id,
+        text: optionData.text,
+        order_position: optionData.order_position
+      })
       .select()
       .single();
     
@@ -341,7 +365,7 @@ export const fetchSubscribers = async (groupId?: string) => {
       
       return {
         success: true,
-        data: data.map(item => item.fan_subscribers)
+        data: data.map(item => item.fan_subscribers) as Subscriber[]
       };
     } else {
       const { data, error } = await supabase
@@ -353,7 +377,7 @@ export const fetchSubscribers = async (groupId?: string) => {
       
       return {
         success: true,
-        data
+        data: data as Subscriber[]
       };
     }
   } catch (error) {
@@ -377,7 +401,7 @@ export const fetchMessageTemplates = async () => {
     
     return {
       success: true,
-      data
+      data: data as MessageTemplate[]
     };
   } catch (error) {
     console.error('Error fetching message templates:', error);
@@ -425,11 +449,19 @@ export const fetchMessages = async (filters?: {
   }
 };
 
-export const createMessage = async (messageData: Omit<FanMessage, 'id' | 'created_at' | 'updated_at'>) => {
+export const createMessage = async (messageData: Omit<FanMessage, 'id'>) => {
   try {
     const { data, error } = await supabase
       .from('fan_messages')
-      .insert(messageData)
+      .insert({
+        title: messageData.title,
+        subject: messageData.subject,
+        content: messageData.content,
+        type: messageData.type,
+        status: messageData.status,
+        scheduled_for: messageData.scheduledFor,
+        template: messageData.template
+      })
       .select()
       .single();
     
@@ -533,11 +565,20 @@ export const fetchInitiativeDetails = async (id: string) => {
   }
 };
 
-export const createInitiative = async (initiative: Omit<CommunityInitiative, 'id' | 'created_at' | 'updated_at'>) => {
+export const createInitiative = async (initiative: Omit<CommunityInitiative, 'id' | 'volunteers' | 'participants'>) => {
   try {
     const { data, error } = await supabase
       .from('community_initiatives')
-      .insert(initiative)
+      .insert({
+        title: initiative.title,
+        description: initiative.description,
+        impact: initiative.impact,
+        type: initiative.type,
+        date: initiative.date,
+        end_date: initiative.end_date,
+        location: initiative.location,
+        status: initiative.status
+      })
       .select()
       .single();
     
@@ -557,6 +598,7 @@ export const createInitiative = async (initiative: Omit<CommunityInitiative, 'id
   }
 };
 
+// Export all functions for use elsewhere
 export default {
   // Fan Content
   fetchFanContent,

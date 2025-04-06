@@ -1,10 +1,9 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import CustomTable from '@/components/ui/CustomTable';
 import { Input } from '@/components/ui/input';
 import { 
   Search, 
@@ -17,46 +16,8 @@ import {
   Trash,
   Eye
 } from 'lucide-react';
-
-// Mock data for fan submitted content
-const mockFanContent = [
-  {
-    id: '1',
-    title: 'Match Day Experience',
-    type: 'photo',
-    submittedBy: 'John Smith',
-    submittedOn: '2023-05-12T10:30:00',
-    status: 'pending',
-    featured: false,
-  },
-  {
-    id: '2',
-    title: 'My 30 Years Supporting Banks o\' Dee',
-    type: 'story',
-    submittedBy: 'Margaret Wilson',
-    submittedOn: '2023-05-10T14:15:00',
-    status: 'approved',
-    featured: true,
-  },
-  {
-    id: '3',
-    title: 'Youth Team Champions',
-    type: 'photo',
-    submittedBy: 'David Brown',
-    submittedOn: '2023-05-09T09:45:00',
-    status: 'approved',
-    featured: false,
-  },
-  {
-    id: '4',
-    title: 'Away Day Adventures',
-    type: 'story',
-    submittedBy: 'Robert Johnson',
-    submittedOn: '2023-05-08T16:20:00',
-    status: 'rejected',
-    featured: false,
-  },
-];
+import { FanContent } from '@/types/fans';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 // Status badge styles
 const statusStyles = {
@@ -73,9 +34,53 @@ const contentTypeIcons = {
 };
 
 const FanZoneContent: React.FC = () => {
-  const [content, setContent] = useState(mockFanContent);
+  const [content, setContent] = useState<FanContent[]>([
+    {
+      id: '1',
+      title: 'Match Day Experience',
+      type: 'photo',
+      submittedBy: 'John Smith',
+      submittedOn: '2023-05-12T10:30:00',
+      status: 'pending',
+      featured: false,
+      imageUrl: 'https://placehold.co/600x400/png',
+    },
+    {
+      id: '2',
+      title: 'My 30 Years Supporting Banks o\' Dee',
+      type: 'story',
+      submittedBy: 'Margaret Wilson',
+      submittedOn: '2023-05-10T14:15:00',
+      status: 'approved',
+      featured: true,
+      content: 'It all started in 1990 when my father took me to Spain Park for my first match...',
+    },
+    {
+      id: '3',
+      title: 'Youth Team Champions',
+      type: 'photo',
+      submittedBy: 'David Brown',
+      submittedOn: '2023-05-09T09:45:00',
+      status: 'approved',
+      featured: false,
+      imageUrl: 'https://placehold.co/600x400/png',
+    },
+    {
+      id: '4',
+      title: 'Away Day Adventures',
+      type: 'story',
+      submittedBy: 'Robert Johnson',
+      submittedOn: '2023-05-08T16:20:00',
+      status: 'rejected',
+      featured: false,
+      content: 'Following the team to away matches has led to some incredible adventures...',
+    },
+  ]);
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const [selectedContent, setSelectedContent] = useState<FanContent | null>(null);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
   
   // Filter content based on search query and active tab
   const filteredContent = content.filter(item => {
@@ -94,80 +99,32 @@ const FanZoneContent: React.FC = () => {
     return matchesSearch;
   });
   
-  // Define table columns
-  const columns = [
-    { 
-      key: 'title', 
-      title: 'Title',
-      render: (item: any) => {
-        const IconComponent = contentTypeIcons[item.type as keyof typeof contentTypeIcons];
-        return (
-          <div className="flex items-center">
-            <IconComponent size={16} className="mr-2 text-gray-500" />
-            <span>{item.title}</span>
-          </div>
-        );
-      }
-    },
-    { 
-      key: 'type', 
-      title: 'Type',
-      render: (item: any) => (
-        <Badge variant="outline" className="capitalize">
-          {item.type}
-        </Badge>
-      )
-    },
-    { 
-      key: 'submittedBy', 
-      title: 'Submitted By' 
-    },
-    { 
-      key: 'submittedOn', 
-      title: 'Submitted On',
-      render: (item: any) => new Date(item.submittedOn).toLocaleDateString()
-    },
-    { 
-      key: 'status', 
-      title: 'Status',
-      render: (item: any) => (
-        <Badge className={statusStyles[item.status as keyof typeof statusStyles]}>
-          {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
-        </Badge>
-      )
-    },
-    { 
-      key: 'featured', 
-      title: 'Featured',
-      render: (item: any) => (
-        item.featured ? <Check size={16} className="text-green-500" /> : <X size={16} className="text-gray-300" />
-      )
-    },
-    { 
-      key: 'actions', 
-      title: 'Actions',
-      render: (item: any) => (
-        <div className="flex space-x-2">
-          <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-            <Eye size={16} />
-          </Button>
-          {item.status === 'pending' && (
-            <>
-              <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-green-600">
-                <Check size={16} />
-              </Button>
-              <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-600">
-                <X size={16} />
-              </Button>
-            </>
-          )}
-          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-600">
-            <Trash size={16} />
-          </Button>
-        </div>
-      )
-    },
-  ];
+  const handleApprove = (id: string) => {
+    setContent(prev => prev.map(item => 
+      item.id === id ? { ...item, status: 'approved' } : item
+    ));
+  };
+  
+  const handleReject = (id: string) => {
+    setContent(prev => prev.map(item => 
+      item.id === id ? { ...item, status: 'rejected' } : item
+    ));
+  };
+  
+  const handleToggleFeatured = (id: string) => {
+    setContent(prev => prev.map(item => 
+      item.id === id ? { ...item, featured: !item.featured } : item
+    ));
+  };
+  
+  const handleDelete = (id: string) => {
+    setContent(prev => prev.filter(item => item.id !== id));
+  };
+  
+  const handleViewContent = (item: FanContent) => {
+    setSelectedContent(item);
+    setViewDialogOpen(true);
+  };
   
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6">
@@ -206,19 +163,210 @@ const FanZoneContent: React.FC = () => {
         <TabsContent value={activeTab}>
           <Card>
             <CardContent className="p-0">
-              <CustomTable
-                columns={columns}
-                data={filteredContent}
-                noDataMessage="No fan content found"
-              />
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b">
+                    <tr>
+                      <th className="text-left p-4 font-medium text-gray-500">Title</th>
+                      <th className="text-left p-4 font-medium text-gray-500">Type</th>
+                      <th className="text-left p-4 font-medium text-gray-500">Submitted By</th>
+                      <th className="text-left p-4 font-medium text-gray-500">Date</th>
+                      <th className="text-left p-4 font-medium text-gray-500">Status</th>
+                      <th className="text-center p-4 font-medium text-gray-500">Featured</th>
+                      <th className="text-right p-4 font-medium text-gray-500">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredContent.length > 0 ? (
+                      filteredContent.map((item) => {
+                        const IconComponent = contentTypeIcons[item.type];
+                        
+                        return (
+                          <tr key={item.id} className="border-b hover:bg-gray-50">
+                            <td className="p-4">
+                              <div className="flex items-center">
+                                <IconComponent size={16} className="mr-2 text-gray-500" />
+                                <span>{item.title}</span>
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <Badge variant="outline" className="capitalize">
+                                {item.type}
+                              </Badge>
+                            </td>
+                            <td className="p-4">{item.submittedBy}</td>
+                            <td className="p-4">{new Date(item.submittedOn).toLocaleDateString()}</td>
+                            <td className="p-4">
+                              <Badge className={statusStyles[item.status as keyof typeof statusStyles]}>
+                                {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                              </Badge>
+                            </td>
+                            <td className="p-4 text-center">
+                              {item.featured ? (
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost" 
+                                  onClick={() => handleToggleFeatured(item.id)}
+                                  className="h-8 w-8 p-0 text-green-500"
+                                >
+                                  <Check size={16} />
+                                </Button>
+                              ) : (
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost" 
+                                  onClick={() => handleToggleFeatured(item.id)}
+                                  className="h-8 w-8 p-0 text-gray-300"
+                                >
+                                  <X size={16} />
+                                </Button>
+                              )}
+                            </td>
+                            <td className="p-4">
+                              <div className="flex justify-end space-x-2">
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost" 
+                                  className="h-8 w-8 p-0"
+                                  onClick={() => handleViewContent(item)}
+                                >
+                                  <Eye size={16} />
+                                </Button>
+                                
+                                {item.status === 'pending' && (
+                                  <>
+                                    <Button 
+                                      size="sm" 
+                                      variant="ghost" 
+                                      className="h-8 w-8 p-0 text-green-600"
+                                      onClick={() => handleApprove(item.id)}
+                                    >
+                                      <Check size={16} />
+                                    </Button>
+                                    <Button 
+                                      size="sm" 
+                                      variant="ghost" 
+                                      className="h-8 w-8 p-0 text-red-600"
+                                      onClick={() => handleReject(item.id)}
+                                    >
+                                      <X size={16} />
+                                    </Button>
+                                  </>
+                                )}
+                                
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost" 
+                                  className="h-8 w-8 p-0 text-red-600"
+                                  onClick={() => handleDelete(item.id)}
+                                >
+                                  <Trash size={16} />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td colSpan={7} className="text-center py-8 text-gray-500">
+                          No fan content found
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
       
       <div className="border-t mt-8 pt-6 text-center text-sm text-gray-500">
-        <p>This is a demonstration with sample content. In a future update, these will be stored in and retrieved from Supabase.</p>
+        <p>User-submitted content is managed through the fan content moderation system</p>
       </div>
+      
+      {/* Content View Dialog */}
+      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>{selectedContent?.title}</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="flex justify-between">
+              <div>
+                <Badge className={statusStyles[selectedContent?.status as keyof typeof statusStyles]}>
+                  {selectedContent?.status.charAt(0).toUpperCase() + selectedContent?.status.slice(1)}
+                </Badge>
+                <span className="ml-2 text-sm text-gray-500">
+                  Submitted by {selectedContent?.submittedBy} on {selectedContent && new Date(selectedContent.submittedOn).toLocaleDateString()}
+                </span>
+              </div>
+              
+              <Badge variant={selectedContent?.featured ? "secondary" : "outline"}>
+                {selectedContent?.featured ? "Featured" : "Not Featured"}
+              </Badge>
+            </div>
+            
+            {selectedContent?.type === 'photo' && selectedContent.imageUrl && (
+              <div className="overflow-hidden rounded-md">
+                <img 
+                  src={selectedContent.imageUrl} 
+                  alt={selectedContent.title} 
+                  className="w-full object-cover"
+                />
+              </div>
+            )}
+            
+            {selectedContent?.type === 'story' && (
+              <div className="prose max-w-none">
+                <p>{selectedContent.content}</p>
+              </div>
+            )}
+            
+            <div className="flex justify-end gap-2">
+              {selectedContent?.status === 'pending' && (
+                <>
+                  <Button 
+                    variant="outline" 
+                    className="text-red-600 border-red-200"
+                    onClick={() => {
+                      handleReject(selectedContent.id);
+                      setViewDialogOpen(false);
+                    }}
+                  >
+                    <X size={16} className="mr-2" />
+                    Reject
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="text-green-600 border-green-200"
+                    onClick={() => {
+                      handleApprove(selectedContent.id);
+                      setViewDialogOpen(false);
+                    }}
+                  >
+                    <Check size={16} className="mr-2" />
+                    Approve
+                  </Button>
+                </>
+              )}
+              
+              <Button 
+                variant={selectedContent?.featured ? "destructive" : "default"}
+                onClick={() => {
+                  if (selectedContent) {
+                    handleToggleFeatured(selectedContent.id);
+                  }
+                }}
+              >
+                {selectedContent?.featured ? "Unfeature Content" : "Feature Content"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

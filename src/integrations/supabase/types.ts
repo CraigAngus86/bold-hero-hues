@@ -672,11 +672,14 @@ export type Database = {
           competition: string
           created_at: string | null
           date: string
+          date_passed: boolean | null
           home_score: number | null
           home_team: string
           id: string
           import_date: string | null
           is_completed: boolean | null
+          is_latest_result: boolean | null
+          is_next_match: boolean | null
           season: string | null
           source: string | null
           ticket_link: string | null
@@ -690,11 +693,14 @@ export type Database = {
           competition: string
           created_at?: string | null
           date: string
+          date_passed?: boolean | null
           home_score?: number | null
           home_team: string
           id?: string
           import_date?: string | null
           is_completed?: boolean | null
+          is_latest_result?: boolean | null
+          is_next_match?: boolean | null
           season?: string | null
           source?: string | null
           ticket_link?: string | null
@@ -708,17 +714,62 @@ export type Database = {
           competition?: string
           created_at?: string | null
           date?: string
+          date_passed?: boolean | null
           home_score?: number | null
           home_team?: string
           id?: string
           import_date?: string | null
           is_completed?: boolean | null
+          is_latest_result?: boolean | null
+          is_next_match?: boolean | null
           season?: string | null
           source?: string | null
           ticket_link?: string | null
           time?: string
           updated_at?: string | null
           venue?: string | null
+        }
+        Relationships: []
+      }
+      hero_slides: {
+        Row: {
+          created_at: string | null
+          display_order: number
+          id: string
+          image_url: string
+          is_active: boolean
+          link_text: string | null
+          link_url: string | null
+          subtitle: string | null
+          title: string
+          updated_at: string | null
+          video_url: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number
+          id?: string
+          image_url: string
+          is_active?: boolean
+          link_text?: string | null
+          link_url?: string | null
+          subtitle?: string | null
+          title: string
+          updated_at?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number
+          id?: string
+          image_url?: string
+          is_active?: boolean
+          link_text?: string | null
+          link_url?: string | null
+          subtitle?: string | null
+          title?: string
+          updated_at?: string | null
+          video_url?: string | null
         }
         Relationships: []
       }

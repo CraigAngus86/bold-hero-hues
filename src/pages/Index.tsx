@@ -2,39 +2,12 @@
 import React from 'react';
 import { Navbar } from '@/components/layout';
 import { Footer } from '@/components/layout';
+import EnhancedHero from '@/components/home/EnhancedHero';
 import LeagueTable from '@/components/LeagueTable';
+import FixturesSection from '@/components/home/FixturesSection';
+import NewsSection from '@/components/home/NewsSection'; 
 import MediaGalleryModern from '@/components/home/MediaGalleryModern';
-
-// Placeholder components until they are properly created
-const Hero = () => (
-  <div className="bg-team-blue text-white py-20 text-center">
-    <h1 className="text-4xl font-bold">Welcome to Banks o' Dee FC</h1>
-    <p className="mt-4 max-w-lg mx-auto">
-      The official website of Banks o' Dee Football Club
-    </p>
-  </div>
-);
-
-const NextMatch = () => (
-  <div className="bg-white p-6 rounded-lg shadow-md">
-    <h2 className="text-2xl font-bold mb-4">Next Match</h2>
-    <p>Loading next match details...</p>
-  </div>
-);
-
-const LatestResults = () => (
-  <div className="bg-white p-6 rounded-lg shadow-md">
-    <h2 className="text-2xl font-bold mb-4">Latest Results</h2>
-    <p>Loading latest results...</p>
-  </div>
-);
-
-const NewsHighlights = ({ initialCount = 3 }) => (
-  <div className="bg-white p-6 rounded-lg shadow-md">
-    <h2 className="text-2xl font-bold mb-4">Latest News</h2>
-    <p>Loading news articles...</p>
-  </div>
-);
+import SponsorsSection from '@/components/home/SponsorsSection';
 
 const SponsorShowcase = () => (
   <div className="bg-gray-100 py-12 text-center">
@@ -63,35 +36,35 @@ const Index = () => {
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
       
-      <Hero />
+      {/* Enhanced Hero Section */}
+      <EnhancedHero />
       
-      <div className="mt-8 md:mt-20">
-        <div className="container mx-auto px-4 grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column */}
-          <div className="lg:col-span-2 space-y-8">
-            <NextMatch />
-            <LatestResults />
-            <NewsHighlights initialCount={3} />
-          </div>
-          
-          {/* Right Column */}
-          <div className="space-y-8">
-            <ClubUpdatesBanner />
-            <LeagueTable />
-            <MembershipCTA />
-          </div>
+      {/* Fixtures Section */}
+      <FixturesSection />
+      
+      {/* News Section */}
+      <NewsSection />
+      
+      <div className="container mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column */}
+        <div className="lg:col-span-2">
+          <ClubUpdatesBanner />
         </div>
         
-        <div className="mt-12 md:mt-20 bg-team-blue py-12">
-          <div className="container mx-auto px-4">
-            <MediaGalleryModern />
-          </div>
-        </div>
-        
-        <div className="mt-12 md:mt-20">
-          <SponsorShowcase />
+        {/* Right Column */}
+        <div className="space-y-8">
+          <LeagueTable />
+          <MembershipCTA />
         </div>
       </div>
+        
+      <div className="mt-12 md:mt-20 bg-team-blue py-12">
+        <div className="container mx-auto px-4">
+          <MediaGalleryModern />
+        </div>
+      </div>
+      
+      <SponsorsSection />
       
       <div className="flex-grow"></div>
       <Footer />

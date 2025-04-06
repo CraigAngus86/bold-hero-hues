@@ -6,9 +6,15 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
 import App from './App.tsx';
 import './index.css';
+import { registerFixtureHooks } from './services/fixturesUpdateService';
 
 // Create a new QueryClient instance
 const queryClient = new QueryClient();
+
+// Initialize fixture update service
+registerFixtureHooks().catch(error => {
+  console.error('Failed to register fixture hooks:', error);
+});
 
 const rootElement = document.getElementById('root');
 

@@ -27,7 +27,7 @@ const Login = () => {
     
     try {
       const result = await signIn(email, password);
-      if (!result || !result.error) {
+      if (!result.error) {
         navigate('/admin');
       }
     } catch (error) {

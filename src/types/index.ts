@@ -20,6 +20,7 @@ export interface UserProfile {
   avatar_url?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
+  roles?: string[];
 }
 
 // User role types
@@ -30,8 +31,8 @@ export interface AuthContextType {
   user: User | null;
   profile: UserProfile | null;
   isLoading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, metadata?: any) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<{ error?: any }>;
+  signUp: (email: string, password: string, metadata?: any) => Promise<{ error?: any }>;
   signOut: () => Promise<void>;
   hasRole: (role: UserRole) => boolean;
 }
@@ -59,6 +60,7 @@ export interface CreateNewsArticleData {
   author?: string;
   image_url?: string;
   is_featured?: boolean;
+  publish_date?: string;
 }
 
 export interface UpdateNewsArticleData {
@@ -69,6 +71,7 @@ export interface UpdateNewsArticleData {
   author?: string;
   image_url?: string;
   is_featured?: boolean;
+  publish_date?: string;
 }
 
 export interface NewsQueryOptions {
@@ -77,6 +80,9 @@ export interface NewsQueryOptions {
   featured?: boolean;
   search?: string;
   page?: number;
+  pageSize?: number;
+  orderBy?: string;
+  orderDirection?: string;
 }
 
 // Fixture types
@@ -97,6 +103,17 @@ export interface Fixture {
 
 // Team types
 export interface TeamStats {
+  id: string;
+  team: string;
+  position: number;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
+  points: number;
   wins: number;
   losses: number;
   draws: number;

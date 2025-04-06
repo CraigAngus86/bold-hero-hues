@@ -2,16 +2,40 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { AuthContextType, UserProfile, UserRole } from '@/types';
 import { toast } from 'sonner';
+
+// Define UserRole type
+export type UserRole = 'admin' | 'editor' | 'user';
+
+// User profile types
+export interface UserProfile {
+  id: string;
+  email: string;
+  full_name?: string | null;
+  avatar_url?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  roles?: UserRole[];
+}
+
+// Auth context types
+export interface AuthContextType {
+  user: User | null;
+  profile: UserProfile | null;
+  isLoading: boolean;
+  signIn: (email: string, password: string) => Promise<{ error?: any }>;
+  signUp: (email: string, password: string, metadata?: any) => Promise<{ error?: any }>;
+  signOut: () => Promise<void>;
+  hasRole: (role: UserRole) => boolean;
+}
 
 // Initialize with default values
 const defaultAuthContext: AuthContextType = {
   user: null,
   profile: null,
   isLoading: true,
-  signIn: async () => {},
-  signUp: async () => {},
+  signIn: async () => ({}),
+  signUp: async () => ({}),
   signOut: async () => {},
   hasRole: () => false,
 };
@@ -93,6 +117,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else if (rolesData) {
         const roles = rolesData.map(role => role.role as UserRole);
         setUserRoles(roles);
+        
+        // Update profile with roles
+        if (profile) {
+          setProfile({
+            ...profile,
+            roles
+          });
+        }
       }
     } catch (error) {
       console.error('Session handling error:', error);
@@ -111,6 +143,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error };
       }
       toast.success('Signed in successfully');
+      return {};
     } catch (error: any) {
       console.error('Sign in error:', error);
       toast.error(error.message || 'Failed to sign in');
@@ -138,6 +171,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       toast.success('Sign up successful! Check your email for verification.');
+      return {};
     } catch (error: any) {
       console.error('Sign up error:', error);
       toast.error(error.message || 'Failed to sign up');

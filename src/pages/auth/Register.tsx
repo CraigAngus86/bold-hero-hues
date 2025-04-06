@@ -42,7 +42,7 @@ const Register = () => {
         full_name: fullName 
       });
       
-      if (!result || !result.error) {
+      if (!result.error) {
         toast.success('Registration successful! Check your email for verification.');
         navigate('/auth/login');
       }

@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { AuthProvider } from './contexts/AuthContext';
 import RequireAuth from './components/admin/auth/RequireAuth';
@@ -34,75 +34,73 @@ import LeagueTableManagement from './pages/admin/LeagueTableManagement';
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Toaster position="top-right" />
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<Home />} />
-          <Route path="/news" element={<News />} />
-          <Route path="/news/:slug" element={<Article />} />
-          <Route path="/team" element={<Team />} />
-          <Route path="/fixtures" element={<Fixtures />} />
-          <Route path="/table" element={<Table />} />
-          <Route path="/contact" element={<Contact />} />
-          
-          {/* Auth Routes */}
-          <Route path="/auth/login" element={<Login />} />
-          <Route path="/auth/register" element={<Register />} />
-          <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-          <Route path="/auth/reset-password" element={<ResetPassword />} />
-          
-          {/* Admin Routes - Protected */}
-          <Route path="/admin" element={
-            <RequireAuth>
-              <Dashboard />
-            </RequireAuth>
-          } />
-          <Route path="/admin/news" element={
-            <RequireAuth>
-              <NewsManagement />
-            </RequireAuth>
-          } />
-          <Route path="/admin/team" element={
-            <RequireAuth>
-              <TeamManagement />
-            </RequireAuth>
-          } />
-          <Route path="/admin/fixtures" element={
-            <RequireAuth>
-              <FixtureManagement />
-            </RequireAuth>
-          } />
-          <Route path="/admin/media" element={
-            <RequireAuth>
-              <Media />
-            </RequireAuth>
-          } />
-          <Route path="/admin/tickets" element={
-            <RequireAuth>
-              <Tickets />
-            </RequireAuth>
-          } />
-          <Route path="/admin/sponsors" element={
-            <RequireAuth>
-              <Sponsors />
-            </RequireAuth>
-          } />
-          <Route path="/admin/league-table-management" element={
-            <RequireAuth>
-              <LeagueTableManagement />
-            </RequireAuth>
-          } />
-          <Route path="/admin/settings" element={
-            <RequireAuth allowedRoles={['admin']}>
-              <Settings />
-            </RequireAuth>
-          } />
-          
-          {/* Catch-all route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Router>
+      <Toaster position="top-right" />
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Home />} />
+        <Route path="/news" element={<News />} />
+        <Route path="/news/:slug" element={<Article />} />
+        <Route path="/team" element={<Team />} />
+        <Route path="/fixtures" element={<Fixtures />} />
+        <Route path="/table" element={<Table />} />
+        <Route path="/contact" element={<Contact />} />
+        
+        {/* Auth Routes */}
+        <Route path="/auth/login" element={<Login />} />
+        <Route path="/auth/register" element={<Register />} />
+        <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+        <Route path="/auth/reset-password" element={<ResetPassword />} />
+        
+        {/* Admin Routes - Protected */}
+        <Route path="/admin" element={
+          <RequireAuth>
+            <Dashboard />
+          </RequireAuth>
+        } />
+        <Route path="/admin/news" element={
+          <RequireAuth>
+            <NewsManagement />
+          </RequireAuth>
+        } />
+        <Route path="/admin/team" element={
+          <RequireAuth>
+            <TeamManagement />
+          </RequireAuth>
+        } />
+        <Route path="/admin/fixtures" element={
+          <RequireAuth>
+            <FixtureManagement />
+          </RequireAuth>
+        } />
+        <Route path="/admin/media" element={
+          <RequireAuth>
+            <Media />
+          </RequireAuth>
+        } />
+        <Route path="/admin/tickets" element={
+          <RequireAuth>
+            <Tickets />
+          </RequireAuth>
+        } />
+        <Route path="/admin/sponsors" element={
+          <RequireAuth>
+            <Sponsors />
+          </RequireAuth>
+        } />
+        <Route path="/admin/league-table-management" element={
+          <RequireAuth>
+            <LeagueTableManagement />
+          </RequireAuth>
+        } />
+        <Route path="/admin/settings" element={
+          <RequireAuth allowedRoles={['admin']}>
+            <Settings />
+          </RequireAuth>
+        } />
+        
+        {/* Catch-all route */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
     </AuthProvider>
   );
 }

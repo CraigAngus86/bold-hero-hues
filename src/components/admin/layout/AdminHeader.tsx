@@ -62,11 +62,6 @@ export function AdminHeader() {
                   <span className="text-xs font-normal text-muted-foreground">
                     {user?.email}
                   </span>
-                  {profile?.roles?.length > 0 && (
-                    <span className="text-xs font-normal text-muted-foreground mt-1">
-                      Role: {profile.roles.join(', ')}
-                    </span>
-                  )}
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />

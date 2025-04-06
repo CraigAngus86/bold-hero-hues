@@ -1,59 +1,40 @@
 
 import React from 'react';
-import { Button } from "@/components/ui/button";
-import { Pencil, Trash, Eye } from "lucide-react";
+import { Button } from '@/components/ui/button';
+import { Download, RefreshCw } from 'lucide-react';
 
 interface DataActionsProps {
-  onEdit?: () => void;
-  onDelete?: () => void;
-  onView?: () => void;
-  disableEdit?: boolean;
-  disableDelete?: boolean;
-  disableView?: boolean;
+  onExport: () => void;
+  onRefresh: () => void;
+  isRefreshing?: boolean;
 }
 
-const DataActions: React.FC<DataActionsProps> = ({
-  onEdit,
-  onDelete,
-  onView,
-  disableEdit = false,
-  disableDelete = false,
-  disableView = true
+const DataActions: React.FC<DataActionsProps> = ({ 
+  onExport, 
+  onRefresh, 
+  isRefreshing = false 
 }) => {
   return (
-    <div className="flex space-x-2 justify-end">
-      {onView && !disableView && (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onView}
-          className="h-8 w-8"
-        >
-          <Eye className="h-4 w-4" />
-        </Button>
-      )}
-      
-      {onEdit && !disableEdit && (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onEdit}
-          className="h-8 w-8"
-        >
-          <Pencil className="h-4 w-4" />
-        </Button>
-      )}
-      
-      {onDelete && !disableDelete && (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onDelete}
-          className="h-8 w-8 text-destructive"
-        >
-          <Trash className="h-4 w-4" />
-        </Button>
-      )}
+    <div className="flex space-x-2">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={onExport}
+        className="text-xs"
+      >
+        <Download className="h-4 w-4 mr-1" />
+        Export
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={onRefresh}
+        disabled={isRefreshing}
+        className="text-xs"
+      >
+        <RefreshCw className={`h-4 w-4 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+        Refresh
+      </Button>
     </div>
   );
 };

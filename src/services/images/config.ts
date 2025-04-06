@@ -7,8 +7,7 @@ import { ImageOptimizationOptions } from './types';
 export const defaultOptimizationOptions: ImageOptimizationOptions = {
   maxWidth: 1200,
   maxHeight: 1200,
-  quality: 0.8,
-  format: 'webp'
+  quality: 0.8
 };
 
 /**
@@ -26,8 +25,7 @@ export const imageUploadConfigs = {
     optimizationOptions: {
       maxWidth: 2400,
       maxHeight: 2400,
-      quality: 0.9,
-      format: 'webp'
+      quality: 0.9
     }
   },
   thumbnail: {
@@ -36,8 +34,7 @@ export const imageUploadConfigs = {
     optimizationOptions: {
       maxWidth: 400,
       maxHeight: 400,
-      quality: 0.7,
-      format: 'webp'
+      quality: 0.7
     }
   },
   avatar: {
@@ -46,8 +43,7 @@ export const imageUploadConfigs = {
     optimizationOptions: {
       maxWidth: 256,
       maxHeight: 256,
-      quality: 0.8,
-      format: 'webp'
+      quality: 0.8
     }
   },
   banner: {
@@ -56,8 +52,7 @@ export const imageUploadConfigs = {
     optimizationOptions: {
       maxWidth: 1920,
       maxHeight: 1080,
-      quality: 0.8,
-      format: 'webp'
+      quality: 0.8
     }
   },
   sponsor: {
@@ -66,8 +61,7 @@ export const imageUploadConfigs = {
     optimizationOptions: {
       maxWidth: 800,
       maxHeight: 600,
-      quality: 0.9,
-      format: 'webp'
+      quality: 0.9
     }
   }
 };

@@ -1,35 +1,41 @@
 
 import React from 'react';
-import { formatDistanceToNow } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { Clock } from 'lucide-react';
 
 interface LastUpdatedInfoProps {
-  date: Date | string | null;
-  label?: string;
-  hideIfNull?: boolean;
+  lastUpdated: string | null;
 }
 
-const LastUpdatedInfo: React.FC<LastUpdatedInfoProps> = ({ 
-  date, 
-  label = "Last updated", 
-  hideIfNull = false
-}) => {
-  if (!date && hideIfNull) {
-    return null;
+const LastUpdatedInfo: React.FC<LastUpdatedInfoProps> = ({ lastUpdated }) => {
+  if (!lastUpdated) {
+    return (
+      <div className="text-sm text-muted-foreground flex items-center mb-4">
+        <Clock className="mr-1 h-4 w-4" />
+        No recent updates recorded
+      </div>
+    );
   }
 
-  const formattedDate = date 
-    ? formatDistanceToNow(new Date(date), { addSuffix: true })
-    : 'never';
-
-  return (
-    <div className="flex items-center text-xs text-muted-foreground">
-      <Clock className="mr-1 h-3 w-3" />
-      <span>
-        {label}: <span className="font-medium">{formattedDate}</span>
-      </span>
-    </div>
-  );
+  try {
+    const date = parseISO(lastUpdated);
+    const formattedDate = format(date, 'PPpp');
+    
+    return (
+      <div className="text-sm text-muted-foreground flex items-center mb-4">
+        <Clock className="mr-1 h-4 w-4" />
+        Last updated: {formattedDate}
+      </div>
+    );
+  } catch (error) {
+    console.error('Error parsing date:', error);
+    return (
+      <div className="text-sm text-muted-foreground flex items-center mb-4">
+        <Clock className="mr-1 h-4 w-4" />
+        Last updated: {lastUpdated}
+      </div>
+    );
+  }
 };
 
 export default LastUpdatedInfo;

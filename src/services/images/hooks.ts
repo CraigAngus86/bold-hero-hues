@@ -1,7 +1,8 @@
 
 import { useState } from 'react';
-import { uploadImage, optimizeImage } from './api';
-import { ImageOptimizationOptions } from './types';
+import { uploadImage } from './api';
+import { optimizeImage } from './optimizationUtils';
+import { ImageOptimizationOptions, BucketType, UploadResult } from './types';
 import { toast } from 'sonner';
 
 /**
@@ -23,12 +24,12 @@ export const useImageUpload = () => {
    */
   const upload = async (
     file: File,
-    bucket: string,
+    bucket: BucketType = 'images',
     folder: string = '',
     optimize: boolean = true,
     metadata: Record<string, any> = {},
     optimizationOptions?: ImageOptimizationOptions
-  ) => {
+  ): Promise<UploadResult> => {
     setIsUploading(true);
     setProgress(0);
     
@@ -61,13 +62,15 @@ export const useImageUpload = () => {
       clearInterval(progressInterval);
       setProgress(100);
       
+      if (!result.success) {
+        throw result.error;
+      }
+      
       return { 
         success: true, 
-        data: {
-          url: result.url,
-          path: result.path,
-          id: result.id
-        }
+        url: result.url,
+        path: result.path,
+        id: result.id
       };
     } catch (error) {
       console.error('Upload failed:', error);

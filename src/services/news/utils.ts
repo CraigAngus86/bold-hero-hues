@@ -1,39 +1,50 @@
-// Helper function to format date for display
+
+import { format, parseISO } from 'date-fns';
+
+/**
+ * Format a date string to a human-readable format
+ */
 export const formatDate = (dateString: string): string => {
-  // Check if the date is already in a display format (e.g., "April 18, 2023")
-  if (/[A-Za-z]/.test(dateString)) {
+  if (!dateString) return '';
+  
+  try {
+    const date = parseISO(dateString);
+    return format(date, 'MMMM d, yyyy');
+  } catch (error) {
+    console.error('Error formatting date:', error);
     return dateString;
   }
-  
-  // Otherwise, assume it's a date string that needs formatting
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-};
-
-// Helper function to get formatted date for database
-export const getDbDateFormat = (displayDate: string): string => {
-  // If it's already in YYYY-MM-DD format, return as is
-  if (/^\d{4}-\d{2}-\d{2}$/.test(displayDate)) {
-    return displayDate;
-  }
-  
-  // Try to parse the display date
-  const date = new Date(displayDate);
-  return date.toISOString().split('T')[0]; // YYYY-MM-DD
 };
 
 /**
- * Generate a URL-friendly slug from a title
+ * Format a date to database format (YYYY-MM-DD)
  */
-export function generateSlug(title: string): string {
-  return title
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/[\s_-]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
+export const getDbDateFormat = (date: Date): string => {
+  return format(date, 'yyyy-MM-dd');
+};
+
+/**
+ * Format a date to ISO string with local timezone
+ */
+export const getISODateString = (date: Date): string => {
+  return date.toISOString();
+};
+
+/**
+ * Create an excerpt from HTML content
+ * @param html HTML content
+ * @param length Maximum length of the excerpt
+ */
+export const createExcerpt = (html: string, length = 150): string => {
+  // Remove HTML tags
+  const text = html.replace(/<\/?[^>]+(>|$)/g, '');
+  
+  // Truncate text to desired length
+  if (text.length <= length) return text;
+  
+  // Find the last space before the cutoff
+  const cutoff = text.lastIndexOf(' ', length);
+  
+  // Return the truncated text with ellipsis
+  return `${text.substring(0, cutoff >= 0 ? cutoff : length)}...`;
+};

@@ -1,105 +1,85 @@
 
-import { useState, useEffect } from 'react';
-import { getLatestLogBySource } from '@/services/logs/systemLogsService';
+import { useState, useCallback } from 'react';
+import { toast } from 'sonner';
+import { SystemStatus } from '@/types';
 
-export interface SystemStatus {
-  status: 'healthy' | 'warning' | 'error' | 'unknown';
-  lastUpdated: Date | null;
-  message: string;
-}
-
-// Define system keys for different subsystems
-export const systemKeys = {
-  status: 'system-status',
-  leagueTable: 'league-table-scraper',
-  fixtures: 'fixtures-scraper',
-  news: 'news-system',
-  media: 'media-system',
-  database: 'database',
-  storage: 'storage',
-  auth: 'auth-system'
+// Default system status
+const defaultStatus: SystemStatus = {
+  storageUsage: {
+    total: 10000,
+    used: 2500,
+    percentage: 25
+  },
+  serverStatus: 'online',
+  databaseStatus: 'online',
+  newUsers24h: 0,
+  activeUsers: 0
 };
 
-export const useSystemStatus = (source: string, refreshInterval = 60000) => {
-  const [status, setStatus] = useState<SystemStatus>({
-    status: 'unknown',
-    lastUpdated: null,
-    message: 'Checking system status...'
-  });
+/**
+ * Hook for fetching and managing system status
+ */
+export const useSystemStatus = () => {
+  const [status, setStatus] = useState<SystemStatus>(defaultStatus);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [isLoading, setIsLoading] = useState(true);
-
-  const checkStatus = async () => {
+  const fetchSystemStatus = useCallback(async () => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      const latestLog = await getLatestLogBySource(source);
+      // Here we would normally make an API request to get the system status
+      // For now, use mock data with some randomization for demo purposes
       
-      if (!latestLog) {
-        setStatus({
-          status: 'unknown',
-          lastUpdated: null,
-          message: 'No status information available'
-        });
-        return;
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Generate mock data with some randomness
+      const mockStatus: SystemStatus = {
+        lastBackup: new Date(Date.now() - Math.random() * 86400000).toISOString(),
+        storageUsage: {
+          total: 10000,
+          used: Math.floor(1000 + Math.random() * 4000),
+          percentage: 0 // Will calculate below
+        },
+        serverStatus: Math.random() > 0.9 ? 'degraded' : 'online',
+        databaseStatus: Math.random() > 0.95 ? 'degraded' : 'online',
+        newUsers24h: Math.floor(Math.random() * 10),
+        activeUsers: Math.floor(10 + Math.random() * 50)
+      };
+      
+      // Calculate percentage
+      mockStatus.storageUsage.percentage = Math.round(
+        (mockStatus.storageUsage.used / mockStatus.storageUsage.total) * 100
+      );
+      
+      // Add last error if status is degraded
+      if (mockStatus.serverStatus === 'degraded' || mockStatus.databaseStatus === 'degraded') {
+        mockStatus.lastError = {
+          timestamp: new Date().toISOString(),
+          message: 'Performance degradation detected in system resources'
+        };
       }
-
-      const lastUpdateTime = new Date(latestLog.timestamp);
-      const now = new Date();
-      const hoursSinceUpdate = (now.getTime() - lastUpdateTime.getTime()) / (1000 * 60 * 60);
-
-      let statusType: 'healthy' | 'warning' | 'error' | 'unknown' = 'unknown';
-      let message = latestLog.message;
-
-      // Determine status based on log type and time since last update
-      if (latestLog.type === 'error') {
-        statusType = 'error';
-      } else if (latestLog.type === 'warning' || hoursSinceUpdate > 24) {
-        statusType = 'warning';
-      } else if (latestLog.type === 'success' || latestLog.type === 'info') {
-        statusType = 'healthy';
-      }
-
-      // Add time warning if it's been too long
-      if (hoursSinceUpdate > 48) {
-        statusType = 'error';
-        message = `No updates for ${Math.floor(hoursSinceUpdate)} hours. System may be offline.`;
-      } else if (hoursSinceUpdate > 24) {
-        statusType = 'warning';
-        message = `Last update was ${Math.floor(hoursSinceUpdate)} hours ago`;
-      }
-
-      setStatus({
-        status: statusType,
-        lastUpdated: lastUpdateTime,
-        message
-      });
-
+      
+      setStatus(mockStatus);
+      return mockStatus;
     } catch (error) {
-      console.error('Error checking system status:', error);
-      setStatus({
-        status: 'error',
-        lastUpdated: null,
-        message: 'Failed to check system status'
-      });
+      console.error('Error fetching system status:', error);
+      toast.error('Failed to fetch system status');
+      return status;
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [status]);
 
-  useEffect(() => {
-    checkStatus();
-    
-    // Set up automatic refresh
-    const intervalId = setInterval(() => {
-      checkStatus();
-    }, refreshInterval);
-    
-    return () => clearInterval(intervalId);
-  }, [source, refreshInterval]);
+  // Initial fetch on hook mount
+  const refresh = useCallback(async () => {
+    return await fetchSystemStatus();
+  }, [fetchSystemStatus]);
 
   return {
     status,
     isLoading,
-    refresh: checkStatus
+    refresh
   };
 };
+
+export default useSystemStatus;

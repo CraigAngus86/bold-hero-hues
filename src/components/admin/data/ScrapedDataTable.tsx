@@ -3,10 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { fetchLeagueTableFromSupabase, getLastUpdateTime, triggerLeagueDataScrape } from '@/services/supabase/leagueDataService';
-import { TeamStats } from '@/components/league/types';
-import { DataActions } from './table-components/DataActions';
-import { DataWarningAlert } from './table-components/DataWarningAlert';
-import { LastUpdatedInfo } from './table-components/LastUpdatedInfo';
+import { TeamStats } from '@/types';
+import DataActions from './table-components/DataActions';
+import DataWarningAlert from './table-components/DataWarningAlert';
+import LastUpdatedInfo from './table-components/LastUpdatedInfo';
 import LeagueDataTable from './table-components/LeagueDataTable';
 
 /**

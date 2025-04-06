@@ -1,308 +1,393 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { createNewsArticle, updateNewsArticle } from '@/services/newsService';
-import { NewsArticle } from '@/types';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RichTextEditor } from '@/components/admin/common/RichTextEditor';
-import NewsImageUploader from '@/components/admin/common/NewsImageUploader';
 import { toast } from 'sonner';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Eye, Save, ArrowLeft } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
+import { RichTextEditor } from '@/components/common/RichTextEditor';
+import { ImageUploader } from '@/components/common/ImageUploader';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { ArrowLeft, Calendar, Check, Pencil, X } from 'lucide-react';
+import { createNewsArticle, updateNewsArticle, getNewsCategories } from '@/services/news';
+import { NewsArticle } from '@/types';
+import { format, parseISO } from 'date-fns';
 
 interface EnhancedNewsArticleEditorProps {
-  article?: NewsArticle | null;
-  categories?: string[];
-  onSaveComplete?: () => void;
-  isLoadingCategories?: boolean;
+  article?: NewsArticle;
+  onBack: () => void;
+  onSaved?: () => void;
 }
 
 const EnhancedNewsArticleEditor: React.FC<EnhancedNewsArticleEditorProps> = ({
   article,
-  categories = [],
-  onSaveComplete,
-  isLoadingCategories = false,
+  onBack,
+  onSaved
 }) => {
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [category, setCategory] = useState('');
-  const [author, setAuthor] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [isFeatured, setIsFeatured] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [slug, setSlug] = useState('');
-  const [activeTab, setActiveTab] = useState('edit');
-  const [publishDate, setPublishDate] = useState<string>(
-    new Date().toISOString().split('T')[0]
-  );
+  // Query client for cache invalidation
+  const queryClient = useQueryClient();
 
+  // Form state
+  const [title, setTitle] = useState<string>(article?.title || '');
+  const [content, setContent] = useState<string>(article?.content || '');
+  const [category, setCategory] = useState<string>(article?.category || '');
+  const [author, setAuthor] = useState<string>(article?.author || '');
+  const [imageUrl, setImageUrl] = useState<string>(article?.image_url || '');
+  const [isFeatured, setIsFeatured] = useState<boolean>(article?.is_featured || false);
+  const [publishDate, setPublishDate] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState<string>('edit');
+
+  // Load categories on mount
   useEffect(() => {
-    if (article) {
-      setTitle(article.title || '');
-      setContent(article.content || '');
-      setCategory(article.category || '');
-      setAuthor(article.author || '');
-      setImageUrl(article.image_url || '');
-      setIsFeatured(article.is_featured || false);
-      setSlug(article.slug || '');
-      
-      // Format the date for input[type="date"]
-      if (article.publish_date) {
-        const date = new Date(article.publish_date);
-        setPublishDate(date.toISOString().split('T')[0]);
+    const loadCategories = async () => {
+      try {
+        const cats = await getNewsCategories();
+        if (cats && cats.length > 0) {
+          setCategories(cats);
+          // Set default category if none is set
+          if (!article?.category) {
+            setCategory(cats[0]);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading categories:', error);
+        toast.error('Failed to load categories');
       }
+    };
+
+    loadCategories();
+  }, [article]);
+
+  // Format publish date on mount
+  useEffect(() => {
+    if (article?.publish_date) {
+      try {
+        const date = parseISO(article.publish_date);
+        setPublishDate(format(date, 'yyyy-MM-dd'));
+      } catch (error) {
+        console.error('Error parsing publish date:', error);
+        setPublishDate(format(new Date(), 'yyyy-MM-dd'));
+      }
+    } else {
+      setPublishDate(format(new Date(), 'yyyy-MM-dd'));
     }
   }, [article]);
 
-  const handleImageUploaded = (url: string) => {
+  // Handle image upload
+  const handleImageUpload = (url: string) => {
     setImageUrl(url);
+    toast.success('Image uploaded successfully');
   };
 
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !content || !category) {
-      toast.error('Please fill out all required fields');
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
-      // Format date with time for database
-      const formattedDate = `${publishDate}T12:00:00`;
-      
+      // Validate form
+      if (!title.trim()) {
+        throw new Error('Title is required');
+      }
+
+      if (!content.trim()) {
+        throw new Error('Content is required');
+      }
+
+      if (!category) {
+        throw new Error('Category is required');
+      }
+
+      // Prepare full article data
       const articleData = {
         title,
         content,
         category,
-        author,
-        image_url: imageUrl,
+        author: author || null,
+        image_url: imageUrl || null,
         is_featured: isFeatured,
-        publish_date: formattedDate,
-        slug: slug || undefined // Only include if provided
+        publish_date: new Date(publishDate).toISOString(),
+        slug: article?.slug || ''
       };
 
       let result;
       
+      // Create new or update existing
       if (article?.id) {
-        // Update existing article
         result = await updateNewsArticle(article.id, articleData);
       } else {
-        // Create new article
         result = await createNewsArticle(articleData);
       }
-      
-      if (result.success && result.data) {
-        toast.success(`Article ${article ? 'updated' : 'created'} successfully`);
-        onSaveComplete?.();
+
+      if (result.success) {
+        toast.success(article?.id ? 'Article updated successfully' : 'Article created successfully');
+        
+        // Invalidate relevant queries
+        queryClient.invalidateQueries({ queryKey: ['newsArticles'] });
+        
+        // Call onSaved if provided
+        if (onSaved) {
+          onSaved();
+        }
       } else {
         throw new Error(result.error || 'Failed to save article');
       }
     } catch (error) {
       console.error('Error saving article:', error);
-      toast.error(`Failed to save article: ${error.message}`);
+      toast.error(error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Generate a preview of the article
-  const previewContent = () => {
-    return (
-      <div className="prose prose-blue max-w-none">
-        <h1>{title}</h1>
-        {imageUrl && (
-          <img
-            src={imageUrl}
-            alt={title}
-            className="w-full h-64 object-cover object-center rounded-lg mb-6"
-          />
-        )}
-        <div className="flex justify-between text-sm text-gray-600 mb-4">
-          <span>By {author || 'Anonymous'}</span>
-          <span>{new Date(publishDate).toLocaleDateString()}</span>
-        </div>
-        <div dangerouslySetInnerHTML={{ __html: content }} />
-      </div>
-    );
-  };
-
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>{article ? 'Edit' : 'Create'} News Article</CardTitle>
-        <div className="flex space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onSaveComplete?.()}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to List
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
+    <form onSubmit={handleSubmit}>
+      <Card className="border-muted">
+        <CardHeader className="bg-muted/20 border-b">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="sm" 
+                onClick={onBack}
+              >
+                <ArrowLeft className="h-4 w-4 mr-1" />
+                Back
+              </Button>
+              <Separator orientation="vertical" className="h-6" />
+              <CardTitle>
+                {article?.id ? 'Edit Article' : 'Create Article'}
+              </CardTitle>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onBack}
+                disabled={isSubmitting}
+              >
+                <X className="h-4 w-4 mr-1" />
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>Saving...</>
+                ) : (
+                  <>
+                    <Check className="h-4 w-4 mr-1" />
+                    Save
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-6">
-            <TabsTrigger value="edit">Edit Article</TabsTrigger>
-            <TabsTrigger value="preview">Preview</TabsTrigger>
-          </TabsList>
+          <div className="px-6 pt-4 border-b">
+            <TabsList className="mb-2">
+              <TabsTrigger value="edit" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <Pencil className="h-4 w-4 mr-1" />
+                Edit
+              </TabsTrigger>
+              <TabsTrigger value="preview" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                Preview
+              </TabsTrigger>
+            </TabsList>
+          </div>
           
           <TabsContent value="edit">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
+            <CardContent className="p-6 space-y-6">
+              <div className="space-y-4">
+                <div>
                   <Label htmlFor="title">Title *</Label>
                   <Input
                     id="title"
+                    placeholder="Enter article title"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Article Title"
                     required
+                    className="mt-1"
                   />
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category *</Label>
-                  <Select
-                    value={category}
-                    onValueChange={setCategory}
-                    disabled={isLoadingCategories}
-                  >
-                    <SelectTrigger id="category">
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat} value={cat}>
-                          {cat}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="author">Author</Label>
-                  <Input
-                    id="author"
-                    value={author}
-                    onChange={(e) => setAuthor(e.target.value)}
-                    placeholder="Article Author"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="publishDate">Publish Date</Label>
-                  <Input
-                    id="publishDate"
-                    type="date"
-                    value={publishDate}
-                    onChange={(e) => setPublishDate(e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="slug">Slug (Optional)</Label>
-                  <Input
-                    id="slug"
-                    value={slug}
-                    onChange={(e) => setSlug(e.target.value)}
-                    placeholder="article-url-slug"
-                  />
-                  <p className="text-xs text-gray-500">Leave blank to auto-generate from title</p>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="content">Content *</Label>
-                <RichTextEditor
-                  id="content"
-                  value={content}
-                  onChange={setContent}
-                  placeholder="Write your article content here..."
-                  className="min-h-[300px]"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Featured Image</Label>
-                <NewsImageUploader 
-                  onUploadComplete={handleImageUploaded} 
-                  className="mt-2"
-                />
                 
-                {imageUrl && (
-                  <div className="mt-4">
-                    <p className="text-sm font-medium mb-2">Current Image</p>
-                    <div className="relative aspect-video overflow-hidden rounded-md border">
-                      <img
-                        src={imageUrl}
-                        alt="Article featured"
-                        className="w-full h-full object-cover"
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="category">Category *</Label>
+                    <Select 
+                      value={category} 
+                      onValueChange={setCategory}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((cat) => (
+                          <SelectItem key={cat} value={cat}>
+                            {cat}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="author">Author</Label>
+                    <Input
+                      id="author"
+                      placeholder="Author name"
+                      value={author}
+                      onChange={(e) => setAuthor(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="publishDate">Publish Date *</Label>
+                    <div className="relative mt-1">
+                      <Input
+                        id="publishDate"
+                        type="date"
+                        value={publishDate}
+                        onChange={(e) => setPublishDate(e.target.value)}
+                        required
                       />
+                      <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
                     </div>
                   </div>
-                )}
+                  
+                  <div className="flex items-center space-x-2 mt-7">
+                    <Switch
+                      id="featured"
+                      checked={isFeatured}
+                      onCheckedChange={setIsFeatured}
+                    />
+                    <Label htmlFor="featured">Featured Article</Label>
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="image">Featured Image</Label>
+                  <div className="mt-1">
+                    <ImageUploader
+                      currentImage={imageUrl}
+                      onImageUploaded={handleImageUpload}
+                      folder="news"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="content">Content *</Label>
+                  <div className="mt-1">
+                    <RichTextEditor 
+                      value={content} 
+                      onChange={setContent}
+                      placeholder="Write article content here..." 
+                      className="min-h-[300px]"
+                    />
+                  </div>
+                </div>
               </div>
-
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="featured"
-                  checked={isFeatured}
-                  onChange={(e) => setIsFeatured(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                />
-                <Label htmlFor="featured" className="text-sm font-medium">
-                  Feature this article on the homepage
-                </Label>
-              </div>
-
-              <div className="flex justify-end space-x-2 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setActiveTab('preview')}
-                >
-                  <Eye className="mr-2 h-4 w-4" />
-                  Preview
-                </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                  <Save className="mr-2 h-4 w-4" />
-                  {isSubmitting
-                    ? 'Saving...'
-                    : article
-                    ? 'Update Article'
-                    : 'Create Article'}
-                </Button>
-              </div>
-            </form>
+            </CardContent>
           </TabsContent>
           
-          <TabsContent value="preview" className="relative">
-            <div className="absolute top-0 right-0">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setActiveTab('edit')}
-              >
-                Back to Editing
-              </Button>
-            </div>
-            <div className="p-6 bg-white rounded-lg border mt-10">
-              {previewContent()}
-            </div>
+          <TabsContent value="preview">
+            <CardContent className="p-6">
+              <div className="max-w-3xl mx-auto space-y-6">
+                {imageUrl && (
+                  <div className="relative w-full h-72 rounded-lg overflow-hidden">
+                    <img 
+                      src={imageUrl} 
+                      alt={title} 
+                      className="object-cover w-full h-full"
+                    />
+                  </div>
+                )}
+                
+                <div>
+                  <h1 className="text-3xl font-bold">{title || 'Untitled Article'}</h1>
+                  
+                  <div className="flex items-center mt-2 text-sm text-muted-foreground">
+                    {category && (
+                      <span className="bg-primary/10 text-primary px-2 py-1 rounded-full text-xs">
+                        {category}
+                      </span>
+                    )}
+                    
+                    <span className="mx-2">•</span>
+                    
+                    <span>
+                      {publishDate ? format(new Date(publishDate), 'MMM d, yyyy') : 'Unpublished'}
+                    </span>
+                    
+                    {author && (
+                      <>
+                        <span className="mx-2">•</span>
+                        <span>By {author}</span>
+                      </>
+                    )}
+                    
+                    {isFeatured && (
+                      <>
+                        <span className="mx-2">•</span>
+                        <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">
+                          Featured
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                
+                <div 
+                  className="prose max-w-none"
+                  dangerouslySetInnerHTML={{ __html: content }}
+                />
+              </div>
+            </CardContent>
           </TabsContent>
         </Tabs>
-      </CardContent>
-    </Card>
+        
+        <CardFooter className="bg-muted/20 border-t p-4 flex justify-between">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={onBack}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </Button>
+          
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Saving...' : article?.id ? 'Update' : 'Publish'}
+          </Button>
+        </CardFooter>
+      </Card>
+    </form>
   );
 };
 

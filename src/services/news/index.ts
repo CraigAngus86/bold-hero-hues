@@ -14,6 +14,13 @@ import {
   getNewsArticleBySlug
 } from './db/article';
 
+import {
+  formatDate,
+  getDbDateFormat,
+  getISODateString,
+  createExcerpt
+} from './utils';
+
 export {
   // From listing
   fetchNewsArticles,
@@ -25,7 +32,13 @@ export {
   createNewsArticle,
   updateNewsArticle,
   getNewsArticleById,
-  getNewsArticleBySlug
+  getNewsArticleBySlug,
+  
+  // From utils
+  formatDate,
+  getDbDateFormat,
+  getISODateString,
+  createExcerpt
 };
 
 // Legacy alias for backward compatibility

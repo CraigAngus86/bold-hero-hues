@@ -1,20 +1,14 @@
 
 import React from 'react';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
-interface DataWarningAlertProps {
-  title: string;
-  description: string;
-}
-
-const DataWarningAlert: React.FC<DataWarningAlertProps> = ({ title, description }) => {
+const DataWarningAlert: React.FC = () => {
   return (
     <Alert variant="warning" className="mb-4">
-      <AlertTriangle className="h-4 w-4" />
-      <AlertTitle>{title}</AlertTitle>
+      <AlertTriangle className="h-4 w-4 mr-2" />
       <AlertDescription>
-        {description}
+        Some data appears to be invalid or improperly formatted. This may indicate an issue with the data scraping process.
       </AlertDescription>
     </Alert>
   );

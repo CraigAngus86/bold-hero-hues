@@ -1,78 +1,53 @@
 
-export type BucketType = 'public' | 'private' | 'images' | 'avatars' | 'media';
-
+/**
+ * Image optimization options
+ */
 export interface ImageOptimizationOptions {
   maxWidth?: number;
   maxHeight?: number;
   quality?: number;
-  convertToFormat?: 'webp' | 'jpeg' | 'png' | null;
-  generateThumbnail?: boolean;
-  thumbnailSize?: number;
-  compressionLevel?: number;
-  metadata?: Record<string, any>;
+  format?: string;
 }
 
-export interface ImageMetadata {
-  id: string;
-  name: string;
-  url: string;
-  alt_text?: string;
-  description?: string;
-  type: string;
-  size: number;
-  width?: number;
-  height?: number;
-  createdAt: string;
-  updatedAt?: string;
-  tags?: string[];
-  categories?: string[];
-  bucket: string; 
-  path: string;
-}
+/**
+ * Available bucket types
+ */
+export type BucketType = 'images' | 'news' | 'teams' | 'sponsors' | 'media';
 
+/**
+ * Stored image metadata
+ */
 export interface StoredImageMetadata {
   id: string;
-  bucket_id: string;
-  storage_path: string;
   file_name: string;
-  file_size: number;
-  content_type: string;
+  storage_path: string;
+  bucket_id: string;
   alt_text?: string;
   description?: string;
+  file_size?: number;
+  content_type?: string;
+  dimensions?: ImageDimensions;
   tags?: string[];
-  categories?: string[];
-  dimensions?: { width: number; height: number };
   created_at: string;
   updated_at: string;
+  created_by?: string;
 }
 
-export interface ImageUploadResult {
+/**
+ * Image dimensions
+ */
+export interface ImageDimensions {
+  width: number;
+  height: number;
+}
+
+/**
+ * Upload result
+ */
+export interface UploadResult {
   success: boolean;
   url?: string;
-  error?: string;
-  metadata?: StoredImageMetadata;
-}
-
-export interface ImageSearchParams {
-  search?: string;
-  bucket?: string;
-  tags?: string[];
-  categories?: string[];
-  startDate?: string;
-  endDate?: string;
-  sortBy?: 'name' | 'size' | 'created_at' | 'updated_at';
-  sortDirection?: 'asc' | 'desc';
-  page?: number;
-  pageSize?: number;
-  type?: 'image' | 'video' | 'document';
-}
-
-export interface MediaGalleryFilters {
-  search: string;
-  categories: string[];
-  tags: string[];
-  dateRange: [Date | null, Date | null];
-  fileTypes: string[];
-  sortBy: string;
-  sortDirection: 'asc' | 'desc';
+  path?: string;
+  id?: string;
+  error?: any;
 }

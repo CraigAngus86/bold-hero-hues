@@ -8,7 +8,11 @@ import {
   createNewsArticle,
   updateNewsArticle,
   getNewsArticleById,
-  getNewsArticleBySlug
+  getNewsArticleBySlug,
+  formatDate,
+  getDbDateFormat,
+  getISODateString,
+  createExcerpt
 } from './news';
 
 export {
@@ -19,7 +23,11 @@ export {
   createNewsArticle,
   updateNewsArticle,
   getNewsArticleById,
-  getNewsArticleBySlug
+  getNewsArticleBySlug,
+  formatDate,
+  getDbDateFormat,
+  getISODateString,
+  createExcerpt
 };
 
 // Legacy alias for backward compatibility

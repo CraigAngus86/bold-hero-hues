@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getSystemLogs, exportLogsAsJson } from '@/services/logs/systemLogsService';
+import { fetchSystemLogs, exportLogsAsJson } from '@/services/logs/systemLogsService';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,7 +28,7 @@ const SystemLogs = () => {
   const loadLogs = async () => {
     setIsLoading(true);
     try {
-      const logsData = await getSystemLogs();
+      const logsData = await fetchSystemLogs();
       setLogs(logsData);
     } catch (error) {
       console.error('Error loading system logs:', error);
@@ -191,7 +192,7 @@ const SystemLogs = () => {
                     <span className="font-medium">{log.source}</span>
                   </div>
                   <span className="text-xs text-muted-foreground">
-                    {format(parseISO(log.timestamp), 'MMM d, yyyy HH:mm:ss')}
+                    {format(parseISO(log.timestamp.toString()), 'MMM d, yyyy HH:mm:ss')}
                   </span>
                 </div>
                 <p className="text-sm">{log.message}</p>

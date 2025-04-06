@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -121,7 +122,7 @@ export const SystemLogViewer: React.FC<SystemLogViewerProps> = ({
       key: 'timestamp',
       header: 'Timestamp',
       cell: (log: SystemLog) => (
-        <div className="text-muted-foreground">{formatTimestamp(log.timestamp)}</div>
+        <div className="text-muted-foreground">{formatTimestamp(log.timestamp.toString())}</div>
       )
     }
   ];

@@ -1,12 +1,11 @@
 
 /**
- * System related type definitions
+ * Represents a system log entry
  */
-
 export interface SystemLog {
   id: string;
   timestamp: string;
-  type: 'error' | 'warning' | 'info' | 'debug';
+  type: 'info' | 'warning' | 'error' | 'debug';
   source: string;
   message: string;
 }

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { AreaChart, Area, BarChart, Bar, LineChart, Line, PieChart, Pie, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, BarChart, Bar, LineChart, Line, PieChart, Pie, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import { Card } from '@/components/ui/card';
 
 // Sample chart data - in a real app, this would come from props or a service
@@ -133,5 +133,5 @@ export const ChartCard: React.FC<ChartContainerProps & { title?: string; descrip
   );
 };
 
-// To make Cell available for the pie chart
-const Cell = ({ fill, children }: { fill?: string, children?: React.ReactNode }) => children;
+// Add default export to fix import issues
+export default ChartContainer;

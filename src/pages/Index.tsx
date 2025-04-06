@@ -3,25 +3,11 @@ import React from 'react';
 import { Navbar } from '@/components/layout';
 import { Footer } from '@/components/layout';
 import EnhancedHero from '@/components/home/EnhancedHero';
+import FeaturedContentGrid from '@/components/home/FeaturedContentGrid';
+import NewsGrid from '@/components/home/NewsGrid';
 import LeagueTable from '@/components/LeagueTable';
-import FixturesSection from '@/components/home/FixturesSection';
-import NewsSection from '@/components/home/NewsSection'; 
 import MediaGalleryModern from '@/components/home/MediaGalleryModern';
 import SponsorsSection from '@/components/home/SponsorsSection';
-
-const SponsorShowcase = () => (
-  <div className="bg-gray-100 py-12 text-center">
-    <h2 className="text-2xl font-bold mb-6">Our Sponsors</h2>
-    <p>Loading sponsors...</p>
-  </div>
-);
-
-const ClubUpdatesBanner = () => (
-  <div className="bg-white p-6 rounded-lg shadow-md">
-    <h2 className="text-xl font-bold mb-2">Club Updates</h2>
-    <p>Stay updated with the latest club information</p>
-  </div>
-);
 
 const MembershipCTA = () => (
   <div className="bg-team-blue text-white p-6 rounded-lg">
@@ -39,22 +25,23 @@ const Index = () => {
       {/* Enhanced Hero Section */}
       <EnhancedHero />
       
-      {/* Fixtures Section */}
-      <FixturesSection />
+      {/* Featured Content Grid */}
+      <FeaturedContentGrid />
       
-      {/* News Section */}
-      <NewsSection />
+      {/* News Grid */}
+      <NewsGrid />
       
-      <div className="container mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column */}
-        <div className="lg:col-span-2">
-          <ClubUpdatesBanner />
-        </div>
-        
-        {/* Right Column */}
-        <div className="space-y-8">
-          <LeagueTable />
-          <MembershipCTA />
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column */}
+          <div className="lg:col-span-2">
+            <LeagueTable />
+          </div>
+          
+          {/* Right Column */}
+          <div className="space-y-8">
+            <MembershipCTA />
+          </div>
         </div>
       </div>
         

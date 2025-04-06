@@ -1,8 +1,8 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { SystemLogViewer } from './SystemLogViewer';
 import { SystemLog } from '@/types';
-import { getSystemLogs } from '@/services/logs/systemLogsService';
+import { fetchSystemLogs as getSystemLogs } from '@/services/logs/systemLogsService';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 

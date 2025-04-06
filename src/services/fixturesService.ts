@@ -1,6 +1,10 @@
+
 import { supabase } from '@/services/supabase/supabaseClient';
-import { Fixture as DBFixture, convertToMatches } from '@/types/fixtures'; 
+import { Fixture } from '@/types/fixtures'; 
 import { handleDbOperation, DbServiceResponse } from './utils/dbService';
+
+// Define DBFixture type to match the database schema
+export type DBFixture = Fixture;
 
 /**
  * Get all fixtures with optional filtering
@@ -39,7 +43,7 @@ export async function getAllFixtures(options?: {
 /**
  * Get upcoming fixtures
  */
-export async function getUpcomingFixtures(limit = 5): Promise<DbServiceResponse<Fixture[]>> {
+export async function getUpcomingFixtures(limit = 5): Promise<DbServiceResponse<DBFixture[]>> {
   return handleDbOperation(
     async () => {
       const today = new Date().toISOString().split('T')[0];
@@ -55,7 +59,7 @@ export async function getUpcomingFixtures(limit = 5): Promise<DbServiceResponse<
 
       if (error) throw error;
 
-      return convertToMatches(data as DBFixture[]);
+      return data as DBFixture[];
     },
     'Failed to load upcoming fixtures'
   );
@@ -64,7 +68,7 @@ export async function getUpcomingFixtures(limit = 5): Promise<DbServiceResponse<
 /**
  * Get completed fixtures (results)
  */
-export async function getResults(limit = 5): Promise<DbServiceResponse<Fixture[]>> {
+export async function getResults(limit = 5): Promise<DbServiceResponse<DBFixture[]>> {
   return handleDbOperation(
     async () => {
       const { data, error } = await supabase
@@ -76,7 +80,7 @@ export async function getResults(limit = 5): Promise<DbServiceResponse<Fixture[]
 
       if (error) throw error;
 
-      return convertToMatches(data as DBFixture[]);
+      return data as DBFixture[];
     },
     'Failed to load results'
   );
@@ -85,7 +89,7 @@ export async function getResults(limit = 5): Promise<DbServiceResponse<Fixture[]
 /**
  * Get fixture by ID
  */
-export async function getFixtureById(id: string): Promise<DbServiceResponse<Fixture>> {
+export async function getFixtureById(id: string): Promise<DbServiceResponse<DBFixture>> {
   return handleDbOperation(
     async () => {
       const { data, error } = await supabase
@@ -96,8 +100,7 @@ export async function getFixtureById(id: string): Promise<DbServiceResponse<Fixt
 
       if (error) throw error;
 
-      const fixtures = convertToMatches([data as DBFixture]);
-      return fixtures[0];
+      return data as DBFixture;
     },
     `Failed to load fixture details for ID: ${id}`
   );
@@ -126,7 +129,7 @@ export async function createFixture(fixtureData: Omit<DBFixture, 'id' | 'created
 /**
  * Update fixture
  */
-export async function updateFixture(id: string, updates: Partial<DBFixture>): Promise<DbServiceResponse<Fixture>> {
+export async function updateFixture(id: string, updates: Partial<DBFixture>): Promise<DbServiceResponse<DBFixture>> {
   return handleDbOperation(
     async () => {
       const { data, error } = await supabase
@@ -138,8 +141,7 @@ export async function updateFixture(id: string, updates: Partial<DBFixture>): Pr
 
       if (error) throw error;
 
-      const fixtures = convertToMatches([data as DBFixture]);
-      return fixtures[0];
+      return data as DBFixture;
     },
     'Failed to update fixture'
   );
@@ -148,7 +150,7 @@ export async function updateFixture(id: string, updates: Partial<DBFixture>): Pr
 /**
  * Add ticket link to fixture
  */
-export async function addTicketLinkToFixture(id: string, ticketLink: string): Promise<DbServiceResponse<Fixture>> {
+export async function addTicketLinkToFixture(id: string, ticketLink: string): Promise<DbServiceResponse<DBFixture>> {
   return updateFixture(id, { ticket_link: ticketLink });
 }
 
@@ -159,7 +161,7 @@ export async function updateFixtureResult(
   id: string, 
   homeScore: number, 
   awayScore: number
-): Promise<DbServiceResponse<Fixture>> {
+): Promise<DbServiceResponse<DBFixture>> {
   return updateFixture(id, { 
     home_score: homeScore, 
     away_score: awayScore,

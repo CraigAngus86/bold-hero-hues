@@ -1,14 +1,59 @@
 
 import React, { useState, useEffect } from 'react';
 import { Container } from '@/components/ui';
-import UpcomingMatchesCarousel from '@/components/fixtures/UpcomingMatchesCarousel';
-import RecentResultsCarousel from '@/components/fixtures/RecentResultsCarousel';
-import { useFixturesStats } from '@/hooks/useFixturesStats';
-import { getAllFixtures } from '@/services/fixturesService';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { getAllFixtures } from '@/services/fixturesService';
+import { useFixturesStats } from '@/hooks/useFixturesStats';
+
+// Create missing carousel components
+const UpcomingMatchesCarousel = ({ matches }) => {
+  if (!matches || matches.length === 0) {
+    return <p className="text-gray-500 text-center py-8">No upcoming matches scheduled</p>;
+  }
+  
+  return (
+    <div className="space-y-4">
+      {matches.map((match) => (
+        <div key={match.id} className="bg-white p-4 rounded-md shadow-sm border border-gray-100">
+          <div className="flex justify-between">
+            <div>{match.homeTeam}</div>
+            <div className="text-gray-500">vs</div>
+            <div>{match.awayTeam}</div>
+          </div>
+          <div className="text-sm text-gray-500 mt-2">
+            {new Date(match.date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const RecentResultsCarousel = ({ matches }) => {
+  if (!matches || matches.length === 0) {
+    return <p className="text-gray-500 text-center py-8">No recent match results</p>;
+  }
+  
+  return (
+    <div className="space-y-4">
+      {matches.map((match) => (
+        <div key={match.id} className="bg-white p-4 rounded-md shadow-sm border border-gray-100">
+          <div className="flex justify-between">
+            <div>{match.homeTeam}</div>
+            <div className="text-gray-500">{match.homeScore} - {match.awayScore}</div>
+            <div>{match.awayTeam}</div>
+          </div>
+          <div className="text-sm text-gray-500 mt-2">
+            {new Date(match.date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 const MatchCenter: React.FC = () => {
   const [upcomingFixtures, setUpcomingFixtures] = useState([]);
@@ -19,18 +64,18 @@ const MatchCenter: React.FC = () => {
   useEffect(() => {
     const fetchFixtures = async () => {
       try {
-        const { fixtures } = await getAllFixtures();
+        const response = await getAllFixtures();
         
         // Filter for upcoming and recent matches
         const now = new Date();
-        const upcoming = fixtures
-          .filter(fixture => new Date(fixture.date) > now && !fixture.is_completed)
-          .slice(0, 5);
+        const upcoming = response.data
+          ?.filter(fixture => new Date(fixture.date) > now && !fixture.is_completed)
+          .slice(0, 5) || [];
           
-        const results = fixtures
-          .filter(fixture => fixture.is_completed)
+        const results = response.data
+          ?.filter(fixture => fixture.is_completed)
           .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-          .slice(0, 5);
+          .slice(0, 5) || [];
           
         setUpcomingFixtures(upcoming);
         setRecentResults(results);
@@ -66,13 +111,7 @@ const MatchCenter: React.FC = () => {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-team-blue"></div>
               </div>
             ) : (
-              <>
-                {upcomingFixtures.length > 0 ? (
-                  <UpcomingMatchesCarousel fixtures={upcomingFixtures} />
-                ) : (
-                  <p className="text-gray-500 text-center py-8">No upcoming matches scheduled</p>
-                )}
-              </>
+              <UpcomingMatchesCarousel matches={upcomingFixtures} />
             )}
           </div>
           
@@ -83,13 +122,7 @@ const MatchCenter: React.FC = () => {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-team-blue"></div>
               </div>
             ) : (
-              <>
-                {recentResults.length > 0 ? (
-                  <RecentResultsCarousel fixtures={recentResults} />
-                ) : (
-                  <p className="text-gray-500 text-center py-8">No recent match results</p>
-                )}
-              </>
+              <RecentResultsCarousel matches={recentResults} />
             )}
           </div>
         </div>

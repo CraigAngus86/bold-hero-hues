@@ -1,142 +1,117 @@
 
 import { create } from 'zustand';
 import { TeamMember, MemberType } from '@/types/team';
-import { fetchTeamMembers, createTeamMember, updateTeamMember, deleteTeamMember } from './teamDbService';
-import { toast } from 'sonner';
 
-export { type TeamMember, type MemberType } from '@/types/team';
-
-export interface TeamStore {
-  players: TeamMember[];
-  management: TeamMember[];
-  officials: TeamMember[];
+interface TeamStore {
   teamMembers: TeamMember[];
-  isLoading: boolean;
-  getPlayersByPosition: (position: string) => TeamMember[];
-  getManagementStaff: () => Promise<TeamMember[]>;
-  getOfficials: () => Promise<TeamMember[]>;
-  getPlayerById: (id: string) => TeamMember | undefined;
-  addPlayer: (player: Omit<TeamMember, 'id'>) => Promise<void>;
-  updatePlayer: (id: string, player: Partial<TeamMember>) => Promise<void>;
-  deletePlayer: (id: string) => Promise<void>;
-  loadTeamMembers: () => Promise<void>;
-  fetchTeamMembers: () => Promise<void>; // Alias for loadTeamMembers
-  loading: boolean; // Alias for isLoading
+  loading: boolean;
+  error: string | null;
+  fetchTeamMembers: () => Promise<void>;
+  addTeamMember: (member: Omit<TeamMember, 'id'>) => Promise<void>;
+  updateTeamMember: (member: TeamMember) => Promise<void>;
+  deleteTeamMember: (id: string) => Promise<void>;
+  getTeamMembersByType: (type: MemberType) => TeamMember[];
 }
 
 export const useTeamStore = create<TeamStore>((set, get) => ({
-  players: [],
-  management: [],
-  officials: [],
   teamMembers: [],
-  isLoading: false,
-  loading: false, // Alias for isLoading
-
-  getPlayersByPosition: (position) => {
-    if (position === "All") {
-      return get().players;
-    }
-    return get().players.filter(player => 
-      player.position?.toLowerCase() === position.toLowerCase()
-    );
-  },
-
-  getManagementStaff: async () => {
-    try {
-      const management = get().teamMembers.filter(member => member.member_type === 'management');
-      return management;
-    } catch (error) {
-      console.error("Error fetching management staff:", error);
-      return [];
-    }
-  },
-
-  getOfficials: async () => {
-    try {
-      const officials = get().teamMembers.filter(member => member.member_type === 'official');
-      return officials;
-    } catch (error) {
-      console.error("Error fetching officials:", error);
-      return [];
-    }
-  },
-
-  getPlayerById: (id) => {
-    return get().players.find(player => player.id === id);
-  },
-
-  addPlayer: async (player) => {
-    try {
-      set({ isLoading: true, loading: true });
-      await createTeamMember({ ...player, member_type: 'player' });
-      await get().loadTeamMembers();
-      toast.success(`${player.name} added to the squad`);
-    } catch (error) {
-      console.error("Error adding player:", error);
-      toast.error("Failed to add player");
-    } finally {
-      set({ isLoading: false, loading: false });
-    }
-  },
-
-  updatePlayer: async (id, player) => {
-    try {
-      set({ isLoading: true, loading: true });
-      await updateTeamMember(id, player);
-      await get().loadTeamMembers();
-      toast.success("Player updated successfully");
-    } catch (error) {
-      console.error("Error updating player:", error);
-      toast.error("Failed to update player");
-    } finally {
-      set({ isLoading: false, loading: false });
-    }
-  },
-
-  deletePlayer: async (id) => {
-    try {
-      set({ isLoading: true, loading: true });
-      await deleteTeamMember(id);
-      await get().loadTeamMembers();
-      toast.success("Player removed from squad");
-    } catch (error) {
-      console.error("Error deleting player:", error);
-      toast.error("Failed to delete player");
-    } finally {
-      set({ isLoading: false, loading: false });
-    }
-  },
-
-  loadTeamMembers: async () => {
-    try {
-      set({ isLoading: true, loading: true });
-      const response = await fetchTeamMembers();
-      
-      if (response.success) {
-        const members = response.data;
-        const players = members.filter(member => member.member_type === 'player');
-        const management = members.filter(member => member.member_type === 'management');
-        const officials = members.filter(member => member.member_type === 'official');
-        
-        set({ 
-          players,
-          management,
-          officials,
-          teamMembers: members
-        });
-      } else {
-        toast.error("Failed to load team data");
-      }
-    } catch (error) {
-      console.error("Error loading team members:", error);
-      toast.error("Failed to load team data");
-    } finally {
-      set({ isLoading: false, loading: false });
-    }
-  },
-
-  // Alias for loadTeamMembers
+  loading: false,
+  error: null,
+  
   fetchTeamMembers: async () => {
-    return get().loadTeamMembers();
+    set({ loading: true, error: null });
+    try {
+      // Mock data for now
+      const mockTeamMembers: TeamMember[] = [
+        {
+          id: '1',
+          name: 'John Smith',
+          member_type: 'player',
+          position: 'Goalkeeper',
+          image_url: '/lovable-uploads/player1.jpg',
+          bio: 'Experienced goalkeeper with strong leadership skills.',
+          nationality: 'Scotland',
+          experience: '10 years',
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          jersey_number: 1,
+          previous_clubs: ['Aberdeen FC', 'Inverness CT'],
+          stats: {
+            appearances: 45,
+            cleanSheets: 20
+          }
+        },
+        {
+          id: '2',
+          name: 'Manager Name',
+          member_type: 'management',
+          position: 'Head Coach',
+          image_url: '/lovable-uploads/coach.jpg',
+          bio: 'Experienced coach with a strong track record.',
+          nationality: 'Scotland',
+          experience: '15 years',
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }
+      ];
+      
+      set({ teamMembers: mockTeamMembers, loading: false });
+    } catch (error) {
+      set({ error: 'Failed to fetch team members', loading: false });
+    }
+  },
+  
+  addTeamMember: async (member) => {
+    set({ loading: true, error: null });
+    try {
+      // Mock adding a member
+      const newMember: TeamMember = {
+        ...member,
+        id: Math.random().toString(36).substring(2, 9),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      set(state => ({ 
+        teamMembers: [...state.teamMembers, newMember], 
+        loading: false 
+      }));
+    } catch (error) {
+      set({ error: 'Failed to add team member', loading: false });
+    }
+  },
+  
+  updateTeamMember: async (updatedMember) => {
+    set({ loading: true, error: null });
+    try {
+      // Mock updating a member
+      set(state => ({ 
+        teamMembers: state.teamMembers.map(member => 
+          member.id === updatedMember.id ? { ...updatedMember, updated_at: new Date().toISOString() } : member
+        ), 
+        loading: false 
+      }));
+    } catch (error) {
+      set({ error: 'Failed to update team member', loading: false });
+    }
+  },
+  
+  deleteTeamMember: async (id) => {
+    set({ loading: true, error: null });
+    try {
+      // Mock deleting a member
+      set(state => ({ 
+        teamMembers: state.teamMembers.filter(member => member.id !== id), 
+        loading: false 
+      }));
+    } catch (error) {
+      set({ error: 'Failed to delete team member', loading: false });
+    }
+  },
+  
+  getTeamMembersByType: (type) => {
+    return get().teamMembers.filter(member => member.member_type === type);
   }
 }));

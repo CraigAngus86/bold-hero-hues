@@ -1,3 +1,4 @@
+
 import { Match } from '@/components/fixtures/types';
 import { Fixture } from '@/types/fixtures';
 
@@ -50,7 +51,6 @@ export function adaptMatchToFixture(match: Match): Fixture {
     date_passed: new Date(match.date) < new Date(),
     import_date: new Date().toISOString(),
     import_source: 'manual',
-    location: match.venue,
     source_id: ''
   };
 }
@@ -61,4 +61,3 @@ export function adaptMatchToFixture(match: Match): Fixture {
 export function adaptMatchesToFixtures(matches: Match[]): Fixture[] {
   return matches.map(adaptMatchToFixture);
 }
-

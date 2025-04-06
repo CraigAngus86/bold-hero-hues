@@ -33,3 +33,6 @@ export interface TeamFilter {
   active?: boolean;
   search?: string;
 }
+
+// Add the missing MemberType
+export type MemberType = 'player' | 'management' | 'official';

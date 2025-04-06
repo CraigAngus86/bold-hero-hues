@@ -73,9 +73,8 @@ export const ImageUploaderProvider: React.FC<ImageUploaderProviderProps> = ({
   
   const handlers = useImageUploadHandlers({
     ...state,
-    initialImageUrl,
-    maxSizeBytes,
     acceptedTypes,
+    maxSizeBytes,
     bucket,
     folderPath,
     optimizationOptions,

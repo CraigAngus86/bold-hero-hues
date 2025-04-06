@@ -1,180 +1,150 @@
 
-import { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
+import { Upload, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { useImageUpload } from '@/services/images';
-import { imageUploadConfigs } from '@/services/images/config';
 
 interface SponsorLogoUploaderProps {
-  initialImageUrl?: string | null;
-  onUploadComplete?: (imageUrl: string) => void;
-  onUpload?: (imageUrl: string) => void;  // Add compatibility with both naming conventions
-  className?: string;
+  currentUrl?: string;
+  onUpload: (url: string) => void;
   sponsorName?: string;
 }
 
-export function SponsorLogoUploader({
-  initialImageUrl = null,
-  onUploadComplete,
-  onUpload,
-  className = '',
-  sponsorName = 'Sponsor',
-}: SponsorLogoUploaderProps) {
-  const [dragActive, setDragActive] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(initialImageUrl);
+const SponsorLogoUploader: React.FC<SponsorLogoUploaderProps> = ({ 
+  currentUrl, 
+  onUpload, 
+  sponsorName = 'Sponsor' 
+}) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const { upload, isUploading, progress } = useImageUpload();
-  
-  // Use predefined config for sponsor images
-  const config = imageUploadConfigs.sponsors;
-  const maxSizeMB = config.maxSizeMB || 5; // Fallback size
-  const acceptedTypes = 'image/png,image/jpeg,image/svg+xml';
-  
-  const handleDrag = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
-      setDragActive(true);
-    } else if (e.type === 'dragleave') {
-      setDragActive(false);
-    }
-  }, []);
-  
-  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(currentUrl || null);
+  const [isUploading, setIsUploading] = useState(false);
+  const { uploadFile } = useImageUpload();
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
     
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleFileSelection(e.dataTransfer.files[0]);
-    }
-  }, []);
-  
-  const handleFileSelection = (file: File) => {
-    if (file.size > maxSizeMB * 1024 * 1024) {
-      toast.error(`File too large. Maximum size is ${maxSizeMB}MB.`);
+    // Check file type
+    if (!file.type.includes('image/')) {
+      toast.error('Please select an image file');
       return;
     }
     
-    if (!file.type.match(acceptedTypes.replace(/,/g, '|'))) {
-      toast.error(`Invalid file type. Please upload a PNG, JPEG, or SVG image.`);
+    // Check file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size exceeds 5MB limit');
       return;
     }
     
     setSelectedFile(file);
-    const fileUrl = URL.createObjectURL(file);
-    setPreviewUrl(fileUrl);
+    const fileURL = URL.createObjectURL(file);
+    setPreviewUrl(fileURL);
   };
   
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      handleFileSelection(e.target.files[0]);
+  const handleUploadClick = async () => {
+    if (!selectedFile) return;
+    
+    setIsUploading(true);
+    
+    try {
+      const result = await uploadFile(selectedFile, {
+        bucket: 'sponsors',
+        folderPath: 'logos',
+        alt: sponsorName || 'Sponsor logo',
+        optimizationOptions: {
+          maxWidth: 600,
+          quality: 80
+        }
+      });
+      
+      if (result.success && result.data && result.data.url) {
+        toast.success('Logo uploaded successfully');
+        onUpload(result.data.url);
+      } else {
+        throw new Error(result.error || 'Upload failed');
+      }
+    } catch (error) {
+      toast.error('Failed to upload logo: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    } finally {
+      setIsUploading(false);
     }
   };
   
   const clearSelection = () => {
-    if (previewUrl && !initialImageUrl) {
+    if (previewUrl && !currentUrl) {
       URL.revokeObjectURL(previewUrl);
     }
-    setPreviewUrl(initialImageUrl);
     setSelectedFile(null);
+    setPreviewUrl(currentUrl);
   };
-  
-  const handleUpload = async () => {
-    if (!selectedFile) return;
-    
-    try {
-      const options = {
-        folder: 'sponsor_logos',
-        description: `Logo for ${sponsorName}`,
-        tags: ['sponsor', 'logo']
-      };
-      
-      const result = await upload(selectedFile, options);
-      
-      if (result.success && result.data && result.data.url) {
-        toast.success('Logo uploaded successfully');
-        clearSelection();
-        if (onUploadComplete) onUploadComplete(result.data.url);
-        if (onUpload) onUpload(result.data.url); // Support both callback functions
-      }
-    } catch (error) {
-      console.error('Failed to upload logo:', error);
-      toast.error('Failed to upload logo');
-    }
-  };
-  
+
   return (
-    <Card className={`overflow-hidden ${className}`}>
+    <Card className="overflow-hidden">
       <CardContent className="p-4">
-        {!previewUrl ? (
-          <div
-            className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-              dragActive
-                ? 'border-primary bg-primary/10'
-                : 'border-gray-300 hover:border-primary/50'
-            }`}
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onDragOver={handleDrag}
-            onDrop={handleDrop}
-            onClick={() => document.getElementById('logoFileInput')?.click()}
-          >
-            <input
-              id="logoFileInput"
-              type="file"
-              className="hidden"
-              onChange={handleFileInputChange}
-              accept={acceptedTypes}
+        {previewUrl ? (
+          <div className="relative">
+            <img 
+              src={previewUrl}
+              alt={`${sponsorName || 'Sponsor'} logo`}
+              className="w-full h-auto object-contain max-h-48 rounded border border-gray-200"
             />
-            <div className="flex flex-col items-center">
-              <Upload className="h-10 w-10 text-gray-400 mb-2" />
-              <p className="text-sm font-medium">
-                Drag & drop or click to upload sponsor logo
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                PNG, JPEG or SVG files up to {maxSizeMB}MB
-              </p>
-            </div>
+            {selectedFile && (
+              <div className="mt-4 flex gap-2">
+                <Button 
+                  onClick={handleUploadClick}
+                  disabled={isUploading}
+                  className="w-full"
+                >
+                  {isUploading ? 'Uploading...' : 'Save Logo'}
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={clearSelection}
+                  disabled={isUploading}
+                  size="icon"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+            {!selectedFile && !currentUrl && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="absolute top-2 right-2 bg-white"
+                onClick={clearSelection}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         ) : (
-          <div className="relative">
-            <div className="aspect-video relative rounded-md overflow-hidden bg-white">
-              <img
-                src={previewUrl}
-                alt="Preview"
-                className="w-full h-full object-contain"
-              />
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center gap-4">
+            <Upload className="h-8 w-8 text-gray-400" />
+            <div className="text-center">
+              <Label 
+                htmlFor="logo-upload" 
+                className="text-blue-600 hover:text-blue-800 cursor-pointer font-medium"
+              >
+                Click to upload
+              </Label>
+              <p className="text-sm text-gray-500 mt-1">SVG, PNG, JPG or GIF (max. 5MB)</p>
             </div>
-            <button
-              onClick={clearSelection}
-              className="absolute top-2 right-2 bg-black bg-opacity-50 rounded-full p-1"
-              aria-label="Remove"
-            >
-              <X className="h-4 w-4 text-white" />
-            </button>
-            <div className="mt-4 flex justify-end space-x-2">
-              <Button variant="outline" onClick={clearSelection} disabled={isUploading}>
-                Cancel
-              </Button>
-              <Button onClick={handleUpload} disabled={isUploading}>
-                {isUploading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Uploading {progress}%
-                  </>
-                ) : (
-                  'Upload Logo'
-                )}
-              </Button>
-            </div>
+            <input 
+              id="logo-upload"
+              type="file"
+              className="hidden"
+              accept="image/*"
+              onChange={handleFileChange}
+            />
           </div>
         )}
       </CardContent>
     </Card>
   );
-}
+};
 
 export default SponsorLogoUploader;

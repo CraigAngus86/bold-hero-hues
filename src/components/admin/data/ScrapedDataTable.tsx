@@ -10,15 +10,17 @@ import { RefreshCw, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { 
+  ScrapeLog,
   fetchScrapingLogs, 
-  ScrapingLog, 
-  ScrapingSource, 
   downloadScrapeData 
 } from '@/services/scrapingService';
 
+// Define ScrapingSource type if not exported by scrapingService
+type ScrapingSource = "highland_league" | "club_website" | "other";
+
 export const ScrapedDataTable: React.FC = () => {
-  const [logs, setLogs] = useState<ScrapingLog[]>([]);
-  const [filteredLogs, setFilteredLogs] = useState<ScrapingLog[]>([]);
+  const [logs, setLogs] = useState<ScrapeLog[]>([]);
+  const [filteredLogs, setFilteredLogs] = useState<ScrapeLog[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeSource, setActiveSource] = useState<ScrapingSource | 'all'>('all');
   const [activeTab, setActiveTab] = useState('recent');
@@ -27,12 +29,8 @@ export const ScrapedDataTable: React.FC = () => {
     setIsLoading(true);
     try {
       const result = await fetchScrapingLogs();
-      if (result.success && result.data) {
-        setLogs(result.data);
-        filterLogs(result.data, activeSource);
-      } else {
-        toast.error('Failed to fetch scraping logs');
-      }
+      setLogs(result);
+      filterLogs(result, activeSource);
     } catch (error) {
       toast.error('Error fetching scraping logs');
     } finally {
@@ -45,7 +43,7 @@ export const ScrapedDataTable: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const filterLogs = (logsToFilter: ScrapingLog[], source: ScrapingSource | 'all') => {
+  const filterLogs = (logsToFilter: ScrapeLog[], source: ScrapingSource | 'all') => {
     if (source === 'all') {
       setFilteredLogs(logsToFilter);
     } else {
@@ -53,31 +51,25 @@ export const ScrapedDataTable: React.FC = () => {
     }
   };
 
-  const handleSourceChange = (source: ScrapingSource | 'all') => {
-    setActiveSource(source);
-    filterLogs(logs, source);
+  const handleSourceChange = (source: string) => {
+    setActiveSource(source as ScrapingSource | 'all');
+    filterLogs(logs, source as ScrapingSource | 'all');
   };
 
-  const handleDownload = async (logId: string) => {
+  const handleDownload = async (source: string) => {
     try {
-      const result = await downloadScrapeData(logId);
-      if (result.success) {
-        const fileName = `scrape-data-${logId.substring(0, 8)}.json`;
-        const jsonStr = JSON.stringify(result.data, null, 2);
-        const dataBlob = new Blob([jsonStr], { type: 'application/json' });
-        
-        // Create and trigger download
-        const url = URL.createObjectURL(dataBlob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        a.click();
-        URL.revokeObjectURL(url);
-        
-        toast.success(`Downloaded ${fileName}`);
-      } else {
-        toast.error('Failed to download data');
-      }
+      const result = await downloadScrapeData(source as ScrapingSource);
+      
+      // Create a download for the blob data
+      const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `scrape-data-${source}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      toast.success(`Downloaded data from ${source}`);
     } catch (error) {
       toast.error('Error downloading data');
     }
@@ -186,7 +178,7 @@ export const ScrapedDataTable: React.FC = () => {
                           </div>
                         </TableCell>
                         <TableCell>{formatDate(log.created_at)}</TableCell>
-                        <TableCell>{log.items_count}</TableCell>
+                        <TableCell>{log.items_found || 0}</TableCell>
                         <TableCell>
                           <Badge className={`${getStatusColor(log.status)}`}>
                             {log.status}
@@ -196,8 +188,8 @@ export const ScrapedDataTable: React.FC = () => {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleDownload(log.id)}
-                            disabled={log.status === 'failed' || log.items_count === 0}
+                            onClick={() => handleDownload(log.source)}
+                            disabled={log.status === 'failed' || (log.items_found || 0) === 0}
                           >
                             <Download className="h-4 w-4 mr-1" />
                             Export

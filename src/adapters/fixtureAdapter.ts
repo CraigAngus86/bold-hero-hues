@@ -51,7 +51,7 @@ export function adaptMatchToFixture(match: Match): Fixture {
     date_passed: new Date(match.date) < new Date(),
     import_date: new Date().toISOString(),
     import_source: 'manual',
-    source_id: ''
+    source: '' // Changed from source_id to source to match Fixture type
   };
 }
 

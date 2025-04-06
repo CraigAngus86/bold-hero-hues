@@ -1,5 +1,11 @@
 import { TeamMember } from '@/types/team';
 
+export const seedTeamData = async (): Promise<void> => {
+  console.log('Seeding team data...');
+  // This would typically populate the database with initial team members
+  // For now, just a stub function
+};
+
 export const player1: Omit<TeamMember, 'id'> = {
   name: 'John Smith',
   member_type: 'player',

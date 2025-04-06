@@ -1,110 +1,73 @@
 
+// Define image metadata type
 export interface ImageMetadata {
   id: string;
   name: string;
+  url: string;
   type: string;
   size: number;
-  url: string;
-  createdAt: string;
-  updatedAt?: string;
+  width: number;
+  height: number;
+  altText: string; // Changed from alt_text to follow camelCase conventions
   description?: string;
-  altText?: string;
+  createdAt: string; // Changed from created_at to follow camelCase conventions
+  updatedAt: string; // Changed from updated_at to follow camelCase conventions
   tags?: string[];
-  folderId?: string;
-  width?: number;
-  height?: number;
-  path?: string;
-  dimensions?: ImageDimensions;
+  bucket: string;
+  path: string;
+  categories?: string[]; // Added for compatibility with components
 }
 
-export interface ImageDimensions {
-  width?: number;
-  height?: number;
-}
-
+// Storage specific image metadata (from database)
 export interface StoredImageMetadata {
   id: string;
-  name: string;
-  type: string;
-  size: number;
-  url: string;
   bucket_id: string;
   storage_path: string;
   file_name: string;
   alt_text?: string;
   description?: string;
+  dimensions?: any; // Previously Json
   tags?: string[];
-  created_at?: string;
-  updated_at?: string;
+  created_at: string;
+  updated_at: string;
   created_by?: string;
-  dimensions?: any;
 }
 
-export type BucketType = "images" | "products" | "avatars" | "players" | "public";
-
-export interface ImageFolder {
-  id: string;
-  name: string;
-  path: string;
-  parentId?: string;
-  createdAt?: string;
-  updatedAt?: string;
+// Define image dimensions type
+export interface ImageDimensions {
+  width: number;
+  height: number;
 }
 
-export interface ImageFolderResponse {
-  success: boolean;
-  data?: ImageFolder[];
-  error?: string;
-}
+// Define bucket types
+export type BucketType = 'images' | 'videos' | 'documents';
 
-export interface ImageMetadataResponse {
-  success: boolean;
-  data?: ImageMetadata[];
-  count?: number;
-  error?: string;
-}
-
+// Define image upload result
 export interface ImageUploadResult {
   success: boolean;
-  data?: {
-    url: string;
-    metadata?: StoredImageMetadata;
-  };
+  url?: string; // Added url property needed by components
   error?: string;
+  metadata?: ImageMetadata;
 }
 
-export interface ImageOptimizationOptions {
-  maxWidth?: number;
-  maxHeight?: number;
-  quality?: number;
-  format?: 'webp' | 'jpeg' | 'png';
-  blur?: boolean;
-  grayscale?: boolean;
-}
-
-export interface ImageUploadConfig {
-  maxSizeMB: number;
-  acceptedTypes: string;
-  bucket: BucketType;
-  optimizationOptions: ImageOptimizationOptions;
-}
-
+// Define image upload options
 export interface UseImageUploadOptions {
   bucket: BucketType;
-  folder?: string;
-  folderPath?: string;
-  maxSize?: number;
-  acceptedTypes?: string[];
-  optimizationOptions?: ImageOptimizationOptions;
-  onSuccess?: (result: ImageUploadResult) => void;
-  onError?: (error: string) => void;
+  path?: string;
+  maxSize?: number; // in bytes
+  allowedTypes?: string[];
+  autoUpload?: boolean;
 }
 
+// Define image upload result
 export interface UseImageUploadResult {
-  uploadFile: (file: File, options?: any) => Promise<ImageUploadResult>;
+  selectedFile: File | null;
+  preview: string | null;
   isUploading: boolean;
+  error: string | null;
   progress: number;
-  error: Error | null;
-  reset: () => void;
-  cancelUpload?: () => void;
+  selectFile: (file: File) => void;
+  uploadFile: (file: File) => Promise<ImageUploadResult>;
+  resetUpload: () => void;
+  upload: (file: File) => Promise<string>; // Added for compatibility
 }

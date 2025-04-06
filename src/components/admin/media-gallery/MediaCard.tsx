@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -68,7 +69,7 @@ const MediaCard: React.FC<MediaCardProps> = ({
           {isImage ? (
             <img
               src={media.url}
-              alt={media.alt_text || media.name}
+              alt={media.altText || media.name} // Use altText instead of alt_text
               className="w-full h-full object-cover"
               loading="lazy"
               onError={(e) => {

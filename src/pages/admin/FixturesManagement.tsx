@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/admin/layout';
 import { Helmet } from 'react-helmet-async';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -29,6 +30,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Fixture } from '@/types';
 import { toast } from 'sonner';
 import { DateRange } from 'react-day-picker';
+import { adaptFixtureToMatch } from '@/adapters/fixtureAdapter';
 
 const FixturesManagement: React.FC = () => {
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
@@ -67,20 +69,12 @@ const FixturesManagement: React.FC = () => {
         home_team: fixture.homeTeam || fixture.home_team,
         away_team: fixture.awayTeam || fixture.away_team,
         ticket_link: fixture.ticketLink || fixture.ticket_link,
-      })) as unknown as Fixture[];
+      })) as Fixture[];
       
-      const matchesForCalendar = fixturesWithFormattedData.map(fixture => ({
-        id: fixture.id,
-        homeTeam: fixture.home_team,
-        awayTeam: fixture.away_team,
-        date: fixture.date,
-        time: fixture.time,
-        venue: fixture.venue,
-        competition: fixture.competition,
-        isCompleted: fixture.is_completed,
-      }));
+      // Create matches for calendar using the adapter
+      const matchesForCalendar = fixturesWithFormattedData.map(adaptFixtureToMatch);
       
-      setFixtures(matchesForCalendar);
+      setFixtures(fixturesWithFormattedData);
     } catch (error) {
       console.error('Error fetching fixtures:', error);
       toast.error('Failed to load fixtures data');
@@ -146,7 +140,7 @@ const FixturesManagement: React.FC = () => {
           
           <TabsContent value="calendar">
             <CalendarView 
-              matches={fixtures} 
+              matches={fixtures.map(adaptFixtureToMatch)} 
               isLoading={isLoading}
               onFilterChange={handleDateRangeChange}
             />

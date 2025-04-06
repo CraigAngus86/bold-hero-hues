@@ -15,7 +15,7 @@ import { toast } from 'sonner';
 import { leagueService } from '@/services/leagueService';
 
 interface LogoEditorDialogProps {
-  team: TeamStats; // Use team prop instead of selectedTeam
+  team: TeamStats; 
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => Promise<void>;
@@ -108,6 +108,3 @@ const LogoEditorDialog: React.FC<LogoEditorDialogProps> = ({
 };
 
 export default LogoEditorDialog;
-
-// Export the service for external use
-export { leagueService };

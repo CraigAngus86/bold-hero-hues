@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,8 +7,16 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { UploadCloud, Check, XCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { validateFixtures as validateFixtureData } from '@/services/supabase/fixtures/testUtils';
-import { supabase } from '@/integrations/supabase/client';
+import { Fixture } from '@/types/fixtures';
+import { supabase } from '@/lib/supabase';
+
+interface ImportResult {
+  success: boolean;
+  message: string;
+  added: number;
+  updated: number;
+  fixtures?: Fixture[];
+}
 
 const FixturesImporter = () => {
   const [csvData, setCsvData] = useState<string>('');
@@ -27,6 +36,32 @@ const FixturesImporter = () => {
     reader.readAsText(file);
   };
 
+  const validateFixtureData = (data: any[]): Fixture[] => {
+    // Basic validation
+    return data.filter(item => 
+      item.date && 
+      item.time && 
+      item.home_team && 
+      item.away_team && 
+      item.competition
+    ).map(item => ({
+      id: item.id || undefined,
+      date: item.date,
+      time: item.time,
+      home_team: item.home_team,
+      away_team: item.away_team,
+      competition: item.competition,
+      venue: item.venue || undefined,
+      is_completed: item.is_completed === 'true' || item.is_completed === true || false,
+      home_score: item.home_score ? parseInt(item.home_score, 10) : undefined,
+      away_score: item.away_score ? parseInt(item.away_score, 10) : undefined,
+      ticket_link: item.ticket_link || undefined,
+      season: item.season || '2024-2025',
+      import_date: new Date().toISOString(),
+      source: 'csv-import'
+    }));
+  };
+
   const handleImport = async () => {
     setImporting(true);
     setSuccess(false);
@@ -34,16 +69,16 @@ const FixturesImporter = () => {
 
     try {
       const parsedData = parseCsv(csvData);
-      const validatedData = validateFixtureData(parsedData);
+      const validatedFixtures = validateFixtureData(parsedData);
 
-      if (!validatedData || validatedData.length === 0) {
+      if (!validatedFixtures || validatedFixtures.length === 0) {
         throw new Error('No valid fixture data found in CSV.');
       }
 
       // Upload to Supabase
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('fixtures')
-        .insert(validatedData);
+        .insert(validatedFixtures);
 
       if (error) {
         throw new Error(`Supabase insert error: ${error.message}`);
@@ -52,7 +87,7 @@ const FixturesImporter = () => {
       setSuccess(true);
       toast({
         title: "Fixtures Imported",
-        description: "The fixtures have been successfully imported."
+        description: `${validatedFixtures.length} fixtures have been successfully imported.`
       });
     } catch (err: any) {
       setError(err.message || 'An error occurred during import.');
@@ -86,7 +121,7 @@ const FixturesImporter = () => {
 
   return (
     <Card>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 pt-6">
         <Label htmlFor="csv-upload" className="text-sm font-medium">
           Upload Fixtures CSV
         </Label>

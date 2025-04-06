@@ -1,6 +1,6 @@
 
 export interface Fixture {
-  id: string;
+  id?: string;
   date: string;
   time: string;
   home_team: string;
@@ -19,7 +19,7 @@ export interface Fixture {
   import_date?: string;
   season?: string;
   source?: string;
-  import_source?: string; // Added this property
+  import_source?: string;
   match_report?: string;
   attendance?: string;
   referee?: string;
@@ -46,29 +46,16 @@ export interface TeamStats {
   goalsAgainst: number;
   goalDifference: number;
   points: number;
-  form: string[]; // Make form required to match component expectations
+  form: string[];
   logo?: string;
   last_updated?: string;
 }
 
-// Use Fixture as DBFixture for backward compatibility
-export type DBFixture = Fixture;
-
-// Add ScrapedFixture interface for scraped fixture data
+// ScrapedFixture interface for scraped fixture data with all fields optional except source and import_date
 export interface ScrapedFixture extends Partial<Fixture> {
   source: string;
   import_date: string;
   success?: boolean;
-}
-
-// Add ImportResult interface for fixture import operations
-export interface ImportResult {
-  success: boolean;
-  message: string;
-  added: number;
-  updated: number;
-  valid?: boolean;
-  validFixtures?: ScrapedFixture[];
 }
 
 // Match interface for front-end representation
@@ -89,4 +76,22 @@ export interface Match {
 
 // Import and re-export the conversion functions from the utility file
 import { fixturesToMatches } from '@/utils/fixtureUtils';
-export { fixturesToMatches as convertToMatches };
+export { fixturesToMatches };
+
+// Helper function to convert DB fixtures to Match objects for UI
+export const dbFixturesToMatches = (fixtures: Fixture[]): Match[] => {
+  return fixtures.map(fixture => ({
+    id: fixture.id || '',
+    date: fixture.date,
+    time: fixture.time,
+    homeTeam: fixture.home_team,
+    awayTeam: fixture.away_team,
+    competition: fixture.competition,
+    venue: fixture.venue || '',
+    isCompleted: fixture.is_completed || false,
+    homeScore: fixture.home_score !== undefined ? fixture.home_score : undefined,
+    awayScore: fixture.away_score !== undefined ? fixture.away_score : undefined,
+    ticketLink: fixture.ticket_link,
+    season: fixture.season
+  }));
+};

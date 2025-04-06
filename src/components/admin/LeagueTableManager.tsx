@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
-import { TeamStats } from '@/components/league/types';
-import { supabase } from '@/integrations/supabase/client';
+import { TeamStats } from '@/types/fixtures';
+import { supabase } from '@/lib/supabase';
 import { toast } from "sonner";
 import TeamList from './league/TeamList';
 import LogoEditorDialog from './league/LogoEditorDialog';
@@ -57,12 +57,14 @@ const LeagueTableManager = () => {
             onEditTeam={handleEditTeam} 
           />
           
-          <LogoEditorDialog 
-            selectedTeam={selectedTeam} 
-            isOpen={!!selectedTeam} 
-            onOpenChange={(open) => !open && setSelectedTeam(null)}
-            onSuccess={fetchTeams}
-          />
+          {selectedTeam && (
+            <LogoEditorDialog 
+              team={selectedTeam} 
+              isOpen={!!selectedTeam} 
+              onOpenChange={(open) => !open && setSelectedTeam(null)}
+              onSuccess={fetchTeams}
+            />
+          )}
         </CardContent>
       </Card>
     </div>

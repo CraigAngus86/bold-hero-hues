@@ -25,9 +25,8 @@ import {
   VenueManager, 
   CalendarView 
 } from '@/components/admin/fixtures';
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Fixture } from '@/types';
+import { supabase } from '@/lib/supabase';
+import { Fixture } from '@/types/fixtures';
 import { toast } from 'sonner';
 import { DateRange } from 'react-day-picker';
 import { adaptFixtureToMatch } from '@/adapters/fixtureAdapter';
@@ -66,9 +65,10 @@ const FixturesManagement: React.FC = () => {
       // Convert DB format to our app format
       const fixturesWithFormattedData = data.map(fixture => ({
         ...fixture,
-        home_team: fixture.homeTeam || fixture.home_team,
-        away_team: fixture.awayTeam || fixture.away_team,
-        ticket_link: fixture.ticketLink || fixture.ticket_link,
+        // Ensure property names match expected format
+        home_team: fixture.home_team,
+        away_team: fixture.away_team,
+        ticket_link: fixture.ticket_link
       })) as Fixture[];
       
       // Create matches for calendar using the adapter

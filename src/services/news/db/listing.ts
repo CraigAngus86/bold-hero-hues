@@ -5,7 +5,12 @@ import { NewsArticle } from '@/types';
 /**
  * Fetches news articles with optional filtering
  */
-export const fetchNewsArticles = async (options = {}) => {
+export const fetchNewsArticles = async (options: {
+  category?: string;
+  featured?: boolean; 
+  orderBy?: string;
+  orderDirection?: 'asc' | 'desc';
+} = {}) => {
   try {
     let query = supabase
       .from('news_articles')

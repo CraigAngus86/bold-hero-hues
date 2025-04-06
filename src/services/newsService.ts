@@ -4,14 +4,22 @@ import {
   fetchNewsArticles,
   getNewsCategories,
   toggleArticleFeatured,
-  deleteNewsArticle 
-} from './news/db/listing';
+  deleteNewsArticle,
+  createNewsArticle,
+  updateNewsArticle,
+  getNewsArticleById,
+  getNewsArticleBySlug
+} from './news';
 
 export {
   fetchNewsArticles,
   getNewsCategories,
   toggleArticleFeatured,
-  deleteNewsArticle
+  deleteNewsArticle,
+  createNewsArticle,
+  updateNewsArticle,
+  getNewsArticleById,
+  getNewsArticleBySlug
 };
 
 // Legacy alias for backward compatibility

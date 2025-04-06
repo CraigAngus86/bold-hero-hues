@@ -1,130 +1,92 @@
 
 import { useState } from 'react';
+import { uploadImage, optimizeImage } from './api';
+import { ImageOptimizationOptions } from './types';
 import { toast } from 'sonner';
-import { uploadImage } from './api';
-import { BucketType, ImageOptimizationOptions } from './types';
 
-interface UseImageUploadProps {
-  bucket?: BucketType;
-  folderPath?: string;
-  options?: ImageOptimizationOptions;
-  onComplete?: (url: string, metadata: any) => void;
-  onError?: (error: any) => void;
-}
-
-export const useImageUpload = ({
-  bucket = 'images',
-  folderPath = '',
-  options = {},
-  onComplete,
-  onError,
-}: UseImageUploadProps = {}) => {
+/**
+ * Custom hook for image upload functionality
+ */
+export const useImageUpload = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [error, setError] = useState<any>(null);
-  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
-  
-  const upload = async (file: File): Promise<string | null> => {
-    if (!file) return null;
+
+  /**
+   * Upload an image to storage
+   * @param file Image file to upload
+   * @param bucket Destination bucket
+   * @param folder Optional folder path within bucket
+   * @param optimize Whether to optimize the image
+   * @param metadata Optional metadata for the image
+   * @param optimizationOptions Optional optimization settings
+   * @returns Upload result with URL
+   */
+  const upload = async (
+    file: File,
+    bucket: string,
+    folder: string = '',
+    optimize: boolean = true,
+    metadata: Record<string, any> = {},
+    optimizationOptions?: ImageOptimizationOptions
+  ) => {
+    setIsUploading(true);
+    setProgress(0);
     
     try {
-      setIsUploading(true);
-      setProgress(0);
-      setError(null);
-      
-      // Simulate progress for better UX (Supabase doesn't provide progress updates)
+      // Simulate progress updates
       const progressInterval = setInterval(() => {
         setProgress((prev) => {
-          const newProgress = prev + Math.random() * 15;
-          return newProgress > 90 ? 90 : newProgress;
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
         });
-      }, 400);
+      }, 300);
       
-      const result = await uploadImage(file, bucket, folderPath, options);
-      
-      clearInterval(progressInterval);
-      
-      if ('error' in result) {
-        setError(result.error);
-        setProgress(0);
-        if (onError) onError(result.error);
-        toast.error('Failed to upload image');
-        return null;
+      // Optimize if requested
+      let fileToUpload = file;
+      if (optimize && file.type.startsWith('image/')) {
+        try {
+          fileToUpload = await optimizeImage(file, optimizationOptions);
+        } catch (error) {
+          console.warn('Image optimization failed, using original file:', error);
+        }
       }
       
-      setProgress(100);
-      setUploadedUrl(result.url);
-      if (onComplete) onComplete(result.url, result.data);
+      // Upload the image
+      const result = await uploadImage(fileToUpload, bucket, folder, metadata);
       
-      toast.success('Image uploaded successfully');
-      return result.url;
-    } catch (err) {
-      setError(err);
-      setProgress(0);
-      if (onError) onError(err);
-      toast.error('An error occurred while uploading');
-      return null;
+      // Cleanup and complete
+      clearInterval(progressInterval);
+      setProgress(100);
+      
+      return { 
+        success: true, 
+        data: {
+          url: result.url,
+          path: result.path,
+          id: result.id
+        }
+      };
+    } catch (error) {
+      console.error('Upload failed:', error);
+      toast.error('Failed to upload image');
+      return { success: false, error };
     } finally {
-      setIsUploading(false);
+      // Reset after a short delay to allow animations
+      setTimeout(() => {
+        setIsUploading(false);
+        setProgress(0);
+      }, 500);
     }
   };
-  
-  const resetUpload = () => {
-    setIsUploading(false);
-    setProgress(0);
-    setError(null);
-    setUploadedUrl(null);
-  };
-  
+
   return {
     upload,
-    resetUpload,
     isUploading,
-    progress,
-    error,
-    uploadedUrl,
+    progress
   };
 };
 
-export const useImageUploadState = ({ 
-  initialImageUrl = null,
-  initialAlt = '',
-  initialDescription = '',
-  initialTags = [],
-}: {
-  initialImageUrl: string | null;
-  initialAlt?: string;
-  initialDescription?: string;
-  initialTags?: string[];
-}) => {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(initialImageUrl);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [altText, setAltText] = useState(initialAlt);
-  const [imageDescription, setImageDescription] = useState(initialDescription);
-  const [imageTags, setImageTags] = useState<string[]>(initialTags);
-  const [tagInput, setTagInput] = useState('');
-  const [dragActive, setDragActive] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
-  
-  return {
-    previewUrl,
-    setPreviewUrl,
-    selectedFile,
-    setSelectedFile,
-    altText,
-    setAltText,
-    imageDescription,
-    setImageDescription,
-    imageTags,
-    setImageTags,
-    tagInput,
-    setTagInput,
-    dragActive,
-    setDragActive,
-    isUploading,
-    setIsUploading,
-    progress,
-    setProgress,
-  };
-};
+export default useImageUpload;

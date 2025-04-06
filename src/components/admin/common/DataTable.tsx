@@ -23,6 +23,7 @@ export interface DataTableProps<T> {
   isLoading?: boolean;
   emptyMessage?: string;
   noDataMessage?: string; // Added for backward compatibility
+  onRowClick?: (item: T) => void;
 }
 
 export const DataTable = <T,>({ 
@@ -30,7 +31,8 @@ export const DataTable = <T,>({
   data, 
   isLoading = false, 
   emptyMessage = 'No data available',
-  noDataMessage // For backward compatibility
+  noDataMessage, // For backward compatibility
+  onRowClick
 }: DataTableProps<T>) => {
   const displayMessage = noDataMessage || emptyMessage;
   
@@ -58,7 +60,11 @@ export const DataTable = <T,>({
         <TableBody>
           {data.length > 0 ? (
             data.map((row, rowIndex) => (
-              <TableRow key={rowIndex}>
+              <TableRow 
+                key={rowIndex} 
+                onClick={() => onRowClick && onRowClick(row)}
+                className={onRowClick ? 'cursor-pointer' : ''}
+              >
                 {columns.map((column, colIndex) => (
                   <TableCell key={`${rowIndex}-${colIndex}`}>
                     {column.cell(row)}

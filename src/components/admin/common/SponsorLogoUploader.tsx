@@ -1,9 +1,11 @@
+
 import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
-import { useImageUpload, imageUploadConfigs } from '@/services/images';
+import { useImageUpload } from '@/services/images';
+import { imageUploadConfigs } from '@/services/images/config';
 
 interface SponsorLogoUploaderProps {
   initialImageUrl?: string | null;
@@ -94,11 +96,10 @@ export function SponsorLogoUploader({
       
       const result = await upload(
         selectedFile, 
-        config.bucket, 
+        'sponsor_logos',
         'logos',
         true, 
-        metadata, 
-        config.optimizationOptions
+        metadata
       );
       
       if (result.success && result.data) {

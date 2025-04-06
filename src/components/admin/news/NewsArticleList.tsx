@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getNewsArticles, deleteNewsArticle, toggleArticleFeatured } from '@/services/newsService';
+import { fetchNewsArticles, deleteNewsArticle, toggleArticleFeatured } from '@/services/newsService';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -13,11 +14,10 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { NewsArticle } from '@/types';
 import { cn } from '@/lib/utils';
 
-const { H3, Small } = Typography;
+const { Small } = Typography;
 
 interface NewsArticleListProps {
   onEditArticle: (article: NewsArticle) => void;
@@ -31,28 +31,12 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
 
   const { data: responseData, isLoading } = useQuery({
     queryKey: ['newsArticles'],
-    queryFn: () => getNewsArticles({ orderBy: 'publish_date', orderDirection: 'desc' }),
+    queryFn: () => fetchNewsArticles({ orderBy: 'publish_date', orderDirection: 'desc' }),
   });
 
   const articles = React.useMemo(() => {
-    if (!responseData) return [];
-    
-    if (Array.isArray(responseData)) {
-      return responseData;
-    } else if (responseData && typeof responseData === 'object') {
-      if ('success' in responseData && responseData.data) {
-        if (Array.isArray(responseData.data)) {
-          return responseData.data;
-        } else if (responseData.data.data && Array.isArray(responseData.data.data)) {
-          return responseData.data.data;
-        }
-      }
-      else if ('data' in responseData) {
-        return Array.isArray(responseData.data) ? responseData.data : [];
-      }
-    }
-    
-    return [];
+    if (!responseData || !responseData.success) return [];
+    return responseData.data || [];
   }, [responseData]);
 
   const categories = React.useMemo(() => {
@@ -117,15 +101,15 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
   const columns = [
     {
       key: 'title',
-      title: 'Title',
-      render: (article: NewsArticle) => (
+      header: 'Title',
+      cell: (article: NewsArticle) => (
         <div className="max-w-md truncate font-medium">{article.title}</div>
       )
     },
     {
       key: 'publish_date',
-      title: 'Date',
-      render: (article: NewsArticle) => (
+      header: 'Date',
+      cell: (article: NewsArticle) => (
         <div className="flex items-center">
           <Calendar size={14} className="mr-2 text-gray-500" />
           {format(new Date(article.publish_date), 'MMM d, yyyy')}
@@ -134,8 +118,8 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
     },
     {
       key: 'category',
-      title: 'Category',
-      render: (article: NewsArticle) => (
+      header: 'Category',
+      cell: (article: NewsArticle) => (
         <Badge variant="secondary" className="font-normal">
           {article.category}
         </Badge>
@@ -143,8 +127,8 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
     },
     {
       key: 'is_featured',
-      title: 'Featured',
-      render: (article: NewsArticle) => (
+      header: 'Featured',
+      cell: (article: NewsArticle) => (
         <Switch
           checked={article.is_featured}
           onCheckedChange={() => handleToggleFeatured(article.id, article.is_featured)}
@@ -156,8 +140,8 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
     },
     {
       key: 'actions',
-      title: 'Actions',
-      render: (article: NewsArticle) => (
+      header: 'Actions',
+      cell: (article: NewsArticle) => (
         <div className="flex space-x-2">
           <Button
             variant="ghost"
@@ -230,7 +214,7 @@ export const NewsArticleList: React.FC<NewsArticleListProps> = ({ onEditArticle 
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="">All Categories</SelectItem>
                 {categories && categories.map((category, index) => (
                   <SelectItem key={index} value={category || "_empty"}>
                     {category || "Uncategorized"}

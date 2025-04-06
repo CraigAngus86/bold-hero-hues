@@ -10,6 +10,7 @@ export interface SystemStatus {
 
 // Define system keys for different subsystems
 export const systemKeys = {
+  status: 'system-status',
   leagueTable: 'league-table-scraper',
   fixtures: 'fixtures-scraper',
   news: 'news-system',

@@ -21,7 +21,7 @@ export const useDashboardRefresh = () => {
       queryClient.invalidateQueries({ queryKey: leagueKeys.stats }),
       queryClient.invalidateQueries({ queryKey: mediaKeys.stats }),
       queryClient.invalidateQueries({ queryKey: activityKeys.activities }),
-      queryClient.invalidateQueries({ queryKey: systemKeys.status }),
+      queryClient.invalidateQueries({ queryKey: [systemKeys.status] }),
     ]).then(() => {
       toast.success('Dashboard data refreshed successfully');
     }).catch((error) => {

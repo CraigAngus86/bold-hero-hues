@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import PlayerEditor from '@/components/admin/team/PlayerEditor';
@@ -106,7 +106,7 @@ const TeamManagement = () => {
     } else if (playerView === 'stats' && selectedPlayer) {
       return (
         <PlayerStatistics
-          player={selectedPlayer} 
+          player={selectedPlayer}
           onBack={handleBackToPlayers}
         />
       );

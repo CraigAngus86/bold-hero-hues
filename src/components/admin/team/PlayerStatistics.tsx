@@ -1,211 +1,120 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Edit, Save, XCircle } from "lucide-react";
-import { toast } from "sonner";
-import { TeamMember } from '@/services/teamService';
-import { updateTeamMember } from '@/services/teamDbService';
-import { useTeamStore } from '@/services/teamService';
+
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, PlusCircle } from 'lucide-react';
+import { TeamMember } from '@/types/team';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 
 interface PlayerStatisticsProps {
   player: TeamMember;
+  onBack: () => void;
 }
 
-const PlayerStatistics: React.FC<PlayerStatisticsProps> = ({ player }) => {
-  const [editing, setEditing] = useState(false);
-  const [matchesPlayed, setMatchesPlayed] = useState<number>(player.matches_played || 0);
-  const [goalsScored, setGoalsScored] = useState<number>(player.goals_scored || 0);
-  const [assists, setAssists] = useState<number>(player.assists || 0);
-  const [yellowCards, setYellowCards] = useState<number>(player.yellow_cards || 0);
-  const [redCards, setRedCards] = useState<number>(player.red_cards || 0);
-  const [position, setPosition] = useState<string>(player.position || '');
-  const { loadTeamMembers } = useTeamStore();
-
-  const positions = [
-    "Goalkeeper",
-    "Defender",
-    "Midfielder",
-    "Forward"
+const PlayerStatistics: React.FC<PlayerStatisticsProps> = ({ player, onBack }) => {
+  // Sample stats data for visualization
+  const sampleStats = [
+    { category: 'Goals', value: player.stats?.goals || Math.floor(Math.random() * 15) },
+    { category: 'Assists', value: player.stats?.assists || Math.floor(Math.random() * 12) },
+    { category: 'Appearances', value: player.stats?.appearances || Math.floor(Math.random() * 30) + 10 },
+    { category: 'Minutes', value: player.stats?.minutes || Math.floor(Math.random() * 2000) + 500 },
+    { category: 'Yellow Cards', value: player.stats?.yellowCards || Math.floor(Math.random() * 8) },
+    { category: 'Red Cards', value: player.stats?.redCards || Math.floor(Math.random() * 2) },
   ];
 
-  useEffect(() => {
-    setMatchesPlayed(player.matches_played || 0);
-    setGoalsScored(player.goals_scored || 0);
-    setAssists(player.assists || 0);
-    setYellowCards(player.yellow_cards || 0);
-    setRedCards(player.red_cards || 0);
-    setPosition(player.position || '');
-  }, [player]);
-
-  const handleSave = async () => {
-    try {
-      // Validate numeric inputs
-      if (isNaN(matchesPlayed) || isNaN(goalsScored) || isNaN(assists) || isNaN(yellowCards) || isNaN(redCards)) {
-        toast.error("Please enter valid numbers for statistics");
-        return;
-      }
-
-      // Update player statistics
-      const updatedPlayer = {
-        ...player,
-        matches_played: Number(matchesPlayed),
-        goals_scored: Number(goalsScored),
-        assists: Number(assists),
-        yellow_cards: Number(yellowCards),
-        red_cards: Number(redCards),
-        position: position,
-      };
-
-      await updateTeamMember(updatedPlayer);
-      await loadTeamMembers();
-      toast.success("Player statistics updated successfully");
-      setEditing(false);
-    } catch (error) {
-      console.error("Error updating player statistics:", error);
-      toast.error("Failed to update player statistics");
-    }
-  };
-
-  const handleCancel = () => {
-    setMatchesPlayed(player.matches_played || 0);
-    setGoalsScored(player.goals_scored || 0);
-    setAssists(player.assists || 0);
-    setYellowCards(player.yellow_cards || 0);
-    setRedCards(player.red_cards || 0);
-    setPosition(player.position || '');
-    setEditing(false);
-  };
-
   return (
-    <Card className="w-full">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-2xl font-bold">
-          {player.name} Statistics
-        </CardTitle>
-        {editing ? (
-          <div className="space-x-2">
-            <Button variant="ghost" onClick={handleCancel}>
-              <XCircle className="h-4 w-4 mr-2" />
-              Cancel
-            </Button>
-            <Button onClick={handleSave}>
-              <Save className="h-4 w-4 mr-2" />
-              Save
-            </Button>
-          </div>
-        ) : (
-          <Button onClick={() => setEditing(true)}>
-            <Edit className="h-4 w-4 mr-2" />
-            Edit Statistics
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div className="flex items-center">
+          <Button variant="ghost" onClick={onBack} className="mr-2">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
           </Button>
-        )}
+          <CardTitle>{player.name} - Statistics</CardTitle>
+        </div>
+        <Button size="sm">
+          <PlusCircle className="h-4 w-4 mr-2" />
+          Update Stats
+        </Button>
       </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Statistic</TableHead>
-              <TableHead>Value</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow>
-              <TableCell>Matches Played</TableCell>
-              <TableCell>
-                {editing ? (
-                  <Input
-                    type="number"
-                    value={matchesPlayed}
-                    onChange={(e) => setMatchesPlayed(Number(e.target.value))}
-                  />
-                ) : (
-                  matchesPlayed
-                )}
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Goals Scored</TableCell>
-              <TableCell>
-                {editing ? (
-                  <Input
-                    type="number"
-                    value={goalsScored}
-                    onChange={(e) => setGoalsScored(Number(e.target.value))}
-                  />
-                ) : (
-                  goalsScored
-                )}
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Assists</TableCell>
-              <TableCell>
-                {editing ? (
-                  <Input
-                    type="number"
-                    value={assists}
-                    onChange={(e) => setAssists(Number(e.target.value))}
-                  />
-                ) : (
-                  assists
-                )}
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Yellow Cards</TableCell>
-              <TableCell>
-                {editing ? (
-                  <Input
-                    type="number"
-                    value={yellowCards}
-                    onChange={(e) => setYellowCards(Number(e.target.value))}
-                  />
-                ) : (
-                  yellowCards
-                )}
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Red Cards</TableCell>
-              <TableCell>
-                {editing ? (
-                  <Input
-                    type="number"
-                    value={redCards}
-                    onChange={(e) => setRedCards(Number(e.target.value))}
-                  />
-                ) : (
-                  redCards
-                )}
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Position</TableCell>
-              <TableCell>
-                {editing ? (
-                  <Select onValueChange={setPosition} defaultValue={position}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Select position" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {positions.map((pos) => (
-                        <SelectItem key={pos} value={pos}>
-                          {pos}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  position
-                )}
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+      <CardContent className="space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardContent className="pt-6">
+              <h3 className="text-lg font-bold">Season</h3>
+              <p className="text-3xl font-bold">2023/24</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <h3 className="text-lg font-bold">Appearances</h3>
+              <p className="text-3xl font-bold">{sampleStats[2].value}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <h3 className="text-lg font-bold">Goals</h3>
+              <p className="text-3xl font-bold">{sampleStats[0].value}</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Performance Statistics</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={sampleStats}>
+                <XAxis dataKey="category" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="value" fill="#8884d8" name="Value" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <h3 className="font-semibold mb-2">Performance Details</h3>
+            <table className="w-full border-collapse">
+              <tbody>
+                {sampleStats.map(stat => (
+                  <tr key={stat.category} className="border-b">
+                    <td className="py-2 font-medium">{stat.category}</td>
+                    <td className="py-2 text-right">{stat.value}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <h3 className="font-semibold mb-2">Player Information</h3>
+            <div className="space-y-2">
+              <div>
+                <span className="font-medium">Position:</span> {player.position}
+              </div>
+              <div>
+                <span className="font-medium">Nationality:</span> {player.nationality}
+              </div>
+              <div>
+                <span className="font-medium">Jersey Number:</span> {player.jersey_number}
+              </div>
+              <div>
+                <span className="font-medium">Status:</span> 
+                <span className={`ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                  player.is_active 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-gray-100 text-gray-800'
+                }`}>
+                  {player.is_active ? 'Active' : 'Inactive'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

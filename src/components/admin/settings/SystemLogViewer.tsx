@@ -1,325 +1,188 @@
 
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
-import { toast } from 'sonner';
-import { AlertCircle, Loader2, RefreshCw, Trash2, Filter, Download, ArrowDown, ArrowUp } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { supabase } from '@/integrations/supabase/client';
-
-interface SystemLog {
-  id: number | string;
-  timestamp: string;
-  type: 'error' | 'warning' | 'info' | 'debug';
-  source: string;
-  message: string;
-}
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AlertCircle, AlertTriangle, Info, Bug, RefreshCw, Filter, Search, Download } from 'lucide-react';
+import { SystemLog } from '@/types';
+import { format, parseISO } from 'date-fns';
 
 interface SystemLogViewerProps {
-  initialLogs?: SystemLog[];
-  fetchFromDatabase?: boolean;
-  maxEntries?: number;
-  showFilters?: boolean;
+  initialLogs: SystemLog[];
   title?: string;
   description?: string;
+  onRefresh?: () => void;
+  isLoading?: boolean;
 }
 
-export const SystemLogViewer = ({
-  initialLogs = [],
-  fetchFromDatabase = false,
-  maxEntries = 100,
-  showFilters = true,
+export const SystemLogViewer: React.FC<SystemLogViewerProps> = ({
+  initialLogs,
   title = "System Logs",
-  description = "View and manage system logs"
-}: SystemLogViewerProps) => {
+  description = "View system events and errors",
+  onRefresh,
+  isLoading = false,
+}) => {
   const [logs, setLogs] = useState<SystemLog[]>(initialLogs);
-  const [filteredLogs, setFilteredLogs] = useState<SystemLog[]>(initialLogs);
-  const [isLoading, setIsLoading] = useState(false);
-  const [typeFilter, setTypeFilter] = useState<string>("all");
-  const [sourceFilter, setSourceFilter] = useState<string>("all");
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  
-  // Extract unique sources for filtering
-  const sources = Array.from(new Set(logs.map(log => log.source || 'unknown')));
-  
-  // Fetch logs from database if needed
-  useEffect(() => {
-    if (fetchFromDatabase) {
-      refreshLogs();
-    } else {
-      setFilteredLogs(initialLogs);
-    }
-  }, [fetchFromDatabase, initialLogs]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [logTypeFilter, setLogTypeFilter] = useState<string>('all');
 
-  // Function for filtering logs
-  useEffect(() => {
-    let result = [...logs];
-    
-    if (typeFilter !== "all") {
-      result = result.filter(log => log.type === typeFilter);
+  // Filter logs based on type and search term
+  const filteredLogs = logs.filter(log => {
+    const matchesType = logTypeFilter === 'all' || log.type === logTypeFilter;
+    const matchesSearch = log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      log.source.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesType && matchesSearch;
+  });
+
+  // Handle refresh button click
+  const handleRefresh = () => {
+    if (onRefresh) {
+      onRefresh();
     }
-    
-    if (sourceFilter !== "all") {
-      result = result.filter(log => log.source === sourceFilter);
-    }
-    
-    // Sort logs by timestamp
-    result.sort((a, b) => {
-      const dateA = new Date(a.timestamp).getTime();
-      const dateB = new Date(b.timestamp).getTime();
-      return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
-    });
-    
-    setFilteredLogs(result);
-  }, [logs, typeFilter, sourceFilter, sortDirection]);
-  
-  // Function for refreshing logs
-  const refreshLogs = async () => {
-    setIsLoading(true);
-    
-    if (fetchFromDatabase) {
-      try {
-        // Fetch logs from the database
-        const { data, error } = await supabase
-          .from('scrape_logs')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(maxEntries);
-        
-        if (error) throw error;
-        
-        // Map database logs to SystemLog format
-        const mappedLogs: SystemLog[] = (data || []).map(log => ({
-          id: log.id,
-          timestamp: log.created_at,
-          type: getLogType(log),
-          source: log.source || 'system',
-          message: log.error_message || `${log.items_found || 0} items found, ${log.items_added || 0} added, ${log.items_updated || 0} updated`
-        }));
-        
-        setLogs(mappedLogs);
-        toast.success('Logs refreshed');
-      } catch (error) {
-        console.error('Error fetching logs:', error);
-        toast.error('Failed to fetch logs');
-      }
-    } else {
-      // Simulate API call for mock data
-      setTimeout(() => {
-        const newLog = {
-          id: logs.length + 1,
-          timestamp: new Date().toISOString(),
-          type: Math.random() > 0.7 ? 'error' : Math.random() > 0.5 ? 'warning' : 'info',
-          source: 'system',
-          message: `Log entry at ${new Date().toLocaleTimeString()}`
-        } as SystemLog;
-        
-        setLogs([newLog, ...logs]);
-        toast.success('Logs refreshed');
-      }, 600);
-    }
-    
-    setIsLoading(false);
-  };
-  
-  // Function for determining log type from database record
-  const getLogType = (log: any): 'error' | 'warning' | 'info' | 'debug' => {
-    if (log.error_message) return 'error';
-    if (log.status === 'warning') return 'warning';
-    return 'info';
   };
 
-  // Function for clearing logs by type
-  const clearLogsByType = (type: string) => () => {
-    setLogs(logs.filter(log => log.type !== type));
-    toast.success(`Cleared ${type} logs`);
+  // Export logs as JSON
+  const handleExport = () => {
+    const dataStr = JSON.stringify(logs, null, 2);
+    const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
+    
+    const exportFileDefaultName = `system-logs-${new Date().toISOString().split('T')[0]}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
   };
 
-  // Function for formatting timestamp
+  // Format timestamp for display
   const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp);
-    return date.toLocaleString();
+    try {
+      return format(parseISO(timestamp), 'MMM d, yyyy HH:mm:ss');
+    } catch (e) {
+      return timestamp;
+    }
   };
 
-  // Function for exporting logs
-  const exportLogs = () => {
-    try {
-      const data = JSON.stringify(filteredLogs, null, 2);
-      const blob = new Blob([data], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `system-logs-${new Date().toISOString().slice(0,10)}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      toast.success('Logs exported successfully');
-    } catch (error) {
-      toast.error('Failed to export logs');
+  // Get icon for log type
+  const getLogTypeIcon = (type: SystemLog['type']) => {
+    switch (type) {
+      case 'error':
+        return <AlertCircle className="h-4 w-4 text-destructive" />;
+      case 'warning':
+        return <AlertTriangle className="h-4 w-4 text-amber-500" />;
+      case 'info':
+        return <Info className="h-4 w-4 text-blue-500" />;
+      case 'debug':
+        return <Bug className="h-4 w-4 text-gray-500" />;
+      default:
+        return <Info className="h-4 w-4" />;
+    }
+  };
+
+  // Get badge variant based on log type
+  const getLogTypeBadgeVariant = (type: SystemLog['type']) => {
+    switch (type) {
+      case 'error':
+        return 'destructive';
+      case 'warning':
+        return 'warning';
+      case 'info':
+        return 'default';
+      case 'debug':
+        return 'outline';
+      default:
+        return 'secondary';
     }
   };
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
+      <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle className="text-lg">{title}</CardTitle>
-          {description && <p className="text-sm text-muted-foreground">{description}</p>}
+          <CardTitle>{title}</CardTitle>
+          {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
         </div>
         <div className="flex space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={refreshLogs}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-            ) : (
-              <RefreshCw className="h-4 w-4 mr-1" />
-            )}
-            Refresh
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={exportLogs}
-          >
-            <Download className="h-4 w-4 mr-1" />
+          <Button onClick={handleExport} variant="outline" size="sm">
+            <Download className="mr-2 h-4 w-4" />
             Export
           </Button>
-          <Button 
-            variant="destructive" 
-            size="sm"
-            onClick={() => {
-              setLogs([]);
-              toast.success('All logs cleared');
-            }}
-          >
-            <Trash2 className="h-4 w-4 mr-1" />
-            Clear All
-          </Button>
+          {onRefresh && (
+            <Button onClick={handleRefresh} variant="outline" size="sm" disabled={isLoading}>
+              <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent>
-        {showFilters && (
-          <div className="mb-4 flex flex-wrap items-center gap-4">
-            <div className="flex items-center space-x-2">
-              <span className="text-sm font-medium">Type:</span>
-              <Select
-                value={typeFilter}
-                onValueChange={setTypeFilter}
-              >
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue placeholder="Filter type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="error">Errors</SelectItem>
-                  <SelectItem value="warning">Warnings</SelectItem>
-                  <SelectItem value="info">Info</SelectItem>
-                  <SelectItem value="debug">Debug</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {sources.length > 1 && (
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium">Source:</span>
-                <Select
-                  value={sourceFilter}
-                  onValueChange={setSourceFilter}
-                >
-                  <SelectTrigger className="w-[150px]">
-                    <SelectValue placeholder="Filter source" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Sources</SelectItem>
-                    {sources.map((source) => (
-                      <SelectItem key={source} value={source}>
-                        {source}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
-              className="ml-auto"
-            >
-              {sortDirection === 'asc' ? (
-                <><ArrowUp className="h-4 w-4 mr-1" /> Oldest First</>
-              ) : (
-                <><ArrowDown className="h-4 w-4 mr-1" /> Newest First</>
-              )}
-            </Button>
+        <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search logs..."
+              className="pl-8"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-        )}
-        
-        <div className="mb-4 flex justify-end space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={clearLogsByType('error')}
-            className="bg-red-50 border-red-200 hover:bg-red-100"
-          >
-            <AlertCircle className="h-4 w-4 mr-1 text-red-500" />
-            Clear Errors
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={clearLogsByType('warning')}
-            className="bg-amber-50 border-amber-200 hover:bg-amber-100"
-          >
-            <AlertCircle className="h-4 w-4 mr-1 text-amber-500" />
-            Clear Warnings
-          </Button>
+          <div className="w-full md:w-48">
+            <Select value={logTypeFilter} onValueChange={setLogTypeFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Logs</SelectItem>
+                <SelectItem value="error">Errors</SelectItem>
+                <SelectItem value="warning">Warnings</SelectItem>
+                <SelectItem value="info">Info</SelectItem>
+                <SelectItem value="debug">Debug</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        
-        <div className="border rounded-md">
-          {filteredLogs.length === 0 ? (
-            <div className="p-4 text-center text-gray-500">
-              No system logs to display
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
+
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[100px]">Type</TableHead>
+                <TableHead>Message</TableHead>
+                <TableHead>Source</TableHead>
+                <TableHead className="w-[180px]">Timestamp</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredLogs.length === 0 ? (
                 <TableRow>
-                  <TableHead className="w-[200px]">Timestamp</TableHead>
-                  <TableHead className="w-[100px]">Type</TableHead>
-                  {sources.length > 1 && <TableHead className="w-[100px]">Source</TableHead>}
-                  <TableHead>Message</TableHead>
+                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                    No logs found
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredLogs.map((log) => (
+              ) : (
+                filteredLogs.map((log) => (
                   <TableRow key={log.id}>
-                    <TableCell className="font-mono text-sm">
-                      {formatTimestamp(log.timestamp)}
-                    </TableCell>
                     <TableCell>
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
-                        ${log.type === 'error' ? 'bg-red-100 text-red-800' : 
-                          log.type === 'warning' ? 'bg-amber-100 text-amber-800' : 
-                          log.type === 'debug' ? 'bg-purple-100 text-purple-800' :
-                          'bg-blue-100 text-blue-800'}`}>
-                        {log.type}
-                      </span>
+                      <Badge variant={getLogTypeBadgeVariant(log.type)} className="flex items-center gap-1">
+                        {getLogTypeIcon(log.type)}
+                        <span className="capitalize">{log.type}</span>
+                      </Badge>
                     </TableCell>
-                    {sources.length > 1 && <TableCell>{log.source}</TableCell>}
-                    <TableCell>{log.message}</TableCell>
+                    <TableCell className="font-medium">{log.message}</TableCell>
+                    <TableCell>{log.source}</TableCell>
+                    <TableCell className="text-muted-foreground">{formatTimestamp(log.timestamp)}</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        <div className="mt-4 text-sm text-muted-foreground text-right">
+          Showing {filteredLogs.length} of {logs.length} logs
         </div>
       </CardContent>
     </Card>

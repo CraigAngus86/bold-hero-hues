@@ -1,56 +1,41 @@
 
-// Configuration for image storage
-export const imageStorageConfig = {
-  allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
-  maxSizeMB: 10, // Maximum file size in MB
-  buckets: {
-    news: 'news_images',
-    teams: 'player_images',
-    sponsors: 'sponsor_logos',
-    general: 'images',
-    media: 'media'
+import { BucketType, ImageUploadConfig } from "./types";
+
+export const imageUploadConfigs: Record<BucketType, ImageUploadConfig> = {
+  news: {
+    maxFileSize: 5 * 1024 * 1024, // 5MB
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
+    dimensions: {
+      minWidth: 800,
+      minHeight: 450,
+      maxWidth: 2000,
+      maxHeight: 1500
+    }
   },
-  thumbnailSizes: {
-    small: 200,
-    medium: 400,
-    large: 800
+  team: {
+    maxFileSize: 3 * 1024 * 1024, // 3MB
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
+    dimensions: {
+      minWidth: 300,
+      minHeight: 300,
+      maxWidth: 1000,
+      maxHeight: 1000
+    }
   },
-  defaultOptimization: {
-    maxWidth: 1920,
-    quality: 85
+  sponsors: {
+    maxFileSize: 2 * 1024 * 1024, // 2MB
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
+    dimensions: {
+      maxWidth: 800,
+      maxHeight: 800
+    }
+  },
+  fixtures: {
+    maxFileSize: 3 * 1024 * 1024, // 3MB
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
+  },
+  general: {
+    maxFileSize: 10 * 1024 * 1024, // 10MB
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'],
   }
-};
-
-// Image formats by use case
-export const imageFormats = {
-  webDisplay: {
-    format: 'image/webp',
-    quality: 80
-  },
-  thumbnails: {
-    format: 'image/webp',
-    quality: 60
-  },
-  highQuality: {
-    format: 'image/jpeg',
-    quality: 90
-  }
-};
-
-// Default alt text patterns
-export const defaultAltPatterns = {
-  news: 'News image: {title}',
-  player: '{name} - Banks o\' Dee FC player',
-  sponsor: '{name} logo - Banks o\' Dee FC sponsor',
-  fixture: 'Match between {homeTeam} and {awayTeam}',
-  team: 'Banks o\' Dee FC team photo'
-};
-
-// Image path generators
-export const imagePaths = {
-  newsImage: (slug: string, filename: string) => `news/${slug}/${filename}`,
-  playerImage: (playerId: string, filename: string) => `players/${playerId}/${filename}`,
-  sponsorLogo: (sponsorId: string, filename: string) => `sponsors/${sponsorId}/${filename}`,
-  mediaImage: (category: string, filename: string) => `media/${category}/${filename}`,
-  fixtureImage: (fixtureId: string, filename: string) => `fixtures/${fixtureId}/${filename}`
 };

@@ -7,7 +7,7 @@ import {
   TableHead,
   TableHeader,
   TableRow
-} from '@/components/ui/table';
+} from '@/components/ui/Table';
 import { Loader2 } from 'lucide-react';
 
 interface Column<T> {

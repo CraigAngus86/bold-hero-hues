@@ -1,5 +1,5 @@
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { createSlug } from "@/lib/utils";
 import { NewsArticle, CreateNewsArticleData, UpdateNewsArticleData } from "../types";
 

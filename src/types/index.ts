@@ -35,3 +35,71 @@ export interface AuthContextType {
   signOut: () => Promise<void>;
   hasRole: (role: UserRole) => boolean;
 }
+
+// News types
+export interface NewsArticle {
+  id: string;
+  title: string;
+  content: string;
+  slug: string;
+  category: string;
+  author?: string;
+  image_url?: string;
+  publish_date: string;
+  is_featured: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateNewsArticleData {
+  title: string;
+  content: string;
+  slug: string;
+  category: string;
+  author?: string;
+  image_url?: string;
+  is_featured?: boolean;
+}
+
+export interface UpdateNewsArticleData {
+  title?: string;
+  content?: string;
+  slug?: string;
+  category?: string;
+  author?: string;
+  image_url?: string;
+  is_featured?: boolean;
+}
+
+export interface NewsQueryOptions {
+  limit?: number;
+  category?: string;
+  featured?: boolean;
+  search?: string;
+  page?: number;
+}
+
+// Fixture types
+export interface Fixture {
+  id: string;
+  date: string;
+  time: string;
+  homeTeam: string;
+  awayTeam: string;
+  competition: string;
+  venue?: string;
+  isCompleted: boolean;
+  homeScore?: number;
+  awayScore?: number;
+  source?: string;
+  ticketLink?: string;
+}
+
+// Team types
+export interface TeamStats {
+  wins: number;
+  losses: number;
+  draws: number;
+  goalsScored: number;
+  goalsConceded: number;
+}

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ModeToggle } from '@/components/mode-toggle';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { SidebarNavItem } from './types';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface HeaderProps {
   setIsMobileSidebarOpen: (open: boolean) => void;
@@ -14,12 +15,27 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ setIsMobileSidebarOpen, navItems }) => {
   const location = useLocation();
+  const { profile, hasRole } = useAuth();
   
   // Find the current active section
   const currentSection = navItems.find(item => 
     location.pathname === item.href || 
     (item.href !== '/admin' && location.pathname.startsWith(item.href))
   );
+  
+  // Get user initials for avatar
+  const getUserInitials = (): string => {
+    if (!profile || !profile.full_name) return 'AD';
+    
+    const nameParts = profile.full_name.trim().split(' ');
+    if (nameParts.length === 0) return 'AD';
+    
+    if (nameParts.length === 1) {
+      return nameParts[0].substring(0, 2).toUpperCase();
+    }
+    
+    return (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase();
+  };
   
   return (
     <header className="bg-white dark:bg-gray-800 shadow-sm z-10">
@@ -40,7 +56,7 @@ export const Header: React.FC<HeaderProps> = ({ setIsMobileSidebarOpen, navItems
         <div className="flex items-center space-x-2">
           <ModeToggle />
           <Avatar className="h-8 w-8 md:hidden">
-            <AvatarFallback>AD</AvatarFallback>
+            <AvatarFallback>{getUserInitials()}</AvatarFallback>
           </Avatar>
         </div>
       </div>

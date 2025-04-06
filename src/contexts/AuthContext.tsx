@@ -1,158 +1,172 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { AuthContextType, UserProfile, UserRole } from '@/types';
 import { toast } from 'sonner';
 
-// Create the auth context
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Initialize with default values
+const defaultAuthContext: AuthContextType = {
+  user: null,
+  profile: null,
+  isLoading: true,
+  signIn: async () => {},
+  signUp: async () => {},
+  signOut: async () => {},
+  hasRole: () => false,
+};
 
-// Provider component
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export const AuthContext = createContext<AuthContextType>(defaultAuthContext);
+
+export const useAuth = () => useContext(AuthContext);
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [roles, setRoles] = useState<string[]>([]);
 
-  // Initialize auth state
+  // Handle session changes
   useEffect(() => {
-    // Set up auth state listener first
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      // Use setTimeout to avoid potential recursive issues
-      if (session?.user) {
-        setTimeout(() => {
-          fetchUserProfile(session.user.id);
-          fetchUserRoles(session.user.id);
-        }, 0);
-      } else {
-        setProfile(null);
-        setRoles([]);
-      }
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      handleAuthChange(session);
     });
 
-    // Then check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchUserProfile(session.user.id);
-        fetchUserRoles(session.user.id);
-      }
-    }).finally(() => {
-      setIsLoading(false);
-    });
+    // Initial session check
+    const initialSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      handleAuthChange(session);
+    };
+    
+    initialSession();
 
-    return () => subscription.unsubscribe();
+    return () => {
+      if (authListener && authListener.subscription) {
+        authListener.subscription.unsubscribe();
+      }
+    };
   }, []);
 
-  // Fetch user profile
-  const fetchUserProfile = async (userId: string) => {
+  // Handle auth change and fetch related data
+  const handleAuthChange = async (session: Session | null) => {
+    setIsLoading(true);
+    
+    if (!session || !session.user) {
+      setUser(null);
+      setProfile(null);
+      setUserRoles([]);
+      setIsLoading(false);
+      return;
+    }
+    
     try {
-      const { data, error } = await supabase
+      setUser(session.user);
+      
+      // Fetch user profile
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', userId)
+        .eq('id', session.user.id)
         .single();
-
-      if (error) {
-        console.error('Error fetching user profile:', error);
-        return;
+        
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+      } else if (profileData) {
+        setProfile({
+          id: profileData.id,
+          email: profileData.email,
+          full_name: profileData.full_name,
+          avatar_url: profileData.avatar_url,
+          created_at: profileData.created_at,
+          updated_at: profileData.updated_at
+        });
       }
-
-      if (data) {
-        setProfile(data as UserProfile);
-      }
-    } catch (error) {
-      console.error('Error in fetchUserProfile:', error);
-    }
-  };
-
-  // Fetch user roles
-  const fetchUserRoles = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
+      
+      // Fetch user roles
+      const { data: rolesData, error: rolesError } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', userId);
-
-      if (error) {
-        console.error('Error fetching user roles:', error);
-        return;
-      }
-
-      if (data) {
-        const userRoles = data.map(item => item.role);
-        setRoles(userRoles);
+        .eq('user_id', session.user.id);
+        
+      if (rolesError) {
+        console.error('Error fetching user roles:', rolesError);
+      } else if (rolesData) {
+        const roles = rolesData.map(role => role.role as UserRole);
+        setUserRoles(roles);
       }
     } catch (error) {
-      console.error('Error in fetchUserRoles:', error);
+      console.error('Session handling error:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Sign in function
+  // Sign in with email and password
   const signIn = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) throw error;
-      
+      setIsLoading(true);
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        toast.error(error.message);
+        return { error };
+      }
       toast.success('Signed in successfully');
     } catch (error: any) {
-      console.error('Error signing in:', error);
+      console.error('Sign in error:', error);
       toast.error(error.message || 'Failed to sign in');
-      throw error;
+      return { error };
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Sign up function
+  // Sign up with email and password
   const signUp = async (email: string, password: string, metadata?: any) => {
     try {
-      const { data, error } = await supabase.auth.signUp({
+      setIsLoading(true);
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: metadata
         }
       });
-
-      if (error) throw error;
       
-      toast.success('Signed up successfully. Please check your email for verification.');
+      if (error) {
+        toast.error(error.message);
+        return { error };
+      }
+      
+      toast.success('Sign up successful! Check your email for verification.');
     } catch (error: any) {
-      console.error('Error signing up:', error);
+      console.error('Sign up error:', error);
       toast.error(error.message || 'Failed to sign up');
-      throw error;
+      return { error };
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Sign out function
+  // Sign out
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      setIsLoading(true);
+      await supabase.auth.signOut();
       toast.success('Signed out successfully');
     } catch (error: any) {
-      console.error('Error signing out:', error);
+      console.error('Sign out error:', error);
       toast.error(error.message || 'Failed to sign out');
-      throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
   // Check if user has specific role
-  const hasRole = (role: UserRole) => {
-    return roles.includes(role);
+  const hasRole = (role: UserRole): boolean => {
+    return userRoles.includes(role);
   };
 
-  // Context value
+  // Provide auth context
   const value = {
     user,
     profile,
@@ -170,14 +184,4 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-// Custom hook for accessing the auth context
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
-
-// Re-export UserRole type
-export type { UserRole };
+export default AuthProvider;

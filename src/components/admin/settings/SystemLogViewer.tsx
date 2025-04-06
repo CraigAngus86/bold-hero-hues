@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table"; // Fixed import path
 import { AlertCircle, AlertTriangle, Info, Bug, RefreshCw, Filter, Search, Download } from 'lucide-react';
 import { SystemLog } from '@/types';
 import { format, parseISO } from 'date-fns';
@@ -88,7 +88,7 @@ export const SystemLogViewer: React.FC<SystemLogViewerProps> = ({
       case 'error':
         return 'destructive';
       case 'warning':
-        return 'secondary'; // Changed from 'warning' to 'secondary' as warning isn't a valid variant
+        return 'secondary'; // Using secondary as warning isn't a valid variant
       case 'info':
         return 'default';
       case 'debug':

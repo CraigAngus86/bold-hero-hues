@@ -1,107 +1,82 @@
 
-import React, { ReactNode } from 'react';
-import { cn } from '@/lib/utils';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from "@/components/ui/Table";
-import { typography, spacing } from '@/styles/designTokens';
-import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import React from 'react';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
+import { Loader2 } from 'lucide-react';
 
-export interface Column<T> {
+export interface ColumnDef<T> {
   key: string;
   header: string;
-  cell?: (item: T) => ReactNode;
+  cell: (item: T) => React.ReactNode;
   sortable?: boolean;
 }
 
-interface DataTableProps<T> {
-  columns: Column<T>[];
+export interface DataTableProps<T> {
+  columns: ColumnDef<T>[];
   data: T[];
   isLoading?: boolean;
   emptyMessage?: string;
-  sortColumn?: string;
-  sortDirection?: 'asc' | 'desc';
-  onSort?: (column: string) => void;
-  onRowClick?: (item: T) => void;
-  className?: string;
+  noDataMessage?: string; // Added for backward compatibility
 }
 
-export function DataTable<T extends Record<string, any>>({
-  columns,
-  data,
-  isLoading = false,
-  emptyMessage = "No data available",
-  sortColumn,
-  sortDirection,
-  onSort,
-  onRowClick,
-  className
-}: DataTableProps<T>) {
+export const DataTable = <T,>({ 
+  columns, 
+  data, 
+  isLoading = false, 
+  emptyMessage = 'No data available',
+  noDataMessage // For backward compatibility
+}: DataTableProps<T>) => {
+  const displayMessage = noDataMessage || emptyMessage;
+  
+  if (isLoading) {
+    return (
+      <div className="w-full flex flex-col items-center justify-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-2" />
+        <p className="text-muted-foreground text-sm">Loading data...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className={cn("w-full overflow-auto rounded-md border", className)}>
+    <div className="w-full overflow-auto">
       <Table>
         <TableHeader>
           <TableRow>
             {columns.map((column) => (
-              <TableHead 
-                key={column.key}
-                className={cn(
-                  "h-10 px-4",
-                  column.sortable && "cursor-pointer hover:bg-muted/50"
-                )}
-                onClick={column.sortable && onSort ? () => onSort(column.key) : undefined}
-              >
-                <div className="flex items-center gap-1">
-                  <span>{column.header}</span>
-                  {column.sortable && sortColumn === column.key && (
-                    sortDirection === 'asc' ? 
-                      <ChevronUp className="h-4 w-4" /> : 
-                      <ChevronDown className="h-4 w-4" />
-                  )}
-                </div>
+              <TableHead key={column.key.toString()}>
+                {column.header}
               </TableHead>
             ))}
           </TableRow>
         </TableHeader>
         <TableBody>
-          {isLoading ? (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-40 text-center">
-                <div className="flex justify-center items-center h-full">
-                  <Loader2 className="h-6 w-6 animate-spin text-primary-800" />
-                </div>
-              </TableCell>
-            </TableRow>
-          ) : data.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-40 text-center text-muted-foreground">
-                {emptyMessage}
-              </TableCell>
-            </TableRow>
-          ) : (
-            data.map((row, i) => (
-              <TableRow 
-                key={i} 
-                onClick={onRowClick ? () => onRowClick(row) : undefined}
-                className={onRowClick ? "cursor-pointer" : undefined}
-              >
-                {columns.map((column) => (
-                  <TableCell key={`${i}-${column.key}`} className="p-4">
-                    {column.cell ? column.cell(row) : row[column.key]}
+          {data.length > 0 ? (
+            data.map((row, rowIndex) => (
+              <TableRow key={rowIndex}>
+                {columns.map((column, colIndex) => (
+                  <TableCell key={`${rowIndex}-${colIndex}`}>
+                    {column.cell(row)}
                   </TableCell>
                 ))}
               </TableRow>
             ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="text-center p-4">
+                {displayMessage}
+              </TableCell>
+            </TableRow>
           )}
         </TableBody>
       </Table>
     </div>
   );
-}
+};
 
 export default DataTable;

@@ -33,7 +33,7 @@ const getNavItems = (): SidebarNavItem[] => [
   { title: 'Team & Management', href: '/admin/team', icon: <Users className="h-5 w-5" /> },
   { title: 'Fixtures & Results', href: '/admin/fixtures', icon: <Calendar className="h-5 w-5" /> },
   { title: 'League Table', href: '/admin/league-table-management', icon: <TableProperties className="h-5 w-5" /> },
-  { title: 'Media Gallery', href: '/admin/images', icon: <Image className="h-5 w-5" /> },
+  { title: 'Media Gallery', href: '/admin/media', icon: <Image className="h-5 w-5" /> },
   { title: 'Sponsors', href: '/admin/sponsors', icon: <Award className="h-5 w-5" /> },
   { title: 'Tickets', href: '/admin/tickets', icon: <ShoppingBag className="h-5 w-5" /> },
   { title: 'Fans', href: '/admin/fans', icon: <Users2 className="h-5 w-5" /> },

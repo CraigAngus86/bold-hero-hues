@@ -3,14 +3,15 @@ import React, { useState } from 'react';
 import { AdminLayout } from '@/components/admin/layout';
 import { AdminPageLayout } from '@/components/admin/layout/AdminPageLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import UserManagement from '@/components/admin/settings/UserManagement';
+import UserManagement from '@/components/admin/settings/user-management';
 import SiteConfiguration from '@/components/admin/settings/SiteConfiguration';
 import ScraperConfiguration from '@/components/admin/settings/ScraperConfiguration';
 import SupabaseConnection from '@/components/admin/settings/SupabaseConnection';
 import EmailConfiguration from '@/components/admin/settings/EmailConfiguration';
 import SystemLogs from '@/components/admin/settings/SystemLogs';
 import ImportExportTools from '@/components/admin/settings/ImportExportTools';
-import { Helmet } from 'react-helmet-async';
+import DatabaseManagement from '@/components/admin/settings/DatabaseManagement';
+import SystemLogViewer from '@/components/admin/settings/SystemLogViewer';
 import { spacing, typography } from '@/styles/designTokens';
 
 const Settings = () => {
@@ -28,7 +29,7 @@ const Settings = () => {
               <TabsTrigger value="users">Users</TabsTrigger>
               <TabsTrigger value="site">Site Config</TabsTrigger>
               <TabsTrigger value="scraper">Scraper</TabsTrigger>
-              <TabsTrigger value="supabase">Database</TabsTrigger>
+              <TabsTrigger value="database">Database</TabsTrigger>
               <TabsTrigger value="email">Email</TabsTrigger>
               <TabsTrigger value="logs">Logs</TabsTrigger>
               <TabsTrigger value="data">Import/Export</TabsTrigger>
@@ -48,7 +49,8 @@ const Settings = () => {
             <ScraperConfiguration />
           </TabsContent>
 
-          <TabsContent value="supabase" className={`space-y-4 mt-2 ${spacing.sectionMargin}`}>
+          <TabsContent value="database" className={`space-y-4 mt-2 ${spacing.sectionMargin}`}>
+            <DatabaseManagement />
             <SupabaseConnection />
           </TabsContent>
 
@@ -57,6 +59,12 @@ const Settings = () => {
           </TabsContent>
 
           <TabsContent value="logs" className={`space-y-4 mt-2 ${spacing.sectionMargin}`}>
+            <SystemLogViewer
+              initialLogs={[]}
+              title="System Logs"
+              description="View and filter system events, errors, and activities"
+              onRefresh={() => {}}
+            />
             <SystemLogs />
           </TabsContent>
 

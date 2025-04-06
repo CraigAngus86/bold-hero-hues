@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Card, 
   CardContent, 
@@ -8,19 +8,23 @@ import {
   CardTitle 
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, RefreshCw } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-import { userFormSchema, UserFormValues, mockUsers } from './UserFormSchema';
+import { userFormSchema, UserFormValues } from './UserFormSchema';
+import { User, getUsers, createUser } from '@/services/userManagementService';
 import CreateUserDialog from './CreateUserDialog';
 import UsersTable from './UsersTable';
 import UserRolePermissions from './UserRolePermissions';
+import UserActivityLogs from './UserActivityLogs';
+import TwoFactorSetup from './TwoFactorSetup';
 
 const UserManagement = () => {
   const [isCreateUserOpen, setIsCreateUserOpen] = useState(false);
-  const [users, setUsers] = useState(mockUsers);
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Setup form with validation
   const form = useForm<UserFormValues>({
@@ -35,30 +39,67 @@ const UserManagement = () => {
     },
   });
 
+  // Load users when component mounts
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  // Function to load users from API
+  const loadUsers = async () => {
+    setIsLoading(true);
+    try {
+      const loadedUsers = await getUsers();
+      setUsers(loadedUsers);
+    } catch (error) {
+      console.error('Error loading users:', error);
+      toast({
+        title: "Error loading users",
+        description: "There was a problem loading the user list.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Handle form submission
-  const onSubmit = (values: UserFormValues) => {
-    // In a real implementation, this would call an API
-    console.log(values);
-    
-    // Add user to the list (mock implementation)
-    setUsers([
-      ...users, 
-      {
-        id: (users.length + 1).toString(),
-        name: `${values.firstName} ${values.lastName}`,
-        email: values.email,
-        role: values.role.charAt(0).toUpperCase() + values.role.slice(1),
-        isActive: values.isActive
+  const onSubmit = async (values: UserFormValues) => {
+    try {
+      const { user, error } = await createUser(
+        values.email, 
+        values.password, 
+        values.role,
+        {
+          firstName: values.firstName,
+          lastName: values.lastName,
+          isActive: values.isActive
+        }
+      );
+
+      if (error) {
+        throw new Error(error);
       }
-    ]);
-    
-    toast({
-      title: "User created",
-      description: `${values.firstName} ${values.lastName} has been added as a ${values.role}`,
-    });
-    
-    setIsCreateUserOpen(false);
-    form.reset();
+
+      if (user) {
+        // Add new user to the list
+        setUsers(prevUsers => [...prevUsers, user]);
+        
+        toast({
+          title: "User created",
+          description: `${values.firstName} ${values.lastName} has been added as a ${values.role}`,
+        });
+        
+        setIsCreateUserOpen(false);
+        form.reset();
+      }
+    } catch (error) {
+      console.error('Error creating user:', error);
+      toast({
+        title: "Error creating user",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -71,17 +112,32 @@ const UserManagement = () => {
               Manage admin users, roles, and permissions
             </CardDescription>
           </div>
-          <Button onClick={() => setIsCreateUserOpen(true)}>
-            <UserPlus className="mr-2 h-4 w-4" />
-            Add User
-          </Button>
+          <div className="flex space-x-2">
+            <Button 
+              variant="outline" 
+              onClick={loadUsers} 
+              disabled={isLoading}
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+            <Button onClick={() => setIsCreateUserOpen(true)}>
+              <UserPlus className="mr-2 h-4 w-4" />
+              Add User
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
-          <UsersTable users={users} />
+          <UsersTable users={users} isLoading={isLoading} onUserUpdated={loadUsers} />
         </CardContent>
       </Card>
 
-      <UserRolePermissions />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <UserRolePermissions />
+        <TwoFactorSetup />
+      </div>
+      
+      <UserActivityLogs />
       
       <CreateUserDialog 
         isOpen={isCreateUserOpen} 

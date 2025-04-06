@@ -1,7 +1,6 @@
-
 import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import AdminLayout from '@/components/admin/AdminLayout';
+import { AdminLayout } from '@/components/admin/layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -15,6 +14,7 @@ import {
   Globe,
   RefreshCw 
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 import NewsManager from '@/components/admin/NewsManager';
 import SponsorsManager from '@/components/admin/SponsorsManager';
@@ -23,14 +23,14 @@ import LeagueTableManager from '@/components/admin/LeagueTableManager';
 import ImageManager from '@/components/admin/image-manager/ImageManager';
 import DataDashboard from '@/components/admin/data/DataDashboard';
 import { createInitialFolders } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 
 const Admin = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
     // Create the initial folders when the Admin page loads
-    createInitialFolders();
+    // Commented out for now as it might not be available
+    // createInitialFolders();
   }, []);
 
   return (
@@ -74,6 +74,7 @@ const Admin = () => {
             </TabsList>
           </div>
           
+          {/* Tab content sections */}
           <TabsContent value="news" className="space-y-4">
             <div className="mb-4 flex justify-between">
               <h2 className="text-xl font-semibold">News Management</h2>

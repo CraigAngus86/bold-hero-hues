@@ -8,21 +8,21 @@ export const contentStatusItems = [
     name: 'News Articles',
     count: 24,
     color: 'blue',
-    icon: <FileText className="h-4 w-4" />,
+    icon: FileText,
     viewAllLink: '/admin/news'
   },
   {
     name: 'Fixture Updates',
     count: 8,
     color: 'green',
-    icon: <CalendarIcon className="h-4 w-4" />,
+    icon: CalendarIcon,
     viewAllLink: '/admin/fixtures'
   },
   {
     name: 'User Signups',
     count: 12,
     color: 'orange',
-    icon: <Users className="h-4 w-4" />,
+    icon: Users,
     viewAllLink: '/admin/users'
   }
 ];

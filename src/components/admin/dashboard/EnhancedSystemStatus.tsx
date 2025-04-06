@@ -60,7 +60,7 @@ export const EnhancedSystemStatus = ({ systems, isLoading, lastUpdated, onRefres
                     <div className="flex items-center space-x-3">
                       {system.icon && (
                         <div className="flex-shrink-0">
-                          {system.icon}
+                          {React.createElement(system.icon as React.ElementType, { className: "h-4 w-4" })}
                         </div>
                       )}
                       <div>

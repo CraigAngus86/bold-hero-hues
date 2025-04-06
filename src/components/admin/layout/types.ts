@@ -1,37 +1,99 @@
 
-import { ReactNode } from 'react';
-import { 
-  LayoutDashboard, 
-  Newspaper, 
-  Users, 
-  Calendar, 
-  TableProperties, 
-  Image, 
-  Award, 
-  ShoppingBag, 
-  Users2, 
-  Settings 
+// Fix the TypeScript errors in the types.ts file
+import {
+  LayoutDashboard,
+  Users,
+  CalendarDays,
+  FileText,
+  Image,
+  Settings,
+  LineChart,
+  ShoppingCart,
+  Ticket,
+  MessageSquare,
+  Trophy,
 } from 'lucide-react';
 
-export interface AdminLayoutProps {
-  children: ReactNode;
-}
-
-export interface SidebarNavItem {
+// Define the sidebar navigation item type
+export type NavItem = {
   title: string;
   href: string;
-  icon: ReactNode;
-}
+  icon?: React.ComponentType<{ className?: string }>;
+  disabled?: boolean;
+  external?: boolean;
+  label?: string;
+};
 
-export const navItems: SidebarNavItem[] = [
-  { title: 'Dashboard', href: '/admin', icon: <LayoutDashboard className="h-5 w-5" /> },
-  { title: 'News Management', href: '/admin/news', icon: <Newspaper className="h-5 w-5" /> },
-  { title: 'Team & Management', href: '/admin/team', icon: <Users className="h-5 w-5" /> },
-  { title: 'Fixtures & Results', href: '/admin/fixtures', icon: <Calendar className="h-5 w-5" /> },
-  { title: 'League Table', href: '/admin/league-table-management', icon: <TableProperties className="h-5 w-5" /> },
-  { title: 'Media Gallery', href: '/admin/images', icon: <Image className="h-5 w-5" /> },
-  { title: 'Sponsors', href: '/admin/sponsors', icon: <Award className="h-5 w-5" /> },
-  { title: 'Tickets', href: '/admin/tickets', icon: <ShoppingBag className="h-5 w-5" /> },
-  { title: 'Fans', href: '/admin/fans', icon: <Users2 className="h-5 w-5" /> },
-  { title: 'Settings', href: '/admin/settings', icon: <Settings className="h-5 w-5" /> },
+// Navigation sections with their respective items
+export const adminNavItems: { title: string; items: NavItem[] }[] = [
+  {
+    title: 'General',
+    items: [
+      {
+        title: 'Dashboard',
+        href: '/admin',
+        icon: LayoutDashboard
+      },
+      {
+        title: 'Users',
+        href: '/admin/users',
+        icon: Users
+      },
+      {
+        title: 'Fixtures',
+        href: '/admin/fixtures',
+        icon: CalendarDays
+      },
+      {
+        title: 'Content Manager',
+        href: '/admin/content',
+        icon: FileText
+      },
+      {
+        title: 'Media Library',
+        href: '/admin/media-library',
+        icon: Image
+      },
+      {
+        title: 'Settings',
+        href: '/admin/settings',
+        icon: Settings
+      },
+    ],
+  },
+  {
+    title: 'Analytics',
+    items: [
+      {
+        title: 'Reports',
+        href: '/admin/analytics/reports',
+        icon: LineChart
+      },
+      {
+        title: 'Shop',
+        href: '/admin/analytics/shop',
+        icon: ShoppingCart
+      },
+      {
+        title: 'Ticketing',
+        href: '/admin/analytics/ticketing',
+        icon: Ticket
+      },
+    ],
+  },
+  {
+    title: 'Community',
+    items: [
+      {
+        title: 'Messages',
+        href: '/admin/community/messages',
+        icon: MessageSquare
+      },
+      {
+        title: 'Competitions',
+        href: '/admin/community/competitions',
+        icon: Trophy
+      },
+    ],
+  },
 ];

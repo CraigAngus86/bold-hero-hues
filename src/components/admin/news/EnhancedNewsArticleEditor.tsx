@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -10,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { MoveLeft, Save, Upload, ImagePlus, Eye, Monitor, Smartphone, Tablet } from 'lucide-react';
+import { MoveLeft, Save, Upload, ImagePlus, Eye, Monitor, Smartphone, Tablet, Laptop } from 'lucide-react';
 import { useImageUpload } from '@/services/images';
 import { Typography } from '@/components/ui';
 import { NewsArticle, CreateNewsArticleData } from '@/types';
@@ -61,7 +60,6 @@ export const EnhancedNewsArticleEditor: React.FC<EnhancedNewsArticleEditorProps>
   const content = watch('content');
   
   useEffect(() => {
-    // Generate slug from title
     if (title && !article) {
       const generatedSlug = generateSlug(title);
       setSlug(generatedSlug);
@@ -73,7 +71,6 @@ export const EnhancedNewsArticleEditor: React.FC<EnhancedNewsArticleEditorProps>
 
   const createMutation = useMutation({
     mutationFn: async (data: CreateNewsArticleData) => {
-      // Handle image upload first if there's a new image
       if (imageFile) {
         const result = await upload(
           imageFile,
@@ -86,7 +83,6 @@ export const EnhancedNewsArticleEditor: React.FC<EnhancedNewsArticleEditorProps>
           throw new Error('Failed to upload image');
         }
       } else if (imagePreview) {
-        // If we have a preview from gallery but no file
         data.image_url = imagePreview;
       }
       return createNewsArticle(data);
@@ -104,7 +100,6 @@ export const EnhancedNewsArticleEditor: React.FC<EnhancedNewsArticleEditorProps>
 
   const updateMutation = useMutation({
     mutationFn: async (data: { id: string; article: Partial<CreateNewsArticleData> }) => {
-      // Handle image upload first if there's a new image
       if (imageFile) {
         const result = await upload(
           imageFile,
@@ -117,7 +112,6 @@ export const EnhancedNewsArticleEditor: React.FC<EnhancedNewsArticleEditorProps>
           throw new Error('Failed to upload image');
         }
       } else if (imagePreview && imagePreview !== article?.image_url) {
-        // If we have a preview from gallery that's different from the original
         data.article.image_url = imagePreview;
       }
       return updateNewsArticle(data.id, data.article);
@@ -155,7 +149,7 @@ export const EnhancedNewsArticleEditor: React.FC<EnhancedNewsArticleEditorProps>
 
   const handleMediaSelect = (mediaUrl: string) => {
     setImagePreview(mediaUrl);
-    setImageFile(null); // We're using a URL from the media gallery, not a file
+    setImageFile(null);
   };
 
   const isSubmitting = createMutation.isPending || updateMutation.isPending || isUploading;
@@ -195,7 +189,7 @@ export const EnhancedNewsArticleEditor: React.FC<EnhancedNewsArticleEditorProps>
                   onClick={() => setPreviewDevice('desktop')}
                   title="Desktop preview"
                 >
-                  <DeviceDesktop size={16} />
+                  <Laptop size={16} />
                 </Button>
                 <Button
                   variant={previewDevice === 'tablet' ? 'secondary' : 'ghost'}
@@ -482,7 +476,6 @@ export const EnhancedNewsArticleEditor: React.FC<EnhancedNewsArticleEditorProps>
                   Back to editing
                 </Button>
                 
-                {/* Article preview */}
                 <article className="prose prose-lg max-w-none">
                   {imagePreview && (
                     <img 
@@ -508,7 +501,6 @@ export const EnhancedNewsArticleEditor: React.FC<EnhancedNewsArticleEditorProps>
                     )}
                   </div>
                   
-                  {/* Render HTML content safely */}
                   <div dangerouslySetInnerHTML={{ __html: content || "<p>Article content will appear here...</p>" }} />
                 </article>
               </div>

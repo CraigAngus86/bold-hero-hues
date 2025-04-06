@@ -1,76 +1,43 @@
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { 
-  Search, 
-  CalendarRange, 
-  Filter, 
-  X, 
-  ChevronDown, 
-  Bookmark,
-  CheckCircle2,
-  Clock
-} from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
-import { 
-  Popover, 
-  PopoverContent, 
-  PopoverTrigger 
-} from '@/components/ui/popover';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel
-} from '@/components/ui/dropdown-menu';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { DatePickerWithRange } from '@/components/ui/date-range-picker';
-import { DateRange } from 'react-day-picker';
-import { toast } from 'sonner';
-import { Typography } from '@/components/ui';
-import { cn } from '@/lib/utils';
-
-interface FilterPreset {
-  id: string;
-  name: string;
-  filters: {
-    competition: string;
-    month: string;
-    showPast: boolean;
-    showUpcoming: boolean;
-    dateRange: DateRange | undefined;
-    venue?: string;
-    searchQuery?: string;
-  };
-}
+import React, { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Switch } from "@/components/ui/switch";
+import { DateRange } from "react-day-picker";
+import { CalendarIcon, Filter, X } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface EnhancedFixturesFilterProps {
   selectedCompetition: string;
-  setSelectedCompetition: (value: string) => void;
+  setSelectedCompetition: (competition: string) => void;
   selectedMonth: string;
-  setSelectedMonth: (value: string) => void;
+  setSelectedMonth: (month: string) => void;
   showPast: boolean;
-  setShowPast: (value: boolean) => void;
+  setShowPast: (show: boolean) => void;
   showUpcoming: boolean;
-  setShowUpcoming: (value: boolean) => void;
+  setShowUpcoming: (show: boolean) => void;
   competitions: string[];
   availableMonths: string[];
   venues?: string[];
   onClearFilters: () => void;
-  dateRange?: DateRange;
-  setDateRange?: (range: DateRange | undefined) => void;
   searchQuery?: string;
   setSearchQuery?: (query: string) => void;
+  dateRange?: DateRange | undefined;
+  setDateRange?: (range: DateRange | undefined) => void;
 }
 
 const EnhancedFixturesFilter: React.FC<EnhancedFixturesFilterProps> = ({
@@ -86,280 +53,38 @@ const EnhancedFixturesFilter: React.FC<EnhancedFixturesFilterProps> = ({
   availableMonths,
   venues = [],
   onClearFilters,
-  dateRange,
-  setDateRange,
   searchQuery = '',
   setSearchQuery = () => {},
+  dateRange,
+  setDateRange = () => {},
 }) => {
   const [selectedVenue, setSelectedVenue] = useState<string>('All Venues');
-  const [showFilters, setShowFilters] = useState<boolean>(false);
-  const [presets, setPresets] = useState<FilterPreset[]>([
-    {
-      id: '1',
-      name: 'Highland League Fixtures',
-      filters: {
-        competition: 'Highland League',
-        month: 'All Months',
-        showPast: false,
-        showUpcoming: true,
-        dateRange: undefined,
-      }
-    },
-    {
-      id: '2',
-      name: 'Recent Results',
-      filters: {
-        competition: 'All Competitions',
-        month: 'All Months',
-        showPast: true,
-        showUpcoming: false,
-        dateRange: undefined,
-      }
-    }
-  ]);
-
-  // Generate list of available venues
-  const availableVenues = ['All Venues', ...venues];
-
-  const hasActiveFilters = () => {
-    return selectedCompetition !== 'All Competitions' || 
-           selectedMonth !== 'All Months' || 
-           selectedVenue !== 'All Venues' ||
-           !showPast || 
-           !showUpcoming || 
-           !!dateRange ||
-           !!searchQuery;
-  };
-
+  const [isAdvancedFilterOpen, setIsAdvancedFilterOpen] = useState<boolean>(false);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState<boolean>(false);
+  
   const handleClearFilters = () => {
-    onClearFilters();
     setSelectedVenue('All Venues');
-    if (setDateRange) setDateRange(undefined);
-    if (setSearchQuery) setSearchQuery('');
+    setSearchQuery('');
+    setDateRange(undefined);
+    onClearFilters();
+    setIsAdvancedFilterOpen(false);
+    setIsDatePickerOpen(false);
   };
-
-  const applyPreset = (preset: FilterPreset) => {
-    setSelectedCompetition(preset.filters.competition);
-    setSelectedMonth(preset.filters.month);
-    setShowPast(preset.filters.showPast);
-    setShowUpcoming(preset.filters.showUpcoming);
-    
-    if (setDateRange && preset.filters.dateRange) {
-      setDateRange(preset.filters.dateRange);
-    }
-    
-    if (preset.filters.venue) {
-      setSelectedVenue(preset.filters.venue);
-    } else {
-      setSelectedVenue('All Venues');
-    }
-    
-    if (setSearchQuery && preset.filters.searchQuery) {
-      setSearchQuery(preset.filters.searchQuery);
-    } else if (setSearchQuery) {
-      setSearchQuery('');
-    }
-    
-    toast.success(`Applied filter preset: ${preset.name}`);
-  };
-
-  const saveCurrentAsPreset = () => {
-    const newPreset: FilterPreset = {
-      id: Date.now().toString(),
-      name: `Custom Preset ${presets.length + 1}`,
-      filters: {
-        competition: selectedCompetition,
-        month: selectedMonth,
-        showPast,
-        showUpcoming,
-        dateRange,
-        venue: selectedVenue !== 'All Venues' ? selectedVenue : undefined,
-        searchQuery: searchQuery || undefined
-      }
-    };
-    
-    setPresets([...presets, newPreset]);
-    toast.success('Filter preset saved');
-  };
-
-  const renderFilterBadges = () => {
-    const badges = [];
-    
-    if (selectedCompetition !== 'All Competitions') {
-      badges.push(
-        <Badge key="competition" variant="outline" className="flex items-center gap-1">
-          {selectedCompetition}
-          <X 
-            className="h-3 w-3 cursor-pointer" 
-            onClick={() => setSelectedCompetition('All Competitions')} 
-          />
-        </Badge>
-      );
-    }
-    
-    if (selectedMonth !== 'All Months') {
-      badges.push(
-        <Badge key="month" variant="outline" className="flex items-center gap-1">
-          {selectedMonth}
-          <X 
-            className="h-3 w-3 cursor-pointer" 
-            onClick={() => setSelectedMonth('All Months')} 
-          />
-        </Badge>
-      );
-    }
-    
-    if (selectedVenue !== 'All Venues') {
-      badges.push(
-        <Badge key="venue" variant="outline" className="flex items-center gap-1">
-          {selectedVenue}
-          <X 
-            className="h-3 w-3 cursor-pointer" 
-            onClick={() => setSelectedVenue('All Venues')} 
-          />
-        </Badge>
-      );
-    }
-    
-    if (!showPast) {
-      badges.push(
-        <Badge key="past" variant="outline" className="flex items-center gap-1">
-          Hide Past
-          <X 
-            className="h-3 w-3 cursor-pointer" 
-            onClick={() => setShowPast(true)} 
-          />
-        </Badge>
-      );
-    }
-    
-    if (!showUpcoming) {
-      badges.push(
-        <Badge key="upcoming" variant="outline" className="flex items-center gap-1">
-          Hide Upcoming
-          <X 
-            className="h-3 w-3 cursor-pointer" 
-            onClick={() => setShowUpcoming(true)} 
-          />
-        </Badge>
-      );
-    }
-    
-    if (dateRange?.from) {
-      const fromDate = new Date(dateRange.from).toLocaleDateString();
-      const toDate = dateRange.to ? new Date(dateRange.to).toLocaleDateString() : fromDate;
-      badges.push(
-        <Badge key="dateRange" variant="outline" className="flex items-center gap-1">
-          {fromDate} {dateRange.to ? `- ${toDate}` : ''}
-          <X 
-            className="h-3 w-3 cursor-pointer" 
-            onClick={() => setDateRange && setDateRange(undefined)} 
-          />
-        </Badge>
-      );
-    }
-    
-    if (searchQuery) {
-      badges.push(
-        <Badge key="search" variant="outline" className="flex items-center gap-1">
-          "{searchQuery}"
-          <X 
-            className="h-3 w-3 cursor-pointer" 
-            onClick={() => setSearchQuery('')} 
-          />
-        </Badge>
-      );
-    }
-    
-    return badges;
-  };
-
+  
   return (
-    <div className="mb-8 space-y-4">
-      {/* Search & Main Filters */}
-      <div className="flex flex-col sm:flex-row gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-          <Input
-            placeholder="Search fixtures..."
-            className="pl-9"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        
-        <div className="flex gap-2">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="flex gap-1 items-center">
-                <CalendarRange className="h-4 w-4 mr-1" />
-                {dateRange?.from ? "Date Range" : "All Dates"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto" align="end">
-              <div className="space-y-2 p-2">
-                <Typography.Small className="font-medium">Select Date Range</Typography.Small>
-                <DatePickerWithRange
-                  date={dateRange}
-                  onDateChange={setDateRange}
-                />
-              </div>
-            </PopoverContent>
-          </Popover>
-
-          <Button 
-            variant="outline" 
-            className={cn("flex gap-1", showFilters ? "bg-gray-100" : "")}
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter className="h-4 w-4 mr-1" />
-            Filters
-          </Button>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                <Bookmark className="h-4 w-4 mr-1" />
-                Presets
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Saved Filters</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {presets.map((preset) => (
-                <DropdownMenuItem 
-                  key={preset.id} 
-                  onClick={() => applyPreset(preset)}
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <Bookmark className="h-4 w-4" />
-                  {preset.name}
-                </DropdownMenuItem>
-              ))}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={saveCurrentAsPreset}
-                className="flex items-center gap-2 cursor-pointer"
-                disabled={!hasActiveFilters()}
-              >
-                <CheckCircle2 className="h-4 w-4" />
-                Save Current Filters
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-      
-      {/* Advanced Filters Section */}
-      {showFilters && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div className="bg-white rounded-lg shadow-sm border p-4 mb-8">
+      <div className="flex flex-col space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Competition Filter */}
           <div>
-            <Label htmlFor="competition">Competition</Label>
+            <Label htmlFor="competition-filter" className="mb-2 block text-sm font-medium">
+              Competition
+            </Label>
             <Select
               value={selectedCompetition}
               onValueChange={setSelectedCompetition}
             >
-              <SelectTrigger id="competition">
+              <SelectTrigger id="competition-filter" className="w-full">
                 <SelectValue placeholder="Select Competition" />
               </SelectTrigger>
               <SelectContent>
@@ -371,14 +96,14 @@ const EnhancedFixturesFilter: React.FC<EnhancedFixturesFilterProps> = ({
               </SelectContent>
             </Select>
           </div>
-          
+
+          {/* Month Filter */}
           <div>
-            <Label htmlFor="month">Month</Label>
-            <Select
-              value={selectedMonth}
-              onValueChange={setSelectedMonth}
-            >
-              <SelectTrigger id="month">
+            <Label htmlFor="month-filter" className="mb-2 block text-sm font-medium">
+              Month
+            </Label>
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger id="month-filter" className="w-full">
                 <SelectValue placeholder="Select Month" />
               </SelectTrigger>
               <SelectContent>
@@ -390,70 +115,167 @@ const EnhancedFixturesFilter: React.FC<EnhancedFixturesFilterProps> = ({
               </SelectContent>
             </Select>
           </div>
-          
+
+          {/* Date Range Picker */}
           <div>
-            <Label htmlFor="venue">Venue</Label>
-            <Select
-              value={selectedVenue}
-              onValueChange={setSelectedVenue}
+            <Label htmlFor="date-range" className="mb-2 block text-sm font-medium">
+              Date Range
+            </Label>
+            <Popover
+              open={isDatePickerOpen}
+              onOpenChange={setIsDatePickerOpen}
             >
-              <SelectTrigger id="venue">
-                <SelectValue placeholder="Select Venue" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableVenues.map((venue) => (
-                  <SelectItem key={venue} value={venue}>
-                    {venue}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <PopoverTrigger asChild>
+                <Button
+                  id="date-range"
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !dateRange && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateRange?.from ? (
+                    dateRange.to ? (
+                      <>
+                        {format(dateRange.from, "LLL dd, y")} -{" "}
+                        {format(dateRange.to, "LLL dd, y")}
+                      </>
+                    ) : (
+                      format(dateRange.from, "LLL dd, y")
+                    )
+                  ) : (
+                    <span>Select date range</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  initialFocus
+                  mode="range"
+                  defaultMonth={dateRange?.from}
+                  selected={dateRange}
+                  onSelect={setDateRange}
+                  numberOfMonths={2}
+                />
+                <div className="flex justify-end gap-2 p-3 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setDateRange(undefined);
+                      setIsDatePickerOpen(false);
+                    }}
+                  >
+                    Clear
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      setIsDatePickerOpen(false);
+                    }}
+                  >
+                    Apply
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
-          
-          <div className="flex flex-col justify-end gap-2 pb-2">
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="showPast" 
-                checked={showPast} 
-                onCheckedChange={() => setShowPast(!showPast)}
+
+          {/* Search Input */}
+          <div>
+            <Label htmlFor="search-filter" className="mb-2 block text-sm font-medium">
+              Search
+            </Label>
+            <div className="relative">
+              <Input
+                id="search-filter"
+                placeholder="Search fixtures..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pr-8"
               />
-              <Label htmlFor="showPast" className="cursor-pointer flex items-center gap-1">
-                <Clock className="h-4 w-4" />
-                Show Past Matches
-              </Label>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="showUpcoming" 
-                checked={showUpcoming}
-                onCheckedChange={() => setShowUpcoming(!showUpcoming)}
-              />
-              <Label htmlFor="showUpcoming" className="cursor-pointer flex items-center gap-1">
-                <Calendar className="h-4 w-4" />
-                Show Upcoming Matches
-              </Label>
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
             </div>
           </div>
         </div>
-      )}
-      
-      {/* Filter Badges */}
-      {hasActiveFilters() && (
-        <div className="flex flex-wrap gap-2 items-center">
-          <span className="text-sm font-medium text-gray-600">Active Filters:</span>
-          {renderFilterBadges()}
+
+        {/* Toggle Filters */}
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="show-past"
+              checked={showPast}
+              onCheckedChange={setShowPast}
+            />
+            <Label htmlFor="show-past">Show Past Fixtures</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="show-upcoming" 
+              checked={showUpcoming}
+              onCheckedChange={setShowUpcoming}
+            />
+            <Label htmlFor="show-upcoming">Show Upcoming Fixtures</Label>
+          </div>
+          
+          <Button
+            variant="outline"
+            className="ml-auto"
+            onClick={() => setIsAdvancedFilterOpen(!isAdvancedFilterOpen)}
+          >
+            <Filter className="h-4 w-4 mr-2" />
+            Advanced Filters
+          </Button>
           
           <Button
             variant="ghost"
-            size="sm"
-            className="text-xs h-7 px-2 ml-2"
             onClick={handleClearFilters}
+            size="sm"
           >
-            Clear All
+            Reset Filters
           </Button>
         </div>
-      )}
+        
+        {/* Advanced Filters Panel */}
+        {isAdvancedFilterOpen && (
+          <div className="mt-4 p-4 border rounded-md bg-gray-50">
+            <h4 className="text-sm font-medium mb-3">Advanced Filters</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Venue Filter */}
+              {venues.length > 0 && (
+                <div>
+                  <Label htmlFor="venue-filter" className="mb-2 block text-sm font-medium">
+                    Venue
+                  </Label>
+                  <Select value={selectedVenue} onValueChange={setSelectedVenue}>
+                    <SelectTrigger id="venue-filter">
+                      <SelectValue placeholder="Select Venue" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All Venues">All Venues</SelectItem>
+                      {venues.map((venue) => (
+                        <SelectItem key={venue} value={venue}>
+                          {venue}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              
+              {/* Additional filters can be added here */}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

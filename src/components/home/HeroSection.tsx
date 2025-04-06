@@ -1,206 +1,161 @@
-
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Calendar, ChevronRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { format } from 'date-fns';
-import { TeamStats, Fixture } from '@/types';
+import { TeamStats } from '@/components/league/types';
+import { fetchLeagueTable } from '@/services/leagueDataService';
+import { toast } from "sonner";
+import { ArrowUp, ArrowDown } from 'lucide-react';
 
-// Mock fixture data
-const mockFixtures = [
-  {
-    id: '1',
-    date: '2025-04-15',
-    time: '15:00',
-    homeTeam: 'Banks O\' Dee',
-    awayTeam: 'Fraserburgh',
-    competition: 'Highland League',
-    venue: 'Spain Park',
-    isCompleted: false,
-  },
-  {
-    id: '2',
-    date: '2025-04-22',
-    time: '15:00',
-    homeTeam: 'Buckie Thistle',
-    awayTeam: 'Banks O\' Dee',
-    competition: 'Highland League',
-    venue: 'Victoria Park',
-    isCompleted: false,
-  }
-];
-
-// Mock league standings
-const mockStandings = [
-  {
-    id: '1',
-    team: 'Buckie Thistle',
-    position: 1,
-    played: 32,
-    won: 25,
-    drawn: 5,
-    lost: 2,
-    goalsFor: 78,
-    goalsAgainst: 25,
-    goalDifference: 53,
-    points: 80,
-  },
-  {
-    id: '2',
-    team: 'Brechin City',
-    position: 2,
-    played: 32,
-    won: 24,
-    drawn: 4,
-    lost: 4,
-    goalsFor: 75,
-    goalsAgainst: 30,
-    goalDifference: 45,
-    points: 76,
-  },
-  {
-    id: '3',
-    team: 'Banks O\' Dee',
-    position: 3,
-    played: 32,
-    won: 20,
-    drawn: 7,
-    lost: 5,
-    goalsFor: 67,
-    goalsAgainst: 32,
-    goalDifference: 35,
-    points: 67,
-  }
-];
+interface Team {
+  position: number;
+  team: string;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
+  points: number;
+  wins?: number;
+  draws?: number;
+  losses?: number;
+  cleanSheets?: number;
+}
 
 const HeroSection = () => {
-  const [fixtures, setFixtures] = useState<Fixture[]>([]);
-  const [standings, setStandings] = useState<TeamStats[]>([]);
-  const [nextFixture, setNextFixture] = useState<Fixture | null>(null);
-  const [teamPosition, setTeamPosition] = useState<TeamStats | null>(null);
-  const [loading, setLoading] = useState(true);
-
+  const [leagueTable, setLeagueTable] = useState<TeamStats[]>([]);
+  const [currentTeam, setCurrentTeam] = useState<Team | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
   useEffect(() => {
-    // Simulate API fetch with a delay
-    const fetchData = async () => {
-      setTimeout(() => {
-        setFixtures(mockFixtures);
-        setStandings(mockStandings);
+    const loadLeagueTable = async () => {
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        const teams = await fetchLeagueTable();
+        setLeagueTable(teams.map(team => ({
+          ...team,
+          // Add compatibility fields
+          wins: team.won,
+          draws: team.drawn,
+          losses: team.lost,
+          cleanSheets: 0
+        })));
         
-        // Find next fixture and team position in the standings
-        const nextGame = mockFixtures.find(fixture => !fixture.isCompleted);
-        setNextFixture(nextGame || null);
-        
-        const teamStats = mockStandings.find(team => team.team === 'Banks O\' Dee');
-        setTeamPosition(teamStats || null);
-        
-        setLoading(false);
-      }, 500);
+        // Find Banks o' Dee's position
+        const banksODee = teams.find(team => team.team === "Banks o' Dee");
+        if (banksODee) {
+          setLeaguePosition(banksODee.position);
+        } else {
+          // If Banks o' Dee is not found, set the first team in the table
+          if (teams.length > 0) {
+            setLeaguePosition(teams[0].position);
+          } else {
+            console.warn("Banks o' Dee not found in league table, and no teams available.");
+            setError("Banks o' Dee not found in league table.");
+          }
+        }
+      } catch (err: any) {
+        console.error("Error loading league table:", err);
+        setError(err.message || "Failed to load league table.");
+        toast.error("Failed to load league table");
+      } finally {
+        setIsLoading(false);
+      }
     };
     
-    fetchData();
+    loadLeagueTable();
   }, []);
-
-  if (loading) {
-    return (
-      <div className="h-[500px] bg-gradient-to-r from-blue-900 to-blue-800 animate-pulse rounded-lg"></div>
-    );
-  }
-
+  
+  const setLeaguePosition = (position: number) => {
+    // Find team with the given position
+    const team = leagueTable.find(t => t.position === position);
+    if (team) {
+      // Convert TeamStats to format component expects
+      setCurrentTeam({
+        position: team.position,
+        team: team.team,
+        played: team.played,
+        won: team.won,
+        drawn: team.drawn,
+        lost: team.lost,
+        goalsFor: team.goalsFor,
+        goalsAgainst: team.goalsAgainst,
+        goalDifference: team.goalDifference,
+        points: team.points,
+        // Add compatibility fields if needed
+        wins: team.won,
+        draws: team.drawn,
+        losses: team.lost,
+        cleanSheets: 0
+      });
+    }
+  };
+  
   return (
-    <div className="relative">
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-900 to-blue-800 opacity-90"></div>
-      
-      <div className="relative z-10 container mx-auto px-4 py-20 text-white">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-          <div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">Banks O' Dee FC</h1>
-            <h2 className="text-xl md:text-2xl font-light mb-6">Aberdeen's Premier Football Club</h2>
-            
-            <div className="space-y-4">
-              {teamPosition && (
-                <div className="rounded-lg bg-white/10 p-4 backdrop-blur">
-                  <h3 className="text-lg font-semibold mb-2">Current League Position</h3>
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center">
-                      <span className="text-3xl font-bold mr-2">{teamPosition.position}</span>
-                      <div>
-                        <p className="font-medium">{teamPosition.team}</p>
-                        <p className="text-sm text-gray-200">Highland League</p>
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-3xl font-bold">{teamPosition.points}</p>
-                      <p className="text-sm text-gray-200">Points</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              {nextFixture && (
-                <div className="rounded-lg bg-white/10 p-4 backdrop-blur">
-                  <h3 className="text-lg font-semibold mb-2">Next Match</h3>
-                  <div>
-                    <p className="text-sm text-gray-200 mb-2">
-                      {format(new Date(nextFixture.date), 'EEEE, MMMM d, yyyy')} • {nextFixture.time || '15:00'}
-                    </p>
-                    <div className="flex justify-between items-center">
-                      <span>{nextFixture.homeTeam}</span>
-                      <span className="mx-2 font-bold">vs</span>
-                      <span>{nextFixture.awayTeam}</span>
-                    </div>
-                    <p className="text-sm text-gray-200 mt-2">{nextFixture.competition} • {nextFixture.venue || 'TBD'}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            <div className="flex flex-wrap gap-3 mt-8">
-              <Button asChild size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-black">
-                <Link to="/fixtures">View All Fixtures</Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-900">
-                <Link to="/tickets">Get Tickets</Link>
-              </Button>
-            </div>
+    <section className="py-24 bg-team-gray">
+      <div className="container mx-auto px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-12"
+        >
+          <h1 className="text-4xl md:text-5xl font-bold text-team-blue mb-4">
+            Welcome to Banks o' Dee FC
+          </h1>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Your go-to source for the latest news, fixtures, results, and
+            league standings for Banks o' Dee Football Club.
+          </p>
+        </motion.div>
+        
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="bg-white rounded-lg shadow-md p-8 flex flex-col md:flex-row items-center justify-between"
+        >
+          <div className="md:w-1/2 text-center md:text-left">
+            <h2 className="text-2xl font-semibold text-team-blue mb-2">
+              Highland League Table
+            </h2>
+            {isLoading ? (
+              <p className="text-gray-500">Loading league data...</p>
+            ) : error ? (
+              <p className="text-red-500">{error}</p>
+            ) : currentTeam ? (
+              <>
+                <p className="text-gray-600">
+                  Position:{" "}
+                  <span className="font-semibold">{currentTeam.position}</span>
+                </p>
+                <p className="text-gray-600">
+                  Played: <span className="font-semibold">{currentTeam.played}</span>
+                </p>
+                <p className="text-gray-600">
+                  Points: <span className="font-semibold">{currentTeam.points}</span>
+                </p>
+              </>
+            ) : (
+              <p className="text-gray-500">No league data available.</p>
+            )}
           </div>
           
-          <div className="hidden md:block">
-            <Card className="bg-white/5 backdrop-blur border-0">
-              <CardContent className="p-4">
-                <h3 className="text-lg font-semibold mb-3 flex items-center">
-                  <Calendar className="mr-2 h-5 w-5" />
-                  Upcoming Fixtures
-                </h3>
-                <div className="space-y-4">
-                  {fixtures.map(fixture => (
-                    <div key={fixture.id} className="border-b border-white/20 pb-3 last:border-0">
-                      <p className="text-sm text-gray-300">
-                        {format(new Date(fixture.date), 'EEE, MMM d')} • {fixture.competition}
-                      </p>
-                      <div className="flex justify-between items-center mt-1">
-                        <span>{fixture.homeTeam}</span>
-                        <span className="mx-2">vs</span>
-                        <span>{fixture.awayTeam}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-4">
-                  <Button asChild variant="link" className="text-white p-0 h-auto">
-                    <Link to="/fixtures" className="flex items-center">
-                      View All Fixtures
-                      <ChevronRight className="ml-1 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="md:w-1/2 flex justify-center">
+            <Link
+              to="/table"
+              className="bg-team-blue text-white py-3 px-6 rounded-md hover:bg-team-navy transition-colors"
+            >
+              View Full Table
+            </Link>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </section>
   );
 };
 

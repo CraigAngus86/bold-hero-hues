@@ -51,9 +51,11 @@ const updateCache = async () => {
     cachedLeagueTable = data;
     lastUpdated = new Date();
     console.log('Cache updated successfully');
+    return data;
   } catch (error) {
     console.error('Error updating cache:', error.message);
     console.error(error.stack);
+    throw error;
   }
 };
 
@@ -68,12 +70,16 @@ app.get('/api/debug/headers', (req, res) => {
 });
 
 // Initially populate the cache
-updateCache();
+updateCache().catch(err => {
+  console.error('Initial cache population failed:', err);
+});
 
 // Schedule cache update every 6 hours
 cron.schedule('0 */6 * * *', () => {
   console.log('Running scheduled cache update');
-  updateCache();
+  updateCache().catch(err => {
+    console.error('Scheduled cache update failed:', err);
+  });
 });
 
 // Endpoint to get the league table
@@ -84,7 +90,19 @@ app.get('/api/league-table', validateApiKey, async (req, res) => {
     
     if (forceRefresh || !cachedLeagueTable) {
       console.log('Force refreshing or no cached data available');
-      await updateCache();
+      try {
+        const freshData = await updateCache();
+        if (freshData) {
+          res.json({
+            leagueTable: freshData,
+            lastUpdated: lastUpdated ? lastUpdated.toISOString() : null
+          });
+          return;
+        }
+      } catch (refreshError) {
+        console.error('Refresh attempt failed:', refreshError);
+        // Continue to return cached data if available
+      }
     }
     
     // If still no data after refresh attempt, return error
@@ -117,6 +135,27 @@ app.get('/api/status', (req, res) => {
     hasData: !!cachedLeagueTable,
     dataCount: cachedLeagueTable ? cachedLeagueTable.length : 0
   });
+});
+
+// Endpoint for manually triggering a scrape
+app.post('/api/scrape', validateApiKey, async (req, res) => {
+  try {
+    console.log('Manual scrape triggered');
+    const data = await updateCache();
+    res.json({
+      success: true,
+      message: 'Data scraped successfully',
+      count: data.length,
+      lastUpdated: lastUpdated.toISOString()
+    });
+  } catch (error) {
+    console.error('Manual scrape failed:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to scrape data',
+      message: error.message
+    });
+  }
 });
 
 // Start the server

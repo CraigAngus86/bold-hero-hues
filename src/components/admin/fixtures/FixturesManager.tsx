@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -100,7 +99,6 @@ const FixturesManager = () => {
   const fetchFixtures = async () => {
     setLoading(true);
     try {
-      // Fetch fixtures from Supabase
       const { data, error } = await supabase
         .from('fixtures')
         .select('*')
@@ -108,7 +106,6 @@ const FixturesManager = () => {
       
       if (error) throw error;
       
-      // Convert DB format to our app format
       const formattedFixtures = data.map(fixture => ({
         id: fixture.id,
         date: fixture.date,
@@ -122,17 +119,14 @@ const FixturesManager = () => {
         awayScore: fixture.away_score,
         ticketLink: fixture.ticket_link,
         source: fixture.source,
-        // Additional fields
         matchReport: fixture.match_report,
         attendance: fixture.attendance,
         referee: fixture.referee,
-        // We'll fetch these separately if needed
         matchEvents: [],
         lineups: { homeTeam: [], awayTeam: [] },
         matchStats: {}
       }));
       
-      // Extract unique competitions
       const uniqueCompetitions = [...new Set(formattedFixtures.map(f => f.competition))];
       setCompetitions(['all', ...uniqueCompetitions]);
       
@@ -164,7 +158,6 @@ const FixturesManager = () => {
     if (!selectedFixture) return;
 
     try {
-      // Update ticket link in database
       const { error } = await supabase
         .from('fixtures')
         .update({ ticket_link: ticketLink })
@@ -172,7 +165,6 @@ const FixturesManager = () => {
         
       if (error) throw error;
       
-      // Update local state
       setFixtures(fixtures.map(f => 
         f.id === selectedFixture.id ? {...f, ticketLink} : f
       ));
@@ -191,7 +183,6 @@ const FixturesManager = () => {
     try {
       const attendanceNumber = attendance ? parseInt(attendance) : null;
       
-      // Update match details in database
       const { error } = await supabase
         .from('fixtures')
         .update({ 
@@ -203,7 +194,6 @@ const FixturesManager = () => {
         
       if (error) throw error;
       
-      // Update local state
       setFixtures(fixtures.map(f => 
         f.id === selectedFixture.id ? {
           ...f, 
@@ -234,18 +224,14 @@ const FixturesManager = () => {
   };
 
   const filteredFixtures = fixtures.filter(fixture => {
-    // Filter by date range
     if (dateRange?.from && new Date(fixture.date) < dateRange.from) return false;
     if (dateRange?.to && new Date(fixture.date) > dateRange.to) return false;
     
-    // Filter by competition
     if (selectedCompetition !== 'all' && fixture.competition !== selectedCompetition) return false;
     
-    // Filter by completion status
     if (isCompletedFilter === 'completed' && !fixture.isCompleted) return false;
     if (isCompletedFilter === 'upcoming' && fixture.isCompleted) return false;
     
-    // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       const homeTeam = fixture.homeTeam.toLowerCase();
@@ -397,7 +383,6 @@ const FixturesManager = () => {
         </Table>
       )}
 
-      {/* Ticket Link Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-[550px]">
           <DialogHeader>
@@ -433,7 +418,6 @@ const FixturesManager = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Match Details Dialog */}
       <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
         <DialogContent className="sm:max-w-[750px]">
           <DialogHeader>
@@ -473,7 +457,7 @@ const FixturesManager = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="attendance">Attendance</Label>
-                  <Input
+                  <Input 
                     id="attendance"
                     type="number"
                     value={attendance}
@@ -484,7 +468,7 @@ const FixturesManager = () => {
                 
                 <div>
                   <Label htmlFor="referee">Match Official</Label>
-                  <Input
+                  <Input 
                     id="referee"
                     value={referee}
                     onChange={e => setReferee(e.target.value)}

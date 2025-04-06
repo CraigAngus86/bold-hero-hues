@@ -1,4 +1,3 @@
-
 // Common types used across the application
 
 export interface SystemLog {
@@ -99,6 +98,8 @@ export interface NewsQueryOptions {
   featured?: boolean;
   orderBy?: 'publish_date' | 'title' | 'created_at';
   orderDirection?: 'asc' | 'desc';
+  page?: number;
+  pageSize?: number;
 }
 
 // Fixture/Match types
@@ -128,10 +129,22 @@ export interface Match extends Omit<Fixture, 'venue'> {
 
 // Team related types
 export interface TeamStats {
-  wins: number;
-  draws: number;
-  losses: number;
+  id: string;
+  position: number;
+  team: string;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
   goalsFor: number;
   goalsAgainst: number;
-  cleanSheets: number;
+  goalDifference: number;
+  points: number;
+  form?: string[];
+  logo?: string;
+  // Legacy fields maintained for backward compatibility
+  wins?: number;
+  draws?: number;
+  losses?: number;
+  cleanSheets?: number;
 }

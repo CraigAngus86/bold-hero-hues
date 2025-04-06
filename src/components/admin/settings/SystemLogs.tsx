@@ -1,51 +1,84 @@
 
-import React from 'react';
-import { SystemLogViewer } from './SystemLogViewer';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getSystemLogs } from '@/services/logs/systemLogsService';
 import { SystemLog } from '@/types';
-import { fetchSystemLogs as getSystemLogs } from '@/services/logs/systemLogsService';
-import { toast } from 'sonner';
-import { useQuery } from '@tanstack/react-query';
+import { Badge } from "@/components/ui/badge";
+import { formatDistanceToNow } from 'date-fns';
 
-export const SystemLogs: React.FC = () => {
-  // Use React Query for data fetching with automatic error handling and caching
-  const { 
-    data: logs, 
-    isLoading, 
-    isError,
-    refetch
-  } = useQuery({
-    queryKey: ['systemLogs'],
-    queryFn: async () => {
+const SystemLogs = () => {
+  const [logs, setLogs] = useState<SystemLog[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  useEffect(() => {
+    const loadLogs = async () => {
+      setIsLoading(true);
       try {
-        return await getSystemLogs({ limit: 100 });
+        const logsData = await getSystemLogs();
+        setLogs(logsData);
       } catch (error) {
-        console.error('Error fetching system logs:', error);
-        toast.error('Failed to load system logs');
-        // Fallback to mock data if fetching fails
-        return [
-          { id: '1', timestamp: new Date(Date.now() - 3600000).toISOString(), type: 'error', source: 'system', message: 'Failed to connect to API endpoint' },
-          { id: '2', timestamp: new Date(Date.now() - 7200000).toISOString(), type: 'warning', source: 'system', message: 'Cache storage is nearly full' },
-          { id: '3', timestamp: new Date(Date.now() - 10800000).toISOString(), type: 'info', source: 'system', message: 'System backup completed successfully' },
-          { id: '4', timestamp: new Date(Date.now() - 14400000).toISOString(), type: 'debug', source: 'system', message: 'Database query timeout' },
-        ] as SystemLog[];
+        console.error('Error loading system logs:', error);
+      } finally {
+        setIsLoading(false);
       }
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-
-  const handleRefresh = () => {
-    refetch();
-    toast.success('Refreshing system logs...');
+    };
+    
+    loadLogs();
+  }, []);
+  
+  // Get badge color based on log type
+  const getBadgeVariant = (type: string) => {
+    switch (type.toLowerCase()) {
+      case 'error':
+        return 'destructive';
+      case 'warning':
+        return 'warning';
+      case 'info':
+        return 'secondary';
+      case 'success':
+        return 'success';
+      default:
+        return 'outline';
+    }
   };
-
+  
   return (
-    <SystemLogViewer
-      initialLogs={logs || []}
-      title="System Logs"
-      description="View and manage system events and errors"
-      onRefresh={handleRefresh}
-      isLoading={isLoading}
-    />
+    <Card>
+      <CardHeader>
+        <CardTitle>System Logs</CardTitle>
+      </CardHeader>
+      <CardContent className="p-0">
+        {isLoading ? (
+          <div className="p-6 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-team-blue mx-auto"></div>
+            <p className="mt-2 text-gray-500">Loading logs...</p>
+          </div>
+        ) : logs.length === 0 ? (
+          <div className="p-6 text-center text-gray-500">
+            No system logs found.
+          </div>
+        ) : (
+          <div className="divide-y">
+            {logs.map((log) => (
+              <div key={log.id} className="p-4 hover:bg-gray-50">
+                <div className="flex items-start justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <Badge variant={getBadgeVariant(log.type) as any}>
+                      {log.type}
+                    </Badge>
+                    <span className="font-medium text-gray-700">{log.source}</span>
+                  </div>
+                  <span className="text-xs text-gray-500">
+                    {formatDistanceToNow(new Date(log.timestamp), { addSuffix: true })}
+                  </span>
+                </div>
+                <p className="text-gray-600 text-sm">{log.message}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

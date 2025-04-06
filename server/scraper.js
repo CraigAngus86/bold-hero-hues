@@ -29,6 +29,7 @@ function getScrapingHeaders() {
  * @returns {number} The parsed integer or 0 if invalid
  */
 function safeParseInt(text) {
+  if (!text || typeof text !== 'string') return 0;
   const value = parseInt(text.trim() || '0', 10);
   return isNaN(value) ? 0 : value;
 }
@@ -43,12 +44,25 @@ function extractFormData($, formCell) {
   const form = [];
   
   // First try to find form icons by specific class patterns used by BBC Sport
-  formCell.find('[class*="gs-o-status-icon"], [class*="gel-icon"]').each((i, el) => {
+  formCell.find('[class*="gs-o-status-icon"], [class*="gel-icon"], [class*="sp-c-booking-card"]').each((i, el) => {
     const className = $(el).attr('class') || '';
     if (className.includes('win')) form.push('W');
     else if (className.includes('draw')) form.push('D');
     else if (className.includes('loss') || className.includes('defeat')) form.push('L');
   });
+  
+  // Look for icon tags with specific colors
+  if (form.length === 0) {
+    formCell.find('i, span').each((i, el) => {
+      const className = $(el).attr('class') || '';
+      const styles = $(el).attr('style') || '';
+      
+      // Check for color-based indicators
+      if (styles.includes('color: green') || className.includes('green')) form.push('W');
+      else if (styles.includes('color: orange') || className.includes('yellow') || className.includes('amber')) form.push('D');
+      else if (styles.includes('color: red') || className.includes('red')) form.push('L');
+    });
+  }
   
   // If no form icons found, try to parse text content (some BBC pages use text)
   if (form.length === 0) {
@@ -88,7 +102,7 @@ function extractTeamName($, row) {
   let teamName = '';
   
   // First, look for specific team name elements
-  const teamNameElement = teamCell.find('.gs-o-table__cell--left .qa-full-team-name, .sp-c-fixture__team-name-trunc');
+  const teamNameElement = teamCell.find('.gs-o-table__cell--left .qa-full-team-name, .sp-c-fixture__team-name-trunc, [data-reactid*="team-name"]');
   if (teamNameElement.length) {
     teamName = teamNameElement.text().trim();
   } else {
@@ -102,54 +116,42 @@ function extractTeamName($, row) {
     }
   }
   
-  // Validate the extracted team name
-  if (!teamName || teamName.length <= 2 || !isNaN(Number(teamName))) {
-    console.warn('Potentially invalid team name:', teamName);
-    
-    // Look for team name in the row's HTML for debugging
-    const rowHtml = $(row).html();
-    console.log('Row HTML for debugging:', rowHtml?.substring(0, 300));
-    
-    // Try to find any span with team-name class
-    const allSpans = $(row).find('span');
-    allSpans.each((i, el) => {
-      const spanText = $(el).text().trim();
-      if (spanText && spanText.length > 2) {
-        console.log('Potential team name in span:', spanText);
-      }
-    });
-    
-    // Return hardcoded team name mapping if we have it
-    const knownTeams = {
-      '1': 'Brechin City',
-      '2': 'Buckie Thistle',
-      '3': "Banks o' Dee",
-      '4': 'Fraserburgh',
-      '5': 'Formartine United',
-      '6': 'Brora Rangers',
-      '7': 'Huntly',
-      '8': 'Inverurie Loco Works',
-      '9': 'Keith',
-      '10': 'Lossiemouth',
-      '11': 'Nairn County',
-      '12': 'Rothes',
-      '13': 'Clachnacuddin',
-      '14': 'Deveronvale',
-      '15': 'Forres Mechanics',
-      '16': 'Strathspey Thistle',
-      '17': 'Turriff United',
-      '18': 'Wick Academy'
-    };
-    
-    // Use mapped name if position is 1-18
-    const position = safeParseInt($(cells.eq(0)).text());
-    if (position >= 1 && position <= 18 && knownTeams[position]) {
-      console.log(`Using mapped team name for position ${position}: ${knownTeams[position]}`);
-      return knownTeams[position];
-    }
+  // Clean and standardize team names
+  if (teamName) {
+    teamName = standardizeTeamName(teamName);
   }
   
   return teamName;
+}
+
+/**
+ * Standardize team names to match our database format
+ * @param {string} name - The raw team name from BBC
+ * @returns {string} - The standardized team name
+ */
+function standardizeTeamName(name) {
+  // Create a mapping of BBC team names to our standardized names
+  const teamNameMapping = {
+    "Banks O Dee": "Banks o' Dee",
+    "Banks O' Dee": "Banks o' Dee",
+    "Banks O'Dee": "Banks o' Dee",
+    "Buckie": "Buckie Thistle",
+    "Brechin": "Brechin City",
+    "Inverurie": "Inverurie Loco Works",
+    "Inverurie Loco": "Inverurie Loco Works",
+    "Loco Works": "Inverurie Loco Works",
+    "Clach": "Clachnacuddin",
+    "Nairn": "Nairn County",
+    "Forres": "Forres Mechanics",
+    "Mechanics": "Forres Mechanics",
+    "Strathspey": "Strathspey Thistle",
+    "Wick": "Wick Academy",
+    "Formartine": "Formartine United",
+    "Turriff": "Turriff United"
+  };
+  
+  // Return the mapped name if it exists, otherwise return the original name
+  return teamNameMapping[name] || name;
 }
 
 /**
@@ -161,7 +163,7 @@ function extractTeamName($, row) {
 function processTableRow($, row, index) {
   try {
     // Skip header rows
-    if (index === 0) {
+    if ($(row).find('th').length > 0) {
       return null;
     }
     
@@ -226,6 +228,13 @@ function processTableRow($, row, index) {
     
     console.log(`Extracted data for ${teamName} (P:${played}, W:${won}, D:${drawn}, L:${lost}, Pts:${scrapedPoints})`);
     
+    // Get team logo if available
+    let logo = '';
+    const imgElement = $(row).find('img');
+    if (imgElement.length > 0) {
+      logo = $(imgElement).attr('src') || '';
+    }
+    
     // Create a team stats object
     return {
       position,
@@ -238,7 +247,8 @@ function processTableRow($, row, index) {
       goalsAgainst,
       goalDifference,
       points: scrapedPoints, // Use the scraped points, but we've validated it
-      form: form.slice(0, 5) // Last 5 results
+      form: form.slice(0, 5), // Last 5 results,
+      logo
     };
   } catch (error) {
     console.error('Error parsing row:', error);
@@ -254,6 +264,7 @@ async function fetchBBCSportPage() {
   const url = 'https://www.bbc.com/sport/football/scottish-highland-league/table';
   
   try {
+    console.log(`Fetching Highland League table from ${url}`);
     const { data: html } = await axios.get(url, {
       headers: getScrapingHeaders(),
       timeout: 10000 // 10 second timeout
@@ -262,94 +273,109 @@ async function fetchBBCSportPage() {
     console.log('Successfully fetched BBC Sport page');
     return html;
   } catch (error) {
-    console.error('Error fetching BBC Sport page:', error);
+    console.error('Error fetching BBC Sport page:', error.message);
+    if (error.response) {
+      console.error('Status code:', error.response.status);
+      console.error('Headers:', JSON.stringify(error.response.headers));
+    }
     throw new Error(`Failed to fetch BBC Sport page: ${error.message}`);
   }
 }
 
 /**
- * Find the league table in the HTML
- * @param {Object} $ - Cheerio instance
- * @returns {Object} The table rows
- */
-function findLeagueTable($) {
-  // Try different selectors to find the table
-  let tableRows = $('.gs-o-table__row');
-  
-  if (!tableRows || tableRows.length === 0) {
-    console.log('First selector failed, trying alternative');
-    tableRows = $('table.gs-o-table tr');
-  }
-  
-  if (!tableRows || tableRows.length === 0) {
-    console.log('Second selector failed, trying generic table selector');
-    tableRows = $('table tr');
-  }
-  
-  if (!tableRows || tableRows.length === 0) {
-    throw new Error('Could not find any table rows in BBC Sport page');
-  }
-  
-  console.log(`Found ${tableRows.length} rows in the table`);
-  return tableRows;
-}
-
-/**
- * Extract league data from the table rows
- * @param {Object} $ - Cheerio instance
- * @param {Object} tableRows - The table rows
- * @returns {Array} Array of team data objects
- */
-function extractLeagueData($, tableRows) {
-  const leagueData = [];
-  
-  tableRows.each((index, row) => {
-    // Process each row
-    const teamData = processTableRow($, row, index);
-    if (teamData) {
-      leagueData.push(teamData);
-    }
-  });
-  
-  if (leagueData.length === 0) {
-    throw new Error('Failed to extract any team data from BBC Sport page');
-  }
-  
-  // Sort by position to ensure correct order
-  leagueData.sort((a, b) => a.position - b.position);
-  
-  console.log(`Successfully extracted data for ${leagueData.length} teams`);
-  return leagueData;
-}
-
-/**
- * Scrapes the BBC Sport Highland League table
- * @returns {Promise<Array>} The league table data
+ * Scrapes and processes the league table from BBC Sport
+ * @returns {Promise<Array>} Array of team stats objects
  */
 async function scrapeLeagueTable() {
   try {
-    console.log('Scraping BBC Sport Highland League table');
+    console.log('Starting to scrape Highland League table');
     
-    // Fetch the HTML
-    const html = await fetchBBCSportPage();
+    let retryCount = 0;
+    const maxRetries = 3;
+    let html = null;
     
-    // Parse the HTML
+    // Retry logic for fetching the page
+    while (retryCount < maxRetries) {
+      try {
+        html = await fetchBBCSportPage();
+        break; // If successful, break out of the retry loop
+      } catch (error) {
+        retryCount++;
+        console.log(`Retry ${retryCount}/${maxRetries}`);
+        if (retryCount >= maxRetries) {
+          throw error;
+        }
+        // Wait before retrying (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
+      }
+    }
+    
+    if (!html) {
+      throw new Error('Failed to fetch HTML after multiple retries');
+    }
+    
+    // Load the HTML into cheerio
     const $ = cheerio.load(html);
     
-    // Find the table
-    const tableRows = findLeagueTable($);
+    // Find the table - try different selectors as BBC might change their format
+    const possibleTableSelectors = [
+      'table.gs-o-table',
+      'table.sp-c-table',
+      'table.gel-table',
+      'table'
+    ];
     
-    // Extract the data
-    const leagueData = extractLeagueData($, tableRows);
+    let table = null;
+    for (const selector of possibleTableSelectors) {
+      const found = $(selector);
+      if (found.length > 0) {
+        table = found.first();
+        console.log(`Found table using selector: ${selector}`);
+        break;
+      }
+    }
     
-    return leagueData;
+    if (!table) {
+      throw new Error('League table not found on the page');
+    }
+    
+    // Process each row in the table
+    const rows = table.find('tbody tr');
+    console.log(`Found ${rows.length} rows in the league table`);
+    
+    const teams = [];
+    rows.each((i, row) => {
+      const team = processTableRow($, row, i);
+      if (team) {
+        teams.push(team);
+      }
+    });
+    
+    // Validate the scraped data
+    if (teams.length === 0) {
+      throw new Error('No valid teams found in the table');
+    }
+    
+    // Verify team count - Highland League should have around 18 teams
+    if (teams.length < 10 || teams.length > 20) {
+      console.warn(`Unexpected number of teams: ${teams.length} (expected ~18)`);
+    }
+    
+    // Sort by position just in case
+    teams.sort((a, b) => a.position - b.position);
+    
+    console.log(`Successfully scraped data for ${teams.length} teams`);
+    
+    return teams;
   } catch (error) {
-    console.error('Error scraping BBC Sport table:', error);
+    console.error('Error in scrapeLeagueTable:', error.message);
     throw error;
   }
 }
 
-// Export the scraping functions
 module.exports = {
-  scrapeLeagueTable
+  scrapeLeagueTable,
+  extractTeamName,
+  extractFormData,
+  standardizeTeamName
 };

@@ -1,48 +1,110 @@
 
 import React from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { TeamStats } from '@/components/league/types';
-import { TeamDataRow } from './TeamDataRow';
 
 interface LeagueDataTableProps {
   leagueTable: TeamStats[];
 }
 
-/**
- * Component displaying the league data in a table format
- */
-export const LeagueDataTable: React.FC<LeagueDataTableProps> = ({ leagueTable }) => {
+const LeagueDataTable: React.FC<LeagueDataTableProps> = ({ leagueTable }) => {
+  // Helper function to determine if a team is in a promotion position
+  const isPromotionPosition = (position: number) => position <= 1;
+  
+  // Helper function to determine if a team is in a relegation position
+  const isRelegationPosition = (position: number, totalTeams: number) => 
+    position >= totalTeams - 1;
+  
+  // Helper function to format form data
+  const renderFormBadges = (form: string[] | undefined) => {
+    if (!form || form.length === 0) return <span className="text-gray-400">-</span>;
+    
+    return (
+      <div className="flex gap-1">
+        {form.map((result, index) => (
+          <Badge 
+            key={`form-${index}`}
+            variant={
+              result === 'W' ? 'success' : 
+              result === 'D' ? 'warning' : 
+              'destructive'
+            } 
+            className="h-6 w-6 flex items-center justify-center p-0 rounded-full"
+          >
+            {result}
+          </Badge>
+        ))}
+      </div>
+    );
+  };
+  
   return (
-    <div className="border rounded-lg overflow-auto max-h-[600px] shadow-sm hover:shadow-md transition-shadow duration-200">
+    <div className="rounded-md border overflow-hidden">
       <Table>
-        <TableHeader className="bg-gradient-to-r from-gray-50 to-gray-100 sticky top-0 z-10">
-          <TableRow>
-            <TableHead className="w-12 font-semibold text-team-blue">Pos</TableHead>
-            <TableHead className="font-semibold text-team-blue">Team</TableHead>
-            <TableHead className="w-12 font-semibold text-team-blue">P</TableHead>
-            <TableHead className="w-12 font-semibold text-team-blue">W</TableHead>
-            <TableHead className="w-12 font-semibold text-team-blue">D</TableHead>
-            <TableHead className="w-12 font-semibold text-team-blue">L</TableHead>
-            <TableHead className="w-12 font-semibold text-team-blue">GF</TableHead>
-            <TableHead className="w-12 font-semibold text-team-blue">GA</TableHead>
-            <TableHead className="w-12 font-semibold text-team-blue">GD</TableHead>
-            <TableHead className="w-12 font-semibold text-team-blue">Pts</TableHead>
-            <TableHead className="w-24 font-semibold text-team-blue">Form</TableHead>
+        <TableHeader>
+          <TableRow className="bg-muted/50">
+            <TableHead className="w-12 text-center">Pos</TableHead>
+            <TableHead>Team</TableHead>
+            <TableHead className="text-center">P</TableHead>
+            <TableHead className="text-center">W</TableHead>
+            <TableHead className="text-center">D</TableHead>
+            <TableHead className="text-center">L</TableHead>
+            <TableHead className="text-center">GF</TableHead>
+            <TableHead className="text-center">GA</TableHead>
+            <TableHead className="text-center">GD</TableHead>
+            <TableHead className="text-center">Pts</TableHead>
+            <TableHead>Form</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {leagueTable.map((team, index) => (
-            <TeamDataRow key={index} team={team} />
-          ))}
-          {leagueTable.length === 0 && (
-            <TableRow>
-              <TableCell colSpan={11} className="text-center py-8 text-gray-500">
-                No data found. Try refreshing.
+          {leagueTable.map((team) => (
+            <TableRow 
+              key={team.id || team.team}
+              className={
+                team.team === "Banks o' Dee" ? "bg-team-blue/10" : 
+                isPromotionPosition(team.position) ? "bg-green-50" :
+                isRelegationPosition(team.position, leagueTable.length) ? "bg-red-50" :
+                ""
+              }
+            >
+              <TableCell className="text-center font-semibold">
+                {team.position}
               </TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  {team.logo && (
+                    <img 
+                      src={team.logo} 
+                      alt={`${team.team} logo`}
+                      className="h-5 w-5 object-contain"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  )}
+                  <span className={team.team === "Banks o' Dee" ? "font-bold" : ""}>
+                    {team.team}
+                  </span>
+                </div>
+              </TableCell>
+              <TableCell className="text-center">{team.played}</TableCell>
+              <TableCell className="text-center">{team.won}</TableCell>
+              <TableCell className="text-center">{team.drawn}</TableCell>
+              <TableCell className="text-center">{team.lost}</TableCell>
+              <TableCell className="text-center">{team.goalsFor}</TableCell>
+              <TableCell className="text-center">{team.goalsAgainst}</TableCell>
+              <TableCell className="text-center font-medium">
+                {team.goalDifference > 0 ? '+' : ''}{team.goalDifference}
+              </TableCell>
+              <TableCell className="text-center font-bold">{team.points}</TableCell>
+              <TableCell>{renderFormBadges(team.form)}</TableCell>
             </TableRow>
-          )}
+          ))}
         </TableBody>
       </Table>
     </div>
   );
 };
+
+export default LeagueDataTable;

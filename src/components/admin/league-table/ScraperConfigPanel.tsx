@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,7 +11,6 @@ import { Save, RefreshCw } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-// Define settings interface
 interface ScraperSettings {
   url: string;
   frequency: string;
@@ -38,7 +36,6 @@ const ScraperConfigPanel = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
-  // Load settings from Supabase
   useEffect(() => {
     const loadSettings = async () => {
       setIsLoading(true);
@@ -54,7 +51,6 @@ const ScraperConfigPanel = () => {
           console.error('Error loading scraper settings:', error);
           toast.error('Failed to load scraper settings');
         } else if (data && data.value) {
-          // Parse the JSON settings and update state
           try {
             const parsedSettings = JSON.parse(data.value);
             setSettings(parsedSettings);
@@ -72,15 +68,12 @@ const ScraperConfigPanel = () => {
     loadSettings();
   }, []);
   
-  // Save settings to Supabase
   const saveSettings = async () => {
     setIsSaving(true);
     
     try {
-      // Convert settings to JSON string
       const settingsJson = JSON.stringify(settings);
       
-      // Save to Supabase settings table
       const { error } = await supabase
         .from('settings')
         .upsert({
@@ -102,7 +95,6 @@ const ScraperConfigPanel = () => {
     }
   };
   
-  // Handle input changes
   const handleChange = (field: keyof ScraperSettings, value: any) => {
     setSettings(prev => ({
       ...prev,
@@ -110,7 +102,6 @@ const ScraperConfigPanel = () => {
     }));
   };
   
-  // Handle team mapping changes
   const handleMappingChange = (originalName: string, newName: string) => {
     setSettings(prev => ({
       ...prev,
@@ -121,7 +112,6 @@ const ScraperConfigPanel = () => {
     }));
   };
   
-  // Add new mapping entry
   const addNewMapping = () => {
     setSettings(prev => ({
       ...prev,
@@ -132,7 +122,6 @@ const ScraperConfigPanel = () => {
     }));
   };
   
-  // Remove mapping entry
   const removeMapping = (originalName: string) => {
     const updatedMapping = { ...settings.teamNameMapping };
     delete updatedMapping[originalName];

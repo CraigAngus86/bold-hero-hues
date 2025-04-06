@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { AdminLayout } from '@/components/admin/layout';
 import { Helmet } from 'react-helmet-async';

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,7 +28,7 @@ import { format } from "date-fns";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
-import DataTable from '@/components/admin/common/DataTable';
+import { DataTable } from '@/components/admin/common/DataTable';
 import { toast } from "sonner";
 import { FanMessage, AudienceGroup } from '@/types/fans';
 

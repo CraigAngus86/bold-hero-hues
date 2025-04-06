@@ -1,4 +1,3 @@
-
 import Typography from './Typography';
 import Container from './Container';
 import { 
@@ -9,7 +8,7 @@ import {
   TableHead,
   TableHeader,
   TableRow 
-} from './Table';
+} from './table';
 import { Button } from './button';
 
 export {

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,7 +37,7 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { CSS } from '@dnd-kit/utilities';
-import DataTable from '@/components/admin/common/DataTable';
+import { DataTable } from '@/components/admin/common/DataTable';
 import { Poll, PollQuestion, PollOption } from '@/types/fans';
 import { fetchPolls, fetchPollDetails, createPoll, addPollQuestion, addPollOption } from '@/services/fansDbService';
 
@@ -52,7 +51,6 @@ ChartJS.register(
   ArcElement
 );
 
-// Status badge styles based on status
 const statusStyles = {
   draft: 'bg-gray-100 text-gray-800',
   active: 'bg-green-100 text-green-800',
@@ -60,7 +58,6 @@ const statusStyles = {
   ended: 'bg-blue-100 text-blue-800',
 };
 
-// Sample polls data for demonstration
 const dummyPolls = [
   {
     id: '1',
@@ -142,7 +139,6 @@ const dummyPolls = [
   }
 ];
 
-// Sortable question item component
 const SortableQuestionItem = ({ id, question, onDelete }) => {
   const {
     attributes,
@@ -191,7 +187,6 @@ const SortableQuestionItem = ({ id, question, onDelete }) => {
         </Button>
       </div>
 
-      {/* Options if applicable */}
       {(question.type === 'single_choice' || question.type === 'multiple_choice') && question.options && (
         <div className="pl-8 mt-2">
           {question.options.map((option, index) => (
@@ -217,7 +212,6 @@ const PollsAndSurveys = () => {
   const [currentPoll, setCurrentPoll] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   
-  // New poll form state
   const [newPoll, setNewPoll] = useState({
     title: '',
     description: '',
@@ -229,7 +223,6 @@ const PollsAndSurveys = () => {
     questions: []
   });
   
-  // Question form state
   const [newQuestion, setNewQuestion] = useState({
     text: '',
     type: 'single_choice',
@@ -237,7 +230,6 @@ const PollsAndSurveys = () => {
     options: ['']
   });
   
-  // Add option to the current question form
   const addOption = () => {
     setNewQuestion({
       ...newQuestion,
@@ -245,7 +237,6 @@ const PollsAndSurveys = () => {
     });
   };
   
-  // Update option at specific index
   const updateOption = (index, value) => {
     const updatedOptions = [...newQuestion.options];
     updatedOptions[index] = value;
@@ -255,7 +246,6 @@ const PollsAndSurveys = () => {
     });
   };
   
-  // Remove option at specific index
   const removeOption = (index) => {
     const updatedOptions = [...newQuestion.options];
     updatedOptions.splice(index, 1);
@@ -265,14 +255,12 @@ const PollsAndSurveys = () => {
     });
   };
   
-  // Add question to the new poll
   const addQuestion = () => {
     if (!newQuestion.text.trim()) {
       toast.error('Question text cannot be empty');
       return;
     }
     
-    // For choice questions, validate at least one option
     if ((newQuestion.type === 'single_choice' || newQuestion.type === 'multiple_choice') && 
         (!newQuestion.options.length || !newQuestion.options[0].trim())) {
       toast.error('Please add at least one option for choice questions');
@@ -298,7 +286,6 @@ const PollsAndSurveys = () => {
       questions: [...newPoll.questions, questionToAdd]
     });
     
-    // Reset the question form
     setNewQuestion({
       text: '',
       type: 'single_choice',
@@ -309,7 +296,6 @@ const PollsAndSurveys = () => {
     toast.success('Question added');
   };
   
-  // Remove question at specific index
   const removeQuestion = (id) => {
     setNewPoll({
       ...newPoll,
@@ -318,7 +304,6 @@ const PollsAndSurveys = () => {
     toast.success('Question removed');
   };
   
-  // Reorder questions using dnd-kit
   const onDragEnd = (event) => {
     const { active, over } = event;
     
@@ -335,7 +320,6 @@ const PollsAndSurveys = () => {
     }
   };
   
-  // Submit the new poll form
   const handleCreatePoll = async () => {
     if (!newPoll.title.trim()) {
       toast.error('Title is required');
@@ -352,10 +336,8 @@ const PollsAndSurveys = () => {
       return;
     }
     
-    // In a real implementation, we would save to the database
     toast.success(`${newPoll.type === 'poll' ? 'Poll' : 'Survey'} created successfully`);
     
-    // Fake API call
     const fakePoll = {
       id: `new-${Date.now()}`,
       title: newPoll.title,
@@ -373,7 +355,6 @@ const PollsAndSurveys = () => {
     resetForm();
   };
   
-  // Reset the form
   const resetForm = () => {
     setNewPoll({
       title: '',
@@ -393,17 +374,13 @@ const PollsAndSurveys = () => {
     });
   };
   
-  // View poll details
   const handleViewPoll = (poll) => {
     setCurrentPoll(poll);
     setViewDialogOpen(true);
   };
   
-  // Filter polls based on activeTab and searchQuery
   const filteredPolls = polls.filter(poll => {
-    // Filter by tab
     if (activeTab === 'all') {
-      // No filter
     } else if (activeTab === 'polls') {
       if (poll.type !== 'poll') return false;
     } else if (activeTab === 'surveys') {
@@ -414,7 +391,6 @@ const PollsAndSurveys = () => {
       if (poll.status !== 'draft') return false;
     }
     
-    // Filter by search query
     if (searchQuery) {
       return poll.title.toLowerCase().includes(searchQuery.toLowerCase());
     }
@@ -422,7 +398,6 @@ const PollsAndSurveys = () => {
     return true;
   });
   
-  // DnD sensors for drag and drop
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -430,7 +405,6 @@ const PollsAndSurveys = () => {
     })
   );
   
-  // Generate chart data for poll questions
   const generateChartData = (question) => {
     if (!question.options) return null;
     
@@ -478,7 +452,6 @@ const PollsAndSurveys = () => {
     }
   };
   
-  // Column definitions for the data table
   const columns = [
     { 
       key: 'title', 
@@ -589,7 +562,6 @@ const PollsAndSurveys = () => {
               </DialogHeader>
               
               <div className="overflow-y-auto max-h-[calc(90vh-140px)]">
-                {/* Basic information */}
                 <div className="space-y-4 py-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -718,7 +690,6 @@ const PollsAndSurveys = () => {
                 
                 <div className="border-t my-4"></div>
                 
-                {/* Questions section */}
                 <div>
                   <h3 className="text-lg font-medium mb-4">
                     Questions ({newPoll.questions.length})
@@ -749,7 +720,6 @@ const PollsAndSurveys = () => {
                     </div>
                   )}
                   
-                  {/* Add question form */}
                   <Card className="mb-4">
                     <CardHeader className="pb-2">
                       <CardTitle className="text-base">Add New Question</CardTitle>
@@ -802,7 +772,6 @@ const PollsAndSurveys = () => {
                           </div>
                         </div>
                         
-                        {/* Options for choice questions */}
                         {(newQuestion.type === 'single_choice' || newQuestion.type === 'multiple_choice') && (
                           <div>
                             <Label className="mb-2 block">Options</Label>
@@ -884,7 +853,6 @@ const PollsAndSurveys = () => {
         </TabsContent>
       </Tabs>
       
-      {/* View Poll/Survey Dialog */}
       <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
         {currentPoll && (
           <DialogContent className="max-w-3xl overflow-y-auto max-h-[90vh]">
@@ -931,7 +899,6 @@ const PollsAndSurveys = () => {
                   </div>
                 </div>
                 
-                {/* Questions and Results */}
                 <div className="space-y-6">
                   {currentPoll.questions.map((question, index) => (
                     <Card key={question.id}>
@@ -941,7 +908,6 @@ const PollsAndSurveys = () => {
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        {/* Chart or result display based on question type */}
                         {question.type === 'single_choice' && (
                           <div className="h-64 flex justify-center">
                             <Pie data={generateChartData(question)} />

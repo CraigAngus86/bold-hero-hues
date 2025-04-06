@@ -8,7 +8,7 @@ import {
   TableHead,
   TableHeader,
   TableRow
-} from '@/components/ui/Table';
+} from '@/components/ui/table'; // Ensure lowercase 'table'
 import { Loader2 } from 'lucide-react';
 
 interface DataTableProps {

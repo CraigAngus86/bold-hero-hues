@@ -7,7 +7,7 @@ import {
   TableHead,
   TableHeader,
   TableRow
-} from '@/components/ui/table'; // Fix the import path to use lowercase 'table'
+} from '@/components/ui/table'; // Using lowercase 'table' consistently
 
 export interface DataTableProps<T> {
   columns: {

@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import DataTable from '@/components/admin/common/DataTable';
+import { DataTable } from '@/components/admin/common/DataTable';
 import { AlertCircle, AlertTriangle, Info, Bug, RefreshCw, Filter, Search, Download, CheckCircle } from 'lucide-react';
 import { SystemLog } from '@/types/system';
 import { format, parseISO } from 'date-fns';

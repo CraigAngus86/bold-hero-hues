@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { TableHeader, TableRow, TableHead } from '@/components/ui/Table';
+import { TableHeader, TableRow, TableHead } from '@/components/ui/table';
 
 /**
  * League table header component displaying column titles

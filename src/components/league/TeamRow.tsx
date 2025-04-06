@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { TableRow, TableCell } from '@/components/ui/Table';
+import { TableRow, TableCell } from '@/components/ui/table'; // Updated to lowercase 'table'
 import { TeamStats } from './types';
 import FormIndicator from './FormIndicator';
 

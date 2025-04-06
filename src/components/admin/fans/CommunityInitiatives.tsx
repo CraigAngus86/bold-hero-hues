@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,7 +28,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { CommunityInitiative } from '@/types/fans';
-import DataTable from '@/components/admin/common/DataTable';
+import { DataTable } from '@/components/admin/common/DataTable';
 
 // Mock data for development
 const mockInitiatives = [

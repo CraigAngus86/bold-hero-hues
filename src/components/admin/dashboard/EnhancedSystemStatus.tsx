@@ -1,58 +1,44 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, CheckCircle, Clock, AlertTriangle, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { RefreshCw } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { SystemStatusItemProps, SystemStatusProps } from '@/types/system';
+import { formatDistanceToNow } from 'date-fns';
+import { SystemStatusProps } from '@/types/system/status';
 
-export const EnhancedSystemStatus: React.FC<SystemStatusProps> = ({
-  systems,
-  isLoading,
-  lastUpdated,
-  onRefresh
-}) => {
-  const getStatusIcon = (status: string) => {
+export const EnhancedSystemStatus = ({ systems, isLoading, lastUpdated, onRefresh }: SystemStatusProps) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'healthy':
-        return <CheckCircle className="h-5 w-5 text-green-500" />;
+        return 'bg-green-100 text-green-800 border-green-300';
       case 'degraded':
-        return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
+        return 'bg-amber-100 text-amber-800 border-amber-300';
       case 'error':
-        return <AlertCircle className="h-5 w-5 text-red-500" />;
+        return 'bg-red-100 text-red-800 border-red-300';
       default:
-        return <AlertCircle className="h-5 w-5 text-gray-500" />;
+        return 'bg-gray-100 text-gray-800 border-gray-300';
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusDot = (status: string) => {
     switch (status) {
       case 'healthy':
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Healthy</Badge>;
+        return 'bg-green-500';
       case 'degraded':
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Degraded</Badge>;
+        return 'bg-amber-500';
       case 'error':
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Error</Badge>;
+        return 'bg-red-500';
       default:
-        return <Badge variant="outline">Unknown</Badge>;
+        return 'bg-gray-500';
     }
   };
-
-  const formatTimestamp = (timestamp: string | Date | null) => {
-    if (!timestamp) return 'Unknown';
-    try {
-      const date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp;
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } catch (e) {
-      return 'Unknown';
-    }
-  };
-
+  
   return (
-    <Card className="h-full">
+    <Card className="shadow-sm">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-xl font-semibold">System Status</CardTitle>
+        <CardTitle className="text-sm font-medium">System Status</CardTitle>
         <Button
           variant="ghost"
           size="sm"
@@ -65,60 +51,53 @@ export const EnhancedSystemStatus: React.FC<SystemStatusProps> = ({
         </Button>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-10">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <p className="mt-2 text-sm text-gray-500">Checking system status...</p>
-          </div>
-        ) : (
-          <>
-            <div className="space-y-4">
-              {systems.map((system) => (
-                <TooltipProvider key={system.name}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="flex items-center justify-between p-2 rounded-md hover:bg-gray-50">
-                        <div className="flex items-center space-x-4">
-                          <div className="flex-shrink-0">
-                            {system.icon || getStatusIcon(system.status)}
-                          </div>
-                          <div>
-                            <p className="font-medium">{system.name}</p>
-                            <div className="flex items-center text-xs text-gray-500">
-                              <Clock className="mr-1 h-3 w-3" />
-                              <span>{formatTimestamp(system.lastChecked)}</span>
-                            </div>
-                          </div>
+        <div className="space-y-2">
+          {systems.map((system) => (
+            <TooltipProvider key={system.name}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center justify-between p-2 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center space-x-3">
+                      {system.icon && (
+                        <div className="flex-shrink-0">
+                          {system.icon}
                         </div>
-                        <div className="flex items-center space-x-3">
-                          {system.metricValue && (
-                            <span className="text-xs font-medium bg-blue-50 text-blue-700 px-2 py-1 rounded">
-                              {system.metricValue}
-                            </span>
-                          )}
-                          {getStatusBadge(system.status)}
-                        </div>
+                      )}
+                      <div>
+                        <p className="font-medium text-sm">{system.name}</p>
+                        <p className="text-xs text-gray-500">{system.metricValue}</p>
                       </div>
-                    </TooltipTrigger>
-                    {system.tooltip && (
-                      <TooltipContent>
-                        <p>{system.tooltip}</p>
-                      </TooltipContent>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="outline" className={`text-xs ${getStatusColor(system.status)}`}>
+                        <span className={`mr-1 inline-block h-2 w-2 rounded-full ${getStatusDot(system.status)}`}></span>
+                        {system.status.charAt(0).toUpperCase() + system.status.slice(1)}
+                      </Badge>
+                    </div>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <div className="text-xs">
+                    <p>{system.tooltip || `Status information for ${system.name}`}</p>
+                    {system.lastChecked && (
+                      <p className="text-gray-500 mt-1">
+                        Last checked: {formatDistanceToNow(new Date(system.lastChecked), { addSuffix: true })}
+                      </p>
                     )}
-                  </Tooltip>
-                </TooltipProvider>
-              ))}
-            </div>
-            {lastUpdated && (
-              <div className="mt-4 pt-3 border-t text-xs text-gray-500 text-right">
-                Last checked: {lastUpdated.toLocaleTimeString()}
-              </div>
-            )}
-          </>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ))}
+        </div>
+        
+        {lastUpdated && (
+          <div className="text-xs text-gray-500 mt-4">
+            Last updated: {formatDistanceToNow(new Date(lastUpdated), { addSuffix: true })}
+          </div>
         )}
       </CardContent>
     </Card>
   );
 };
-
-export default EnhancedSystemStatus;

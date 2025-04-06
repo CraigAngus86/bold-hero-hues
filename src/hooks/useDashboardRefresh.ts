@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { SystemStatusData, getSystemStatus } from '@/services/logs/systemLogsService';
+import { getSystemStatus } from '@/services/logs/systemLogsService';
+import type { SystemStatusData } from '@/services/logs/systemLogsService';
 
 /**
  * Custom hook for managing dashboard data refresh
@@ -23,6 +24,11 @@ export function useDashboardRefresh(refreshInterval = 60000) {
     }
   }, []);
   
+  const refreshAll = useCallback(() => {
+    fetchSystemStatus();
+    // Add other refresh functions here if needed
+  }, [fetchSystemStatus]);
+  
   useEffect(() => {
     fetchSystemStatus();
     
@@ -37,6 +43,7 @@ export function useDashboardRefresh(refreshInterval = 60000) {
     systemStatus,
     isSystemStatusLoading,
     systemStatusUpdatedAt,
-    refetchSystemStatus: fetchSystemStatus
+    refetchSystemStatus: fetchSystemStatus,
+    refreshAll
   };
 }

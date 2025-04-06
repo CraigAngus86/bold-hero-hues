@@ -17,23 +17,25 @@ const Index = () => {
       {/* Enhanced Hero Section */}
       <EnhancedHero />
       
-      {/* Featured Content Grid */}
-      <FeaturedContentGrid />
-      
-      {/* News Grid */}
-      <NewsGrid />
-      
-      {/* Match Center */}
-      <MatchCenter />
-      
-      {/* Media Gallery Preview Section */}
-      <MediaGalleryPreview />
-      
-      {/* Fan Engagement Section */}
-      <FanEngagement />
-      
-      {/* Sponsors Section */}
-      <SponsorsSection />
+      <div className="py-6">
+        {/* Featured Content Grid */}
+        <FeaturedContentGrid />
+        
+        {/* News Grid */}
+        <NewsGrid />
+        
+        {/* Match Center Section */}
+        <MatchCenter />
+        
+        {/* Media Gallery Preview */}
+        <MediaGalleryPreview />
+        
+        {/* Fan Engagement Section */}
+        <FanEngagement />
+        
+        {/* Sponsors Section */}
+        <SponsorsSection />
+      </div>
       
       <div className="flex-grow"></div>
       <Footer />

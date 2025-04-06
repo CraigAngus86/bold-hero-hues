@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table"; // Fixed import path
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AlertCircle, AlertTriangle, Info, Bug, RefreshCw, Filter, Search, Download } from 'lucide-react';
 import { SystemLog } from '@/types';
 import { format, parseISO } from 'date-fns';
@@ -29,7 +28,6 @@ export const SystemLogViewer: React.FC<SystemLogViewerProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [logTypeFilter, setLogTypeFilter] = useState<string>('all');
 
-  // Filter logs based on type and search term
   const filteredLogs = logs.filter(log => {
     const matchesType = logTypeFilter === 'all' || log.type === logTypeFilter;
     const matchesSearch = log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -37,14 +35,12 @@ export const SystemLogViewer: React.FC<SystemLogViewerProps> = ({
     return matchesType && matchesSearch;
   });
 
-  // Handle refresh button click
   const handleRefresh = () => {
     if (onRefresh) {
       onRefresh();
     }
   };
 
-  // Export logs as JSON
   const handleExport = () => {
     const dataStr = JSON.stringify(logs, null, 2);
     const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
@@ -57,7 +53,6 @@ export const SystemLogViewer: React.FC<SystemLogViewerProps> = ({
     linkElement.click();
   };
 
-  // Format timestamp for display
   const formatTimestamp = (timestamp: string) => {
     try {
       return format(parseISO(timestamp), 'MMM d, yyyy HH:mm:ss');
@@ -66,7 +61,6 @@ export const SystemLogViewer: React.FC<SystemLogViewerProps> = ({
     }
   };
 
-  // Get icon for log type
   const getLogTypeIcon = (type: SystemLog['type']) => {
     switch (type) {
       case 'error':
@@ -82,13 +76,12 @@ export const SystemLogViewer: React.FC<SystemLogViewerProps> = ({
     }
   };
 
-  // Get badge variant based on log type
   const getLogTypeBadgeVariant = (type: SystemLog['type']) => {
     switch (type) {
       case 'error':
         return 'destructive';
       case 'warning':
-        return 'secondary'; // Using secondary as warning isn't a valid variant
+        return 'secondary';
       case 'info':
         return 'default';
       case 'debug':

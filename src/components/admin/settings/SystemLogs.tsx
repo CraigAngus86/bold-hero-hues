@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { SystemLogViewer } from './SystemLogViewer';
 import { SystemLog } from '@/types';
-import { fetchSystemLogs } from '@/services/logs/systemLogsService';
+import { getSystemLogs } from '@/services/logs/systemLogsService';
 import { toast } from 'sonner';
 
 export const SystemLogs: React.FC = () => {
@@ -13,7 +13,7 @@ export const SystemLogs: React.FC = () => {
   const loadLogs = async () => {
     setIsLoading(true);
     try {
-      const fetchedLogs = await fetchSystemLogs({ limit: 100 });
+      const fetchedLogs = await getSystemLogs({ limit: 100 });
       setLogs(fetchedLogs);
     } catch (error) {
       console.error('Error fetching system logs:', error);

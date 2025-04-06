@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
 import { Menu, X } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { cn } from '@/utils/cn';
+import { Link, useLocation } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import Footer from '@/components/Footer';
 
 interface MainLayoutProps {
@@ -11,6 +11,7 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
   
   const navLinks = [
     { name: 'News', href: '/news' },
@@ -47,7 +48,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   <li key={link.name}>
                     <Link 
                       to={link.href} 
-                      className="font-medium text-sm text-white hover:text-team-lightBlue transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-team-lightBlue after:transition-all after:duration-300 hover:after:w-full"
+                      className={cn(
+                        "font-medium text-sm text-white hover:text-team-lightBlue transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-team-lightBlue after:transition-all after:duration-300 hover:after:w-full",
+                        location.pathname === link.href && "text-team-lightBlue after:w-full"
+                      )}
                     >
                       {link.name}
                     </Link>

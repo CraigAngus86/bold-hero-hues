@@ -11,3 +11,4 @@ export { DateRange } from './DateRange';
 export { ScraperLogs } from './ScraperLogs';
 export { VenueManager } from './VenueManager';
 export { CompetitionManager } from './CompetitionManager';
+export { default as BulkOperations } from './BulkOperations';

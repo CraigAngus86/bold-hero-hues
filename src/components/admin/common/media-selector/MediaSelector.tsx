@@ -19,22 +19,24 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface MediaSelectorProps {
   onSelect: (url: string) => void;
+  selectedImage?: string | null;
   currentValue?: string;
   allowExternalUrls?: boolean;
 }
 
 export const MediaSelector: React.FC<MediaSelectorProps> = ({
   onSelect,
+  selectedImage = null,
   currentValue = '',
   allowExternalUrls = true
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [mediaItems, setMediaItems] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedUrl, setSelectedUrl] = useState(currentValue);
+  const [selectedUrl, setSelectedUrl] = useState<string | null>(selectedImage || currentValue || null);
   const [externalUrl, setExternalUrl] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<string>(currentValue ? 'selected' : 'library');
+  const [activeTab, setActiveTab] = useState<string>(selectedUrl ? 'selected' : 'library');
 
   // Load media items from Supabase
   const loadMediaItems = async () => {
@@ -60,6 +62,13 @@ export const MediaSelector: React.FC<MediaSelectorProps> = ({
       loadMediaItems();
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    // Update the selected URL when the selectedImage prop changes
+    if (selectedImage !== null) {
+      setSelectedUrl(selectedImage);
+    }
+  }, [selectedImage]);
 
   // Filter media items based on search term
   const filteredMedia = searchTerm
@@ -91,7 +100,9 @@ export const MediaSelector: React.FC<MediaSelectorProps> = ({
   };
 
   const handleConfirm = () => {
-    onSelect(selectedUrl);
+    if (selectedUrl) {
+      onSelect(selectedUrl);
+    }
     setIsOpen(false);
   };
 

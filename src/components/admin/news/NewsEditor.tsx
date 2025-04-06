@@ -21,7 +21,7 @@ import {
 import { useSupabase } from '@/hooks/useSupabase';
 import { MediaSelector } from '@/components/admin/common/media-selector';
 import { NewsArticle } from '@/types';
-import { slugify } from '@/lib/utils';
+import { slugify } from '@/lib/stringUtils';
 
 const formSchema = z.object({
   title: z.string().min(3, {
@@ -133,11 +133,10 @@ const NewsEditor = () => {
     setIsLoading(true);
     
     try {
-      // Ensure required fields are always included and not undefined
       const updates = {
         title: formData.title || '',
         content: formData.content || '',
-        category: formData.category || 'news', // Default category
+        category: formData.category || 'news',
         slug: formData.slug || '',
         author: formData.author,
         image_url: formData.image_url,
@@ -256,7 +255,7 @@ const NewsEditor = () => {
           <div>
             <Label>Content</Label>
             <Editor
-              apiKey={process.env.NEXT_PUBLIC_TINY_MCE_API_KEY}
+              apiKey={process.env.NEXT_PUBLIC_TINY_MCE_API_KEY || ''}
               value={editorContent}
               init={{
                 height: 500,
@@ -270,7 +269,8 @@ const NewsEditor = () => {
                   'undo redo | formatselect | ' +
                   'bold italic backcolor | alignleft aligncenter ' +
                   'alignright alignjustify | bullist numlist outdent indent | ' +
-                  'removeformat | help'
+                  'removeformat | help',
+                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
               }}
               onEditorChange={handleEditorChange}
             />

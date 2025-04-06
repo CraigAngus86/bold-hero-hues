@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
-import { BadgePound, Users, CalendarRange, BarChart3 } from 'lucide-react';
+import { PoundSterling, Users, CalendarRange, BarChart3 } from 'lucide-react';
 
 // Mock data for charts
 const ticketTypeData = [
@@ -33,7 +33,7 @@ const matchSalesData = [
 ];
 
 const statCards = [
-  { title: 'Total Revenue', value: '£32,450', icon: <BadgePound size={24} />, color: 'from-green-500 to-emerald-700' },
+  { title: 'Total Revenue', value: '£32,450', icon: <PoundSterling size={24} />, color: 'from-green-500 to-emerald-700' },
   { title: 'Tickets Sold', value: '1,827', icon: <Users size={24} />, color: 'from-blue-500 to-blue-700' },
   { title: 'Season Tickets', value: '267', icon: <CalendarRange size={24} />, color: 'from-purple-500 to-purple-700' },
   { title: 'Online Sales %', value: '72%', icon: <BarChart3 size={24} />, color: 'from-orange-500 to-amber-700' },

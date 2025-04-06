@@ -80,7 +80,25 @@ export async function getFixturesWithTickets(): Promise<DbServiceResponse<Fixtur
         .order('date', { ascending: true });
 
       if (error) throw error;
-      return data;
+      
+      // Convert from database schema to Fixture type
+      const fixtures: Fixture[] = (data || []).map(item => ({
+        id: item.id,
+        date: item.date,
+        time: item.time || "",
+        homeTeam: item.home_team,
+        awayTeam: item.away_team,
+        competition: item.competition,
+        venue: item.venue,
+        season: item.season,
+        isCompleted: item.is_completed,
+        homeScore: item.home_score,
+        awayScore: item.away_score,
+        ticketLink: item.ticket_link,
+        // Add other required fields from Fixture type
+      }));
+      
+      return fixtures;
     },
     'Failed to get fixtures with tickets'
   );
@@ -102,7 +120,25 @@ export async function getUpcomingFixturesWithTickets(): Promise<DbServiceRespons
         .order('date', { ascending: true });
 
       if (error) throw error;
-      return data;
+      
+      // Convert from database schema to Fixture type
+      const fixtures: Fixture[] = (data || []).map(item => ({
+        id: item.id,
+        date: item.date,
+        time: item.time || "",
+        homeTeam: item.home_team,
+        awayTeam: item.away_team,
+        competition: item.competition,
+        venue: item.venue,
+        season: item.season,
+        isCompleted: item.is_completed,
+        homeScore: item.home_score,
+        awayScore: item.away_score,
+        ticketLink: item.ticket_link,
+        // Add other required fields from Fixture type
+      }));
+      
+      return fixtures;
     },
     'Failed to get upcoming fixtures with tickets'
   );

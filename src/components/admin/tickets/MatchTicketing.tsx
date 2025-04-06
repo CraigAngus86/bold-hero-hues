@@ -34,7 +34,22 @@ const MatchTicketing: React.FC = () => {
         .order('date', { ascending: true });
       
       if (error) throw new Error(error.message);
-      return data as Fixture[];
+      
+      // Convert database fixture format to Fixture type
+      return (data || []).map(item => ({
+        id: item.id,
+        date: item.date,
+        time: item.time || "",
+        homeTeam: item.home_team,
+        awayTeam: item.away_team,
+        competition: item.competition,
+        venue: item.venue,
+        season: item.season,
+        isCompleted: item.is_completed,
+        homeScore: item.home_score,
+        awayScore: item.away_score,
+        ticketLink: item.ticket_link,
+      })) as Fixture[];
     },
   });
 
@@ -68,7 +83,7 @@ const MatchTicketing: React.FC = () => {
 
   const handleOpenDialog = (fixture: Fixture) => {
     setSelectedFixture(fixture);
-    setTicketLink(fixture.ticket_link || '');
+    setTicketLink(fixture.ticketLink || '');
     setIsDialogOpen(true);
   };
 
@@ -104,7 +119,7 @@ const MatchTicketing: React.FC = () => {
       title: 'Match',
       render: (fixture: Fixture) => (
         <span className="font-medium">
-          {fixture.home_team} vs {fixture.away_team}
+          {fixture.homeTeam} vs {fixture.awayTeam}
         </span>
       ),
     },
@@ -120,15 +135,15 @@ const MatchTicketing: React.FC = () => {
       key: 'ticket_link',
       title: 'Ticket Link',
       render: (fixture: Fixture) => (
-        fixture.ticket_link ? (
+        fixture.ticketLink ? (
           <div className="flex items-center space-x-2">
             <a 
-              href={fixture.ticket_link} 
+              href={fixture.ticketLink} 
               target="_blank" 
               rel="noopener noreferrer" 
               className="text-blue-600 hover:text-blue-800 flex items-center"
             >
-              <span className="truncate max-w-[200px]">{fixture.ticket_link}</span>
+              <span className="truncate max-w-[200px]">{fixture.ticketLink}</span>
               <ExternalLink size={16} className="ml-1" />
             </a>
           </div>
@@ -147,7 +162,7 @@ const MatchTicketing: React.FC = () => {
           onClick={() => handleOpenDialog(fixture)}
         >
           <Pencil size={16} className="mr-2" />
-          {fixture.ticket_link ? 'Edit Link' : 'Add Link'}
+          {fixture.ticketLink ? 'Edit Link' : 'Add Link'}
         </Button>
       ),
     },
@@ -204,12 +219,12 @@ const MatchTicketing: React.FC = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {selectedFixture?.ticket_link ? 'Edit Ticket Link' : 'Add Ticket Link'}
+              {selectedFixture?.ticketLink ? 'Edit Ticket Link' : 'Add Ticket Link'}
             </DialogTitle>
             <DialogDescription>
               {selectedFixture && (
                 <>
-                  {formatMatchDate(selectedFixture.date)} - {selectedFixture.home_team} vs {selectedFixture.away_team}
+                  {formatMatchDate(selectedFixture.date)} - {selectedFixture.homeTeam} vs {selectedFixture.awayTeam}
                 </>
               )}
             </DialogDescription>

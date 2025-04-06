@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { BadgePound, Edit, Trash, Plus, Check, X } from 'lucide-react';
+import { PoundSterling, Edit, Trash, Plus, Check, X } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 
 interface TicketType {
@@ -107,7 +107,7 @@ const TicketTypesManager: React.FC = () => {
               <p className="text-gray-600 text-sm">{ticket.description}</p>
               <div className="mt-4">
                 <p className="text-lg font-bold flex items-center">
-                  <BadgePound size={18} className="mr-1 text-gray-700" />
+                  <PoundSterling size={18} className="mr-1 text-gray-700" />
                   {ticket.price.toFixed(2)}
                 </p>
               </div>

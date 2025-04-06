@@ -9,7 +9,7 @@ import {
   BarChart3, 
   Settings, 
   Link,
-  BadgePound,
+  PoundSterling,
   UserCircle
 } from 'lucide-react';
 
@@ -40,7 +40,7 @@ const TicketsManagement: React.FC = () => {
               Match Tickets
             </TabsTrigger>
             <TabsTrigger value="ticket-types" className="flex items-center gap-2">
-              <BadgePound size={16} />
+              <PoundSterling size={16} />
               Ticket Types
             </TabsTrigger>
             <TabsTrigger value="season-tickets" className="flex items-center gap-2">

@@ -1,6 +1,6 @@
 
-import { AlertTriangle, CalendarDays, FileText, MessageSquare, TicketIcon, UsersRound } from "lucide-react";
 import { SystemStatusItemProps } from "@/types/system/status";
+import { FileText, CalendarDays, UsersRound } from "lucide-react";
 
 // Content status items
 export const contentStatusItems: SystemStatusItemProps[] = [

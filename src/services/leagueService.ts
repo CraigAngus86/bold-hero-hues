@@ -6,6 +6,7 @@ import { TeamStats } from '@/types/fixtures';
 // to accommodate different import styles in the codebase
 export const leagueService = {
   getLeagueTable,
+  getLeagueTableData, // Add alias for getLeagueTable
   updateTeamLogo,
   getTeamById,
   refreshLeagueData

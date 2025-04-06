@@ -8,6 +8,7 @@ import SystemStatusPanel from '@/components/admin/dashboard/SystemStatusPanel';
 import RecentActivityPanel from '@/components/admin/dashboard/RecentActivityPanel';
 import QuickStatsPanel from '@/components/admin/dashboard/QuickStatsPanel';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
+import { SystemMetrics } from '@/types/system/status';
 
 const Dashboard = () => {
   const { 
@@ -16,6 +17,12 @@ const Dashboard = () => {
     error: statusError, 
     refresh: refreshStatus 
   } = useSystemStatus();
+  
+  // Safely access metrics data
+  const getMetricValue = (metric: keyof SystemMetrics | undefined, defaultValue: string | number = '0') => {
+    if (!statusData?.metrics || metric === undefined) return defaultValue;
+    return (statusData.metrics as any)[metric] || defaultValue;
+  };
   
   return (
     <>
@@ -71,7 +78,7 @@ const Dashboard = () => {
                     {statusLoading ? (
                       <div className="h-8 w-16 animate-pulse bg-gray-200 rounded"></div>
                     ) : (
-                      `${statusData?.metrics.cpuUsage || 0}%`
+                      `${statusData?.metrics?.cpuUsage || 0}%`
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground">
@@ -91,7 +98,7 @@ const Dashboard = () => {
                     {statusLoading ? (
                       <div className="h-8 w-16 animate-pulse bg-gray-200 rounded"></div>
                     ) : (
-                      `${statusData?.metrics.memoryUsage || 0}%`
+                      `${statusData?.metrics?.memoryUsage || 0}%`
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground">
@@ -111,7 +118,7 @@ const Dashboard = () => {
                     {statusLoading ? (
                       <div className="h-8 w-16 animate-pulse bg-gray-200 rounded"></div>
                     ) : (
-                      `${statusData?.metrics.diskUsage || 0}%`
+                      `${statusData?.metrics?.diskUsage || 0}%`
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground">
@@ -131,7 +138,7 @@ const Dashboard = () => {
                     {statusLoading ? (
                       <div className="h-8 w-16 animate-pulse bg-gray-200 rounded"></div>
                     ) : (
-                      statusData?.metrics.activeUsers || 0
+                      statusData?.metrics?.activeUsers || 0
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground">

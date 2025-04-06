@@ -1,173 +1,114 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { TeamStats } from '@/types/fixtures';
-import { useToast } from '@/components/ui/use-toast';
+import { Input } from '@/components/ui/input';
+import ImageUploader from '@/components/admin/common/ImageUploader';
 import { updateTeamLogo } from '@/services/leagueService';
-import { useImageUpload } from '@/services/images/hooks';
-import { Loader2 } from 'lucide-react';
-import { BucketType } from '@/types/images';
+import { toast } from 'sonner';
+import { BucketType } from '@/services/images/types';
 
 interface LogoEditorDialogProps {
-  team: TeamStats;
   isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSuccess?: () => void;
+  onClose: () => void;
+  teamId: string | null;
+  teamName: string;
+  existingLogo: string | null;
+  onLogoUpdated: () => void;
 }
 
 const LogoEditorDialog: React.FC<LogoEditorDialogProps> = ({
-  team,
   isOpen,
-  onOpenChange,
-  onSuccess
+  onClose,
+  teamId,
+  teamName,
+  existingLogo,
+  onLogoUpdated
 }) => {
-  const { toast } = useToast();
-  const [logoUrl, setLogoUrl] = useState<string>(team.logo || '');
-  const [isSaving, setIsSaving] = useState(false);
-  
-  const { 
-    selectedFile,
-    previewUrl,
-    isUploading,
-    progress,
-    uploadFile,
-    error 
-  } = useImageUpload({
-    bucket: BucketType.TEAMS,
-    folderPath: 'logos',
-    maxSize: 2 * 1024 * 1024 // 2MB
-  });
+  const [logoUrl, setLogoUrl] = useState(existingLogo || '');
+  const [isUploading, setIsUploading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    
-    try {
-      const result = await uploadFile(file, {
-        alt_text: `${team.team} team logo`
-      });
-      
-      if (result.success && result.url) {
-        setLogoUrl(result.url);
-        toast({
-          title: "Upload successful",
-          description: "Logo uploaded successfully",
-        });
-      } else {
-        throw new Error(result.error || 'Upload failed');
-      }
-    } catch (err) {
-      toast({
-        title: "Upload failed",
-        description: error?.message || "Failed to upload logo",
-        variant: "destructive",
-      });
-    }
+  const handleImageUpload = (url: string) => {
+    setLogoUrl(url);
   };
 
   const handleSave = async () => {
-    if (!logoUrl) {
-      toast({
-        title: "No logo selected",
-        description: "Please upload a logo image first",
-        variant: "destructive",
-      });
-      return;
-    }
+    if (!teamId) return;
     
-    setIsSaving(true);
+    setIsSubmitting(true);
     try {
-      const success = await updateTeamLogo(team.id?.toString() || '', logoUrl);
+      const success = await updateTeamLogo(teamId, logoUrl);
       
       if (success) {
-        toast({
-          title: "Logo updated",
-          description: `Logo for ${team.team} has been updated`,
-        });
-        
-        if (onSuccess) {
-          onSuccess();
-        }
-        
-        onOpenChange(false);
+        toast.success(`Logo updated for ${teamName}`);
+        onLogoUpdated();
+        onClose();
       } else {
         throw new Error('Failed to update team logo');
       }
     } catch (error) {
-      toast({
-        title: "Update failed",
-        description: "Failed to update team logo",
-        variant: "destructive",
-      });
+      console.error('Error updating team logo:', error);
+      toast.error(`Error updating logo: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
-      setIsSaving(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Update Logo for {team.team}</DialogTitle>
+          <DialogTitle>Update Team Logo</DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-4 py-4">
-          <div className="flex flex-col items-center space-y-4">
-            {/* Logo preview */}
-            <div className="w-32 h-32 border rounded flex items-center justify-center bg-gray-50">
-              {logoUrl || previewUrl ? (
-                <img 
-                  src={previewUrl || logoUrl} 
-                  alt={`${team.team} logo`} 
-                  className="max-w-full max-h-full object-contain"
-                />
-              ) : (
-                <div className="text-gray-400 text-sm text-center">
-                  No logo
-                </div>
-              )}
+        <div className="space-y-6 py-4">
+          <div>
+            <h3 className="text-lg font-medium">{teamName}</h3>
+            <p className="text-sm text-gray-500">Upload a new logo or provide a URL</p>
+          </div>
+          
+          {existingLogo && (
+            <div className="flex justify-center">
+              <img 
+                src={existingLogo} 
+                alt={`${teamName} logo`}
+                className="w-40 h-40 object-contain border rounded"
+              />
+            </div>
+          )}
+          
+          <div className="space-y-2">
+            <ImageUploader
+              bucket={BucketType.TEAMS}
+              onUploadComplete={handleImageUpload}
+              folderPath={`teams/${teamId}`}
+              isUploading={isUploading}
+              setIsUploading={setIsUploading}
+            />
+            
+            <div className="text-center text-sm text-gray-500">
+              or
             </div>
             
-            {/* File upload */}
-            <div className="w-full">
-              <label 
-                htmlFor="logo-upload" 
-                className="block w-full cursor-pointer text-center py-2 px-4 rounded border border-gray-300 hover:bg-gray-50"
-              >
-                {isUploading ? (
-                  <span className="flex items-center justify-center">
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Uploading ({progress}%)
-                  </span>
-                ) : (
-                  'Choose logo image'
-                )}
-              </label>
-              <input
-                id="logo-upload"
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                disabled={isUploading}
-                className="hidden"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Recommended: square PNG image, max 2MB
-              </p>
-            </div>
+            <Input
+              type="url"
+              placeholder="Enter logo URL"
+              value={logoUrl}
+              onChange={(e) => setLogoUrl(e.target.value)}
+            />
           </div>
         </div>
         
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <div className="flex justify-end space-x-2">
+          <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
             Cancel
           </Button>
           <Button 
             onClick={handleSave} 
-            disabled={isUploading || isSaving || !logoUrl}
+            disabled={!logoUrl || isUploading || isSubmitting}
           >
-            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save Logo
+            {isSubmitting ? 'Saving...' : 'Save Logo'}
           </Button>
         </div>
       </DialogContent>

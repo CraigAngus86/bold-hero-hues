@@ -43,12 +43,12 @@ export interface StoredImageMetadata {
   created_at: string;
   updated_at: string;
   created_by?: string;
+  url: string; // Changed from optional to required
   
   // Optional frontend properties
   name?: string;
   type?: string;
   size?: number;
-  url?: string;
 }
 
 // Define image dimensions type
@@ -69,7 +69,8 @@ export enum BucketType {
   MEDIA = 'media',
   SPONSORS = 'sponsors',
   PLAYERS = 'players',
-  PUBLIC = 'public'
+  PUBLIC = 'public',
+  TEAMS = 'teams' // Added TEAMS bucket
 }
 
 // Image optimization options

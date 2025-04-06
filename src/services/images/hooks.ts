@@ -1,65 +1,66 @@
 
 import { useState, useCallback } from 'react';
-import { toast } from 'sonner';
 import { uploadImage } from './api';
-import { 
-  UseImageUploadOptions, 
-  UseImageUploadResult, 
-  BucketType, 
-  ImageUploadResult 
-} from './types';
+import { BucketType, UseImageUploadOptions, UseImageUploadResult } from './types';
 
+/**
+ * Hook for handling image uploads
+ */
 export function useImageUpload(options: UseImageUploadOptions = {}): UseImageUploadResult {
   const {
-    bucket = 'images',
+    bucket = BucketType.IMAGES,
     folderPath,
     maxSize = 5 * 1024 * 1024, // 5MB default
-    allowedTypes = ['image/*'],
+    allowedTypes = ['image/jpeg', 'image/png', 'image/webp'],
+    autoUpload = false,
     onSuccess,
-    onError,
+    onError
   } = options;
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [error, setError] = useState<Error | null>(null);
-  
-  const validateFile = (file: File): boolean => {
-    // Size validation
-    if (maxSize && file.size > maxSize) {
-      const errorMsg = `File size must be less than ${Math.round(maxSize / 1024 / 1024)}MB`;
-      setError(new Error(errorMsg));
-      toast.error(errorMsg);
-      return false;
+  const [progress, setProgress] = useState(0);
+
+  // Create preview when a file is selected
+  const selectFile = useCallback((file: File) => {
+    // Check file size
+    if (file.size > maxSize) {
+      const error = new Error(`File size exceeds the ${maxSize / (1024 * 1024)}MB limit`);
+      setError(error);
+      if (onError) onError(error);
+      return;
     }
-    
-    // Type validation if specific types are provided
-    if (allowedTypes && allowedTypes.length > 0 && allowedTypes[0] !== '*') {
-      const fileType = file.type;
-      const isValidType = allowedTypes.some(type => {
-        if (type.endsWith('/*')) {
-          // Handle wildcard types like 'image/*'
-          const mainType = type.split('/')[0];
-          return fileType.startsWith(`${mainType}/`);
-        }
-        return type === fileType;
-      });
-      
-      if (!isValidType) {
-        const errorMsg = `File type not allowed. Supported types: ${allowedTypes.join(', ')}`;
-        setError(new Error(errorMsg));
-        toast.error(errorMsg);
-        return false;
-      }
+
+    // Check file type
+    if (allowedTypes.length > 0 && !allowedTypes.includes(file.type)) {
+      const error = new Error(`File type ${file.type} is not allowed`);
+      setError(error);
+      if (onError) onError(error);
+      return;
     }
+
+    setSelectedFile(file);
+    setError(null);
     
-    return true;
-  };
-  
-  const uploadFile = useCallback(async (file: File, metadata?: any): Promise<ImageUploadResult> => {
-    if (!validateFile(file)) {
-      return { success: false, error: error?.message || 'Invalid file' };
+    // Create preview URL
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    // Auto upload if enabled
+    if (autoUpload) {
+      uploadFile(file);
+    }
+  }, [maxSize, allowedTypes, autoUpload, onError]);
+
+  // Upload the selected file
+  const uploadFile = useCallback(async (file: File, options = {}) => {
+    if (!file) {
+      return { success: false, error: 'No file selected' };
     }
     
     setIsUploading(true);
@@ -67,102 +68,82 @@ export function useImageUpload(options: UseImageUploadOptions = {}): UseImageUpl
     setError(null);
     
     try {
-      // Simulate progress
+      // Track upload progress - in a real implementation this would use proper progress tracking
       const progressInterval = setInterval(() => {
         setProgress(prev => {
-          if (prev >= 90) {
+          if (prev >= 95) {
             clearInterval(progressInterval);
-            return 90;
+            return prev;
           }
-          return prev + 10;
+          return prev + 5;
         });
-      }, 200);
+      }, 100);
       
-      // Upload file
-      const result = await uploadImage(file, bucket, folderPath, metadata);
+      const result = await uploadImage(file, {
+        bucket,
+        folderPath,
+        ...options
+      });
       
-      // Clear progress interval
       clearInterval(progressInterval);
+      setProgress(100);
       
-      if (result.success) {
-        setProgress(100);
-        if (onSuccess && result.url) {
-          onSuccess(result.url);
-        }
-      } else {
+      if (!result.success) {
         throw new Error(result.error || 'Upload failed');
+      }
+
+      if (onSuccess && result.url) {
+        onSuccess(result.url);
       }
       
       return result;
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Unknown upload error'));
-      if (onError) {
-        onError(err instanceof Error ? err : new Error('Unknown upload error'));
-      }
-      return { 
-        success: false, 
-        error: err instanceof Error ? err.message : 'Unknown upload error' 
+      const error = err instanceof Error ? err : new Error('Unknown upload error');
+      setError(error);
+      if (onError) onError(error);
+      
+      return {
+        success: false,
+        error: error.message
       };
     } finally {
-      // Small delay to show 100% completion
-      setTimeout(() => {
-        setIsUploading(false);
-      }, 300);
+      setIsUploading(false);
     }
-  }, [bucket, folderPath, onSuccess, onError, error, validateFile]);
-  
-  // Simple upload interface for compatibility
-  const upload = async (file: File): Promise<string> => {
+  }, [bucket, folderPath, onSuccess, onError]);
+
+  // Simplified upload function that returns just the URL
+  const upload = useCallback(async (file: File): Promise<string> => {
     const result = await uploadFile(file);
-    if (result.success && result.data?.url) {
-      return result.data.url;
+    if (!result.success || !result.url) {
+      throw new Error(result.error || 'Failed to upload image');
     }
-    throw new Error(result.error || 'Upload failed');
-  };
-  
-  const uploadFiles = useCallback(async (files: File[], options?: any): Promise<ImageUploadResult[]> => {
-    return Promise.all(files.map(file => uploadFile(file, options)));
+    return result.url;
   }, [uploadFile]);
-  
-  const selectFile = useCallback((file: File) => {
-    if (validateFile(file)) {
-      setSelectedFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
-    }
-  }, [validateFile]);
-  
-  const cancelUpload = useCallback(() => {
-    setIsUploading(false);
+
+  // Reset state
+  const resetUpload = useCallback(() => {
+    setSelectedFile(null);
+    setPreview(null);
+    setError(null);
     setProgress(0);
   }, []);
-  
-  const resetState = useCallback(() => {
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-    }
-    setSelectedFile(null);
-    setPreviewUrl(null);
-    setIsUploading(false);
-    setProgress(0);
-    setError(null);
-  }, [previewUrl]);
-  
+
   return {
     selectedFile,
     setSelectedFile,
-    previewUrl,
-    preview: previewUrl, // Alias for backward compatibility
+    preview,
+    previewUrl: preview, // Alias for backward compatibility
     isUploading,
     uploading: isUploading, // Alias for backward compatibility
+    error,
     progress,
     uploadProgress: progress, // Alias for backward compatibility
-    error,
     selectFile,
     uploadFile,
-    upload, // Simple interface for compatibility
-    uploadFiles,
-    cancelUpload,
-    resetState,
-    resetUpload: resetState
+    upload,
+    resetUpload,
+    resetState: resetUpload // Alias for backward compatibility
   };
 }
+
+export default useImageUpload;

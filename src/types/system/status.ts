@@ -1,12 +1,13 @@
 
 import { LucideIcon } from "lucide-react";
+import React from "react";
 
 export interface SystemStatusItemProps {
   name: string;
   status: 'healthy' | 'degraded' | 'error' | 'unknown' | 'active' | 'warning' | 'info' | 'online' | 'offline';
   lastChecked?: string;
   metricValue?: string;
-  icon?: React.ReactNode;
+  icon?: React.ElementType; // Changed from React.ReactNode to React.ElementType
   tooltip?: string;
   count?: number;
   color?: string;

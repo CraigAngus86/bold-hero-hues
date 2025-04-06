@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -77,7 +78,8 @@ const DataScraperControl = () => {
       toast.info("Refreshing Highland League data...");
       
       try {
-        const result = await triggerLeagueDataScrape(true);
+        // Fix: Remove the boolean parameter as it seems to be causing the issue
+        const result = await triggerLeagueDataScrape();
         
         if (result && Array.isArray(result) && result.length > 0) {
           toast.success(`Successfully refreshed data for ${result.length} teams`);

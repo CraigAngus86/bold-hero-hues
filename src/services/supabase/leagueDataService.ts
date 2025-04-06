@@ -1,136 +1,61 @@
 
 import { supabase } from '@/lib/supabase';
-import { TeamStats } from '@/types/fixtures';
-import { toast } from 'sonner';
 
 /**
- * Fetches the league table data from Supabase
+ * Triggers the scraping of Highland League data
  */
-export async function fetchLeagueTableFromSupabase(): Promise<TeamStats[]> {
+export async function triggerLeagueDataScrape(): Promise<any[]> {
   try {
-    const { data, error } = await supabase
-      .from('highland_league_table')
-      .select('*')
-      .order('position', { ascending: true });
-    
-    if (error) {
-      console.error('Error fetching league table:', error);
-      return [];
-    }
-    
-    // Process the form data to ensure it's always an array
-    return data.map(team => {
-      // Process the form field to ensure it's an array
-      let formArray: string[] = [];
-      
-      if (Array.isArray(team.form)) {
-        formArray = team.form;
-      } else if (typeof team.form === 'string' && team.form) {
-        try {
-          // Try to parse if it's a JSON string
-          const parsed = JSON.parse(team.form);
-          if (Array.isArray(parsed)) {
-            formArray = parsed;
-          } else {
-            // If parsed but not an array, split the string
-            formArray = team.form.split('');
-          }
-        } catch {
-          // If parsing failed, split the string
-          formArray = team.form.split('');
-        }
-      }
-      
-      return {
-        ...team,
-        form: formArray
-      };
+    // Call the supabase edge function to scrape data
+    const { data, error } = await supabase.functions.invoke('scrape-highland-league', {
+      body: { action: 'scrape' }
     });
-  } catch (error) {
-    console.error('Error in fetchLeagueTableFromSupabase:', error);
-    return [];
-  }
-}
 
-/**
- * Triggers a scrape of the league table data and saves it to Supabase
- */
-export async function triggerLeagueDataScrape(): Promise<TeamStats[]> {
-  try {
-    const { data, error } = await supabase
-      .functions.invoke('scrape-highland-league');
-    
     if (error) {
-      throw new Error(error.message || 'Failed to scrape league data');
+      console.error('Error triggering league data scrape:', error);
+      throw new Error(`Failed to trigger league data scrape: ${error.message}`);
     }
-    
-    return data?.leagueTable || [];
-    
+
+    return data || [];
   } catch (error) {
     console.error('Error in triggerLeagueDataScrape:', error);
-    toast.error('Failed to scrape league data. Please try again later.');
-    return [];
+    throw error;
   }
 }
 
 /**
- * Gets the last update time of the league table
+ * Gets the last time the league data was updated
  */
 export async function getLastUpdateTime(): Promise<string | null> {
   try {
     const { data, error } = await supabase
       .from('scrape_logs')
       .select('created_at')
-      .eq('source', 'highland_league')
+      .eq('source', 'highland-league')
+      .eq('status', 'success')
       .order('created_at', { ascending: false })
       .limit(1)
       .single();
-    
-    if (error || !data) {
-      return null;
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No data found
+        return null;
+      }
+      console.error('Error fetching last update time:', error);
+      throw error;
     }
-    
-    return data.created_at;
+
+    return data?.created_at || null;
   } catch (error) {
-    console.error('Error getting last update time:', error);
+    console.error('Error in getLastUpdateTime:', error);
     return null;
   }
 }
 
-/**
- * Clears the Supabase cache
- */
-export async function clearSupabaseCache(): Promise<boolean> {
-  try {
-    // Use the REST API to purge the cache
-    const response = await fetch(`${process.env.VITE_SUPABASE_URL}/rest/v1/`, {
-      method: 'POST',
-      headers: {
-        'apikey': process.env.VITE_SUPABASE_ANON_KEY || '',
-        'Authorization': `Bearer ${process.env.VITE_SUPABASE_ANON_KEY || ''}`,
-        'Content-Type': 'application/json',
-        'X-Client-Info': 'web-app'
-      },
-      body: JSON.stringify({
-        query: 'RESET cache'
-      })
-    });
+const leagueDataService = {
+  triggerLeagueDataScrape,
+  getLastUpdateTime
+};
 
-    // If successful, we'll get a 200 response
-    const success = response.ok;
-    
-    if (success) {
-      toast.success('Cache cleared successfully');
-    } else {
-      const errorText = await response.text();
-      console.error('Error clearing cache:', errorText);
-      toast.error('Failed to clear cache');
-    }
-    
-    return success;
-  } catch (error) {
-    console.error('Error clearing cache:', error);
-    toast.error('Failed to clear cache');
-    return false;
-  }
-}
+export default leagueDataService;

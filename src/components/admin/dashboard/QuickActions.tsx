@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { 
   Calendar, FileText, Users, Settings, Trophy, 
-  MessageSquare, Image, Mail, Tag, 
+  MessageSquare, Image, Mail, Tag
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import StatusItem from './StatusItem';
@@ -21,7 +21,8 @@ const QuickActions: React.FC<QuickActionsProps> = ({ metrics }) => {
       path: '/admin/fixtures',
       count: metrics?.fixturesCount || 0,
       color: 'bg-green-50',
-      viewAllLink: '/admin/fixtures' 
+      viewAllLink: '/admin/fixtures',
+      status: 'info' as const
     },
     { 
       name: 'News', 
@@ -29,7 +30,8 @@ const QuickActions: React.FC<QuickActionsProps> = ({ metrics }) => {
       path: '/admin/news',
       count: metrics?.newsCount || 0,
       color: 'bg-blue-50',
-      viewAllLink: '/admin/news'
+      viewAllLink: '/admin/news',
+      status: 'info' as const
     },
     { 
       name: 'Users', 
@@ -37,21 +39,24 @@ const QuickActions: React.FC<QuickActionsProps> = ({ metrics }) => {
       path: '/admin/users',
       count: metrics?.usersCount || 0,
       color: 'bg-purple-50',
-      viewAllLink: '/admin/users'
+      viewAllLink: '/admin/users',
+      status: 'info' as const
     },
     { 
       name: 'Team', 
       icon: Trophy, 
       path: '/admin/team',
       color: 'bg-amber-50',
-      viewAllLink: '/admin/team'
+      viewAllLink: '/admin/team',
+      status: 'info' as const
     },
     { 
       name: 'Media', 
       icon: Image, 
       path: '/admin/media',
       color: 'bg-emerald-50',
-      viewAllLink: '/admin/media'
+      viewAllLink: '/admin/media',
+      status: 'info' as const
     },
     { 
       name: 'Messages', 
@@ -59,14 +64,16 @@ const QuickActions: React.FC<QuickActionsProps> = ({ metrics }) => {
       path: '/admin/messages',
       count: metrics?.messagesCount || 0,
       color: 'bg-pink-50',
-      viewAllLink: '/admin/messages'
+      viewAllLink: '/admin/messages',
+      status: 'info' as const
     },
     { 
       name: 'Fan Engagement', 
       icon: MessageSquare, 
       path: '/admin/fans',
       color: 'bg-indigo-50',
-      viewAllLink: '/admin/fans'
+      viewAllLink: '/admin/fans',
+      status: 'info' as const
     },
     { 
       name: 'Sponsors', 
@@ -74,14 +81,16 @@ const QuickActions: React.FC<QuickActionsProps> = ({ metrics }) => {
       path: '/admin/sponsors',
       count: metrics?.sponsorsCount || 0,
       color: 'bg-orange-50',
-      viewAllLink: '/admin/sponsors'
+      viewAllLink: '/admin/sponsors',
+      status: 'info' as const
     },
     { 
       name: 'Settings', 
       icon: Settings, 
       path: '/admin/settings',
       color: 'bg-gray-50',
-      viewAllLink: '/admin/settings'
+      viewAllLink: '/admin/settings',
+      status: 'info' as const
     }
   ];
 
@@ -91,7 +100,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({ metrics }) => {
         <Link to={action.path} key={action.name}>
           <StatusItem
             name={action.name}
-            status="active"
+            status={action.status}
             icon={action.icon}
             count={action.count}
             color={action.color}

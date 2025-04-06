@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { 
   Database, HardDrive, Lock, Server, Users, FileText, Calendar, 
-  Activity, Award, MessageSquare, Image, Clock
+  Activity, Award, MessageSquare, Image, Clock 
 } from 'lucide-react';
 import StatusItem from './StatusItem';
 import { SystemStatusItemProps } from '@/types/system/status';

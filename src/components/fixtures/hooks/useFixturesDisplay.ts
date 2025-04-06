@@ -6,7 +6,7 @@ import { TeamStats } from '@/types/fixtures';
 
 export const useFixturesDisplay = () => {
   // Renamed to match what's expected in the components
-  const { upcomingFixtures: upcomingMatches, recentResults: recentMatches, isLoading, nextMatch } = useFixturesData();
+  const { upcomingMatches, recentMatches, isLoading, nextMatch } = useFixturesData();
   const [leagueData, setLeagueData] = useState<TeamStats[]>([]);
   const [isLeagueLoading, setIsLeagueLoading] = useState(true);
   const [nextMatchWithTickets, setNextMatchWithTickets] = useState<any>(null);

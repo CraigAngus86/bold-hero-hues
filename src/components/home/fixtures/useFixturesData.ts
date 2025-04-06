@@ -1,8 +1,9 @@
 
 import { useState, useEffect } from 'react';
-import { Fixture, convertToMatches } from '@/types/fixtures';
+import { Fixture } from '@/types/fixtures';
 import { getAllFixtures } from '@/services/fixturesService';
 import { toast } from 'sonner';
+import { fixturesToMatches } from '@/utils/fixtureUtils';
 
 export const useFixturesData = () => {
   const [upcomingFixtures, setUpcomingFixtures] = useState<Fixture[]>([]);
@@ -49,8 +50,8 @@ export const useFixturesData = () => {
   const nextMatch = upcomingFixtures.length > 0 ? upcomingFixtures[0] : null;
   
   // Convert database fixtures to UI match format
-  const upcomingMatches = upcomingFixtures.length > 0 ? convertToMatches(upcomingFixtures) : [];
-  const recentMatches = recentResults.length > 0 ? convertToMatches(recentResults) : [];
+  const upcomingMatches = upcomingFixtures.length > 0 ? fixturesToMatches(upcomingFixtures) : [];
+  const recentMatches = recentResults.length > 0 ? fixturesToMatches(recentResults) : [];
   
   return {
     upcomingFixtures,

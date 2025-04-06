@@ -44,6 +44,7 @@ export interface TeamStats {
   points: number;
   form: string[]; // Make form required to match component expectations
   logo?: string;
+  last_updated?: string;
 }
 
 // Add DBFixture interface for database records
@@ -67,24 +68,6 @@ export interface ImportResult {
   validFixtures?: ScrapedFixture[];
 }
 
-// This function converts database fixtures to the Match format used by UI components
-export const convertToMatches = (fixtures: Fixture[] | DBFixture[]): any[] => {
-  return fixtures.map(fixture => ({
-    id: fixture.id,
-    date: fixture.date,
-    time: fixture.time,
-    homeTeam: fixture.home_team,
-    awayTeam: fixture.away_team,
-    competition: fixture.competition,
-    venue: fixture.venue || '',
-    isCompleted: fixture.is_completed || false,
-    homeScore: fixture.home_score,
-    awayScore: fixture.away_score,
-    ticketLink: fixture.ticket_link,
-    season: fixture.season,
-    match_report: fixture.match_report,
-    attendance: fixture.attendance,
-    referee: fixture.referee,
-    hasMatchPhotos: false, // Default value
-  }));
-};
+// Import and re-export the conversion functions from the utility file
+import { fixturesToMatches as convertFixturesToMatches } from '@/utils/fixtureUtils';
+export const convertToMatches = convertFixturesToMatches;

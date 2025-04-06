@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import LeagueTableContent from './league/LeagueTableContent';
-import { fetchLeagueTableFromSupabase } from '@/services/supabase/leagueDataService';
+import { fetchLeagueTableFromSupabase, clearSupabaseCache } from '@/services/supabase/leagueDataService';
 import { toast } from "sonner";
 import { TeamStats } from '@/types/fixtures';
 
@@ -15,9 +15,8 @@ const LeagueTable = () => {
   const loadLeagueData = async (refresh = false) => {
     try {
       if (refresh) {
-        // We'll handle cache clearing differently since the function doesn't exist
-        // For now we'll just refetch the data
-        console.log('Refreshing league data...');
+        // Clear the cache if refreshing
+        await clearSupabaseCache();
       } else {
         setIsLoading(true);
       }
@@ -83,7 +82,7 @@ const LeagueTable = () => {
               <p className="mt-2 text-gray-600">Loading league table...</p>
             </div>
           ) : (
-            <LeagueTableContent leagueData={leagueData} />
+            <LeagueTableContent leagueData={leagueData as any} />
           )}
         </motion.div>
       </div>

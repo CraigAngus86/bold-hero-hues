@@ -1,41 +1,18 @@
 
-import { ReactNode } from 'react';
+import { LucideIcon } from "lucide-react";
 
 export interface SystemStatusItemProps {
   name: string;
   status: 'healthy' | 'degraded' | 'error' | 'unknown';
-  lastChecked: Date | string | null;
-  icon?: ReactNode;
-  tooltip?: string;
+  lastChecked?: string;
   metricValue?: string;
+  icon: LucideIcon;
+  tooltip?: string;
 }
 
 export interface SystemStatusProps {
   systems: SystemStatusItemProps[];
-  isLoading?: boolean;
-  lastUpdated?: Date | null;
-  onRefresh?: () => void;
-}
-
-export interface SystemStatusData {
-  database: {
-    status: string;
-    lastChecked: Date;
-    metricValue: string;
-  };
-  api: {
-    status: string;
-    lastChecked: Date;
-    metricValue: string;
-  };
-  content: {
-    status: string;
-    lastChecked: Date;
-    metricValue: string;
-  };
-  uploads: {
-    status: string;
-    lastChecked: Date;
-    metricValue: string;
-  };
+  isLoading: boolean;
+  lastUpdated: Date;
+  onRefresh: () => void;
 }

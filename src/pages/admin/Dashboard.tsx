@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -9,8 +8,28 @@ import RecentActivityPanel from '@/components/admin/dashboard/RecentActivityPane
 import QuickStatsPanel from '@/components/admin/dashboard/QuickStatsPanel';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { SystemMetrics } from '@/types/system/status';
+import AdminLayout from '@/components/admin/layout';
+import { CalendarDays, FileText, Users } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
+  const initialSystemStatus: SystemStatus = {
+    status: 'unknown',
+    lastUpdated: new Date().toISOString(),
+    metrics: {
+      cpuUsage: 0,
+      memoryUsage: 0,
+      diskUsage: 0,
+      activeUsers: 0,
+      responseTime: 0,
+      uptime: 0,
+      fixturesCount: 0,
+      newsCount: 0
+    }
+  };
+  
+  const [systemStatus, setSystemStatus] = useState<SystemStatus>(initialSystemStatus);
+  
   const { 
     data: statusData, 
     isLoading: statusLoading, 
@@ -18,14 +37,13 @@ const Dashboard = () => {
     refresh: refreshStatus 
   } = useSystemStatus();
   
-  // Safely access metrics data
   const getMetricValue = (metric: keyof SystemMetrics | undefined, defaultValue: string | number = '0') => {
     if (!statusData?.metrics || metric === undefined) return defaultValue;
     return (statusData.metrics as any)[metric] || defaultValue;
   };
   
   return (
-    <>
+    <AdminLayout>
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
@@ -66,7 +84,6 @@ const Dashboard = () => {
             <QuickStatsPanel />
             
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              {/* Performance metrics cards */}
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
@@ -162,7 +179,75 @@ const Dashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">
+              Fixtures
+            </CardTitle>
+            <CalendarDays className="h-4 w-4 text-gray-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {systemStatus.metrics?.fixturesCount || 0}
+            </div>
+            <p className="text-xs text-gray-500">
+              Upcoming matches in the system
+            </p>
+          </CardContent>
+          <CardFooter className="pt-0">
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/admin/fixtures">Manage Fixtures</Link>
+            </Button>
+          </CardFooter>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">
+              News Articles
+            </CardTitle>
+            <FileText className="h-4 w-4 text-gray-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {systemStatus.metrics?.newsCount || 0}
+            </div>
+            <p className="text-xs text-gray-500">
+              Published articles on the site
+            </p>
+          </CardContent>
+          <CardFooter className="pt-0">
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/admin/news">Manage News</Link>
+            </Button>
+          </CardFooter>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">
+              User Activity
+            </CardTitle>
+            <Users className="h-4 w-4 text-gray-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {systemStatus.metrics?.dailyActiveUsers || 0}
+            </div>
+            <p className="text-xs text-gray-500">
+              Daily active users
+            </p>
+          </CardContent>
+          <CardFooter className="pt-0">
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/admin/users">User Details</Link>
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    </AdminLayout>
   );
 };
 

@@ -2,25 +2,22 @@
 export interface User {
   id: string;
   email: string;
-  phone?: string;
+  name?: string;
   firstName?: string;
   lastName?: string;
-  name?: string;
-  avatar_url?: string;
-  role: UserRole;
+  role: string;
   isActive: boolean;
-  created_at: string;
+  avatarUrl?: string;
+  lastLogin?: string;
+  createdAt: string;
+  banned_until?: string;
 }
 
-export type UserRole = 'admin' | 'editor' | 'viewer';
-
-export interface UserProfile {
-  id: string;
-  email: string;
-  full_name?: string;
-  avatar_url?: string;
-  created_at: string;
-  updated_at: string;
+export interface AuthState {
+  user: User | null;
+  isLoggedIn: boolean;
+  isLoading: boolean;
+  error: string | null;
 }
 
 export interface LoginCredentials {
@@ -28,13 +25,25 @@ export interface LoginCredentials {
   password: string;
 }
 
-export interface RegisterCredentials extends LoginCredentials {
-  firstName: string;
-  lastName: string;
+export interface RegisterData extends LoginCredentials {
+  name?: string;
+  firstName?: string;
+  lastName?: string;
 }
 
 export interface AuthResponse {
-  user: User | null;
-  session: any | null;
-  error: string | null;
+  user: User;
+  token: string;
+  success: boolean;
+  message?: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+}
+
+export interface ChangePasswordRequest {
+  oldPassword: string;
+  newPassword: string;
+  confirmPassword: string;
 }

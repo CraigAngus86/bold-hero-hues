@@ -1,90 +1,76 @@
 
 import React from 'react';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { SystemStatusItemProps } from '@/types/system/status';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Badge } from '@/components/ui/badge';
+import { LucideIcon } from 'lucide-react';
 
-export const StatusItem: React.FC<SystemStatusItemProps> = ({
+interface StatusItemProps extends Omit<SystemStatusItemProps, 'icon'> {
+  icon?: React.ElementType;
+}
+
+const StatusItem: React.FC<StatusItemProps> = ({
   name,
   status,
-  lastChecked,
   metricValue,
-  icon: Icon,
-  tooltip,
   count,
-  color = 'bg-gray-100',
+  icon: Icon,
+  color,
   viewAllLink
 }) => {
-  // Determine status color
   const getStatusColor = () => {
     switch (status) {
       case 'healthy':
       case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'degraded':
+      case 'online':
+        return 'bg-green-500';
       case 'warning':
-        return 'bg-yellow-100 text-yellow-800';
+      case 'degraded':
+        return 'bg-yellow-400';
       case 'error':
-        return 'bg-red-100 text-red-800';
+      case 'offline':
+        return 'bg-red-500';
       case 'info':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-400';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-300';
     }
   };
 
   return (
-    <Card className={cn("flex p-4 space-x-4 overflow-hidden border shadow-sm", color)}>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="flex-1">
-              <div className="flex justify-between">
-                <div className="flex items-center space-x-2">
-                  {Icon && <Icon className="w-5 h-5 text-gray-500" />}
-                  <h3 className="font-medium text-sm">{name}</h3>
-                </div>
-                
-                <div className="flex items-center">
-                  {status && (
-                    <Badge variant="secondary" className={cn("text-xs", getStatusColor())}>
-                      {status}
-                    </Badge>
-                  )}
-                  
-                  {count !== undefined && (
-                    <span className="ml-2 text-sm font-semibold">{count}</span>
-                  )}
-                </div>
-              </div>
-              
-              <div className="flex justify-between items-end mt-2">
-                <div className="text-sm text-gray-500">
-                  {lastChecked && <div className="text-xs mt-1">Updated: {lastChecked}</div>}
-                </div>
-                
-                {metricValue && <div className="text-xl font-bold">{metricValue}</div>}
-                
-                {viewAllLink && (
-                  <a 
-                    href={viewAllLink} 
-                    className="text-xs text-blue-600 hover:underline flex items-center"
-                  >
-                    View all
-                  </a>
-                )}
-              </div>
-            </div>
-          </TooltipTrigger>
-          {tooltip && (
-            <TooltipContent>
-              <p>{tooltip}</p>
-            </TooltipContent>
+    <Card className={cn(
+      "p-4 transition-all border hover:border-gray-300",
+      color ? color : "bg-white"
+    )}>
+      <div className="flex justify-between items-start">
+        <div>
+          <h3 className="font-medium text-sm text-gray-900 mb-1">{name}</h3>
+          {count !== undefined && (
+            <div className="font-semibold text-lg">{count}</div>
           )}
-        </Tooltip>
-      </TooltipProvider>
+          {metricValue && (
+            <div className="font-semibold text-lg">{metricValue}</div>
+          )}
+        </div>
+        {Icon && <Icon className="h-5 w-5 text-gray-500" />}
+      </div>
+      
+      <div className="flex items-center justify-between mt-3">
+        {status && (
+          <Badge variant="outline" className={cn(
+            "text-xs font-normal capitalize border-none", 
+            status === "info" ? "text-blue-600" : ""
+          )}>
+            <div className={`w-1.5 h-1.5 rounded-full mr-1.5 ${getStatusColor()}`}></div>
+            {status}
+          </Badge>
+        )}
+        
+        {viewAllLink && (
+          <span className="text-xs text-blue-600">View all</span>
+        )}
+      </div>
     </Card>
   );
 };

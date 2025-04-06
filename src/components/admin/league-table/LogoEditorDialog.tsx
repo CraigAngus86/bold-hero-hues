@@ -1,116 +1,112 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import ImageUploader from '@/components/admin/common/ImageUploader';
-import { updateTeamLogo } from '@/services/leagueService';
-import { toast } from 'sonner';
-import { BucketType } from '@/services/images/types';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { ImageUploader } from '@/components/common/ImageUploader';
+import { TeamStats } from '@/types/fixtures';
+import { leagueService } from '@/services/leagueService';
+import { toast } from "sonner";
+import { BucketType } from '@/types/storage';
 
 interface LogoEditorDialogProps {
+  team: TeamStats;
   isOpen: boolean;
-  onClose: () => void;
-  teamId: string | null;
-  teamName: string;
-  existingLogo: string | null;
-  onLogoUpdated: () => void;
+  onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
 }
 
 const LogoEditorDialog: React.FC<LogoEditorDialogProps> = ({
+  team,
   isOpen,
-  onClose,
-  teamId,
-  teamName,
-  existingLogo,
-  onLogoUpdated
+  onOpenChange,
+  onSuccess
 }) => {
-  const [logoUrl, setLogoUrl] = useState(existingLogo || '');
   const [isUploading, setIsUploading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleImageUpload = (url: string) => {
-    setLogoUrl(url);
-  };
-
-  const handleSave = async () => {
-    if (!teamId) return;
-    
-    setIsSubmitting(true);
+  const [logoUrl, setLogoUrl] = useState<string>(team.logo || '');
+  const [isSaving, setIsSaving] = useState(false);
+  
+  const handleSaveLogo = async () => {
     try {
-      const success = await updateTeamLogo(teamId, logoUrl);
+      setIsSaving(true);
+      const success = await leagueService.updateTeamLogo(team.id || '', logoUrl);
       
       if (success) {
-        toast.success(`Logo updated for ${teamName}`);
-        onLogoUpdated();
-        onClose();
+        toast.success(`Logo updated for ${team.team}`);
+        onSuccess?.();
+        onOpenChange(false);
       } else {
-        throw new Error('Failed to update team logo');
+        toast.error("Failed to update team logo");
       }
     } catch (error) {
-      console.error('Error updating team logo:', error);
-      toast.error(`Error updating logo: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Error saving logo:', error);
+      toast.error("An error occurred while updating the logo");
     } finally {
-      setIsSubmitting(false);
+      setIsSaving(false);
     }
   };
-
+  
+  const handleUploadComplete = (url: string) => {
+    setLogoUrl(url);
+  };
+  
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Update Team Logo</DialogTitle>
+          <DialogTitle>Edit Team Logo</DialogTitle>
+          <DialogDescription>
+            Upload a new logo for {team.team}
+          </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-6 py-4">
-          <div>
-            <h3 className="text-lg font-medium">{teamName}</h3>
-            <p className="text-sm text-gray-500">Upload a new logo or provide a URL</p>
-          </div>
-          
-          {existingLogo && (
-            <div className="flex justify-center">
-              <img 
-                src={existingLogo} 
-                alt={`${teamName} logo`}
-                className="w-40 h-40 object-contain border rounded"
-              />
-            </div>
-          )}
-          
-          <div className="space-y-2">
+        <div className="grid gap-4 py-4">
+          <div className="flex flex-col items-center gap-4">
+            {logoUrl && (
+              <div className="mb-4">
+                <p className="mb-2 text-sm text-gray-500">Current Logo:</p>
+                <div className="w-20 h-20 flex items-center justify-center border rounded-md p-2 bg-gray-50">
+                  <img
+                    src={logoUrl}
+                    alt={`${team.team} logo`}
+                    className="max-w-full max-h-full object-contain"
+                  />
+                </div>
+              </div>
+            )}
+            
             <ImageUploader
               bucket={BucketType.TEAMS}
-              onUploadComplete={handleImageUpload}
-              folderPath={`teams/${teamId}`}
+              onUploadComplete={handleUploadComplete}
+              folderPath={`teams`}
               isUploading={isUploading}
               setIsUploading={setIsUploading}
             />
-            
-            <div className="text-center text-sm text-gray-500">
-              or
-            </div>
-            
-            <Input
-              type="url"
-              placeholder="Enter logo URL"
-              value={logoUrl}
-              onChange={(e) => setLogoUrl(e.target.value)}
-            />
           </div>
         </div>
         
-        <div className="flex justify-end space-x-2">
-          <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
+        <DialogFooter className="sm:justify-end">
+          <Button 
+            type="button" 
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+          >
             Cancel
           </Button>
-          <Button 
-            onClick={handleSave} 
-            disabled={!logoUrl || isUploading || isSubmitting}
+          <Button
+            type="button"
+            onClick={handleSaveLogo}
+            disabled={isSaving || isUploading || !logoUrl}
           >
-            {isSubmitting ? 'Saving...' : 'Save Logo'}
+            {isSaving ? 'Saving...' : 'Save Logo'}
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

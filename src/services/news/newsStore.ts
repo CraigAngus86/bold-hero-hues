@@ -1,65 +1,42 @@
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { NewsItem } from './types';
-import { initialNews } from './mockData';
+import { NewsItem } from '@/types/news';
 
 interface NewsStore {
   news: NewsItem[];
-  addNews: (news: Omit<NewsItem, 'id'>) => void;
-  updateNews: (news: NewsItem) => void;
-  deleteNews: (id: number) => void;
-  getNewsById: (id: number) => NewsItem | undefined;
-  clearAllNews: () => void;
-  restoreDefaultNews: () => void;
+  isLoading: boolean;
+  error: string | null;
+  setNews: (news: NewsItem[]) => void;
+  addNews: (newsItem: NewsItem) => void;
+  updateNews: (newsItem: NewsItem) => void;
+  removeNews: (id: string) => void;
+  setLoading: (isLoading: boolean) => void;
+  setError: (error: string | null) => void;
 }
 
-// Create a store with persistence
-export const useNewsStore = create<NewsStore>()(
-  persist(
-    (set, get) => ({
-      news: initialNews,
-      
-      addNews: (newsItem) => set((state) => {
-        const newId = state.news.length > 0 
-          ? Math.max(...state.news.map(item => item.id)) + 1 
-          : 1;
-        
-        return {
-          news: [...state.news, { ...newsItem, id: newId }]
-        };
-      }),
-      
-      updateNews: (newsItem) => set((state) => ({
-        news: state.news.map(item => 
-          item.id === newsItem.id ? { ...newsItem } : item
-        )
-      })),
-      
-      deleteNews: (id) => set((state) => ({
-        news: state.news.filter(item => item.id !== id)
-      })),
-      
-      getNewsById: (id) => get().news.find(item => item.id === id),
-      
-      clearAllNews: () => set({ news: [] }),
-      
-      restoreDefaultNews: () => set({ news: initialNews })
-    }),
-    {
-      name: 'banks-o-dee-news-storage',
-      onRehydrateStorage: () => {
-        console.log('News store has been rehydrated');
-        return (state) => {
-          if (!state || !state.news || !Array.isArray(state.news)) {
-            console.error('Failed to rehydrate news store or invalid data structure');
-            // Return the initialNews if the rehydrated state is invalid
-            if (state) {
-              state.news = initialNews;
-            }
-          }
-        };
-      }
-    }
-  )
-);
+export const useNewsStore = create<NewsStore>((set) => ({
+  news: [],
+  isLoading: false,
+  error: null,
+  
+  // Fixed the typing for setNews to properly handle NewsItem[]
+  setNews: (news) => set(() => ({ news })),
+  
+  // Make sure we're using string IDs consistently
+  addNews: (newsItem) => set((state) => ({ 
+    news: [newsItem, ...state.news] 
+  })),
+  
+  updateNews: (newsItem) => set((state) => ({
+    news: state.news.map((item) => 
+      item.id === newsItem.id ? newsItem : item
+    )
+  })),
+  
+  removeNews: (id) => set((state) => ({
+    news: state.news.filter((item) => item.id !== id)
+  })),
+  
+  setLoading: (isLoading) => set(() => ({ isLoading })),
+  setError: (error) => set(() => ({ error })),
+}));

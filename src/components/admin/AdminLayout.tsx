@@ -1,113 +1,197 @@
+import * as React from "react"
+import { useState } from "react"
+import { usePathname } from "next/navigation"
+import { useRouter } from 'next/navigation';
+import { useSession, signOut } from "next-auth/react";
+import {
+  Table as TableIcon,
+  LayoutDashboard,
+  CalendarDays,
+  ImagePlus,
+  Settings,
+  Users,
+  ListChecks,
+  Archive,
+  ListFilter
+} from "lucide-react"
 
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Image, 
-  FileText, 
-  Calendar, 
-  TableProperties, 
-  Settings, 
-  Trophy, 
-  DollarSign,
-  ChevronLeft,
-  ChevronRight
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { cn } from "@/lib/utils"
+import { Icons } from "@/components/icons"
+import { ModeToggle } from "@/components/mode-toggle"
+import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Separator } from "@/components/ui/separator"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { SidebarNavItem, SidebarNav } from "@/components/ui/sidebar-nav"
 
-interface AdminLayoutProps {
-  children: React.ReactNode;
+interface DashboardShellProps {
+  children?: React.ReactNode
+  className?: string
 }
 
-const AdminLayout = ({ children }: AdminLayoutProps) => {
-  const location = useLocation();
-  const [collapsed, setCollapsed] = useState(false);
-  
-  // Navigation items
-  const navItems = [
-    { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
-    { name: 'Users', path: '/admin/users', icon: Users },
-    { name: 'News', path: '/admin/news', icon: FileText },
-    { name: 'Team', path: '/admin/team', icon: Users },
-    { name: 'Fixtures', path: '/admin/fixtures', icon: Calendar },
-    { name: 'League Table', path: '/admin/league', icon: TableProperties },
-    { name: 'Sponsors', path: '/admin/sponsors', icon: DollarSign },
-    { name: 'Trophies', path: '/admin/trophies', icon: Trophy },
-    { name: 'Images', path: '/admin/images', icon: Image },
-    { name: 'Settings', path: '/admin/settings', icon: Settings }
-  ];
+const sidebarNavItems: SidebarNavItem[] = [
+  {
+    title: "Dashboard",
+    href: "/admin",
+    icon: <LayoutDashboard className="h-5 w-5" />,
+  },
+  {
+    title: "Fixtures",
+    href: "/admin/fixtures",
+    icon: <CalendarDays className="h-5 w-5" />,
+  },
+  {
+    title: "Image Manager",
+    href: "/admin/image-manager",
+    icon: <ImagePlus className="h-5 w-5" />,
+  },
+  {
+    title: "Users",
+    href: "/admin/users",
+    icon: <Users className="h-5 w-5" />,
+  },
+  {
+    title: "Settings",
+    href: "/admin/settings",
+    icon: <Settings className="h-5 w-5" />,
+  },
+  {
+    title: "Scraped Data",
+    href: "/admin/scraped-data",
+    icon: <ListChecks className="h-5 w-5" />,
+  },
+  {
+    title: "League Table",
+    href: "/admin/league-table-management",
+    icon: <TableIcon className="h-5 w-5" />,
+  },
+]
 
-  return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
-      <div className={cn(
-        "transition-all duration-300 ease-in-out bg-white border-r border-gray-200 shadow-sm flex flex-col",
-        collapsed ? "w-16" : "md:w-64 w-64"
-      )}>
-        <div className="flex items-center justify-between p-4 border-b">
-          <Link to="/admin" className={cn(
-            "font-semibold text-lg text-team-blue transition-opacity duration-300",
-            collapsed ? "opacity-0 w-0 hidden" : "opacity-100"
-          )}>
-            Banks o' Dee Admin
-          </Link>
-          <button 
-            onClick={() => setCollapsed(!collapsed)}
-            className="p-1 rounded-md hover:bg-gray-100 text-gray-500"
-          >
-            {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-          </button>
-        </div>
+export function AdminLayout({
+  children,
+  className,
+}: DashboardShellProps) {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname()
 
-        <div className="flex-grow overflow-y-auto pt-2">
-          <nav className="px-2 pb-4 space-y-1">
-            {navItems.map((item) => {
-              const isActive = location.pathname === item.path;
-              const IconComponent = item.icon;
-              
-              return (
-                <Link
-                  key={item.name}
-                  to={item.path}
-                  className={cn(
-                    "flex items-center px-3 py-2 text-sm rounded-md transition-colors group",
-                    isActive
-                      ? "bg-team-blue text-white font-medium"
-                      : "text-gray-700 hover:bg-gray-100"
-                  )}
-                  title={collapsed ? item.name : ''}
-                >
-                  <IconComponent className={cn("flex-shrink-0", collapsed ? "mx-auto" : "mr-3")} size={20} />
-                  <span className={cn(
-                    "transition-opacity duration-300",
-                    collapsed ? "opacity-0 w-0 hidden" : "opacity-100"
-                  )}>
-                    {item.name}
-                  </span>
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
 
-        <div className={cn(
-          "p-4 border-t text-xs text-gray-500 transition-opacity duration-300",
-          collapsed ? "opacity-0 hidden" : "opacity-100"
-        )}>
-          <p>Banks o' Dee FC © {new Date().getFullYear()}</p>
-        </div>
-      </div>
-      
-      {/* Main content */}
-      <div className="flex flex-col flex-1 overflow-y-auto">
+  const handleSignOut = async () => {
+    await signOut({ redirect: false });
+    router.push('/');
+  };
+
+  if (status === "loading") {
+    return (
+      <div className="flex flex-col h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+        <header className="flex items-center justify-between py-4 px-6 border-b border-gray-200 dark:border-gray-700">
+          <div className="text-lg font-semibold">Loading...</div>
+          <ModeToggle />
+        </header>
         <main className="flex-1 p-6">
-          {children}
+          <div className="animate-pulse bg-gray-300 dark:bg-gray-700 rounded-md h-full w-full"></div>
         </main>
       </div>
-    </div>
-  );
-};
+    );
+  }
 
-export default AdminLayout;
+  if (status === "unauthenticated") {
+    router.push('/login');
+    return null;
+  }
+
+  return (
+    <div className="flex h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+      <aside className="hidden md:flex flex-col w-64 border-r border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between py-4 px-6">
+          <a href="/" className="flex items-center space-x-2 font-semibold">
+            <Icons.logo className="h-6 w-6" />
+            <span className="hidden sm:inline-block">Banks o' Dee FC</span>
+          </a>
+          <ModeToggle />
+        </div>
+        <Separator />
+        <ScrollArea className="flex-1">
+          <div className="py-4">
+            <SidebarNav items={sidebarNavItems} />
+          </div>
+        </ScrollArea>
+        <Separator />
+        <div className="py-4 px-6">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="flex h-8 w-full items-center justify-between rounded-md">
+                <Avatar className="mr-2 h-6 w-6">
+                  <AvatarImage src={session?.user?.image || ""} alt={session?.user?.name || "Avatar"} />
+                  <AvatarFallback>{session?.user?.name?.charAt(0) || "U"}</AvatarFallback>
+                </Avatar>
+                <span>{session?.user?.name}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" forceMount>
+              <DropdownMenuItem onClick={handleSignOut}>
+                Sign Out
+                <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </aside>
+
+      <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+        <SheetTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="md:hidden pl-2"
+          >
+            <Icons.menu className="h-5 w-5" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="w-64">
+          <SheetHeader className="text-left">
+            <SheetTitle>Menu</SheetTitle>
+          </SheetHeader>
+          <ScrollArea className="my-2">
+            <SidebarNav items={sidebarNavItems} closeMobileMenu={closeMobileMenu} />
+          </ScrollArea>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="flex h-8 w-full items-center justify-between rounded-md">
+                <Avatar className="mr-2 h-6 w-6">
+                  <AvatarImage src={session?.user?.image || ""} alt={session?.user?.name || "Avatar"} />
+                  <AvatarFallback>{session?.user?.name?.charAt(0) || "U"}</AvatarFallback>
+                </Avatar>
+                <span>{session?.user?.name}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" forceMount>
+              <DropdownMenuItem onClick={handleSignOut}>
+                Sign Out
+                <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </SheetContent>
+      </Sheet>
+
+      <main className="flex-1 p-6">
+        {children}
+      </main>
+    </div>
+  )
+}

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { Badge } from "@/components/ui/badge";
 import { TeamStats } from '@/components/league/types';
 import FormIndicator from '@/components/league/FormIndicator';

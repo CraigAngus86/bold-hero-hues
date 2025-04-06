@@ -1,37 +1,61 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Download } from "lucide-react";
+import { Pencil, Trash, Eye } from "lucide-react";
 
 interface DataActionsProps {
-  onRefresh: () => void;
-  onExport: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
+  onView?: () => void;
+  disableEdit?: boolean;
+  disableDelete?: boolean;
+  disableView?: boolean;
 }
 
-/**
- * Component with action buttons for data operations
- */
-export const DataActions: React.FC<DataActionsProps> = ({ onRefresh, onExport }) => {
+const DataActions: React.FC<DataActionsProps> = ({
+  onEdit,
+  onDelete,
+  onView,
+  disableEdit = false,
+  disableDelete = false,
+  disableView = true
+}) => {
   return (
-    <div className="flex space-x-3">
-      <Button 
-        onClick={onExport} 
-        variant="outline" 
-        size="sm"
-        className="flex items-center border-gray-300 hover:bg-gray-100 hover:text-gray-800 transition-colors"
-      >
-        <Download className="h-4 w-4 mr-1.5" />
-        Export Data
-      </Button>
-      <Button
-        onClick={onRefresh}
-        variant="default"
-        size="sm"
-        className="bg-team-blue hover:bg-team-navy flex items-center transition-colors shadow-sm hover:shadow"
-      >
-        <RefreshCw className="h-4 w-4 mr-1.5" />
-        Refresh Data
-      </Button>
+    <div className="flex space-x-2 justify-end">
+      {onView && !disableView && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onView}
+          className="h-8 w-8"
+        >
+          <Eye className="h-4 w-4" />
+        </Button>
+      )}
+      
+      {onEdit && !disableEdit && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onEdit}
+          className="h-8 w-8"
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
+      )}
+      
+      {onDelete && !disableDelete && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onDelete}
+          className="h-8 w-8 text-destructive"
+        >
+          <Trash className="h-4 w-4" />
+        </Button>
+      )}
     </div>
   );
 };
+
+export default DataActions;

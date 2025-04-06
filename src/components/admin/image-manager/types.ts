@@ -1,25 +1,23 @@
 
-// Define the folder structure type
+/**
+ * Interface for an image folder structure in the image manager
+ */
 export interface ImageFolder {
   id: string;
   name: string;
   path: string;
-  parent_id: string | null;
-  created_at: string;
+  parentId: string | null;
 }
 
-export interface ImageFile {
-  id: string;
-  name: string;
-  metadata: any;
-}
-
+/**
+ * Interface for ImageManagerContext
+ */
 export interface ImageManagerContextType {
   folders: ImageFolder[];
   currentFolder: ImageFolder | null;
   subfolders: ImageFolder[];
-  images: any[];
-  breadcrumbs: ImageFolder[];
+  images: any[]; // Storage file objects
+  breadcrumbs: Array<{ name: string; path: string }>;
   isUploading: boolean;
   selectedImage: string | null;
   newFolderDialogOpen: boolean;
@@ -29,9 +27,9 @@ export interface ImageManagerContextType {
   setSelectedImage: (url: string | null) => void;
   navigateToFolder: (folder: ImageFolder) => void;
   navigateUp: () => void;
-  navigateToBreadcrumb: (folder: ImageFolder | null) => void;
-  createNewFolder: (folderName: string) => Promise<void>;
-  handleFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
+  navigateToBreadcrumb: (path: string) => void;
+  createNewFolder: (folderName: string) => Promise<boolean>;
+  handleFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   getImageUrl: (fileName: string) => string;
-  viewImage: (fileName: string) => void;
+  viewImage: (url: string) => void;
 }

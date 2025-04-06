@@ -1,542 +1,512 @@
+
 import React, { useState } from 'react';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/Table';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { toast } from 'sonner';
-import { Edit, Trash, Plus, Save, X, MoveRight } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Plus, PencilLine, Trash2, Tag, Hash, Tags } from "lucide-react";
+import { toast } from "sonner";
 
-interface Category {
-  id: string;
-  name: string;
-  slug: string;
-  count: number;
-}
+// Mock data for categories and tags
+const mockCategories = [
+  { id: "1", name: "Match Day", count: 24, slug: "match-day" },
+  { id: "2", name: "Team Photos", count: 18, slug: "team-photos" },
+  { id: "3", name: "Stadium", count: 12, slug: "stadium" },
+  { id: "4", name: "Fans", count: 8, slug: "fans" },
+  { id: "5", name: "Events", count: 15, slug: "events" },
+];
 
-interface Tag {
-  id: string;
-  name: string;
-  count: number;
-}
+const mockTags = [
+  { id: "1", name: "match", count: 45 },
+  { id: "2", name: "goal", count: 22 },
+  { id: "3", name: "celebration", count: 18 },
+  { id: "4", name: "team", count: 34 },
+  { id: "5", name: "training", count: 12 },
+  { id: "6", name: "stadium", count: 20 },
+  { id: "7", name: "fans", count: 15 },
+  { id: "8", name: "award", count: 8 },
+  { id: "9", name: "interview", count: 10 },
+  { id: "10", name: "highlight", count: 24 },
+];
 
 const CategoryManager: React.FC = () => {
-  // Placeholder data - in a real app, this would come from the database
-  const [categories, setCategories] = useState<Category[]>([
-    { id: '1', name: 'Match Day', slug: 'match-day', count: 24 },
-    { id: '2', name: 'Team', slug: 'team', count: 18 },
-    { id: '3', name: 'Stadium', slug: 'stadium', count: 12 },
-    { id: '4', name: 'Fans', slug: 'fans', count: 8 },
-  ]);
+  const [categories, setCategories] = useState(mockCategories);
+  const [tags, setTags] = useState(mockTags);
   
-  const [tags, setTags] = useState<Tag[]>([
-    { id: '1', name: 'goal', count: 15 },
-    { id: '2', name: 'celebration', count: 12 },
-    { id: '3', name: 'training', count: 8 },
-    { id: '4', name: 'interview', count: 5 },
-    { id: '5', name: 'trophy', count: 3 },
-  ]);
+  const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
+  const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false);
+  const [isDeleteCategoryOpen, setIsDeleteCategoryOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<typeof mockCategories[0] | null>(null);
   
-  // State for the category form
-  const [newCategory, setNewCategory] = useState('');
-  const [editingCategory, setEditingCategory] = useState<{ id: string, name: string } | null>(null);
+  const [isAddTagOpen, setIsAddTagOpen] = useState(false);
+  const [isEditTagOpen, setIsEditTagOpen] = useState(false);
+  const [isDeleteTagOpen, setIsDeleteTagOpen] = useState(false);
+  const [selectedTag, setSelectedTag] = useState<typeof mockTags[0] | null>(null);
   
-  // State for the tag form
-  const [newTag, setNewTag] = useState('');
-  const [editingTag, setEditingTag] = useState<{ id: string, name: string } | null>(null);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [newTagName, setNewTagName] = useState("");
   
-  // State for merge dialog
-  const [mergeDialogOpen, setMergeDialogOpen] = useState(false);
-  const [mergeSource, setMergeSource] = useState<string>('');
-  const [mergeTarget, setMergeTarget] = useState<string>('');
-  const [mergeType, setMergeType] = useState<'category' | 'tag'>('category');
-
-  // Add a new category
-  const handleAddCategory = () => {
-    if (!newCategory.trim()) {
-      toast.error('Category name cannot be empty');
-      return;
-    }
+  // Category CRUD operations
+  const addCategory = () => {
+    if (!newCategoryName.trim()) return;
     
-    // Simple slug generation
-    const slug = newCategory.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    
-    const newCat = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: newCategory,
+    const slug = newCategoryName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+      
+    const newCategory = {
+      id: Date.now().toString(),
+      name: newCategoryName.trim(),
       slug,
       count: 0,
     };
     
-    setCategories([...categories, newCat]);
-    setNewCategory('');
-    toast.success('Category added successfully');
+    setCategories([...categories, newCategory]);
+    setIsAddCategoryOpen(false);
+    setNewCategoryName("");
+    toast.success("Category added successfully");
   };
   
-  // Update a category
-  const handleUpdateCategory = (id: string) => {
-    if (!editingCategory || !editingCategory.name.trim()) {
-      toast.error('Category name cannot be empty');
-      return;
-    }
+  const updateCategory = () => {
+    if (!selectedCategory || !newCategoryName.trim()) return;
     
-    setCategories(categories.map(cat => 
-      cat.id === id 
-        ? { 
-          ...cat, 
-          name: editingCategory.name,
-          slug: editingCategory.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
-        }
-        : cat
-    ));
+    const slug = newCategoryName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+      
+    const updatedCategories = categories.map(category => 
+      category.id === selectedCategory.id 
+        ? { ...category, name: newCategoryName.trim(), slug } 
+        : category
+    );
     
-    setEditingCategory(null);
-    toast.success('Category updated successfully');
+    setCategories(updatedCategories);
+    setIsEditCategoryOpen(false);
+    setNewCategoryName("");
+    toast.success("Category updated successfully");
   };
   
-  // Delete a category
-  const handleDeleteCategory = (id: string) => {
-    // In a real app, check if the category is in use
-    const category = categories.find(c => c.id === id);
+  const deleteCategory = () => {
+    if (!selectedCategory) return;
     
-    if (category && category.count > 0) {
-      toast.error(`Cannot delete category '${category.name}' because it's used by ${category.count} media items`);
-      return;
-    }
+    const updatedCategories = categories.filter(
+      category => category.id !== selectedCategory.id
+    );
     
-    setCategories(categories.filter(cat => cat.id !== id));
-    toast.success('Category deleted successfully');
+    setCategories(updatedCategories);
+    setIsDeleteCategoryOpen(false);
+    setSelectedCategory(null);
+    toast.success("Category deleted successfully");
   };
   
-  // Add a new tag
-  const handleAddTag = () => {
-    if (!newTag.trim()) {
-      toast.error('Tag name cannot be empty');
-      return;
-    }
+  // Tag CRUD operations
+  const addTag = () => {
+    if (!newTagName.trim()) return;
     
-    const newTagObj = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: newTag.toLowerCase(),
+    const newTag = {
+      id: Date.now().toString(),
+      name: newTagName.trim().toLowerCase(),
       count: 0,
     };
     
-    setTags([...tags, newTagObj]);
-    setNewTag('');
-    toast.success('Tag added successfully');
+    setTags([...tags, newTag]);
+    setIsAddTagOpen(false);
+    setNewTagName("");
+    toast.success("Tag added successfully");
   };
   
-  // Update a tag
-  const handleUpdateTag = (id: string) => {
-    if (!editingTag || !editingTag.name.trim()) {
-      toast.error('Tag name cannot be empty');
-      return;
-    }
+  const updateTag = () => {
+    if (!selectedTag || !newTagName.trim()) return;
     
-    setTags(tags.map(tag => 
-      tag.id === id ? { ...tag, name: editingTag.name.toLowerCase() } : tag
-    ));
+    const updatedTags = tags.map(tag => 
+      tag.id === selectedTag.id 
+        ? { ...tag, name: newTagName.trim().toLowerCase() } 
+        : tag
+    );
     
-    setEditingTag(null);
-    toast.success('Tag updated successfully');
+    setTags(updatedTags);
+    setIsEditTagOpen(false);
+    setNewTagName("");
+    toast.success("Tag updated successfully");
   };
   
-  // Delete a tag
-  const handleDeleteTag = (id: string) => {
-    // In a real app, check if the tag is in use
-    const tag = tags.find(t => t.id === id);
+  const deleteTag = () => {
+    if (!selectedTag) return;
     
-    if (tag && tag.count > 0) {
-      toast.error(`Cannot delete tag '${tag.name}' because it's used by ${tag.count} media items`);
-      return;
-    }
+    const updatedTags = tags.filter(tag => tag.id !== selectedTag.id);
     
-    setTags(tags.filter(tag => tag.id !== id));
-    toast.success('Tag deleted successfully');
+    setTags(updatedTags);
+    setIsDeleteTagOpen(false);
+    setSelectedTag(null);
+    toast.success("Tag deleted successfully");
   };
   
-  // Handle merging categories or tags
-  const handleMerge = () => {
-    if (mergeSource === mergeTarget) {
-      toast.error('Source and target cannot be the same');
-      return;
-    }
-    
-    if (mergeType === 'category') {
-      const sourceCategory = categories.find(c => c.id === mergeSource);
-      const targetCategory = categories.find(c => c.id === mergeTarget);
-      
-      if (!sourceCategory || !targetCategory) return;
-      
-      // Update the target category count (in a real app, this would reassign media items)
-      const updatedCategories = categories.map(cat => 
-        cat.id === mergeTarget 
-          ? { ...cat, count: cat.count + sourceCategory.count }
-          : cat
-      ).filter(cat => cat.id !== mergeSource);
-      
-      setCategories(updatedCategories);
-    } else {
-      const sourceTag = tags.find(t => t.id === mergeSource);
-      const targetTag = tags.find(t => t.id === mergeTarget);
-      
-      if (!sourceTag || !targetTag) return;
-      
-      // Update the target tag count (in a real app, this would reassign media items)
-      const updatedTags = tags.map(tag => 
-        tag.id === mergeTarget 
-          ? { ...tag, count: tag.count + sourceTag.count }
-          : tag
-      ).filter(tag => tag.id !== mergeSource);
-      
-      setTags(updatedTags);
-    }
-    
-    setMergeDialogOpen(false);
-    toast.success(`Successfully merged items`);
+  // Open edit dialogs with pre-filled data
+  const openEditCategory = (category: typeof mockCategories[0]) => {
+    setSelectedCategory(category);
+    setNewCategoryName(category.name);
+    setIsEditCategoryOpen(true);
   };
-
+  
+  const openDeleteCategory = (category: typeof mockCategories[0]) => {
+    setSelectedCategory(category);
+    setIsDeleteCategoryOpen(true);
+  };
+  
+  const openEditTag = (tag: typeof mockTags[0]) => {
+    setSelectedTag(tag);
+    setNewTagName(tag.name);
+    setIsEditTagOpen(true);
+  };
+  
+  const openDeleteTag = (tag: typeof mockTags[0]) => {
+    setSelectedTag(tag);
+    setIsDeleteTagOpen(true);
+  };
+  
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Categories Management */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Categories</CardTitle>
-          <CardDescription>
-            Organize media into categories for easier navigation
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Slug</TableHead>
-                <TableHead className="text-right">Count</TableHead>
-                <TableHead className="w-[100px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {categories.map((category) => (
-                <TableRow key={category.id}>
-                  <TableCell>
-                    {editingCategory && editingCategory.id === category.id ? (
-                      <Input
-                        value={editingCategory.name}
-                        onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
-                        className="w-full"
-                      />
-                    ) : (
-                      category.name
-                    )}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {category.slug}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Badge variant="outline">{category.count}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center justify-end space-x-1">
-                      {editingCategory && editingCategory.id === category.id ? (
-                        <>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => handleUpdateCategory(category.id)}
-                          >
-                            <Save className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => setEditingCategory(null)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => setEditingCategory({ id: category.id, name: category.name })}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => handleDeleteCategory(category.id)}
-                            disabled={category.count > 0}
-                          >
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                        </>
-                      )}
+    <div className="space-y-6">
+      <Tabs defaultValue="categories">
+        <TabsList>
+          <TabsTrigger value="categories" className="flex items-center gap-2">
+            <Tag className="h-4 w-4" />
+            Categories
+          </TabsTrigger>
+          <TabsTrigger value="tags" className="flex items-center gap-2">
+            <Hash className="h-4 w-4" />
+            Tags
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="categories" className="space-y-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <div>
+                <CardTitle>Media Categories</CardTitle>
+                <CardDescription>
+                  Manage categories for your media library
+                </CardDescription>
+              </div>
+              <Button onClick={() => setIsAddCategoryOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" /> Add Category
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Slug</TableHead>
+                    <TableHead className="text-right">Items</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {categories.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="h-24 text-center">
+                        No categories found. Create your first category.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    categories.map((category) => (
+                      <TableRow key={category.id}>
+                        <TableCell className="font-medium">{category.name}</TableCell>
+                        <TableCell className="text-muted-foreground">{category.slug}</TableCell>
+                        <TableCell className="text-right">
+                          <Badge variant="secondary">{category.count}</Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end space-x-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => openEditCategory(category)}
+                            >
+                              <PencilLine className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive"
+                              onClick={() => openDeleteCategory(category)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="tags" className="space-y-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <div>
+                <CardTitle>Media Tags</CardTitle>
+                <CardDescription>
+                  Manage tags for your media library
+                </CardDescription>
+              </div>
+              <Button onClick={() => setIsAddTagOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" /> Add Tag
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2 mb-6">
+                {tags.map(tag => (
+                  <Badge 
+                    key={tag.id} 
+                    variant="outline"
+                    className="py-2 px-3 text-sm flex items-center gap-2 group"
+                  >
+                    <span>{tag.name}</span>
+                    <span className="text-xs text-muted-foreground">({tag.count})</span>
+                    <div className="flex ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-4 w-4"
+                        onClick={() => openEditTag(tag)}
+                      >
+                        <PencilLine className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-4 w-4 text-destructive"
+                        onClick={() => openDeleteTag(tag)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
                     </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-        <CardFooter className="flex justify-between pt-6">
-          <div className="flex gap-2 flex-1">
-            <Input
-              placeholder="New category name"
-              value={newCategory}
-              onChange={(e) => setNewCategory(e.target.value)}
-              className="flex-1"
-            />
-            <Button onClick={handleAddCategory}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add
-            </Button>
-          </div>
-        </CardFooter>
-      </Card>
-
-      {/* Tags Management */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Tags</CardTitle>
-          <CardDescription>
-            Add tags to make media items easily searchable
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead className="text-right">Count</TableHead>
-                <TableHead className="w-[100px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {tags.map((tag) => (
-                <TableRow key={tag.id}>
-                  <TableCell>
-                    {editingTag && editingTag.id === tag.id ? (
-                      <Input
-                        value={editingTag.name}
-                        onChange={(e) => setEditingTag({ ...editingTag, name: e.target.value })}
-                        className="w-full"
-                      />
-                    ) : (
-                      tag.name
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Badge variant="outline">{tag.count}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center justify-end space-x-1">
-                      {editingTag && editingTag.id === tag.id ? (
-                        <>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => handleUpdateTag(tag.id)}
-                          >
-                            <Save className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => setEditingTag(null)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => setEditingTag({ id: tag.id, name: tag.name })}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => handleDeleteTag(tag.id)}
-                            disabled={tag.count > 0}
-                          >
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-        <CardFooter className="flex justify-between pt-6">
-          <div className="flex gap-2 flex-1">
-            <Input
-              placeholder="New tag name"
-              value={newTag}
-              onChange={(e) => setNewTag(e.target.value)}
-              className="flex-1"
-            />
-            <Button onClick={handleAddTag}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add
-            </Button>
-          </div>
-        </CardFooter>
-      </Card>
+                  </Badge>
+                ))}
+                
+                {tags.length === 0 && (
+                  <div className="w-full py-8 text-center">
+                    <Tags className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                    <p className="text-gray-500">No tags found. Add your first tag.</p>
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex justify-between items-center">
+                <p className="text-sm text-muted-foreground">
+                  {tags.length} tags, {tags.reduce((sum, tag) => sum + tag.count, 0)} total items
+                </p>
+                <Button variant="outline" onClick={() => setIsAddTagOpen(true)}>
+                  <Plus className="mr-2 h-4 w-4" /> Add Tag
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
       
-      {/* Merge Tool */}
-      <Card className="lg:col-span-2">
-        <CardHeader>
-          <CardTitle>Merge Tool</CardTitle>
-          <CardDescription>
-            Combine categories or tags and reassign their media items
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row items-center gap-4">
-            <div className="w-full">
-              <Select 
-                onValueChange={(value: 'category' | 'tag') => setMergeType(value)} 
-                defaultValue="category"
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="category">Categories</SelectItem>
-                  <SelectItem value="tag">Tags</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <Button 
-              variant="outline" 
-              onClick={() => setMergeDialogOpen(true)}
-              className="w-full sm:w-auto"
-            >
-              Open Merge Tool
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-      
-      {/* Merge Dialog */}
-      <Dialog open={mergeDialogOpen} onOpenChange={setMergeDialogOpen}>
+      {/* Add Category Dialog */}
+      <Dialog open={isAddCategoryOpen} onOpenChange={setIsAddCategoryOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              Merge {mergeType === 'category' ? 'Categories' : 'Tags'}
-            </DialogTitle>
+            <DialogTitle>Add New Category</DialogTitle>
             <DialogDescription>
-              All media items assigned to the source {mergeType} will be reassigned to the target.
+              Create a new category to organize your media
             </DialogDescription>
           </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <label htmlFor="source">Source {mergeType} (will be deleted)</label>
-              <Select onValueChange={setMergeSource}>
-                <SelectTrigger id="source">
-                  <SelectValue placeholder={`Select source ${mergeType}`} />
-                </SelectTrigger>
-                <SelectContent>
-                  {mergeType === 'category' 
-                    ? categories.map(cat => (
-                        <SelectItem key={cat.id} value={cat.id}>
-                          {cat.name} ({cat.count} items)
-                        </SelectItem>
-                      ))
-                    : tags.map(tag => (
-                        <SelectItem key={tag.id} value={tag.id}>
-                          {tag.name} ({tag.count} items)
-                        </SelectItem>
-                      ))
-                  }
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="flex justify-center">
-              <MoveRight className="h-6 w-6 text-muted-foreground" />
-            </div>
-            
-            <div className="grid gap-2">
-              <label htmlFor="target">Target {mergeType} (will be kept)</label>
-              <Select onValueChange={setMergeTarget}>
-                <SelectTrigger id="target">
-                  <SelectValue placeholder={`Select target ${mergeType}`} />
-                </SelectTrigger>
-                <SelectContent>
-                  {mergeType === 'category' 
-                    ? categories.map(cat => (
-                        <SelectItem key={cat.id} value={cat.id}>
-                          {cat.name} ({cat.count} items)
-                        </SelectItem>
-                      ))
-                    : tags.map(tag => (
-                        <SelectItem key={tag.id} value={tag.id}>
-                          {tag.name} ({tag.count} items)
-                        </SelectItem>
-                      ))
-                  }
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="py-4">
+            <Input
+              placeholder="Category name"
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+              className="mb-4"
+            />
+            {newCategoryName && (
+              <p className="text-sm text-muted-foreground">
+                Slug: {newCategoryName
+                  .toLowerCase()
+                  .replace(/[^a-z0-9]+/g, "-")
+                  .replace(/(^-|-$)/g, "")}
+              </p>
+            )}
           </div>
-          
           <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setMergeDialogOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setIsAddCategoryOpen(false)}>
               Cancel
             </Button>
-            <Button 
-              onClick={handleMerge}
-              disabled={!mergeSource || !mergeTarget || mergeSource === mergeTarget}
-            >
-              Merge {mergeType === 'category' ? 'Categories' : 'Tags'}
-            </Button>
+            <Button onClick={addCategory}>Add Category</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Edit Category Dialog */}
+      <Dialog open={isEditCategoryOpen} onOpenChange={setIsEditCategoryOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Category</DialogTitle>
+            <DialogDescription>
+              Update the category name and slug
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              placeholder="Category name"
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+              className="mb-4"
+            />
+            {newCategoryName && (
+              <p className="text-sm text-muted-foreground">
+                Slug: {newCategoryName
+                  .toLowerCase()
+                  .replace(/[^a-z0-9]+/g, "-")
+                  .replace(/(^-|-$)/g, "")}
+              </p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditCategoryOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={updateCategory}>Update Category</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Delete Category Dialog */}
+      <AlertDialog open={isDeleteCategoryOpen} onOpenChange={setIsDeleteCategoryOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Category</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the category "{selectedCategory?.name}"?
+              {selectedCategory?.count > 0 && (
+                <span className="block mt-2 font-semibold">
+                  This category has {selectedCategory.count} items assigned to it.
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={deleteCategory}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      {/* Add Tag Dialog */}
+      <Dialog open={isAddTagOpen} onOpenChange={setIsAddTagOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Tag</DialogTitle>
+            <DialogDescription>
+              Create a new tag to label your media
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              placeholder="Tag name"
+              value={newTagName}
+              onChange={(e) => setNewTagName(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddTagOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={addTag}>Add Tag</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Edit Tag Dialog */}
+      <Dialog open={isEditTagOpen} onOpenChange={setIsEditTagOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Tag</DialogTitle>
+            <DialogDescription>
+              Update the tag name
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              placeholder="Tag name"
+              value={newTagName}
+              onChange={(e) => setNewTagName(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditTagOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={updateTag}>Update Tag</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Delete Tag Dialog */}
+      <AlertDialog open={isDeleteTagOpen} onOpenChange={setIsDeleteTagOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Tag</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the tag "{selectedTag?.name}"?
+              {selectedTag?.count > 0 && (
+                <span className="block mt-2 font-semibold">
+                  This tag is used on {selectedTag.count} items.
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={deleteTag}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

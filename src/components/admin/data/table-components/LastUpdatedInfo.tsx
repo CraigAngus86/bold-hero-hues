@@ -1,40 +1,35 @@
 
 import React from 'react';
+import { formatDistanceToNow } from 'date-fns';
 import { Clock } from 'lucide-react';
 
 interface LastUpdatedInfoProps {
-  lastUpdated: string | null;
+  date: Date | string | null;
+  label?: string;
+  hideIfNull?: boolean;
 }
 
-/**
- * Component displaying when the data was last updated
- */
-export const LastUpdatedInfo: React.FC<LastUpdatedInfoProps> = ({ lastUpdated }) => {
-  const now = new Date();
-  const currentDate = now.toLocaleString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-  
+const LastUpdatedInfo: React.FC<LastUpdatedInfoProps> = ({ 
+  date, 
+  label = "Last updated", 
+  hideIfNull = false
+}) => {
+  if (!date && hideIfNull) {
+    return null;
+  }
+
+  const formattedDate = date 
+    ? formatDistanceToNow(new Date(date), { addSuffix: true })
+    : 'never';
+
   return (
-    <div className="text-sm bg-gray-50 rounded-md px-3 py-2 mb-5 inline-flex items-center border border-gray-200">
-      <Clock className="h-4 w-4 mr-2 text-team-blue" />
-      <span className="font-medium text-gray-700">
-        {lastUpdated ? (
-          <>Last updated: {new Date(lastUpdated).toLocaleString(undefined, {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-          })}</>
-        ) : (
-          <>Current date: {currentDate}</>
-        )}
+    <div className="flex items-center text-xs text-muted-foreground">
+      <Clock className="mr-1 h-3 w-3" />
+      <span>
+        {label}: <span className="font-medium">{formattedDate}</span>
       </span>
     </div>
   );
 };
+
+export default LastUpdatedInfo;

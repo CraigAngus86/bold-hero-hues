@@ -53,6 +53,26 @@ export async function fetchNewsArticles(options: NewsQueryOptions = {}): Promise
 // Alias functions for backward compatibility
 export const getArticles = fetchNewsArticles;
 
+// Toggle article featured status
+export async function toggleArticleFeatured(
+  articleId: string, 
+  featured: boolean
+): Promise<{ success: boolean; error?: any }> {
+  try {
+    const { error } = await supabase
+      .from('news_articles')
+      .update({ is_featured: featured })
+      .eq('id', articleId);
+    
+    if (error) throw error;
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error toggling article featured status:', error);
+    return { success: false, error };
+  }
+}
+
 // Get news categories
 export async function getNewsCategories(): Promise<string[]> {
   try {

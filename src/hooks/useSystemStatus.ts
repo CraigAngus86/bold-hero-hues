@@ -8,6 +8,17 @@ export interface SystemStatus {
   message: string;
 }
 
+// Define system keys for different subsystems
+export const systemKeys = {
+  leagueTable: 'league-table-scraper',
+  fixtures: 'fixtures-scraper',
+  news: 'news-system',
+  media: 'media-system',
+  database: 'database',
+  storage: 'storage',
+  auth: 'auth-system'
+};
+
 export const useSystemStatus = (source: string, refreshInterval = 60000) => {
   const [status, setStatus] = useState<SystemStatus>({
     status: 'unknown',

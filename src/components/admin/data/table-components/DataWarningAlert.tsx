@@ -1,20 +1,23 @@
 
 import React from 'react';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 
-/**
- * Component displaying a warning when data quality issues are detected
- */
-export const DataWarningAlert: React.FC = () => {
+interface DataWarningAlertProps {
+  title: string;
+  description: string;
+}
+
+const DataWarningAlert: React.FC<DataWarningAlertProps> = ({ title, description }) => {
   return (
-    <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-5 rounded-md shadow-sm hover:shadow-md transition-shadow duration-200">
-      <div className="flex items-center">
-        <AlertTriangle className="h-5 w-5 text-yellow-500 mr-3 flex-shrink-0 animate-pulse" />
-        <p className="font-semibold text-yellow-800">Data Quality Warning</p>
-      </div>
-      <p className="text-sm text-yellow-700 mt-2 ml-8">
-        Some team names appear to be invalid (numeric or missing). Try refreshing the data or check the scraper configuration.
-      </p>
-    </div>
+    <Alert variant="warning" className="mb-4">
+      <AlertTriangle className="h-4 w-4" />
+      <AlertTitle>{title}</AlertTitle>
+      <AlertDescription>
+        {description}
+      </AlertDescription>
+    </Alert>
   );
 };
+
+export default DataWarningAlert;

@@ -1,406 +1,426 @@
 
-import React, { useState, useCallback } from 'react';
-import { useDropzone } from 'react-dropzone';
-import { 
-  UploadCloud, 
-  FileType, 
-  AlertCircle, 
-  CheckCircle2, 
-  X, 
-  Image as ImageIcon, 
-  FileVideo
-} from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { toast } from 'sonner';
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Upload, Image, FileText, File, Plus, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
-// Mock categories for the demo
-const mockCategories = [
-  { id: '1', name: 'Match Day' },
-  { id: '2', name: 'Team' },
-  { id: '3', name: 'Stadium' },
-  { id: '4', name: 'Fans' },
-];
+// Define schema for file upload form
+const formSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  altText: z.string().optional(),
+  description: z.string().optional(),
+  category: z.string().optional(),
+  tags: z.array(z.string()).default([]),
+});
 
-interface UploadFile {
-  id: string;
-  file: File;
-  preview: string;
-  progress: number;
-  status: 'queued' | 'uploading' | 'success' | 'error';
-  error?: string;
-  metadata?: {
-    title?: string;
-    alt_text?: string;
-    description?: string;
-    categories?: string[];
-    tags?: string[];
-  };
-}
-
-const MediaUploader: React.FC = () => {
-  // State for the file uploads
-  const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([]);
+const MediaUploader = () => {
+  const [files, setFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [allMetadata, setAllMetadata] = useState({
-    categories: [] as string[],
-    tags: '' as string,
+  const [dragActive, setDragActive] = useState(false);
+  const [tagInput, setTagInput] = useState("");
+
+  // Initialize form
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: "",
+      altText: "",
+      description: "",
+      category: "",
+      tags: [],
+    },
   });
-  
-  // Configure the dropzone
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const newFiles = acceptedFiles.map(file => {
-      // Generate preview URLs for images
-      const preview = file.type.startsWith('image/') 
-        ? URL.createObjectURL(file) 
-        : file.type.startsWith('video/')
-          ? '/video-placeholder.jpg' // Use a placeholder for video previews
-          : '/file-placeholder.jpg'; // Use a placeholder for other file types
-      
-      return {
-        id: Math.random().toString(36).substr(2, 9),
-        file,
-        preview,
-        progress: 0,
-        status: 'queued' as const,
-        metadata: {
-          title: file.name.split('.')[0], // Default title is filename without extension
-          alt_text: '',
-          description: '',
-          categories: [],
-          tags: [],
-        }
-      };
-    });
-    
-    setUploadFiles([...uploadFiles, ...newFiles]);
-    toast.success(`Added ${acceptedFiles.length} files to upload queue`);
-  }, [uploadFiles]);
-  
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      'image/*': [],
-      'video/*': [],
-      'application/pdf': [],
+
+  // Handle form submission
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    if (files.length === 0) {
+      toast.error("Please select at least one file to upload");
+      return;
     }
-  });
-  
-  // Format file size
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-  
-  // Update metadata for a specific file
-  const updateMetadata = (id: string, field: string, value: any) => {
-    setUploadFiles(uploadFiles.map(file => {
-      if (file.id === id) {
-        return {
-          ...file,
-          metadata: {
-            ...file.metadata,
-            [field]: value
-          }
-        };
-      }
-      return file;
-    }));
-  };
-  
-  // Apply metadata to all files
-  const applyMetadataToAll = () => {
-    setUploadFiles(uploadFiles.map(file => ({
-      ...file,
-      metadata: {
-        ...file.metadata,
-        categories: allMetadata.categories,
-        tags: allMetadata.tags ? allMetadata.tags.split(',').map(t => t.trim()) : [],
-      }
-    })));
-    
-    toast.success('Metadata applied to all files');
-  };
-  
-  // Remove a file from the upload queue
-  const removeFile = (id: string) => {
-    setUploadFiles(uploadFiles.filter(file => file.id !== id));
-    toast.info('File removed from queue');
-  };
-  
-  // Clear all files from the upload queue
-  const clearQueue = () => {
-    setUploadFiles([]);
-    toast.info('Upload queue cleared');
-  };
-  
-  // Simulate file upload
-  const startUpload = async () => {
-    if (uploadFiles.length === 0) return;
-    
+
     setIsUploading(true);
-    setUploadProgress(0);
     
-    // Update all files to uploading status
-    setUploadFiles(uploadFiles.map(file => ({
-      ...file,
-      status: 'uploading',
-      progress: 0
-    })));
-    
-    // Simulate uploading each file
-    let completed = 0;
-    const totalFiles = uploadFiles.length;
-    
-    for (const file of uploadFiles) {
-      // Update this file to uploading status
-      setUploadFiles(prevFiles => prevFiles.map(f => 
-        f.id === file.id ? { ...f, status: 'uploading' } : f
-      ));
+    // Mock upload progress for demo
+    const interval = setInterval(() => {
+      setUploadProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setTimeout(() => {
+            setIsUploading(false);
+            setFiles([]);
+            form.reset();
+            toast.success(`Successfully uploaded ${files.length} file(s)`);
+          }, 500);
+          return 100;
+        }
+        return prev + 10;
+      });
+    }, 300);
+  };
+
+  // Handle file selection
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const selectedFiles = Array.from(e.target.files);
+      setFiles(prevFiles => [...prevFiles, ...selectedFiles]);
       
-      // Simulate progress updates
-      for (let progress = 0; progress <= 100; progress += 10) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // Update file progress
-        setUploadFiles(prevFiles => prevFiles.map(f => 
-          f.id === file.id ? { ...f, progress } : f
-        ));
+      // If the first file is added, set title to the file name
+      if (files.length === 0 && form.getValues("title") === "") {
+        const fileName = selectedFiles[0].name.split('.').slice(0, -1).join('.');
+        form.setValue("title", fileName);
       }
+    }
+  };
+
+  // Handle file drop
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const droppedFiles = Array.from(e.dataTransfer.files);
+      setFiles(prevFiles => [...prevFiles, ...droppedFiles]);
       
-      // Mark as complete
-      setUploadFiles(prevFiles => prevFiles.map(f => 
-        f.id === file.id ? { ...f, status: 'success', progress: 100 } : f
-      ));
-      
-      // Update overall progress
-      completed++;
-      setUploadProgress(Math.floor((completed / totalFiles) * 100));
+      // If the first file is added, set title to the file name
+      if (files.length === 0 && form.getValues("title") === "") {
+        const fileName = droppedFiles[0].name.split('.').slice(0, -1).join('.');
+        form.setValue("title", fileName);
+      }
+    }
+  };
+
+  // Handle file drag events
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragActive(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragActive(false);
+  };
+
+  // Handle tag input
+  const addTag = () => {
+    if (!tagInput.trim()) return;
+    
+    const newTag = tagInput.trim().toLowerCase();
+    const currentTags = form.getValues("tags");
+    
+    if (!currentTags.includes(newTag)) {
+      form.setValue("tags", [...currentTags, newTag]);
     }
     
-    // All done!
-    setIsUploading(false);
-    toast.success(`Successfully uploaded ${uploadFiles.length} files`);
+    setTagInput("");
   };
-  
-  // Preview component for each file
-  const FilePreview = ({ file }: { file: UploadFile }) => {
-    return (
-      <Card className="overflow-hidden">
-        <div className="relative aspect-square bg-muted">
-          {file.status === 'uploading' && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
-              <Progress value={file.progress} className="w-1/2" />
-            </div>
-          )}
-          
-          {file.status === 'success' && (
-            <div className="absolute top-2 right-2 z-10">
-              <CheckCircle2 className="h-6 w-6 text-green-500" />
-            </div>
-          )}
-          
-          {file.status === 'error' && (
-            <div className="absolute top-2 right-2 z-10">
-              <AlertCircle className="h-6 w-6 text-red-500" />
-            </div>
-          )}
-          
-          {file.file.type.startsWith('image/') ? (
-            <img 
-              src={file.preview} 
-              alt={file.metadata?.alt_text || file.file.name}
-              className="w-full h-full object-cover" 
-            />
-          ) : file.file.type.startsWith('video/') ? (
-            <div className="w-full h-full flex items-center justify-center bg-gray-900">
-              <FileVideo className="h-12 w-12 text-gray-400" />
-            </div>
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <FileType className="h-12 w-12 text-gray-400" />
-            </div>
-          )}
-          
-          <button 
-            onClick={() => removeFile(file.id)}
-            className="absolute top-2 left-2 bg-white dark:bg-gray-800 rounded-full p-1 shadow-lg"
-          >
-            <X className="h-4 w-4 text-gray-600 dark:text-gray-300" />
-          </button>
-        </div>
-        
-        <CardContent className="p-3">
-          <div className="truncate text-sm font-medium">{file.file.name}</div>
-          <div className="flex items-center justify-between mt-1">
-            <Badge variant="outline" className="text-xs">
-              {file.file.type.split('/')[0]}
-            </Badge>
-            <span className="text-xs text-muted-foreground">
-              {formatFileSize(file.file.size)}
-            </span>
-          </div>
-          
-          <div className="mt-3">
-            <Input
-              placeholder="Title"
-              value={file.metadata?.title || ''}
-              onChange={(e) => updateMetadata(file.id, 'title', e.target.value)}
-              className="mb-2"
-            />
-            <Input
-              placeholder="Alt Text"
-              value={file.metadata?.alt_text || ''}
-              onChange={(e) => updateMetadata(file.id, 'alt_text', e.target.value)}
-              className="mb-2"
-            />
-          </div>
-        </CardContent>
-      </Card>
-    );
+
+  const removeTag = (tagToRemove: string) => {
+    const currentTags = form.getValues("tags");
+    form.setValue("tags", currentTags.filter(tag => tag !== tagToRemove));
   };
-  
+
+  const handleTagKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addTag();
+    }
+  };
+
+  // Remove file from list
+  const removeFile = (index: number) => {
+    const newFiles = [...files];
+    newFiles.splice(index, 1);
+    setFiles(newFiles);
+  };
+
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Upload Media</CardTitle>
-          <CardDescription>
-            Drag and drop files or click to browse. Supported formats: images, videos, and PDFs.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div 
-            {...getRootProps()} 
-            className={`border-2 border-dashed rounded-lg p-10 cursor-pointer flex flex-col items-center justify-center text-center ${
-              isDragActive ? 'border-primary bg-primary/5' : 'border-gray-300 dark:border-gray-600'
-            }`}
-          >
-            <input {...getInputProps()} />
-            <UploadCloud className="h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium mb-1">
-              {isDragActive ? 'Drop files here' : 'Drag and drop files'}
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              or click to browse your device
-            </p>
-            <Button type="button">Select Files</Button>
-          </div>
-        </CardContent>
-      </Card>
-      
-      {uploadFiles.length > 0 && (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Upload Queue</CardTitle>
-              <CardDescription>
-                {uploadFiles.length} file{uploadFiles.length !== 1 ? 's' : ''} ready to upload
-              </CardDescription>
-            </div>
-            {!isUploading && (
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={clearQueue}>
-                  Clear All
-                </Button>
-                <Button onClick={startUpload}>
-                  Upload All
-                </Button>
+      <Tabs defaultValue="upload">
+        <TabsList>
+          <TabsTrigger value="upload">Upload Files</TabsTrigger>
+          <TabsTrigger value="bulk">Bulk Upload</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="upload" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Upload Media Files</CardTitle>
+              <CardDescription>Upload images and videos to your media library</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* File Drop Zone */}
+              <div 
+                className={`rounded-lg border-2 border-dashed p-10 ${
+                  dragActive ? "border-primary/70 bg-primary/5" : "border-gray-300 dark:border-gray-700"
+                } flex flex-col items-center justify-center cursor-pointer mb-6`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => document.getElementById("fileInput")?.click()}
+              >
+                <Upload className="h-12 w-12 text-gray-400 mb-2" />
+                <p className="text-lg font-medium mb-1">Drag & drop files here</p>
+                <p className="text-sm text-gray-500 mb-3">Or click to browse</p>
+                <p className="text-xs text-gray-400 max-w-sm text-center">
+                  Supports JPG, PNG, GIF, WebP, SVG images up to 5MB each, 
+                  and MP4, WebM videos up to 50MB each
+                </p>
+                <input 
+                  type="file" 
+                  id="fileInput" 
+                  className="hidden" 
+                  multiple 
+                  accept="image/*,video/*"
+                  onChange={handleFileChange}
+                />
               </div>
-            )}
-          </CardHeader>
-          
-          <CardContent>
-            <Tabs defaultValue="files">
-              <TabsList className="mb-4">
-                <TabsTrigger value="files">Files</TabsTrigger>
-                <TabsTrigger value="batch-metadata">Batch Metadata</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="files">
-                {isUploading && (
-                  <div className="mb-6">
-                    <p className="mb-2 text-center font-medium">Uploading files...</p>
-                    <Progress value={uploadProgress} />
+
+              {/* Selected Files Preview */}
+              {files.length > 0 && (
+                <div className="mb-6 space-y-4">
+                  <h3 className="text-sm font-medium">Selected Files ({files.length})</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {files.map((file, index) => (
+                      <div key={index} className="relative group">
+                        <div className="aspect-square rounded-md overflow-hidden bg-gray-100 border">
+                          {file.type.startsWith('image/') ? (
+                            <img
+                              src={URL.createObjectURL(file)}
+                              alt={file.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : file.type.startsWith('video/') ? (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <FileText className="h-12 w-12 text-gray-400" />
+                            </div>
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <File className="h-12 w-12 text-gray-400" />
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                            <Button 
+                              variant="secondary" 
+                              size="sm" 
+                              className="h-8 w-8 p-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeFile(index);
+                              }}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        <p className="text-xs truncate mt-1">{file.name}</p>
+                      </div>
+                    ))}
                   </div>
-                )}
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-                  {uploadFiles.map((file) => (
-                    <FilePreview key={file.id} file={file} />
-                  ))}
                 </div>
-              </TabsContent>
-              
-              <TabsContent value="batch-metadata">
-                <div className="space-y-4 max-w-xl mx-auto">
-                  <div className="space-y-2">
-                    <label className="font-medium text-sm">Categories (Apply to all files)</label>
-                    <Select 
-                      value={allMetadata.categories[0] || ''} 
-                      onValueChange={(value) => setAllMetadata({...allMetadata, categories: [value]})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {mockCategories.map(cat => (
-                          <SelectItem key={cat.id} value={cat.name}>
-                            {cat.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <label className="font-medium text-sm">Tags (Apply to all files)</label>
-                    <Input 
-                      placeholder="Enter tags separated by commas"
-                      value={allMetadata.tags}
-                      onChange={(e) => setAllMetadata({...allMetadata, tags: e.target.value})}
+              )}
+
+              {/* File Metadata Form */}
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="title"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Title</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Media title" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                    <p className="text-xs text-muted-foreground">E.g., match, team, celebration</p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="altText"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Alt Text</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Describe this media" {...field} />
+                            </FormControl>
+                            <FormDescription>
+                              For accessibility and SEO
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="category"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Category</FormLabel>
+                            <Select 
+                              onValueChange={field.onChange} 
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select a category" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="matchday">Match Day</SelectItem>
+                                <SelectItem value="team">Team</SelectItem>
+                                <SelectItem value="stadium">Stadium</SelectItem>
+                                <SelectItem value="fans">Fans</SelectItem>
+                                <SelectItem value="events">Events</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Description</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Describe this media in detail" 
+                              rows={3} 
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="tags"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Tags</FormLabel>
+                          <div className="space-y-2">
+                            <div className="flex flex-wrap gap-2 mb-2">
+                              {field.value.map((tag) => (
+                                <Badge key={tag} variant="secondary">
+                                  {tag}
+                                  <X
+                                    className="ml-1 h-3 w-3 cursor-pointer"
+                                    onClick={() => removeTag(tag)}
+                                  />
+                                </Badge>
+                              ))}
+                            </div>
+                            <div className="flex space-x-2">
+                              <Input
+                                placeholder="Add tag"
+                                value={tagInput}
+                                onChange={(e) => setTagInput(e.target.value)}
+                                onKeyDown={handleTagKeyDown}
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={addTag}
+                              >
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                          <FormDescription>
+                            Press Enter or click the + button to add a tag
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
-                  
-                  <Button onClick={applyMetadataToAll} className="w-full">
-                    Apply to All Files
-                  </Button>
+
+                  {/* Progress Bar (when uploading) */}
+                  {isUploading && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs">
+                        <span>Uploading...</span>
+                        <span>{uploadProgress}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                        <div
+                          className="bg-primary h-2.5 transition-all duration-300 ease-out"
+                          style={{ width: `${uploadProgress}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex justify-end">
+                    <Button
+                      type="submit"
+                      disabled={isUploading || files.length === 0}
+                    >
+                      {isUploading ? "Uploading..." : "Upload Files"}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="bulk">
+          <Card>
+            <CardHeader>
+              <CardTitle>Bulk Upload</CardTitle>
+              <CardDescription>Upload multiple files with batch processing</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-center h-48 text-center">
+                <div>
+                  <Image className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500 mb-4">
+                    Bulk upload functionality coming soon
+                  </p>
+                  <Button disabled>Coming Soon</Button>
                 </div>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-      )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

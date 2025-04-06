@@ -11,6 +11,7 @@ import {
   TableRow 
 } from './table';
 import { Button } from './button';
+import { Usage } from './usage';
 
 export {
   Typography,
@@ -22,5 +23,6 @@ export {
   TableHead,
   TableHeader,
   TableRow,
-  Button
+  Button,
+  Usage
 };

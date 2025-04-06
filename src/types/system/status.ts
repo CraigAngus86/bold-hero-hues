@@ -7,6 +7,8 @@ export interface SystemStatusItemProps {
   icon?: React.ElementType;
   color?: string;
   viewAllLink?: string;
+  lastChecked?: string | Date | null;
+  tooltip?: string;
 }
 
 export interface SystemMetrics {
@@ -51,4 +53,20 @@ export interface SystemStatusResponse {
   success: boolean;
   data?: SystemStatus;
   error?: string;
+}
+
+export interface SystemStatusProps {
+  systems: SystemStatusItem[];
+  isLoading: boolean;
+  lastUpdated: Date;
+  onRefresh: () => void;
+}
+
+export interface SystemStatusItem {
+  name: string;
+  status: 'healthy' | 'degraded' | 'error' | 'unknown' | 'info';
+  lastChecked?: Date | string | null;
+  metricValue?: string | number;
+  tooltip?: string;
+  icon?: React.ElementType;
 }

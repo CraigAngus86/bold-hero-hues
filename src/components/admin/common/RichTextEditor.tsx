@@ -1,85 +1,53 @@
 
-import React from 'react';
-import { Editor } from '@tinymce/tinymce-react';
-import { useTheme } from 'next-themes';
+import React, { useState } from 'react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
-interface RichTextEditorProps {
+export interface RichTextEditorProps {
   value: string;
-  onChange: (content: string) => void;
-  height?: number;
+  onChange: (value: string) => void;
   placeholder?: string;
-  disabled?: boolean;
+  className?: string;
+  id?: string;
 }
 
 export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   value,
   onChange,
-  height = 500,
-  placeholder = 'Start writing...',
-  disabled = false,
+  placeholder = 'Write something...',
+  className = '',
+  id
 }) => {
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark';
-  
-  const handleEditorChange = (content: string) => {
-    onChange(content);
+  const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+      ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
+      ['link', 'image'],
+      ['clean']
+    ],
   };
-  
+
+  const formats = [
+    'header',
+    'bold', 'italic', 'underline', 'strike', 'blockquote',
+    'list', 'bullet', 'indent',
+    'link', 'image'
+  ];
+
   return (
-    <Editor
-      apiKey="no-api-key" // Replace with your TinyMCE API key in production
-      value={value}
-      onEditorChange={handleEditorChange}
-      disabled={disabled}
-      init={{
-        height,
-        menubar: true,
-        plugins: [
-          'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-          'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-          'insertdatetime', 'media', 'table', 'help', 'wordcount', 'emoticons',
-          'autosave', 'directionality', 'visualchars', 'imagetools'
-        ],
-        toolbar: 'undo redo | blocks | ' +
-          'bold italic forecolor | alignleft aligncenter ' +
-          'alignright alignjustify | bullist numlist outdent indent | ' +
-          'image media link table | removeformat | help',
-        content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-        placeholder: placeholder,
-        skin: isDarkMode ? 'oxide-dark' : 'oxide',
-        content_css: isDarkMode ? 'dark' : 'default',
-        promotion: false,
-        branding: false,
-        browser_spellcheck: true,
-        images_upload_handler: (blobInfo, progress) => new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            // For demo purposes, we're just embedding the image as base64
-            // In production, you would upload this to your server or Supabase storage
-            if (e.target?.result) {
-              resolve(e.target.result as string);
-            } else {
-              reject('Failed to read file');
-            }
-          };
-          reader.onerror = () => reject('Failed to read file');
-          reader.readAsDataURL(blobInfo.blob());
-        }),
-        setup: (editor) => {
-          editor.on('init', () => {
-            // Make sure the editor doesn't start with focus
-            editor.getBody().setAttribute('data-placeholder', placeholder);
-          });
-        },
-        image_caption: true,
-        table_default_attributes: {
-          border: '1'
-        },
-        table_default_styles: {
-          width: '100%'
-        }
-      }}
-    />
+    <div className={className}>
+      <ReactQuill
+        id={id}
+        theme="snow"
+        value={value}
+        onChange={onChange}
+        modules={modules}
+        formats={formats}
+        placeholder={placeholder}
+        className="bg-white border rounded-md"
+      />
+    </div>
   );
 };
 

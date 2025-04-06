@@ -1,79 +1,106 @@
 
 import React from 'react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ChevronRight } from "lucide-react";
-import { StatusItem } from './StatusItem';
-import { SystemStatusItemProps } from '@/types/system';
-
-// Example quick action items
-const quickActionItems = [
-  {
-    name: "News Articles",
-    count: 3,
-    color: "bg-blue-500",
-    icon: require('lucide-react').FileText,
-    viewAllLink: "/admin/news",
-    status: "active"
-  },
-  {
-    name: "Fixtures",
-    count: 2,
-    color: "bg-amber-500",
-    icon: require('lucide-react').Calendar,
-    viewAllLink: "/admin/fixtures",
-    status: "warning"
-  },
-  {
-    name: "Team Members",
-    count: 5,
-    color: "bg-green-500",
-    icon: require('lucide-react').Users,
-    viewAllLink: "/admin/team",
-    status: "active"
-  },
-  {
-    name: "Sponsors",
-    count: 1,
-    color: "bg-purple-500",
-    icon: require('lucide-react').Briefcase,
-    viewAllLink: "/admin/sponsors",
-    status: "active"
-  }
-] as SystemStatusItemProps[];
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { 
+  Calendar, FileText, Users, Settings, Trophy, 
+  MessageSquare, Image, Mail, Tag, 
+} from 'lucide-react';
+import { Link } from 'react-router-dom';
+import StatusItem from './StatusItem';
 
 interface QuickActionsProps {
-  className?: string;
+  metrics?: any;
 }
 
-export function QuickActions({ className = "" }: QuickActionsProps) {
+const QuickActions: React.FC<QuickActionsProps> = ({ metrics }) => {
+  const actions = [
+    { 
+      name: 'Fixtures', 
+      icon: Calendar, 
+      path: '/admin/fixtures',
+      count: metrics?.fixturesCount || 0,
+      color: 'bg-green-50',
+      viewAllLink: '/admin/fixtures' 
+    },
+    { 
+      name: 'News', 
+      icon: FileText, 
+      path: '/admin/news',
+      count: metrics?.newsCount || 0,
+      color: 'bg-blue-50',
+      viewAllLink: '/admin/news'
+    },
+    { 
+      name: 'Users', 
+      icon: Users, 
+      path: '/admin/users',
+      count: metrics?.usersCount || 0,
+      color: 'bg-purple-50',
+      viewAllLink: '/admin/users'
+    },
+    { 
+      name: 'Team', 
+      icon: Trophy, 
+      path: '/admin/team',
+      color: 'bg-amber-50',
+      viewAllLink: '/admin/team'
+    },
+    { 
+      name: 'Media', 
+      icon: Image, 
+      path: '/admin/media',
+      color: 'bg-emerald-50',
+      viewAllLink: '/admin/media'
+    },
+    { 
+      name: 'Messages', 
+      icon: Mail, 
+      path: '/admin/messages',
+      count: metrics?.messagesCount || 0,
+      color: 'bg-pink-50',
+      viewAllLink: '/admin/messages'
+    },
+    { 
+      name: 'Fan Engagement', 
+      icon: MessageSquare, 
+      path: '/admin/fans',
+      color: 'bg-indigo-50',
+      viewAllLink: '/admin/fans'
+    },
+    { 
+      name: 'Sponsors', 
+      icon: Tag, 
+      path: '/admin/sponsors',
+      count: metrics?.sponsorsCount || 0,
+      color: 'bg-orange-50',
+      viewAllLink: '/admin/sponsors'
+    },
+    { 
+      name: 'Settings', 
+      icon: Settings, 
+      path: '/admin/settings',
+      color: 'bg-gray-50',
+      viewAllLink: '/admin/settings'
+    }
+  ];
+
   return (
-    <div className={`grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 ${className}`}>
-      {quickActionItems.map((item, index) => (
-        <Card key={index} className="overflow-hidden">
-          <CardHeader className="p-4">
-            <CardTitle className="text-base font-medium">{item.name}</CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <StatusItem
-              name={item.name}
-              count={item.count}
-              color={item.color}
-              icon={item.icon}
-              viewAllLink={item.viewAllLink}
-              status={item.status}
-            />
-          </CardContent>
-          <CardFooter className="p-4 pt-0">
-            <Button variant="ghost" size="sm" className="w-full justify-between" asChild>
-              <a href={item.viewAllLink}>
-                <span>View All</span>
-                <ChevronRight className="h-4 w-4" />
-              </a>
-            </Button>
-          </CardFooter>
-        </Card>
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      {actions.map((action) => (
+        <Link to={action.path} key={action.name}>
+          <StatusItem
+            name={action.name}
+            status="active"
+            icon={action.icon}
+            count={action.count}
+            color={action.color}
+            viewAllLink={action.viewAllLink}
+          />
+        </Link>
       ))}
     </div>
   );
-}
+};
+
+export default QuickActions;

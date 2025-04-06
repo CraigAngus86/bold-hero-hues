@@ -53,4 +53,5 @@ export interface ImageMetadata {
   name?: string;
   type?: string;
   size?: number;
+  bucket?: string;
 }

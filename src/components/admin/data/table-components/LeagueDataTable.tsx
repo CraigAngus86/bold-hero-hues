@@ -1,28 +1,64 @@
 
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { TeamStats } from '@/types/fixtures';
+import { formatDistanceToNow } from 'date-fns';
 
 interface LeagueDataTableProps {
   leagueTable: TeamStats[];
 }
 
 const LeagueDataTable: React.FC<LeagueDataTableProps> = ({ leagueTable }) => {
-  if (!leagueTable || leagueTable.length === 0) {
-    return (
-      <div className="text-center p-6 bg-gray-50 rounded-lg">
-        <p className="text-muted-foreground">No league data available</p>
-      </div>
-    );
-  }
+  // Format form data for display
+  const formatForm = (form: string[] | string) => {
+    if (typeof form === 'string') {
+      try {
+        // Try to parse if it's a JSON string
+        const formArray = JSON.parse(form);
+        if (Array.isArray(formArray)) {
+          return formArray;
+        }
+        // Return the original string if parsing didn't yield an array
+        return form.split('').slice(-5);
+      } catch {
+        // If parsing failed, split the string
+        return form.split('').slice(-5);
+      }
+    }
+    // It's already an array
+    return form.slice(-5);
+  };
+
+  // Render form icons
+  const renderFormIcon = (result: string) => {
+    switch (result.toLowerCase()) {
+      case 'w':
+        return <span className="inline-block w-5 h-5 rounded-full bg-green-500 text-white text-xs font-bold flex items-center justify-center">W</span>;
+      case 'l':
+        return <span className="inline-block w-5 h-5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center">L</span>;
+      case 'd':
+        return <span className="inline-block w-5 h-5 rounded-full bg-yellow-500 text-white text-xs font-bold flex items-center justify-center">D</span>;
+      default:
+        return <span className="inline-block w-5 h-5 rounded-full bg-gray-300 text-white text-xs font-bold flex items-center justify-center">-</span>;
+    }
+  };
+
+  // Get last update time
+  const getLastUpdateTime = (team: TeamStats) => {
+    if (!team.last_updated) return 'Unknown';
+    try {
+      return formatDistanceToNow(new Date(team.last_updated), { addSuffix: true });
+    } catch (error) {
+      return 'Invalid date';
+    }
+  };
 
   return (
-    <div className="rounded-md border overflow-hidden">
+    <div className="rounded-md border">
       <Table>
-        <TableHeader className="bg-muted/50">
+        <TableHeader>
           <TableRow>
-            <TableHead className="w-10 text-center">Pos</TableHead>
+            <TableHead className="w-12">Pos</TableHead>
             <TableHead>Team</TableHead>
             <TableHead className="text-center">P</TableHead>
             <TableHead className="text-center">W</TableHead>
@@ -36,68 +72,46 @@ const LeagueDataTable: React.FC<LeagueDataTableProps> = ({ leagueTable }) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {leagueTable.map((team) => (
-            <TableRow key={team.id || team.team}>
-              <TableCell className="font-medium text-center">{team.position}</TableCell>
-              <TableCell>
-                <div className="flex items-center gap-2">
-                  {'logo' in team && team.logo && (
-                    <img
-                      src={team.logo}
-                      alt={`${team.team} logo`}
-                      className="h-6 w-6 object-contain"
-                    />
-                  )}
-                  <span>{team.team}</span>
-                </div>
-              </TableCell>
-              <TableCell className="text-center">{team.played}</TableCell>
-              <TableCell className="text-center">{team.won}</TableCell>
-              <TableCell className="text-center">{team.drawn}</TableCell>
-              <TableCell className="text-center">{team.lost}</TableCell>
-              <TableCell className="text-center">{team.goalsFor}</TableCell>
-              <TableCell className="text-center">{team.goalsAgainst}</TableCell>
-              <TableCell className="text-center">
-                {team.goalDifference > 0 ? `+${team.goalDifference}` : team.goalDifference}
-              </TableCell>
-              <TableCell className="text-center font-semibold">{team.points}</TableCell>
-              <TableCell className="text-center">
-                <div className="flex justify-center gap-1">
-                  {Array.isArray(team.form) ? team.form.map((result, idx) => {
-                    let bg = "bg-gray-200";
-                    if (result === "W") bg = "bg-green-500 text-white";
-                    if (result === "L") bg = "bg-red-500 text-white";
-                    if (result === "D") bg = "bg-yellow-500 text-white";
-                    
-                    return (
-                      <Badge 
-                        key={idx} 
-                        variant="outline" 
-                        className={`h-5 min-w-5 p-0 flex items-center justify-center ${bg}`}
-                      >
-                        {result}
-                      </Badge>
-                    );
-                  }) : (team.form || '').split('').map((result, idx) => {
-                    let bg = "bg-gray-200";
-                    if (result === "W") bg = "bg-green-500 text-white";
-                    if (result === "L") bg = "bg-red-500 text-white";
-                    if (result === "D") bg = "bg-yellow-500 text-white";
-                    
-                    return (
-                      <Badge 
-                        key={idx} 
-                        variant="outline" 
-                        className={`h-5 min-w-5 p-0 flex items-center justify-center ${bg}`}
-                      >
-                        {result}
-                      </Badge>
-                    );
-                  })}
-                </div>
+          {leagueTable.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={11} className="text-center py-10 text-gray-500">
+                No league table data available
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            leagueTable.map((team) => (
+              <TableRow key={team.position} className={team.team === 'Banks o\' Dee' ? 'bg-blue-50' : undefined}>
+                <TableCell className="font-medium">{team.position}</TableCell>
+                <TableCell className="font-medium">
+                  <div className="flex items-center">
+                    {team.logo && (
+                      <img 
+                        src={team.logo} 
+                        alt={`${team.team} logo`} 
+                        className="w-5 h-5 mr-2 object-contain"
+                      />
+                    )}
+                    {team.team}
+                  </div>
+                </TableCell>
+                <TableCell className="text-center">{team.played}</TableCell>
+                <TableCell className="text-center">{team.won}</TableCell>
+                <TableCell className="text-center">{team.drawn}</TableCell>
+                <TableCell className="text-center">{team.lost}</TableCell>
+                <TableCell className="text-center">{team.goalsFor}</TableCell>
+                <TableCell className="text-center">{team.goalsAgainst}</TableCell>
+                <TableCell className="text-center">{team.goalDifference}</TableCell>
+                <TableCell className="text-center font-bold">{team.points}</TableCell>
+                <TableCell className="text-center">
+                  <div className="flex space-x-1 justify-center">
+                    {formatForm(team.form).map((result, index) => (
+                      <div key={index}>{renderFormIcon(result)}</div>
+                    ))}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>

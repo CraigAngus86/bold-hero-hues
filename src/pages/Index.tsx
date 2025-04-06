@@ -2,7 +2,7 @@
 import React from 'react';
 import { Navbar, Footer } from '@/components/layout';
 import EnhancedHero from '@/components/home/EnhancedHero';
-import FeaturedContentGrid from '@/components/home/FeaturedContentGrid';
+import { FeaturedContentGrid } from '@/components/home/FeaturedContentGrid';
 import NewsGrid from '@/components/home/NewsGrid';
 import MatchCenter from '@/components/home/MatchCenter';
 import MediaGalleryPreview from '@/components/home/MediaGalleryPreview';
@@ -19,12 +19,12 @@ const Index = () => {
       
       <div className="py-6">
         {/* Featured Content Grid */}
-        <FeaturedContentGrid />
+        <FeaturedContentGrid items={[]} />
         
         {/* News Grid */}
         <NewsGrid />
         
-        {/* Match Center Section */}
+        {/* Match Center */}
         <MatchCenter />
         
         {/* Media Gallery Preview */}

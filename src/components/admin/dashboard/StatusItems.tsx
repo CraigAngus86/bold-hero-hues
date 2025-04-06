@@ -1,72 +1,108 @@
-
 import React from 'react';
-import { Database, Server, HardDrive, Upload } from 'lucide-react';
-import { EnhancedSystemStatus } from './EnhancedSystemStatus';
-import { useSystemStatus } from '@/hooks/useSystemStatus';
+import { 
+  Database, HardDrive, Lock, Server, Users, FileText, Calendar, 
+  Activity, Award, MessageSquare, Image, Clock
+} from 'lucide-react';
+import StatusItem from './StatusItem';
 import { SystemStatusItemProps } from '@/types/system/status';
+import { formatTimeAgo } from '@/utils/date';
 
-const StatusItems: React.FC = () => {
-  const { status, isLoading, lastUpdated, refresh } = useSystemStatus();
-  
-  // Transform the status data into the format expected by EnhancedSystemStatus
-  const systemItems: SystemStatusItemProps[] = React.useMemo(() => {
-    if (!status) return [];
-    
-    return [
-      {
-        name: 'Database',
-        status: status.database.status,
-        lastChecked: status.database.lastChecked,
-        metricValue: status.database.metricValue,
-        icon: Database,
-        tooltip: 'Database response time and connectivity status',
-        count: 1,
-        color: 'bg-blue-500',
-        viewAllLink: '/admin/system'
-      },
-      {
-        name: 'API Services',
-        status: status.api.status,
-        lastChecked: status.api.lastChecked,
-        metricValue: status.api.metricValue,
-        icon: Server,
-        tooltip: 'External API services response time',
-        count: 1,
-        color: 'bg-green-500',
-        viewAllLink: '/admin/system'
-      },
-      {
-        name: 'Content Engine',
-        status: status.content.status,
-        lastChecked: status.content.lastChecked,
-        metricValue: status.content.metricValue,
-        icon: HardDrive,
-        tooltip: 'Content management system status',
-        count: 1,
-        color: 'bg-amber-500',
-        viewAllLink: '/admin/system'
-      },
-      {
-        name: 'Storage',
-        status: status.uploads.status,
-        lastChecked: status.uploads.lastChecked,
-        metricValue: status.uploads.metricValue,
-        icon: Upload,
-        tooltip: 'Media storage capacity and availability',
-        count: 1,
-        color: 'bg-indigo-500',
-        viewAllLink: '/admin/system'
-      }
-    ];
-  }, [status]);
+interface StatusItemsProps {
+  status: any;
+}
+
+const StatusItems: React.FC<StatusItemsProps> = ({ status }) => {
+  // Primary system status items
+  const systemItems: SystemStatusItemProps[] = [
+    {
+      name: 'Database',
+      status: status?.components?.database?.status || 'unknown',
+      lastChecked: status?.lastChecked && formatTimeAgo(status.lastChecked),
+      metricValue: status?.components?.database?.responseTime 
+        ? `${status.components.database.responseTime}ms` 
+        : undefined,
+      icon: Database,
+      tooltip: 'Database connection status and response time'
+    },
+    {
+      name: 'Storage',
+      status: status?.components?.storage?.status || 'unknown',
+      lastChecked: status?.lastChecked && formatTimeAgo(status.lastChecked),
+      metricValue: status?.components?.storage?.usedSpace 
+        ? `${Math.round(status.components.storage.usedSpace / 1024 / 1024)}MB` 
+        : undefined,
+      icon: HardDrive,
+      tooltip: 'File storage status and used space'
+    },
+    {
+      name: 'Auth',
+      status: status?.components?.auth?.status || 'unknown',
+      lastChecked: status?.lastChecked && formatTimeAgo(status.lastChecked),
+      metricValue: status?.components?.auth?.activeUsers?.toString(),
+      icon: Lock,
+      tooltip: 'Authentication service status'
+    },
+    {
+      name: 'API',
+      status: status?.components?.api?.status || 'unknown',
+      lastChecked: status?.lastChecked && formatTimeAgo(status.lastChecked),
+      metricValue: status?.components?.api?.responseTime 
+        ? `${status.components.api.responseTime}ms` 
+        : undefined,
+      icon: Server,
+      tooltip: 'API service status and response time'
+    }
+  ];
+
+  // Other system metrics
+  const metricItems: SystemStatusItemProps[] = [
+    {
+      name: 'Active Users',
+      status: 'active',
+      icon: Users,
+      metricValue: status?.metrics?.dailyActiveUsers?.toString() || '0',
+      tooltip: 'Daily active users',
+      color: 'bg-blue-50',
+      viewAllLink: '/admin/users'
+    },
+    {
+      name: 'Fixtures',
+      status: 'info',
+      icon: Calendar,
+      metricValue: status?.metrics?.fixturesCount?.toString() || '0',
+      tooltip: 'Total fixtures in system',
+      color: 'bg-green-50',
+      viewAllLink: '/admin/fixtures'
+    },
+    {
+      name: 'News',
+      status: 'info',
+      icon: FileText,
+      metricValue: status?.metrics?.newsCount?.toString() || '0',
+      tooltip: 'Total news articles',
+      color: 'bg-purple-50',
+      viewAllLink: '/admin/news'
+    },
+    {
+      name: 'System Uptime',
+      status: 'info',
+      icon: Clock,
+      metricValue: status?.uptime ? `${Math.floor(status.uptime / 3600)}h` : undefined,
+      tooltip: 'System uptime in hours',
+      color: 'bg-amber-50'
+    }
+  ];
 
   return (
-    <EnhancedSystemStatus 
-      systems={systemItems}
-      isLoading={isLoading}
-      lastUpdated={lastUpdated}
-      onRefresh={refresh}
-    />
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+      {systemItems.map((item) => (
+        <StatusItem key={item.name} {...item} />
+      ))}
+      
+      {metricItems.map((item) => (
+        <StatusItem key={item.name} {...item} />
+      ))}
+    </div>
   );
 };
 

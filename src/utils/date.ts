@@ -1,76 +1,66 @@
 
-import { format, parseISO } from 'date-fns';
+import { format, formatDistanceToNow, isToday, parseISO } from 'date-fns';
 
 /**
- * Format a date string using date-fns
- * 
- * @param dateString - The date string to format (ISO format)
- * @param formatStr - The format string to use (date-fns format)
+ * Format a date string into a user-friendly format
+ * @param dateString - ISO date string
+ * @param formatString - Optional date-fns format string
  * @returns Formatted date string
  */
-export const formatDate = (dateString: string, formatStr: string = 'PPP') => {
-  if (!dateString) return '';
-  
+export function formatDate(dateString: string, formatString: string = 'dd MMM yyyy'): string {
   try {
-    return format(parseISO(dateString), formatStr);
+    const date = typeof dateString === 'string' ? parseISO(dateString) : new Date(dateString);
+    return format(date, formatString);
   } catch (error) {
-    console.error(`Error formatting date: ${dateString}`, error);
-    return dateString;
+    console.error('Error formatting date:', error);
+    return dateString; // Return original if parsing fails
   }
-};
+}
 
 /**
- * Get a relative date description (today, yesterday, tomorrow, or formatted date)
- * 
- * @param dateString - The date string to format (ISO format)
- * @returns Formatted relative date string
+ * Format a date to display in a relative format (e.g., "3 days ago")
+ * @param dateString - ISO date string
+ * @returns Relative time description
  */
-export const getRelativeDate = (dateString: string): string => {
-  if (!dateString) return '';
-  
+export function formatTimeAgo(dateString: string): string {
   try {
-    const date = parseISO(dateString);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    // Strip time information for comparison
-    const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const yesterdayOnly = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
-    const tomorrowOnly = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());
-    
-    if (dateOnly.getTime() === todayOnly.getTime()) {
-      return 'Today';
-    } else if (dateOnly.getTime() === yesterdayOnly.getTime()) {
-      return 'Yesterday';
-    } else if (dateOnly.getTime() === tomorrowOnly.getTime()) {
-      return 'Tomorrow';
-    }
-    
-    return format(date, 'EEE, MMM d');
+    const date = typeof dateString === 'string' ? parseISO(dateString) : new Date(dateString);
+    return formatDistanceToNow(date, { addSuffix: true });
   } catch (error) {
-    console.error(`Error formatting relative date: ${dateString}`, error);
-    return dateString;
+    console.error('Error formatting relative time:', error);
+    return 'Unknown time';
   }
-};
+}
 
 /**
- * Convert a date string to ISO format (YYYY-MM-DD)
- * 
- * @param dateString - The date string to convert
- * @returns ISO formatted date string
+ * Format a time string from 24h to 12h format
+ * @param timeString - Time string in 24h format (HH:MM)
+ * @returns Time string in 12h format with AM/PM
  */
-export const toISODateString = (dateString: string): string => {
-  if (!dateString) return '';
-  
+export function formatTime(timeString: string): string {
   try {
-    const date = new Date(dateString);
-    return date.toISOString().split('T')[0];
+    if (!timeString) return '';
+    const [hours, minutes] = timeString.split(':').map(Number);
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const formattedHours = hours % 12 || 12;
+    return `${formattedHours}:${String(minutes).padStart(2, '0')} ${period}`;
   } catch (error) {
-    console.error(`Error converting to ISO date: ${dateString}`, error);
-    return dateString;
+    console.error('Error formatting time:', error);
+    return timeString; // Return original if parsing fails
   }
-};
+}
+
+/**
+ * Check if a date is today
+ * @param dateString - ISO date string
+ * @returns Boolean indicating if date is today
+ */
+export function isDateToday(dateString: string): boolean {
+  try {
+    const date = typeof dateString === 'string' ? parseISO(dateString) : new Date(dateString);
+    return isToday(date);
+  } catch (error) {
+    console.error('Error checking if date is today:', error);
+    return false;
+  }
+}

@@ -1,120 +1,63 @@
 
 import { useState, useEffect } from 'react';
-import { toast } from "sonner";
-import { Match } from '../types';
-import { TeamStats } from '@/components/league/types';
-import { fetchLeagueTableFromSupabase } from '@/services/supabase/leagueDataService';
-import { fetchFixturesFromSupabase, fetchResultsFromSupabase } from '@/services/supabase/fixturesService';
-import { convertToMatches } from '@/types/fixtures';
-import { checkMatchPhotosExist } from '../utils/matchPhotosUtil';
+import { Fixture, convertToMatches } from '@/types/fixtures';
+import { getAllFixtures } from '@/services/fixturesService';
+import { toast } from 'sonner';
 
 export const useFixturesData = () => {
-  const [leagueData, setLeagueData] = useState<TeamStats[] | null>(null);
+  const [upcomingFixtures, setUpcomingFixtures] = useState<Fixture[]>([]);
+  const [recentResults, setRecentResults] = useState<Fixture[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [upcomingMatches, setUpcomingMatches] = useState<Match[]>([]);
-  const [recentResults, setRecentResults] = useState<Match[]>([]);
-
+  
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchFixtures = async () => {
+      setIsLoading(true);
+      
       try {
-        setIsLoading(true);
+        const response = await getAllFixtures();
         
-        const [leagueTable, fixturesData, resultsData] = await Promise.all([
-          fetchLeagueTableFromSupabase(),
-          fetchFixturesFromSupabase(),
-          fetchResultsFromSupabase()
-        ]);
-        
-        setLeagueData(leagueTable);
-        
-        const fixtures = convertToMatches(fixturesData);
-        const results = convertToMatches(resultsData);
-        
-        console.log('Fixtures from API:', fixtures.length);
-        console.log('Results from API:', results.length);
-        
-        const today = new Date();
-        console.log('Today is:', today.toISOString());
-        
-        const getUpcomingMatches = (matches: Match[]) => {
-          console.log('Filtering upcoming matches, total to filter:', matches.length);
+        if (response.success && response.data) {
+          const today = new Date();
           
-          const upcoming = matches
-            .filter(match => {
-              const matchDate = new Date(match.date);
-              const isUpcoming = !match.isCompleted && matchDate >= today;
-              console.log(`${match.homeTeam} vs ${match.awayTeam}: isCompleted=${match.isCompleted}, date=${matchDate.toISOString()}, isUpcoming=${isUpcoming}`);
-              return isUpcoming;
-            })
+          // Filter for upcoming fixtures (not completed and date is in the future)
+          const upcoming = response.data
+            .filter(fixture => !fixture.is_completed && new Date(fixture.date) >= today)
             .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-            .slice(0, 4); // Showing 4 upcoming matches instead of 3
+            .slice(0, 4);
           
-          console.log('Filtered upcoming matches:', upcoming.length);
-          return upcoming;
-        };
-        
-        const getRecentResults = (matches: Match[]) => {
-          return matches
-            .filter(match => match.isCompleted)
+          // Filter for recent results (completed)
+          const recent = response.data
+            .filter(fixture => fixture.is_completed)
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-            .slice(0, 4); // Showing 4 recent results instead of 3
-        };
-        
-        if (fixtures.length > 0) {
-          const upcoming = getUpcomingMatches(fixtures);
-          const recent = getRecentResults(results);
+            .slice(0, 3);
           
-          const recentWithPhotos = await Promise.all(
-            recent.map(async (match) => {
-              const hasPhotos = await checkMatchPhotosExist(match);
-              return { ...match, hasMatchPhotos: hasPhotos };
-            })
-          );
-          
-          if (upcoming.length > 0) {
-            setUpcomingMatches(upcoming);
-            setRecentResults(recentWithPhotos);
-            console.log('Using real data for fixtures and results');
-            return;
-          }
+          setUpcomingFixtures(upcoming);
+          setRecentResults(recent);
         }
-        
-        console.log('Using mock data for fixtures and results');
-        const { mockMatches } = await import('@/components/fixtures/fixturesMockData');
-        
-        setUpcomingMatches(getUpcomingMatches(mockMatches));
-        setRecentResults(getRecentResults(mockMatches));
       } catch (error) {
-        console.error('Error fetching data:', error);
-        toast.error('Failed to load fixtures and results data');
-        
-        const { mockMatches } = await import('@/components/fixtures/fixturesMockData');
-        const today = new Date();
-        
-        const upcoming = mockMatches
-          .filter(match => !match.isCompleted && new Date(match.date) >= today)
-          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-          .slice(0, 4); // Showing 4 upcoming matches instead of 3
-        
-        const recent = mockMatches
-          .filter(match => match.isCompleted)
-          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-          .slice(0, 4); // Showing 4 recent results instead of 3
-        
-        setUpcomingMatches(upcoming);
-        setRecentResults(recent);
+        console.error('Failed to fetch fixtures:', error);
+        toast.error('Failed to load fixtures data');
       } finally {
         setIsLoading(false);
       }
     };
-
-    fetchData();
+    
+    fetchFixtures();
   }, []);
-
+  
+  // Get next match (first upcoming fixture)
+  const nextMatch = upcomingFixtures.length > 0 ? upcomingFixtures[0] : null;
+  
+  // Convert database fixtures to UI match format
+  const upcomingMatches = upcomingFixtures.length > 0 ? convertToMatches(upcomingFixtures) : [];
+  const recentMatches = recentResults.length > 0 ? convertToMatches(recentResults) : [];
+  
   return {
-    leagueData,
-    isLoading,
+    upcomingFixtures,
+    recentResults,
     upcomingMatches,
-    recentResults
+    recentMatches,
+    isLoading,
+    nextMatch
   };
 };

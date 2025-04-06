@@ -1,147 +1,169 @@
 
-import { useState } from 'react';
-import { BucketType, ImageOptimizationOptions, UploadResult, StoredImageMetadata } from './types';
+import { supabase } from '@/lib/supabase';
 
-/**
- * Hook for handling image uploads
- */
-export function useImageUpload() {
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadError, setUploadError] = useState('');
-
-  /**
-   * Upload an image file
-   */
-  const upload = async (file: File, options?: ImageOptimizationOptions): Promise<UploadResult> => {
-    setIsUploading(true);
-    setUploadProgress(0);
-    setUploadError('');
-
-    try {
-      // Simulate upload progress
-      const interval = setInterval(() => {
-        setUploadProgress(prev => {
-          const newProgress = prev + Math.floor(Math.random() * 15);
-          return newProgress > 90 ? 90 : newProgress;
-        });
-      }, 300);
-
-      // Prepare form data
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      if (options) {
-        Object.entries(options).forEach(([key, value]) => {
-          if (value !== undefined) {
-            formData.append(key, value.toString());
-          }
-        });
-      }
-      
-      // Simulate API call with a timeout
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Clear the progress interval
-      clearInterval(interval);
-      setUploadProgress(100);
-
-      // Create a mock result with a public URL
-      const mockResult: UploadResult = {
-        success: true,
-        data: {
-          publicUrl: URL.createObjectURL(file),
-          metadata: {
-            id: `mock-${Date.now()}`,
-            file_name: file.name,
-            storage_path: `uploads/${options?.folder || 'default'}/${file.name}`,
-            bucket_id: 'images',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            created_by: null,
-            description: null,
-            alt_text: null,
-            tags: null,
-            dimensions: null,
-            // Added properties to fix type errors
-            name: file.name,
-            url: URL.createObjectURL(file),
-            type: file.type,
-            size: file.size,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          }
-        }
-      };
-
-      return mockResult;
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      setUploadError(errorMessage);
-      return {
-        success: false,
-        error: errorMessage
-      };
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const resetUpload = () => {
-    setIsUploading(false);
-    setUploadProgress(0);
-    setUploadError('');
-  };
-
-  return {
-    upload,
-    isUploading,
-    uploadProgress,
-    uploadError,
-    resetUpload,
-    // For backward compatibility
-    progress: uploadProgress
-  };
+export interface ImageDimensions {
+  width: number;
+  height: number;
 }
 
-export const imageUploadConfigs: Record<BucketType, ImageUploadConfig> = {
+export interface UploadResult {
+  url: string;
+  path: string;
+  filename: string;
+  filesize: number;
+  mime: string;
+  dimensions?: ImageDimensions;
+  error?: string;
+}
+
+/**
+ * Uploads an image to Supabase storage
+ */
+export async function uploadImage(
+  file: File, 
+  folder = 'general',
+  maxFileSize = 10485760 // 10MB
+): Promise<UploadResult> {
+  try {
+    // Validate file size
+    if (file.size > maxFileSize) {
+      throw new Error(`File size exceeds limit of ${Math.floor(maxFileSize/1024/1024)}MB`);
+    }
+    
+    // Generate a unique filename
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+    const filePath = `${folder}/${fileName}`;
+    
+    // Upload file to Supabase Storage
+    const { error: uploadError } = await supabase.storage
+      .from('images')
+      .upload(filePath, file, { upsert: true });
+      
+    if (uploadError) {
+      throw uploadError;
+    }
+    
+    // Get the public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('images')
+      .getPublicUrl(filePath);
+    
+    // Get image dimensions asynchronously
+    const dimensions = await getImageDimensions(file);
+    
+    return {
+      url: publicUrl,
+      path: filePath,
+      filename: fileName,
+      filesize: file.size,
+      mime: file.type,
+      dimensions
+    };
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    return {
+      url: '',
+      path: '',
+      filename: '',
+      filesize: 0,
+      mime: '',
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    };
+  }
+}
+
+/**
+ * Gets image dimensions from File
+ */
+async function getImageDimensions(file: File): Promise<ImageDimensions | undefined> {
+  return new Promise((resolve) => {
+    if (!file.type.startsWith('image/')) {
+      resolve(undefined);
+      return;
+    }
+    
+    const img = new Image();
+    img.onload = () => {
+      resolve({
+        width: img.width,
+        height: img.height
+      });
+      URL.revokeObjectURL(img.src);
+    };
+    img.onerror = () => {
+      resolve(undefined);
+      URL.revokeObjectURL(img.src);
+    };
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+/**
+ * Deletes an image from Supabase storage
+ */
+export async function deleteImage(path: string): Promise<boolean> {
+  try {
+    const { error } = await supabase.storage
+      .from('images')
+      .remove([path]);
+      
+    if (error) {
+      throw error;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error deleting image:', error);
+    return false;
+  }
+}
+
+/**
+ * Gets a list of image files from a folder
+ */
+export async function getImageFiles(folder: string = ''): Promise<any[]> {
+  try {
+    const { data, error } = await supabase.storage
+      .from('images')
+      .list(folder, { sortBy: { column: 'created_at', order: 'desc' } });
+      
+    if (error) {
+      throw error;
+    }
+    
+    return data || [];
+  } catch (error) {
+    console.error('Error getting image files:', error);
+    return [];
+  }
+}
+
+// Image upload configuration for different content types
+export const imageConfig = {
   news: {
-    maxSizeMB: 5,
+    bucketName: 'images',
     allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
-    dimensions: {
-      minWidth: 800,
-      minHeight: 450,
-      maxWidth: 2000,
-      maxHeight: 1500
-    }
+    maxSizeMB: 5
   },
-  team: {
-    maxSizeMB: 3,
+  profiles: {
+    bucketName: 'images',
     allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
-    dimensions: {
-      minWidth: 300,
-      minHeight: 300,
-      maxWidth: 1000,
-      maxHeight: 1000
-    }
-  },
-  sponsors: {
-    maxSizeMB: 2,
-    allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
-    dimensions: {
-      maxWidth: 800,
-      maxHeight: 800
-    }
+    maxSizeMB: 2
   },
   fixtures: {
-    maxSizeMB: 3,
+    bucketName: 'images',
     allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
+    maxSizeMB: 5
   },
-  general: {
-    maxSizeMB: 10,
-    allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'],
+  sponsors: {
+    bucketName: 'images',
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
+    maxSizeMB: 2
+  },
+  gallery: {
+    bucketName: 'images',
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
+    maxSizeMB: 10
   }
 };
-
-export * from './types';

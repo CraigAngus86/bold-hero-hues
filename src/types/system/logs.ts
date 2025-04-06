@@ -1,25 +1,29 @@
 
-/**
- * Represents a system log entry
- */
+import { LucideIcon } from "lucide-react";
+
 export interface SystemLog {
   id: string;
-  timestamp: string;
-  type: 'info' | 'warning' | 'error' | 'debug' | 'success';
-  source: string;
+  timestamp: string | Date;
   message: string;
+  type: 'error' | 'warning' | 'info' | 'success' | 'debug';
+  source: string;
   metadata?: Record<string, any>;
 }
 
-/**
- * Options for filtering system logs
- */
-export interface LogFilterOptions {
-  startDate?: string;
-  endDate?: string;
-  types?: ('info' | 'warning' | 'error' | 'debug' | 'success')[];
-  source?: string;
-  search?: string;
-  limit?: number;
-  page?: number;
+export interface SystemMetric {
+  name: string;
+  value: number | string;
+  change?: number;
+  trend?: 'up' | 'down' | 'stable';
+  status?: 'success' | 'warning' | 'error' | 'info';
+  icon?: LucideIcon;
+}
+
+export interface SystemAlert {
+  id: string;
+  message: string;
+  type: 'error' | 'warning' | 'info';
+  timestamp: string | Date;
+  dismissed?: boolean;
+  link?: string;
 }

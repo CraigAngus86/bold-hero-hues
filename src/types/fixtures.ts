@@ -20,6 +20,8 @@ export interface Fixture {
   match_report?: string;
   attendance?: number;
   referee?: string;
+  is_next_match?: boolean;
+  is_latest_result?: boolean;
   
   // For compatibility with frontend components
   homeTeam?: string;
@@ -71,4 +73,35 @@ export interface TeamStats {
   form: string[] | string;
   logo?: string;
   last_updated?: string;
+}
+
+// Helper function to convert database fixtures to frontend match format
+export function convertToMatches(fixtures: Fixture[]): any[] {
+  return fixtures.map(fixture => ({
+    id: fixture.id,
+    date: fixture.date,
+    time: fixture.time,
+    homeTeam: fixture.home_team,
+    awayTeam: fixture.away_team,
+    competition: fixture.competition,
+    venue: fixture.venue || '',
+    isCompleted: fixture.is_completed,
+    homeScore: fixture.home_score,
+    awayScore: fixture.away_score,
+    ticketLink: fixture.ticket_link,
+    season: fixture.season,
+    source: fixture.source,
+    match_report: fixture.match_report,
+    attendance: fixture.attendance,
+    referee: fixture.referee
+  }));
+}
+
+export interface ImportResult {
+  success: boolean;
+  message: string;
+  added: number;
+  updated: number;
+  valid?: boolean;
+  validFixtures?: ScrapedFixture[];
 }

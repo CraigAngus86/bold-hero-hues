@@ -78,6 +78,7 @@ export const storeFixtures = async (fixtures: ScrapedFixture[], source: string):
       }
     }
 
+    // Log the scraping operation with source, added and updated counts
     await logScrapeOperation(source, added, updated);
 
     return {

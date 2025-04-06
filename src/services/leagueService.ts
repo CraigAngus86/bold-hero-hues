@@ -1,6 +1,5 @@
 // Simple league service for team operations
 import { supabase } from '@/lib/supabase';
-import { toast } from 'sonner';
 import { TeamStats } from '@/types/fixtures';
 
 export const leagueService = {
@@ -38,7 +37,6 @@ export const leagueService = {
     try {
       // In a real app, this would trigger a refresh operation
       // For now, just return success
-      toast.success('League table data refreshed');
       return true;
     } catch (error) {
       console.error('Error refreshing league data:', error);

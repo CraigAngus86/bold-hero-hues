@@ -38,7 +38,7 @@ const LogoEditorDialog: React.FC<LogoEditorDialogProps> = ({
         throw new Error('Team ID is required');
       }
       
-      const success = await leagueService.updateTeamLogo(team.id.toString(), logoUrl);
+      const success = await leagueService.updateTeamLogo(String(team.id), logoUrl);
       
       if (success) {
         toast.success(`Logo updated for ${team.team}`);

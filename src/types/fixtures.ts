@@ -51,7 +51,7 @@ export interface TeamStats {
   last_updated?: string;
 }
 
-// ScrapedFixture interface for scraped fixture data with all fields optional except source and import_date
+// ScrapedFixture interface for scraped fixture data
 export interface ScrapedFixture extends Partial<Fixture> {
   source: string;
   import_date: string;
@@ -74,10 +74,6 @@ export interface Match {
   season?: string;
 }
 
-// Import and re-export the conversion functions from the utility file
-import { fixturesToMatches } from '@/utils/fixtureUtils';
-export { fixturesToMatches };
-
 // Helper function to convert DB fixtures to Match objects for UI
 export const dbFixturesToMatches = (fixtures: Fixture[]): Match[] => {
   return fixtures.map(fixture => ({
@@ -95,3 +91,9 @@ export const dbFixturesToMatches = (fixtures: Fixture[]): Match[] => {
     season: fixture.season
   }));
 };
+
+// Alternative conversion function
+export const fixturesToMatches = dbFixturesToMatches;
+
+// Alias for backward compatibility
+export const convertToMatches = dbFixturesToMatches;

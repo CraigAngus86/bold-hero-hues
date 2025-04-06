@@ -1,11 +1,21 @@
 
-import { Fixture, ScrapedFixture } from '@/types/fixtures';
+import { Fixture } from "@/types/fixtures";
 
 export interface ImportResult {
   success: boolean;
-  message: string;
   added: number;
   updated: number;
-  valid?: boolean;
-  validFixtures?: ScrapedFixture[];
+  message: string;
+  validFixtures?: Fixture[];
+}
+
+export interface ScraperLog {
+  id?: string;
+  source: string;
+  items_found?: number;
+  items_added?: number;
+  items_updated?: number;
+  status: 'success' | 'error' | 'warning';
+  error_message?: string;
+  created_at?: string;
 }

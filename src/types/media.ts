@@ -1,4 +1,3 @@
-
 export interface ImageFolder {
   id: string;
   name: string;
@@ -23,6 +22,19 @@ export interface ImageMetadata {
   created_at: string;
   updated_at: string;
   created_by?: string;
+  
+  // Aliases for frontend component compatibility
+  name?: string;
+  type?: string;
+  size?: number;
+  width?: number;
+  height?: number;
+  altText?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  path?: string;
+  bucket?: string;
+  categories?: string[];
 }
 
 export interface ImageDimensions {

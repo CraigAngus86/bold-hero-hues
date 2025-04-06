@@ -1,3 +1,4 @@
+
 import { ImageManagerProvider } from './ImageManagerContext';
 import ImageManagerHeader from './ImageManagerHeader';
 import BreadcrumbNavigation from './BreadcrumbNavigation';
@@ -6,8 +7,6 @@ import ContentGrid from './ContentGrid';
 import NewFolderDialog from './NewFolderDialog';
 import ImagePreviewDialog from './ImagePreviewDialog';
 import { useImageManager } from './ImageManagerContext';
-import { useState } from 'react';
-import { ImageFolder } from '@/services/images/types';
 
 const ImageManagerContent = () => {
   const { 

@@ -2,29 +2,56 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { uploadImage } from './api';
-import { UseImageUploadOptions, UseImageUploadResult, BucketType, ImageUploadResult } from './types';
+import { 
+  UseImageUploadOptions, 
+  UseImageUploadResult, 
+  BucketType, 
+  ImageUploadResult 
+} from './types';
 
-export function useImageUpload({
-  bucket = BucketType.PUBLIC,
-  folderPath,
-  onSuccess,
-  onError
-}: UseImageUploadOptions = {}): UseImageUploadResult {
+export function useImageUpload(options: UseImageUploadOptions = {}): UseImageUploadResult {
+  const {
+    bucket = 'images',
+    folderPath,
+    maxSize = 5 * 1024 * 1024, // 5MB default
+    allowedTypes = ['image/*'],
+    onSuccess,
+    onError,
+  } = options;
+
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<Error | null>(null);
   
-  // Config for the uploader
-  const config = {
-    bucketName: bucket
-  };
-  
   const validateFile = (file: File): boolean => {
-    // Size validation (default 5MB)
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (file.size > maxSize) {
-      setError(new Error(`File size must be less than ${maxSize / 1024 / 1024}MB`));
+    // Size validation
+    if (maxSize && file.size > maxSize) {
+      const errorMsg = `File size must be less than ${Math.round(maxSize / 1024 / 1024)}MB`;
+      setError(new Error(errorMsg));
+      toast.error(errorMsg);
       return false;
+    }
+    
+    // Type validation if specific types are provided
+    if (allowedTypes && allowedTypes.length > 0 && allowedTypes[0] !== '*') {
+      const fileType = file.type;
+      const isValidType = allowedTypes.some(type => {
+        if (type.endsWith('/*')) {
+          // Handle wildcard types like 'image/*'
+          const mainType = type.split('/')[0];
+          return fileType.startsWith(`${mainType}/`);
+        }
+        return type === fileType;
+      });
+      
+      if (!isValidType) {
+        const errorMsg = `File type not allowed. Supported types: ${allowedTypes.join(', ')}`;
+        setError(new Error(errorMsg));
+        toast.error(errorMsg);
+        return false;
+      }
     }
     
     return true;
@@ -82,37 +109,60 @@ export function useImageUpload({
         setIsUploading(false);
       }, 300);
     }
-  }, [bucket, folderPath, onSuccess, onError, error]);
+  }, [bucket, folderPath, onSuccess, onError, error, validateFile]);
   
-  // Alias for backward compatibility
-  const upload = uploadFile;
+  // Simple upload interface for compatibility
+  const upload = async (file: File): Promise<string> => {
+    const result = await uploadFile(file);
+    if (result.success && result.data?.url) {
+      return result.data.url;
+    }
+    throw new Error(result.error || 'Upload failed');
+  };
   
   const uploadFiles = useCallback(async (files: File[], options?: any): Promise<ImageUploadResult[]> => {
     return Promise.all(files.map(file => uploadFile(file, options)));
   }, [uploadFile]);
   
+  const selectFile = useCallback((file: File) => {
+    if (validateFile(file)) {
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  }, [validateFile]);
+  
   const cancelUpload = useCallback(() => {
-    // Not implemented yet
     setIsUploading(false);
     setProgress(0);
   }, []);
   
   const resetState = useCallback(() => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setSelectedFile(null);
+    setPreviewUrl(null);
     setIsUploading(false);
     setProgress(0);
     setError(null);
-  }, []);
+  }, [previewUrl]);
   
   return {
+    selectedFile,
+    setSelectedFile,
+    previewUrl,
+    preview: previewUrl, // Alias for backward compatibility
     isUploading,
     uploading: isUploading, // Alias for backward compatibility
     progress,
     uploadProgress: progress, // Alias for backward compatibility
     error,
+    selectFile,
     uploadFile,
+    upload, // Simple interface for compatibility
     uploadFiles,
-    upload, // Alias for backward compatibility
     cancelUpload,
-    resetState
+    resetState,
+    resetUpload: resetState
   };
 }

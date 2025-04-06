@@ -16,6 +16,8 @@ export function useImageUploadHandlers({
   setImageTags,
   tagInput,
   setTagInput,
+  dragActive,
+  setDragActive,
   uploadFile,
   onUploadComplete
 }: {
@@ -31,31 +33,29 @@ export function useImageUploadHandlers({
   setImageTags: (tags: string[]) => void;
   tagInput: string;
   setTagInput: (input: string) => void;
-  uploadFile: (file: File) => Promise<ImageUploadResult>;
-  onUploadComplete?: (url: string) => void;
+  dragActive: boolean;
+  setDragActive: (active: boolean) => void;
+  uploadFile: (file: File, options?: any) => Promise<ImageUploadResult>;
+  onUploadComplete?: (imageUrl: string) => void;
 }) {
-  const [dragActive, setDragActive] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
 
+  // Handle file selection
   const handleFileSelection = (file: File) => {
-    if (!file) return;
-
-    // Create preview URL
-    const filePreviewUrl = URL.createObjectURL(file);
-    setPreviewUrl(filePreviewUrl);
+    // Create a preview URL
+    const fileURL = URL.createObjectURL(file);
+    setPreviewUrl(fileURL);
     setSelectedFile(file);
-
-    // Attempt to set alt text from filename if empty
-    if (!altText && file.name) {
-      const fileName = file.name.split('.')[0];
-      const cleanName = fileName
-        .replace(/[-_]/g, ' ')
-        .replace(/\b\w/g, (c) => c.toUpperCase());
-      setAltText(cleanName);
+    
+    // Set alt text to file name if empty
+    if (!altText) {
+      const fileName = file.name.split('.').slice(0, -1).join('.');
+      setAltText(fileName);
     }
   };
-
+  
+  // Clear the selection
   const clearSelection = () => {
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
@@ -65,83 +65,84 @@ export function useImageUploadHandlers({
     setAltText('');
     setImageDescription('');
     setImageTags([]);
+    setTagInput('');
   };
-
+  
+  // Handle tag operations
   const handleAddTag = () => {
-    if (tagInput.trim()) {
-      const newTag = tagInput.trim();
-      if (!imageTags.includes(newTag)) {
-        setImageTags([...imageTags, newTag]);
-      }
-      setTagInput('');
+    if (tagInput.trim() === '') return;
+    
+    const newTag = tagInput.trim().toLowerCase();
+    if (!imageTags.includes(newTag)) {
+      setImageTags([...imageTags, newTag]);
     }
+    setTagInput('');
   };
-
+  
   const handleRemoveTag = (tag: string) => {
     setImageTags(imageTags.filter((t) => t !== tag));
   };
-
+  
   const handleTagKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       handleAddTag();
     }
   };
-
+  
+  // Handle the actual upload
   const handleUpload = async () => {
     if (!selectedFile) {
-      toast.error('Please select a file to upload');
+      toast.error('No file selected');
       return;
     }
-
+    
+    setIsUploading(true);
+    setProgress(0);
+    
     try {
-      setIsUploading(true);
-      setProgress(0);
-
-      // Simulate progress updates
+      // Progress simulation
       const progressInterval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 90) {
+        setProgress((prevProgress) => {
+          if (prevProgress >= 90) {
             clearInterval(progressInterval);
             return 90;
           }
-          return prev + 10;
+          return prevProgress + 10;
         });
       }, 200);
-
-      // Upload the file with metadata
-      const metadata = {
-        altText,
+      
+      // Perform the upload
+      const result = await uploadFile(selectedFile, {
+        alt_text: altText,
         description: imageDescription,
         tags: imageTags
-      };
-
-      const result = await uploadFile(selectedFile);
+      });
       
       clearInterval(progressInterval);
-      setProgress(100);
-
-      if (result.success) {
-        const imageUrl = result.url || (result.data && result.data.url) || '';
-        toast.success('File uploaded successfully');
-        clearSelection();
+      
+      if (result.success && result.data?.url) {
+        setProgress(100);
+        toast.success('Image uploaded successfully');
         
-        if (onUploadComplete && imageUrl) {
-          onUploadComplete(imageUrl);
+        if (onUploadComplete) {
+          onUploadComplete(result.data.url);
         }
+        
+        clearSelection();
       } else {
         throw new Error(result.error || 'Upload failed');
       }
     } catch (error) {
-      toast.error(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setProgress(0);
+      toast.error('Upload failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      console.error('Upload error:', error);
     } finally {
       setIsUploading(false);
     }
   };
-
+  
   return {
-    dragActive,
-    setDragActive,
     isUploading,
     progress,
     handleFileSelection,

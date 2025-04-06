@@ -6,22 +6,28 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Upload, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useImageUpload } from '@/services/images';
+import { BucketType } from '@/services/images/types';
 
 interface SponsorLogoUploaderProps {
   currentUrl?: string;
   onUpload: (url: string) => void;
   sponsorName?: string;
+  initialImageUrl?: string;
 }
 
 const SponsorLogoUploader: React.FC<SponsorLogoUploaderProps> = ({ 
   currentUrl, 
   onUpload, 
-  sponsorName = 'Sponsor' 
+  sponsorName = 'Sponsor',
+  initialImageUrl
 }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(currentUrl || null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(currentUrl || initialImageUrl || null);
   const [isUploading, setIsUploading] = useState(false);
-  const { uploadFile } = useImageUpload();
+  const { uploadFile } = useImageUpload({
+    bucket: BucketType.SPONSORS,
+    folderPath: 'logos'
+  });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -51,13 +57,8 @@ const SponsorLogoUploader: React.FC<SponsorLogoUploaderProps> = ({
     
     try {
       const result = await uploadFile(selectedFile, {
-        bucket: 'sponsors',
-        folderPath: 'logos',
-        alt: sponsorName || 'Sponsor logo',
-        optimizationOptions: {
-          maxWidth: 600,
-          quality: 80
-        }
+        alt_text: `${sponsorName || 'Sponsor'} logo`,
+        description: `Logo for ${sponsorName || 'sponsor'}`
       });
       
       if (result.success && result.data && result.data.url) {
@@ -74,11 +75,11 @@ const SponsorLogoUploader: React.FC<SponsorLogoUploaderProps> = ({
   };
   
   const clearSelection = () => {
-    if (previewUrl && !currentUrl) {
+    if (previewUrl && !(currentUrl && previewUrl === currentUrl)) {
       URL.revokeObjectURL(previewUrl);
     }
     setSelectedFile(null);
-    setPreviewUrl(currentUrl);
+    setPreviewUrl(currentUrl || initialImageUrl || null);
   };
 
   return (
@@ -110,7 +111,7 @@ const SponsorLogoUploader: React.FC<SponsorLogoUploaderProps> = ({
                 </Button>
               </div>
             )}
-            {!selectedFile && !currentUrl && (
+            {!selectedFile && !currentUrl && !initialImageUrl && (
               <Button 
                 variant="outline" 
                 size="sm" 

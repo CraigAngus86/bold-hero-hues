@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { ImageMetadata } from '@/services/images/media-types';
+import { ImageMetadata } from '@/types/media';
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -43,8 +44,12 @@ const MediaEditForm: React.FC<MediaEditFormProps> = ({
         <Label htmlFor="alt-text">Alt Text</Label>
         <Input
           id="alt-text"
-          value={editedMedia.alt_text || ''}
-          onChange={(e) => onFieldChange('alt_text', e.target.value)}
+          value={editedMedia.altText || editedMedia.alt_text || ''}
+          onChange={(e) => {
+            const value = e.target.value;
+            onFieldChange('altText', value);
+            onFieldChange('alt_text', value);
+          }}
           placeholder="Describe the image for accessibility"
         />
         <p className="text-xs text-muted-foreground mt-1">

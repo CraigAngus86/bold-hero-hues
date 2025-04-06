@@ -2,20 +2,32 @@
 // Define image metadata type
 export interface ImageMetadata {
   id: string;
-  name: string;
   url: string;
-  type: string;
-  size: number;
-  width: number;
-  height: number;
-  altText: string; // Changed from alt_text to follow camelCase conventions
+  file_name: string;
+  storage_path: string;
+  bucket_id: string;
+  alt_text?: string;
   description?: string;
-  createdAt: string; // Changed from created_at to follow camelCase conventions
-  updatedAt: string; // Changed from updated_at to follow camelCase conventions
+  file_size?: number;
+  content_type?: string;
+  dimensions?: ImageDimensions;
   tags?: string[];
-  bucket: string;
-  path: string;
-  categories?: string[]; // Added for compatibility with components
+  created_at: string;
+  updated_at: string;
+  created_by?: string;
+  
+  // Aliases for frontend component compatibility
+  name?: string;
+  type?: string;
+  size?: number;
+  width?: number;
+  height?: number;
+  altText?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  path?: string;
+  bucket?: string;
+  categories?: string[];
 }
 
 // Storage specific image metadata (from database)
@@ -26,11 +38,13 @@ export interface StoredImageMetadata {
   file_name: string;
   alt_text?: string;
   description?: string;
-  dimensions?: any; // Previously Json
+  dimensions?: ImageDimensions;
   tags?: string[];
   created_at: string;
   updated_at: string;
   created_by?: string;
+  
+  // Optional frontend properties
   name?: string;
   type?: string;
   size?: number;
@@ -44,7 +58,19 @@ export interface ImageDimensions {
 }
 
 // Define bucket types
-export type BucketType = 'images' | 'videos' | 'documents' | 'avatars' | 'posts' | 'products' | 'general' | 'media' | 'sponsors' | 'players';
+export enum BucketType {
+  IMAGES = 'images',
+  VIDEOS = 'videos',
+  DOCUMENTS = 'documents',
+  AVATARS = 'avatars',
+  POSTS = 'posts',
+  PRODUCTS = 'products',
+  GENERAL = 'general',
+  MEDIA = 'media',
+  SPONSORS = 'sponsors',
+  PLAYERS = 'players',
+  PUBLIC = 'public'
+}
 
 // Image optimization options
 export interface ImageOptimizationOptions {
@@ -77,7 +103,7 @@ export interface ImageUploadResult {
 
 // Define image upload options
 export interface UseImageUploadOptions {
-  bucket: BucketType;
+  bucket?: BucketType;
   folderPath?: string;
   maxSize?: number; // in bytes
   allowedTypes?: string[];
@@ -88,17 +114,19 @@ export interface UseImageUploadOptions {
 
 // Define image upload result
 export interface UseImageUploadResult {
-  selectedFile: File | null;
-  preview: string | null;
+  selectedFile?: File | null;
+  setSelectedFile?: (file: File | null) => void;
+  preview?: string | null;
+  previewUrl?: string | null;
   isUploading: boolean;
   uploading?: boolean; // Alias for backward compatibility
   error: Error | null;
   progress: number;
   uploadProgress?: number; // Alias for backward compatibility
-  selectFile: (file: File) => void;
-  uploadFile: (file: File) => Promise<ImageUploadResult>;
-  upload: (file: File) => Promise<string>; // Added for compatibility
-  resetUpload: () => void;
+  selectFile?: (file: File) => void;
+  uploadFile: (file: File, options?: any) => Promise<ImageUploadResult>;
+  upload: (file: File) => Promise<string>; // Simple interface for compatibility
+  resetUpload?: () => void;
   cancelUpload?: () => void;
   resetState?: () => void;
 }

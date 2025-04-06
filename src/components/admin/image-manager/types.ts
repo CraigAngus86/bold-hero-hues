@@ -20,7 +20,7 @@ export interface ImageManagerContextType {
   currentFolder: ImageFolder | null;
   subfolders: ImageFolder[];
   images: any[]; // Storage file objects
-  breadcrumbs: Array<{ name: string; path: string }>;
+  breadcrumbs: Array<{ id: string; name: string; path: string }>;
   isUploading: boolean;
   selectedImage: string | null;
   newFolderDialogOpen: boolean;

@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Upload, X, Loader2 } from 'lucide-react';
 import { useImageUpload } from '@/services/images';
+import { BucketType } from '@/services/images/types';
 
 interface NewsImageUploaderProps {
   onUploadComplete?: (imageUrl: string) => void;
@@ -18,7 +19,10 @@ export function NewsImageUploader({
   const [dragActive, setDragActive] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const { uploadFile, isUploading, progress } = useImageUpload();
+  const { uploadFile, isUploading, progress } = useImageUpload({
+    bucket: BucketType.IMAGES,
+    folderPath: 'news'
+  });
   
   const maxSizeMB = 5;
   const maxSizeBytes = maxSizeMB * 1024 * 1024;
@@ -83,8 +87,7 @@ export function NewsImageUploader({
       const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       
       const result = await uploadFile(selectedFile, {
-        // Use alt_text instead of folder
-        altText: `News image uploaded on ${date.toLocaleDateString()}`
+        alt_text: `News image uploaded on ${date.toLocaleDateString()}`
       });
       
       if (result.success && result.data) {

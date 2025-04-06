@@ -1,124 +1,204 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { ImageMetadata, ImageFolder, StoredImageMetadata, ImageUploadResult } from './types';
-import { Json } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
+import { v4 as uuidv4 } from 'uuid';
+import { 
+  ImageMetadata, 
+  StoredImageMetadata, 
+  ImageUploadResult,
+  ImageDimensions
+} from './types';
 
-/**
- * Upload an image to Supabase Storage
- */
-export async function uploadImage(file: File, bucket: string, path?: string, metadata?: Partial<StoredImageMetadata>): Promise<ImageUploadResult> {
-  try {
-    const filePath = path ? `${path}/${file.name}` : file.name;
+// Helper functions to convert between API/DB and frontend data models
+const mapStoredToImageMetadata = (stored: StoredImageMetadata, url?: string): ImageMetadata => {
+  return {
+    id: stored.id,
+    file_name: stored.file_name,
+    storage_path: stored.storage_path,
+    bucket_id: stored.bucket_id,
+    url: url || '',
+    alt_text: stored.alt_text,
+    description: stored.description,
+    dimensions: stored.dimensions,
+    tags: stored.tags,
+    created_at: stored.created_at,
+    updated_at: stored.updated_at,
+    created_by: stored.created_by,
     
-    // Upload to storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    // Aliases for frontend compatibility
+    name: stored.file_name,
+    type: stored.type || 'image', 
+    size: stored.size,
+    width: stored.dimensions?.width,
+    height: stored.dimensions?.height,
+    altText: stored.alt_text,
+    createdAt: stored.created_at,
+    updatedAt: stored.updated_at,
+    path: stored.storage_path,
+    bucket: stored.bucket_id
+  };
+};
+
+// Upload an image to storage
+export async function uploadImage(
+  file: File, 
+  bucket: string, 
+  folder?: string, 
+  metadata?: Partial<StoredImageMetadata>
+): Promise<ImageUploadResult> {
+  try {
+    // Generate a unique filename
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${uuidv4()}.${fileExt}`;
+    
+    // Create storage path
+    const storagePath = folder 
+      ? `${folder.replace(/^\/|\/$/g, '')}/${fileName}` 
+      : fileName;
+    
+    // Upload to Supabase Storage
+    const { error: uploadError, data } = await supabase.storage
       .from(bucket)
-      .upload(filePath, file, {
-        upsert: true
+      .upload(storagePath, file, {
+        cacheControl: '3600',
+        upsert: false,
       });
     
-    if (uploadError) {
-      throw uploadError;
-    }
+    if (uploadError) throw uploadError;
     
     // Get public URL
-    const { data: urlData } = await supabase.storage
+    const { data: { publicUrl } } = supabase.storage
       .from(bucket)
-      .getPublicUrl(filePath);
+      .getPublicUrl(storagePath);
     
-    if (!uploadData || !urlData) {
-      throw new Error('Failed to upload image or get URL');
+    // Extract image dimensions if possible
+    let dimensions: ImageDimensions | undefined;
+    if (file.type.startsWith('image/')) {
+      dimensions = await getImageDimensions(file);
     }
     
-    // Save metadata to database
+    // Create metadata record
     const imageMetadata: Partial<StoredImageMetadata> = {
       bucket_id: bucket,
-      storage_path: filePath,
+      storage_path: storagePath,
       file_name: file.name,
-      type: file.type,
+      alt_text: metadata?.alt_text || '',
+      description: metadata?.description || '',
+      dimensions: dimensions,
+      tags: metadata?.tags || [],
       size: file.size,
-      ...metadata,
-      name: metadata?.name || file.name,
+      type: file.type,
+      ...metadata
     };
     
-    // Insert metadata into database
-    const { data: metadataData, error: metadataError } = await supabase
+    // Store metadata in database
+    const { error: metadataError, data: storedMetadata } = await supabase
       .from('image_metadata')
       .insert(imageMetadata)
       .select()
       .single();
     
     if (metadataError) {
-      throw metadataError;
+      console.warn('Failed to store image metadata:', metadataError);
     }
+    
+    // Return success with metadata
+    const result: ImageMetadata = {
+      id: storedMetadata?.id || uuidv4(),
+      file_name: file.name,
+      name: file.name,
+      storage_path: storagePath,
+      bucket_id: bucket,
+      url: publicUrl,
+      alt_text: metadata?.alt_text || '',
+      description: metadata?.description || '',
+      dimensions: dimensions,
+      file_size: file.size,
+      size: file.size,
+      content_type: file.type,
+      type: file.type,
+      tags: metadata?.tags || [],
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      created_by: metadata?.created_by,
+      width: dimensions?.width,
+      height: dimensions?.height,
+      altText: metadata?.alt_text || '',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      path: storagePath,
+      bucket: bucket,
+    };
     
     return {
       success: true,
-      url: urlData.publicUrl,
+      metadata: result,
       data: {
-        url: urlData.publicUrl
+        url: publicUrl,
+        path: storagePath,
+        bucket
       },
-      metadata: {
-        ...metadataData,
-        url: urlData.publicUrl,
-        name: metadataData.name || file.name,
-        type: file.type,
-        size: file.size
-      }
+      url: publicUrl
     };
   } catch (error) {
-    console.error('Error uploading image:', error);
+    console.error('Upload error:', error);
     return {
       success: false,
-      error: error.message
+      error: error instanceof Error ? error.message : 'Failed to upload image'
     };
   }
 }
 
-/**
- * Get all images from a bucket
- */
-export async function getImages(bucket: string, path?: string): Promise<ImageMetadata[]> {
+// Get image dimensions from File object
+async function getImageDimensions(file: File): Promise<ImageDimensions> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(img.src);
+      resolve({
+        width: img.width,
+        height: img.height
+      });
+    };
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+// Get a list of images
+export async function getImages(bucket: string, folder?: string): Promise<ImageMetadata[]> {
   try {
-    let query = supabase
+    // Query image metadata
+    const { data: metadataList, error: metadataError } = await supabase
       .from('image_metadata')
       .select('*')
-      .eq('bucket_id', bucket);
+      .eq('bucket_id', bucket)
+      .order('created_at', { ascending: false });
     
-    if (path) {
-      query = query.eq('storage_path', path);
-    }
+    if (metadataError) throw metadataError;
     
-    const { data, error } = await query;
+    // Filter by folder if specified
+    const filteredMetadata = folder 
+      ? metadataList.filter(item => item.storage_path.startsWith(folder)) 
+      : metadataList;
     
-    if (error) {
-      throw error;
-    }
+    // Get public URL for each image and map to frontend format
+    const images = await Promise.all(
+      filteredMetadata.map(async (item) => {
+        const { data: { publicUrl } } = supabase.storage
+          .from(bucket)
+          .getPublicUrl(item.storage_path);
+        
+        return mapStoredToImageMetadata(item, publicUrl);
+      })
+    );
     
-    if (!data || !data.length) {
-      return [];
-    }
-    
-    return Promise.all(data.map(async (item) => {
-      // Get public URL for each image
-      const { data: urlData } = await supabase.storage
-        .from(bucket)
-        .getPublicUrl(item.storage_path);
-      
-      return {
-        ...item,
-        url: urlData.publicUrl,
-      };
-    }));
+    return images;
   } catch (error) {
     console.error('Error getting images:', error);
     return [];
   }
 }
 
-/**
- * Get a single image by ID
- */
+// Get a single image by ID
 export async function getImage(id: string): Promise<ImageMetadata | null> {
   try {
     const { data, error } = await supabase
@@ -127,108 +207,83 @@ export async function getImage(id: string): Promise<ImageMetadata | null> {
       .eq('id', id)
       .single();
     
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
+    if (!data) return null;
     
-    if (!data) {
-      return null;
-    }
-    
-    // Get public URL
-    const { data: urlData } = await supabase.storage
+    // Get URL
+    const { data: { publicUrl } } = supabase.storage
       .from(data.bucket_id)
       .getPublicUrl(data.storage_path);
     
-    return {
-      ...data,
-      url: urlData.publicUrl
-    };
+    return mapStoredToImageMetadata(data, publicUrl);
   } catch (error) {
     console.error('Error getting image:', error);
     return null;
   }
 }
 
-/**
- * Update image metadata
- */
-export async function updateImage(id: string, metadata: Partial<ImageMetadata>): Promise<ImageMetadata | null> {
+// Update image metadata
+export async function updateImage(
+  id: string, 
+  metadata: Partial<ImageMetadata>
+): Promise<ImageMetadata | null> {
   try {
-    // Convert ImageDimensions to JSON for storage
-    const dbMetadata = {
-      ...metadata,
-      dimensions: metadata.dimensions as unknown as Json
+    // Map frontend to stored format
+    const storedMetadata: Partial<StoredImageMetadata> = {
+      alt_text: metadata.alt_text || metadata.altText,
+      description: metadata.description,
+      tags: metadata.tags
     };
     
     const { data, error } = await supabase
       .from('image_metadata')
-      .update(dbMetadata)
+      .update(storedMetadata)
       .eq('id', id)
       .select()
       .single();
     
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
+    if (!data) return null;
     
-    if (!data) {
-      return null;
-    }
-    
-    // Get public URL
-    const { data: urlData } = await supabase.storage
+    // Get URL
+    const { data: { publicUrl } } = supabase.storage
       .from(data.bucket_id)
       .getPublicUrl(data.storage_path);
     
-    return {
-      ...data,
-      url: urlData.publicUrl
-    };
+    return mapStoredToImageMetadata(data, publicUrl);
   } catch (error) {
     console.error('Error updating image:', error);
     return null;
   }
 }
 
-/**
- * Delete an image and its metadata
- */
+// Delete an image
 export async function deleteImage(id: string): Promise<boolean> {
   try {
-    // First get the image to find the path in storage
+    // Get image metadata first
     const { data, error } = await supabase
       .from('image_metadata')
       .select('*')
       .eq('id', id)
       .single();
     
-    if (error) {
-      throw error;
-    }
-    
-    if (!data) {
-      throw new Error('Image not found');
-    }
+    if (error) throw error;
+    if (!data) throw new Error('Image not found');
     
     // Delete from storage
-    const { error: storageError } = await supabase.storage
+    const { error: deleteError } = await supabase.storage
       .from(data.bucket_id)
       .remove([data.storage_path]);
     
-    if (storageError) {
-      throw storageError;
-    }
+    if (deleteError) throw deleteError;
     
     // Delete metadata
-    const { error: deleteError } = await supabase
+    const { error: metadataError } = await supabase
       .from('image_metadata')
       .delete()
       .eq('id', id);
     
-    if (deleteError) {
-      throw deleteError;
-    }
+    if (metadataError) throw metadataError;
     
     return true;
   } catch (error) {
@@ -237,27 +292,58 @@ export async function deleteImage(id: string): Promise<boolean> {
   }
 }
 
-/**
- * Create a new folder
- */
-export async function createFolder(name: string, path?: string): Promise<ImageFolder | null> {
+// Get image folders
+export async function getFolders(bucket = 'images'): Promise<ImageFolder[]> {
   try {
-    const folderPath = path ? `${path}/${name}` : name;
+    const { data, error } = await supabase
+      .from('image_folders')
+      .select('*')
+      .order('name');
     
-    // Create folder entry in database
+    if (error) throw error;
+    
+    return (data || []).map(folder => ({
+      id: folder.id,
+      name: folder.name,
+      path: folder.path,
+      parentId: folder.parent_id
+    }));
+  } catch (error) {
+    console.error('Error getting folders:', error);
+    return [];
+  }
+}
+
+// Create a new folder
+export async function createFolder(name: string, parentId?: string): Promise<ImageFolder | null> {
+  try {
+    // Get parent path if parentId is provided
+    let parentPath = '/';
+    if (parentId) {
+      const { data: parent } = await supabase
+        .from('image_folders')
+        .select('path')
+        .eq('id', parentId)
+        .single();
+      
+      if (parent) {
+        parentPath = parent.path === '/' ? '/' : `${parent.path}/`;
+      }
+    }
+    
+    const folderPath = `${parentPath}${name}`;
+    
     const { data, error } = await supabase
       .from('image_folders')
       .insert({
         name,
         path: folderPath,
-        parent_id: path ? path : null
+        parent_id: parentId || null
       })
       .select()
       .single();
     
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
     
     return {
       id: data.id,
@@ -268,34 +354,5 @@ export async function createFolder(name: string, path?: string): Promise<ImageFo
   } catch (error) {
     console.error('Error creating folder:', error);
     return null;
-  }
-}
-
-/**
- * Get all folders
- */
-export async function getFolders(): Promise<ImageFolder[]> {
-  try {
-    const { data, error } = await supabase
-      .from('image_folders')
-      .select('*');
-    
-    if (error) {
-      throw error;
-    }
-    
-    if (!data || !data.length) {
-      return [];
-    }
-    
-    return data.map(folder => ({
-      id: folder.id,
-      name: folder.name,
-      path: folder.path,
-      parentId: folder.parent_id
-    }));
-  } catch (error) {
-    console.error('Error getting folders:', error);
-    return [];
   }
 }

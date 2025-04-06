@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { UploadCloud, X } from 'lucide-react';
 import { useImageUpload } from '@/services/images';
+import { BucketType } from '@/services/images/types';
 
 interface PlayerImageUploaderProps {
   currentUrl?: string;
@@ -19,14 +20,15 @@ const PlayerImageUploader: React.FC<PlayerImageUploaderProps> = ({
   initialImageUrl
 }) => {
   const [isHovering, setIsHovering] = useState(false);
+  const displayUrl = currentUrl || initialImageUrl;
 
   const { 
     uploadFile, 
     isUploading, 
     progress 
   } = useImageUpload({
-    bucket: "players",
-    folder: 'players'
+    bucket: BucketType.PLAYERS,
+    folderPath: 'players'
   });
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,8 +36,11 @@ const PlayerImageUploader: React.FC<PlayerImageUploaderProps> = ({
     if (!file) return;
 
     try {
-      const result = await uploadFile(file);
-      if (result.success && result.data) {
+      const result = await uploadFile(file, {
+        alt_text: `${playerName || 'Player'} photo`
+      });
+      
+      if (result.success && result.data && result.data.url) {
         onUpload(result.data.url);
       }
     } catch (error) {
@@ -49,14 +54,14 @@ const PlayerImageUploader: React.FC<PlayerImageUploaderProps> = ({
 
   return (
     <div>
-      {currentUrl ? (
+      {displayUrl ? (
         <div 
           className="relative rounded-md overflow-hidden" 
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
         >
           <img 
-            src={currentUrl} 
+            src={displayUrl} 
             alt={playerName || "Player"} 
             className="w-full h-48 object-cover rounded-md" 
           />

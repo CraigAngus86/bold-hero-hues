@@ -6,26 +6,27 @@ import { AdminLayout } from '@/components/admin/layout';
 import { AdminPageLayout } from '@/components/admin/layout/AdminPageLayout';
 import { EnhancedActivityFeed } from '@/components/admin/dashboard/EnhancedActivityFeed';
 import { toast } from 'sonner';
-import { useQueryClient } from '@tanstack/react-query';
 
-// Import our new React Query hooks
+// Import our refactored React Query hooks
 import { 
   useNewsStats, 
   useFixturesStats, 
   useLeagueStats, 
   useMediaStats,
   useActivityFeed,
-  useSystemStatus
-} from '@/hooks/useAdminDashboard';
+  useSystemStatus,
+  useDashboardRefresh
+} from '@/hooks';
 
-// Import our new component modules
+// Import our component modules
 import { DashboardStats } from '@/components/admin/dashboard/DashboardStats';
 import { QuickActions } from '@/components/admin/dashboard/QuickActions';
 import { StatusItems } from '@/components/admin/dashboard/StatusItems';
 import { ContentSections } from '@/components/admin/dashboard/ContentSections';
 
 const Dashboard = () => {
-  const queryClient = useQueryClient();
+  // Use the dashboard refresh hook
+  const { refreshAll } = useDashboardRefresh();
   
   // Use React Query hooks for data fetching
   const { 
@@ -65,25 +66,6 @@ const Dashboard = () => {
     refetch: refetchSystemStatus,
     dataUpdatedAt: systemStatusUpdatedAt
   } = useSystemStatus();
-  
-  // Function to refresh all dashboard data
-  const refreshAllData = () => {
-    toast.info('Refreshing dashboard data...');
-    
-    Promise.all([
-      refetchNews(),
-      refetchFixtures(),
-      refetchLeague(),
-      refetchMedia(),
-      refetchActivity(),
-      refetchSystemStatus()
-    ]).then(() => {
-      toast.success('Dashboard data refreshed successfully');
-    }).catch((error) => {
-      toast.error('Error refreshing some dashboard data');
-      console.error('Error refreshing dashboard data:', error);
-    });
-  };
 
   return (
     <AdminLayout>
@@ -92,7 +74,7 @@ const Dashboard = () => {
         description={`Welcome back • ${format(new Date(), 'EEEE, dd MMMM yyyy')}`}
         actions={
           <button 
-            onClick={refreshAllData}
+            onClick={refreshAll}
             className="text-sm flex items-center gap-1 text-primary-800 hover:underline"
           >
             <Activity className="h-4 w-4" /> 

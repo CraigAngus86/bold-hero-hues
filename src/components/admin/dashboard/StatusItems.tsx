@@ -6,29 +6,10 @@ import { EventsCalendar } from './EventsCalendar';
 import { contentStatusItems, mockEvents } from './mockData';
 import { Database } from 'lucide-react';
 import { toast } from 'sonner';
+import { SystemStatus, SystemStatusData } from '@/hooks/useSystemStatus';
 
 interface StatusItemsProps {
-  systemStatus: {
-    supabase: {
-      status: 'online' | 'offline' | 'warning' | 'unknown';
-      lastChecked: Date;
-    };
-    fixtures: {
-      status: 'online' | 'offline' | 'warning' | 'unknown';
-      lastChecked: Date;
-      metricValue?: string;
-    };
-    storage: {
-      status: 'online' | 'offline' | 'warning' | 'unknown';
-      lastChecked: Date;
-      metricValue?: string;
-    };
-    leagueTable: {
-      status: 'online' | 'offline' | 'warning' | 'unknown';
-      lastChecked: Date;
-      metricValue?: string;
-    };
-  } | undefined;
+  systemStatus: SystemStatusData | undefined;
   isSystemStatusLoading: boolean;
   systemStatusUpdatedAt: number;
   refetchSystemStatus: () => void;

@@ -1,296 +1,323 @@
-
-import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Editor } from '@tinymce/tinymce-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { Checkbox } from '@/components/ui/checkbox';
-import { supabase } from '@/integrations/supabase/client';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { useSupabase } from '@/hooks/useSupabase';
 import { MediaSelector } from '@/components/admin/common/media-selector';
+import { NewsArticle } from '@/types';
+import { slugify } from '@/lib/utils';
 
-// Define the form schema
-const newsFormSchema = z.object({
-  title: z.string().min(1, { message: "Title is required" }),
-  content: z.string().min(1, { message: "Content is required" }),
-  category: z.string().min(1, { message: "Category is required" }),
-  slug: z.string().min(1, { message: "Slug is required" }),
+const formSchema = z.object({
+  title: z.string().min(3, {
+    message: "Title must be at least 3 characters.",
+  }),
+  content: z.string().min(10, {
+    message: "Content must be at least 10 characters.",
+  }),
   image_url: z.string().optional(),
-  is_featured: z.boolean().default(false),
+  category: z.string().min(3, {
+    message: "Category must be at least 3 characters.",
+  }),
   author: z.string().optional(),
+  is_featured: z.boolean().default(false),
+  slug: z.string().min(3, {
+    message: "Slug must be at least 3 characters.",
+  }),
 });
 
-type NewsFormValues = z.infer<typeof newsFormSchema>;
+const NewsEditor = () => {
+  const { articleId } = useParams<{ articleId: string }>();
+  const navigate = useNavigate();
+  const { supabase } = useSupabase();
+  const [article, setArticle] = useState<NewsArticle | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [editorContent, setEditorContent] = useState('');
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-interface Category {
-  id: string;
-  name: string;
-}
-
-interface NewsEditorProps {
-  articleId?: string;
-  onSave: () => void;
-  onCancel: () => void;
-}
-
-const NewsEditor: React.FC<NewsEditorProps> = ({ articleId, onSave, onCancel }) => {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [categories, setCategories] = useState<Category[]>([]);
-
-  // Initialize the form
-  const form = useForm<NewsFormValues>({
-    resolver: zodResolver(newsFormSchema),
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
-      title: "",
-      content: "",
-      category: "",
-      slug: "",
-      image_url: "",
+      title: '',
+      content: '',
+      image_url: '',
+      category: 'news',
+      author: '',
       is_featured: false,
-      author: "",
+      slug: ''
     },
-  });
+    mode: "onChange"
+  })
 
-  // Load categories
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('news_categories')
-          .select('*')
-          .order('name');
+  const loadArticle = useCallback(async () => {
+    if (!articleId) return;
 
-        if (error) throw error;
-        setCategories(data || []);
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-        toast.error('Failed to load categories');
-      }
-    };
-
-    fetchCategories();
-  }, []);
-
-  // Load article data if editing
-  useEffect(() => {
-    if (articleId) {
-      const fetchArticle = async () => {
-        setIsLoading(true);
-        try {
-          const { data, error } = await supabase
-            .from('news_articles')
-            .select('*')
-            .eq('id', articleId)
-            .single();
-
-          if (error) throw error;
-
-          if (data) {
-            form.reset({
-              title: data.title || "",
-              content: data.content || "",
-              category: data.category || "",
-              slug: data.slug || "",
-              image_url: data.image_url || "",
-              is_featured: data.is_featured || false,
-              author: data.author || "",
-            });
-          }
-        } catch (error) {
-          console.error('Error fetching article:', error);
-          toast.error('Failed to load article');
-        } finally {
-          setIsLoading(false);
-        }
-      };
-
-      fetchArticle();
-    }
-  }, [articleId, form]);
-
-  // Generate slug from title
-  const generateSlug = () => {
-    const title = form.getValues("title");
-    if (!title) return;
-
-    const slug = title
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, '') // Remove non-word chars
-      .replace(/\s+/g, '-')     // Replace spaces with -
-      .replace(/-+/g, '-')      // Replace multiple - with single -
-      .trim();                   // Trim leading/trailing whitespace
-
-    form.setValue("slug", slug);
-  };
-
-  // Handle form submission
-  const onSubmit = async (values: NewsFormValues) => {
     setIsLoading(true);
     try {
-      if (articleId) {
-        // Update existing article
-        const { error } = await supabase
-          .from('news_articles')
-          .update(values)
-          .eq('id', articleId);
+      const { data, error } = await supabase
+        .from('news')
+        .select('*')
+        .eq('id', articleId)
+        .single();
 
-        if (error) throw error;
-        toast.success('Article updated successfully');
-      } else {
-        // Create new article
-        const { error } = await supabase
-          .from('news_articles')
-          .insert(values);
-
-        if (error) throw error;
-        toast.success('Article created successfully');
+      if (error) {
+        throw error;
       }
 
-      onSave();
-    } catch (error) {
-      console.error('Error saving article:', error);
-      toast.error('Failed to save article');
+      setArticle(data);
+      form.reset(data);
+      setEditorContent(data.content || '');
+      setSelectedImage(data.image_url || null);
+    } catch (error: any) {
+      toast.error(`Failed to load article: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [articleId, supabase, form]);
+
+  useEffect(() => {
+    loadArticle();
+  }, [loadArticle]);
+
+  const handleEditorChange = (content: string) => {
+    setEditorContent(content);
+    form.setValue("content", content);
+  };
+
+  const handleImageSelect = (imageUrl: string) => {
+    setSelectedImage(imageUrl);
+    form.setValue("image_url", imageUrl);
+  };
+
+  const handleCreate = async (formData: any) => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('news')
+        .insert([
+          {
+            ...formData,
+            content: editorContent,
+            image_url: selectedImage,
+          },
+        ])
+        .select();
+
+      if (error) throw error;
+
+      toast.success('Article created successfully');
+      navigate('/admin/news');
+    } catch (error: any) {
+      toast.error(`Failed to create article: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleUpdate = async (formData: any) => {
+    setIsLoading(true);
+    
+    try {
+      // Ensure required fields are always included and not undefined
+      const updates = {
+        title: formData.title || '',
+        content: formData.content || '',
+        category: formData.category || 'news', // Default category
+        slug: formData.slug || '',
+        author: formData.author,
+        image_url: formData.image_url,
+        is_featured: formData.is_featured
+      };
+      
+      const { data, error } = await supabase
+        .from('news')
+        .update(updates)
+        .eq('id', articleId)
+        .select();
+
+      if (error) throw error;
+
+      toast.success('Article updated successfully');
+      navigate('/admin/news');
+    } catch (error: any) {
+      toast.error(`Failed to update article: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!articleId) return;
+
+    setIsLoading(true);
+    try {
+      const { error } = await supabase
+        .from('news')
+        .delete()
+        .eq('id', articleId);
+
+      if (error) throw error;
+
+      toast.success('Article deleted successfully');
+      navigate('/admin/news');
+    } catch (error: any) {
+      toast.error(`Failed to delete article: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onSubmit = (data: z.infer<typeof formSchema>) => {
+    if (articleId) {
+      handleUpdate(data);
+    } else {
+      handleCreate(data);
+    }
+  }
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{articleId ? 'Edit Article' : 'Create Article'}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
-            <Input 
-              id="title" 
-              placeholder="Enter article title"
-              {...form.register("title")}
-              onBlur={() => {
-                if (!form.getValues("slug")) {
-                  generateSlug();
-                }
+    <div className="container mx-auto py-10">
+      <h1 className="text-3xl font-bold mb-5">{articleId ? 'Edit Article' : 'Create Article'}</h1>
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Title</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Article title" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="slug"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Slug</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Article slug" {...field} onChange={(e) => {
+                      field.onChange(slugify(e.target.value));
+                    }} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Category" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="author"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Author</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Author" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div>
+            <Label>Content</Label>
+            <Editor
+              apiKey={process.env.NEXT_PUBLIC_TINY_MCE_API_KEY}
+              value={editorContent}
+              init={{
+                height: 500,
+                menubar: true,
+                plugins: [
+                  'advlist autolink lists link image charmap print preview anchor',
+                  'searchreplace visualblocks code fullscreen',
+                  'insertdatetime media table paste code help wordcount'
+                ],
+                toolbar:
+                  'undo redo | formatselect | ' +
+                  'bold italic backcolor | alignleft aligncenter ' +
+                  'alignright alignjustify | bullist numlist outdent indent | ' +
+                  'removeformat | help'
               }}
+              onEditorChange={handleEditorChange}
             />
-            {form.formState.errors.title && (
-              <p className="text-sm text-red-500">{form.formState.errors.title.message}</p>
-            )}
+            <FormMessage />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="slug">Slug</Label>
-            <div className="flex gap-2">
-              <Input 
-                id="slug" 
-                placeholder="article-slug"
-                {...form.register("slug")}
-              />
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={generateSlug}
+          <div>
+            <Label>Image</Label>
+            <MediaSelector onSelect={handleImageSelect} selectedImage={selectedImage} />
+            <FormMessage />
+          </div>
+
+          <FormField
+            control={form.control}
+            name="is_featured"
+            render={({ field }) => (
+              <FormItem className="flex items-center space-x-2">
+                <FormLabel>Featured</FormLabel>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="flex justify-between">
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? 'Saving...' : 'Save'}
+            </Button>
+            {articleId && (
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={isLoading}
               >
-                Generate
+                {isLoading ? 'Deleting...' : 'Delete'}
               </Button>
-            </div>
-            {form.formState.errors.slug && (
-              <p className="text-sm text-red-500">{form.formState.errors.slug.message}</p>
             )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="category">Category</Label>
-            <Select 
-              value={form.getValues("category")}
-              onValueChange={(value) => form.setValue("category", value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.name}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {form.formState.errors.category && (
-              <p className="text-sm text-red-500">{form.formState.errors.category.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="author">Author</Label>
-            <Input 
-              id="author" 
-              placeholder="Author Name (optional)"
-              {...form.register("author")}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Featured Image</Label>
-            <MediaSelector
-              currentValue={form.getValues("image_url")}
-              onSelect={(url) => form.setValue("image_url", url)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="content">Content</Label>
-            <Textarea 
-              id="content"
-              rows={15}
-              placeholder="Write your article content here..."
-              {...form.register("content")}
-            />
-            {form.formState.errors.content && (
-              <p className="text-sm text-red-500">{form.formState.errors.content.message}</p>
-            )}
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="is_featured" 
-              checked={form.getValues("is_featured")}
-              onCheckedChange={(checked) => form.setValue("is_featured", !!checked)}
-            />
-            <Label htmlFor="is_featured">Feature this article</Label>
-          </div>
-
-          <div className="flex justify-end gap-2">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={onCancel}
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={isLoading}
-            >
-              {isLoading ? 'Saving...' : articleId ? 'Update Article' : 'Create Article'}
-            </Button>
           </div>
         </form>
-      </CardContent>
-    </Card>
+      </Form>
+    </div>
   );
 };
 

@@ -12,10 +12,11 @@ import { useFeaturedArticles } from '@/hooks/useFeaturedArticles';
 import { Container } from '@/components/ui';
 
 const Index = () => {
-  const { articleIds: featuredArticleIds, isError, error } = useFeaturedArticles();
+  const featuredArticlesQuery = useFeaturedArticles();
+  const featuredIds = featuredArticlesQuery.data?.map(article => article.id) || [];
 
-  if (isError) {
-    console.error('Error in useFeaturedArticles:', error);
+  if (featuredArticlesQuery.isError) {
+    console.error('Error in useFeaturedArticles:', featuredArticlesQuery.error);
   }
 
   return (
@@ -39,7 +40,7 @@ const Index = () => {
       <ErrorBoundary>
         <div className="py-12 md:py-16 bg-white">
           <Container>
-            <NewsSection excludeIds={featuredArticleIds || []} initialCount={9} />
+            <NewsSection excludeIds={featuredIds} initialCount={9} />
           </Container>
         </div>
       </ErrorBoundary>

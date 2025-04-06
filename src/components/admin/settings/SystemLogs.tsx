@@ -296,7 +296,7 @@ const SystemLogs = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <Alert variant="default" className="mb-6">
+                <Alert variant="destructive" className="mb-6">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>Warning</AlertTitle>
                   <AlertDescription>

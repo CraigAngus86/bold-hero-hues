@@ -51,16 +51,16 @@ export function AdminHeader() {
               <Button variant="ghost" size="sm" className="gap-2">
                 <User className="h-4 w-4" />
                 <span className="hidden md:inline-block">
-                  {profile?.full_name || user?.email || 'Account'}
+                  {profile?.full_name || 'Test Admin'}
                 </span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>
                 <div className="flex flex-col">
-                  <span>{profile?.full_name || 'User'}</span>
+                  <span>{profile?.full_name || 'Test Admin'}</span>
                   <span className="text-xs font-normal text-muted-foreground">
-                    {user?.email}
+                    {user?.email || 'admin@test.com'}
                   </span>
                 </div>
               </DropdownMenuLabel>

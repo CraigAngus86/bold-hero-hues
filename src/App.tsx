@@ -51,52 +51,16 @@ function App() {
         <Route path="/auth/forgot-password" element={<ForgotPassword />} />
         <Route path="/auth/reset-password" element={<ResetPassword />} />
         
-        {/* Admin Routes - Protected */}
-        <Route path="/admin" element={
-          <RequireAuth>
-            <Dashboard />
-          </RequireAuth>
-        } />
-        <Route path="/admin/news" element={
-          <RequireAuth>
-            <NewsManagement />
-          </RequireAuth>
-        } />
-        <Route path="/admin/team" element={
-          <RequireAuth>
-            <TeamManagement />
-          </RequireAuth>
-        } />
-        <Route path="/admin/fixtures" element={
-          <RequireAuth>
-            <FixtureManagement />
-          </RequireAuth>
-        } />
-        <Route path="/admin/media" element={
-          <RequireAuth>
-            <Media />
-          </RequireAuth>
-        } />
-        <Route path="/admin/tickets" element={
-          <RequireAuth>
-            <Tickets />
-          </RequireAuth>
-        } />
-        <Route path="/admin/sponsors" element={
-          <RequireAuth>
-            <Sponsors />
-          </RequireAuth>
-        } />
-        <Route path="/admin/league-table-management" element={
-          <RequireAuth>
-            <LeagueTableManagement />
-          </RequireAuth>
-        } />
-        <Route path="/admin/settings" element={
-          <RequireAuth allowedRoles={['admin']}>
-            <Settings />
-          </RequireAuth>
-        } />
+        {/* Admin Routes - No longer protected */}
+        <Route path="/admin" element={<Dashboard />} />
+        <Route path="/admin/news" element={<NewsManagement />} />
+        <Route path="/admin/team" element={<TeamManagement />} />
+        <Route path="/admin/fixtures" element={<FixtureManagement />} />
+        <Route path="/admin/media" element={<Media />} />
+        <Route path="/admin/tickets" element={<Tickets />} />
+        <Route path="/admin/sponsors" element={<Sponsors />} />
+        <Route path="/admin/league-table-management" element={<LeagueTableManagement />} />
+        <Route path="/admin/settings" element={<Settings />} />
         
         {/* Catch-all route */}
         <Route path="*" element={<NotFound />} />

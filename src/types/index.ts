@@ -1,91 +1,37 @@
 
-// Add or ensure these type definitions are in place
-export interface NewsArticle {
-  id: string;
-  title: string;
-  content: string;
-  image_url?: string;
-  category: string;
-  slug: string;
-  publish_date: string;
-  is_featured: boolean;
-  created_at: string;
-  updated_at: string;
-  author?: string;
-}
+import { User } from '@supabase/supabase-js';
 
-// Add data type definitions for creating and updating news articles
-export interface CreateNewsArticleData {
-  title: string;
-  content: string;
-  image_url?: string;
-  category: string;
-  slug: string;
-  publish_date?: string;
-  is_featured?: boolean;
-  author?: string;
-}
+// System log types
+export type LogType = 'error' | 'warning' | 'info' | 'debug';
 
-export interface UpdateNewsArticleData {
-  title?: string;
-  content?: string;
-  image_url?: string;
-  category?: string;
-  slug?: string;
-  publish_date?: string;
-  is_featured?: boolean;
-  author?: string;
-}
-
-// Add query options interface
-export interface NewsQueryOptions {
-  page?: number;
-  pageSize?: number;
-  category?: string;
-  featured?: boolean;
-  orderBy?: 'publish_date' | 'title' | 'created_at';
-  orderDirection?: 'asc' | 'desc';
-}
-
-// Add system log interface
 export interface SystemLog {
-  id: number | string;
+  id: string | number;
   timestamp: string;
-  type: 'error' | 'warning' | 'info' | 'debug';
+  type: LogType;
   source: string;
   message: string;
 }
 
-// Add other necessary type definitions
-export interface TeamStats {
+// User profile types
+export interface UserProfile {
   id: string;
-  team: string;
-  position: number;
-  played: number;
-  won: number;
-  drawn: number;
-  lost: number;
-  goalsFor: number;
-  goalsAgainst: number;
-  goalDifference: number;
-  points: number;
+  email: string;
+  full_name?: string | null;
+  avatar_url?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 }
 
-export interface Fixture {
-  id: string;
-  date: string;
-  time?: string;
-  homeTeam: string;
-  awayTeam: string;
-  competition: string;
-  venue?: string;
-  isCompleted?: boolean;
-  homeScore?: number;
-  awayScore?: number;
-  ticketLink?: string;
-  source?: string;
-}
+// User role types
+export type UserRole = 'admin' | 'editor' | 'user';
 
-export interface Match extends Omit<Fixture, 'venue'> {
-  venue: string;
+// Auth context types
+export interface AuthContextType {
+  user: User | null;
+  profile: UserProfile | null;
+  isLoading: boolean;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, metadata?: any) => Promise<void>;
+  signOut: () => Promise<void>;
+  hasRole: (role: UserRole) => boolean;
 }

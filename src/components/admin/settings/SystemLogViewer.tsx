@@ -88,7 +88,7 @@ export const SystemLogViewer: React.FC<SystemLogViewerProps> = ({
       case 'error':
         return 'destructive';
       case 'warning':
-        return 'warning';
+        return 'secondary'; // Changed from 'warning' to 'secondary' as warning isn't a valid variant
       case 'info':
         return 'default';
       case 'debug':

@@ -21,10 +21,10 @@ export const SystemLogs: React.FC = () => {
       
       // Fallback to mock data if fetching fails
       setLogs([
-        { id: 1, timestamp: new Date(Date.now() - 3600000).toISOString(), type: 'error' as const, source: 'system', message: 'Failed to connect to API endpoint' },
-        { id: 2, timestamp: new Date(Date.now() - 7200000).toISOString(), type: 'warning' as const, source: 'system', message: 'Cache storage is nearly full' },
-        { id: 3, timestamp: new Date(Date.now() - 10800000).toISOString(), type: 'info' as const, source: 'system', message: 'System backup completed successfully' },
-        { id: 4, timestamp: new Date(Date.now() - 14400000).toISOString(), type: 'error' as const, source: 'system', message: 'Database query timeout' },
+        { id: '1', timestamp: new Date(Date.now() - 3600000).toISOString(), type: 'error', source: 'system', message: 'Failed to connect to API endpoint' },
+        { id: '2', timestamp: new Date(Date.now() - 7200000).toISOString(), type: 'warning', source: 'system', message: 'Cache storage is nearly full' },
+        { id: '3', timestamp: new Date(Date.now() - 10800000).toISOString(), type: 'info', source: 'system', message: 'System backup completed successfully' },
+        { id: '4', timestamp: new Date(Date.now() - 14400000).toISOString(), type: 'error', source: 'system', message: 'Database query timeout' },
       ]);
     } finally {
       setIsLoading(false);

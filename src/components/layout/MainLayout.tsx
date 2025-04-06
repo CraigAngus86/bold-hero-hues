@@ -19,6 +19,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     { name: 'League Table', href: '/table' },
     { name: 'Spain Park', href: '/stadium' },
     { name: 'Tickets', href: '/tickets' },
+    { name: 'Contact', href: '/contact' },
   ];
 
   return (

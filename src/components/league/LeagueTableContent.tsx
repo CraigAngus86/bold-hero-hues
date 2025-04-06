@@ -1,10 +1,9 @@
-
 import React, { useCallback } from 'react';
 import { Table, TableBody } from '@/components/ui/Table';
 import LeagueTableHeader from './LeagueTableHeader';
 import TeamRow from './TeamRow';
 import { TeamStats } from './types';
-import ErrorBoundary from '@/components/ErrorBoundary'; // Fixed: Changed from named import to default import
+import ErrorBoundary from '@/components/ErrorBoundary'; 
 
 /**
  * Interface for LeagueTableContent component props

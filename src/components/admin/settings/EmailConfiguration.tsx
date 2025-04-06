@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -37,7 +36,6 @@ const EmailConfiguration = () => {
     }, 2000);
   };
   
-  // Mock email logs
   const emailLogs = [
     { 
       id: '1', 
@@ -76,7 +74,6 @@ const EmailConfiguration = () => {
     }
   ];
   
-  // Mock email templates
   const emailTemplates = [
     {
       id: '1',
@@ -115,7 +112,6 @@ const EmailConfiguration = () => {
     }
   ];
   
-  // Mock scheduled emails
   const scheduledEmails = [
     {
       id: '1',
@@ -149,7 +145,7 @@ const EmailConfiguration = () => {
             SMTP Settings
           </TabsTrigger>
           <TabsTrigger value="templates">
-            <Templates className="h-4 w-4 mr-2" />
+            <Mail className="h-4 w-4 mr-2" />
             Email Templates
           </TabsTrigger>
           <TabsTrigger value="logs">

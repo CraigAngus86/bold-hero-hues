@@ -1,5 +1,3 @@
-
-// Fix the TypeScript errors in the types.ts file
 import {
   LayoutDashboard,
   Users,
@@ -13,8 +11,9 @@ import {
   MessageSquare,
   Trophy,
 } from 'lucide-react';
+import React from 'react';
 
-// Define the sidebar navigation item type
+// Define the sidebar navigation item types
 export type NavItem = {
   title: string;
   href: string;
@@ -23,6 +22,17 @@ export type NavItem = {
   external?: boolean;
   label?: string;
 };
+
+// For backward compatibility with existing code
+export interface AdminLayoutProps {
+  children: React.ReactNode;
+}
+
+export interface SidebarNavItem {
+  title: string;
+  href: string;
+  icon: React.ReactNode;
+}
 
 // Navigation sections with their respective items
 export const adminNavItems: { title: string; items: NavItem[] }[] = [
@@ -96,4 +106,14 @@ export const adminNavItems: { title: string; items: NavItem[] }[] = [
       },
     ],
   },
+];
+
+// For backward compatibility, keep the old navItems array
+export const navItems: SidebarNavItem[] = [
+  { title: 'Dashboard', href: '/admin', icon: <LayoutDashboard className="h-5 w-5" /> },
+  { title: 'Users', href: '/admin/users', icon: <Users className="h-5 w-5" /> },
+  { title: 'Fixtures', href: '/admin/fixtures', icon: <CalendarDays className="h-5 w-5" /> },
+  { title: 'Content', href: '/admin/content', icon: <FileText className="h-5 w-5" /> },
+  { title: 'Media', href: '/admin/media-library', icon: <Image className="h-5 w-5" /> },
+  { title: 'Settings', href: '/admin/settings', icon: <Settings className="h-5 w-5" /> },
 ];

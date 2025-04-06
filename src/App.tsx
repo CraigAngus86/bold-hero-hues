@@ -40,7 +40,7 @@ function App() {
 
   useEffect(() => {
     // Set document title on initial load
-    document.title = 'Banks o' Dee FC';
+    document.title = "Banks o' Dee FC";
   }, []);
 
   return (

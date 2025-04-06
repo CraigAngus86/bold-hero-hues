@@ -12,7 +12,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Small } from "@/components/ui";
+import { Typography } from "@/components/ui";
 
 interface DatePickerWithRangeProps {
   date: DateRange | undefined;
@@ -76,9 +76,9 @@ export function DatePickerWithRange({
             className="border-b border-gray-100"
           />
           <div className="p-3 border-t flex justify-between items-center">
-            <Small className="text-muted-foreground">
+            <Typography.Small className="text-muted-foreground">
               Select start and end dates
-            </Small>
+            </Typography.Small>
             <Button 
               size="sm"
               variant="ghost"

@@ -1,14 +1,20 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/admin/layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Typography } from '@/components/ui';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Users, Shield, Briefcase } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
+import { PlusCircle, Users, Shield, Briefcase, LineChart, Palette } from 'lucide-react';
 import TeamMembersManager from '@/components/admin/team/TeamMembersManager';
 import TeamMemberEditor from '@/components/admin/team/TeamMemberEditor';
 import PositionsManager from '@/components/admin/team/PositionsManager';
 import SquadsManager from '@/components/admin/team/SquadsManager';
+import PlayerStatistics from '@/components/admin/team/PlayerStatistics';
+import FormationBuilder from '@/components/admin/team/FormationBuilder';
+import { useSquadStore } from '@/services/squadService';
+import { useTeamStore } from '@/services/teamService';
+import { Alert } from '@/components/ui/alert';
 
 const { H2 } = Typography;
 
@@ -16,6 +22,23 @@ const TeamManagement: React.FC = () => {
   const [activeTab, setActiveTab] = useState('members');
   const [isEditing, setIsEditing] = useState(false);
   const [selectedMember, setSelectedMember] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  const { loadSquads } = useSquadStore();
+  const { loadTeamMembers, isLoading } = useTeamStore();
+
+  useEffect(() => {
+    const initialize = async () => {
+      try {
+        await loadTeamMembers();
+        await loadSquads();
+      } catch (err) {
+        setError('Failed to load team data. Please try refreshing the page.');
+        console.error('Error initializing team management:', err);
+      }
+    };
+    
+    initialize();
+  }, [loadTeamMembers, loadSquads]);
 
   const handleAddNewMember = () => {
     setSelectedMember(null);
@@ -47,6 +70,13 @@ const TeamManagement: React.FC = () => {
             </Button>
           </div>
         </div>
+        
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <div>{error}</div>
+          </Alert>
+        )}
 
         {isEditing ? (
           <TeamMemberEditor 
@@ -68,6 +98,14 @@ const TeamManagement: React.FC = () => {
                 <Briefcase size={16} />
                 Positions
               </TabsTrigger>
+              <TabsTrigger value="statistics" className="flex items-center gap-2">
+                <LineChart size={16} />
+                Statistics
+              </TabsTrigger>
+              <TabsTrigger value="formations" className="flex items-center gap-2">
+                <Palette size={16} />
+                Formations
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="members">
@@ -80,6 +118,14 @@ const TeamManagement: React.FC = () => {
             
             <TabsContent value="positions">
               <PositionsManager />
+            </TabsContent>
+            
+            <TabsContent value="statistics">
+              <PlayerStatistics />
+            </TabsContent>
+            
+            <TabsContent value="formations">
+              <FormationBuilder />
             </TabsContent>
           </Tabs>
         )}

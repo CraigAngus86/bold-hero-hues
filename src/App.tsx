@@ -1,7 +1,6 @@
 
 import React, { useEffect } from 'react';
 import {
-  BrowserRouter as Router,
   Route,
   Routes,
   Navigate,
@@ -28,23 +27,21 @@ function App() {
 
   return (
     <HelmetProvider>
-      <Router>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<MainLayout><div>Home Page</div></MainLayout>} />
-          <Route path="/table" element={<MainLayout><LeagueTablePage /></MainLayout>} />
-          <Route path="/fixtures" element={<MainLayout><div>Fixtures Page</div></MainLayout>} />
-          <Route path="/results" element={<MainLayout><div>Results Page</div></MainLayout>} />
-          <Route path="/contact" element={<MainLayout><div>Contact Page</div></MainLayout>} />
-          <Route path="/404" element={<MainLayout><NotFoundPage /></MainLayout>} />
-          <Route path="*" element={<Navigate to="/404" replace />} />
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<MainLayout><div>Home Page</div></MainLayout>} />
+        <Route path="/table" element={<MainLayout><LeagueTablePage /></MainLayout>} />
+        <Route path="/fixtures" element={<MainLayout><div>Fixtures Page</div></MainLayout>} />
+        <Route path="/results" element={<MainLayout><div>Results Page</div></MainLayout>} />
+        <Route path="/contact" element={<MainLayout><div>Contact Page</div></MainLayout>} />
+        <Route path="/404" element={<MainLayout><NotFoundPage /></MainLayout>} />
+        <Route path="*" element={<Navigate to="/404" replace />} />
 
-          {/* Admin Routes */}
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/admin/fixtures" element={<FixturesManagement />} />
-          <Route path="/admin/league-table-management" element={<LeagueTableManagement />} />
-        </Routes>
-      </Router>
+        {/* Admin Routes */}
+        <Route path="/admin" element={<Admin />} />
+        <Route path="/admin/fixtures" element={<FixturesManagement />} />
+        <Route path="/admin/league-table-management" element={<LeagueTableManagement />} />
+      </Routes>
       <Toaster />
     </HelmetProvider>
   );

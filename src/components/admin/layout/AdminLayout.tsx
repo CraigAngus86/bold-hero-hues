@@ -21,10 +21,16 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Icons } from '@/components/icons';
 import { ModeToggle } from '@/components/mode-toggle';
-import { SidebarNavItem, SidebarNav } from '@/components/ui/sidebar-nav';
+import { SidebarNav } from '@/components/ui/sidebar-nav';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
+}
+
+interface SidebarNavItem {
+  title: string;
+  href: string;
+  icon: React.ReactNode;
 }
 
 const navItems: SidebarNavItem[] = [
@@ -46,6 +52,11 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const handleLogout = () => {
     // Implement logout logic
     navigate('/');
+  };
+
+  // Function to close mobile menu - passed to SidebarNav
+  const closeMobileMenu = () => {
+    setIsMobileSidebarOpen(false);
   };
   
   return (
@@ -114,10 +125,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             </div>
             
             <div className="flex-grow overflow-y-auto p-4">
-              <SidebarNav 
-                items={navItems} 
-                closeMobileMenu={() => setIsMobileSidebarOpen(false)} 
-              />
+              <SidebarNav items={navItems} />
             </div>
             
             <div className="p-4 border-t border-gray-200 dark:border-gray-700">

@@ -58,8 +58,8 @@ const SystemLogs = () => {
     fetchLogs();
   }, [filter]);
 
-  const getLogIcon = (type: string) => {
-    switch (type) {
+  const getLogIcon = (logType: string) => {
+    switch (logType) {
       case 'info':
         return <Info className="h-4 w-4 text-blue-500" />;
       case 'warning':
@@ -144,7 +144,7 @@ const SystemLogs = () => {
                     <TableCell>{log.source}</TableCell>
                     <TableCell className="text-right text-xs">
                       <span title={new Date(log.timestamp).toLocaleString()}>
-                        {getRelativeTime(log.timestamp)}
+                        {getRelativeTime(log.timestamp.toString())}
                       </span>
                     </TableCell>
                   </TableRow>

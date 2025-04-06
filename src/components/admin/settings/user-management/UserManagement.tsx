@@ -108,8 +108,15 @@ const UserManagement = () => {
       if (user) {
         // Add new user to the list with the needed name property
         const newUser: User = {
-          ...user,
-          name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
+          role: user.role || 'user',
+          isActive: user.isActive !== false,
+          lastLogin: user.lastLogin,
+          createdAt: user.createdAt || new Date().toISOString()
         };
         
         setUsers(prevUsers => [...prevUsers, newUser]);
@@ -158,7 +165,10 @@ const UserManagement = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <UsersTable users={users} isLoading={isLoading} onUserUpdated={loadUsers} />
+          <UsersTable 
+            users={users}
+            onUserUpdated={loadUsers}
+          />
         </CardContent>
       </Card>
 

@@ -7,7 +7,8 @@ import { TeamStats } from '@/types/fixtures';
 export const leagueService = {
   getLeagueTable,
   updateTeamLogo,
-  getTeamById
+  getTeamById,
+  refreshLeagueData
 };
 
 export default leagueService;
@@ -47,6 +48,9 @@ export async function getLeagueTable(): Promise<TeamStats[]> {
     return [];
   }
 }
+
+// Alias for getLeagueTable to fix the error
+export const getLeagueTableData = getLeagueTable;
 
 /**
  * Update a team's logo URL in the league table
@@ -108,5 +112,22 @@ export async function getTeamById(teamId: string): Promise<TeamStats | null> {
   } catch (error) {
     console.error('Error in getTeamById:', error);
     return null;
+  }
+}
+
+/**
+ * Refresh league table data from external source
+ */
+export async function refreshLeagueData(): Promise<boolean> {
+  try {
+    // In a real implementation this would call an API endpoint or edge function
+    // that triggers the data scraper
+    console.log('Refreshing league data...');
+    
+    // Mock successful refresh
+    return true;
+  } catch (error) {
+    console.error('Error refreshing league data:', error);
+    return false;
   }
 }

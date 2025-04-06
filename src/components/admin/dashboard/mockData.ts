@@ -1,28 +1,32 @@
+
 import { AlertTriangle, CalendarDays, FileText, MessageSquare, TicketIcon, UsersRound } from "lucide-react";
-import { SystemStatusItemProps } from "@/types/system";
+import { SystemStatusItemProps } from "@/types/system/status";
 
 // Content status items
-export const contentStatusItems = [
+export const contentStatusItems: SystemStatusItemProps[] = [
   {
     name: 'News Articles',
     count: 24,
     color: 'blue',
     icon: FileText,
-    viewAllLink: '/admin/news'
+    viewAllLink: '/admin/news',
+    status: 'info'
   },
   {
     name: 'Fixture Updates',
     count: 8,
     color: 'green',
     icon: CalendarDays,
-    viewAllLink: '/admin/fixtures'
+    viewAllLink: '/admin/fixtures',
+    status: 'info'
   },
   {
     name: 'User Signups',
     count: 12,
     color: 'orange',
     icon: UsersRound,
-    viewAllLink: '/admin/users'
+    viewAllLink: '/admin/users',
+    status: 'info'
   }
 ];
 

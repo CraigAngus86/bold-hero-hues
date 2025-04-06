@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Sponsor, SponsorDisplaySettings } from '@/types/sponsors';
@@ -18,7 +17,7 @@ const SponsorsCarousel = () => {
     queryFn: async () => {
       const response = await fetchSponsorDisplaySettings();
       if (!response.success) {
-        throw new Error(response.error?.message || 'Failed to load display settings');
+        throw new Error(response.error || 'Failed to load display settings');
       }
       return response.data;
     },

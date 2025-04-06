@@ -37,7 +37,7 @@ const SystemStatusPanel = ({ data, isLoading, onRefresh }: SystemStatusPanelProp
             <div>
               <h3 className="text-sm font-medium mb-2">Component Status</h3>
               <div className="space-y-2">
-                {data.components.map((component) => (
+                {data.components?.map((component) => (
                   <div key={component.id} className="flex items-center justify-between">
                     <div className="flex items-center">
                       <Server className="h-4 w-4 text-gray-500 mr-2" />
@@ -64,29 +64,29 @@ const SystemStatusPanel = ({ data, isLoading, onRefresh }: SystemStatusPanelProp
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs">CPU Usage</span>
-                    <span className="text-xs font-medium">{data.metrics.cpuUsage}%</span>
+                    <span className="text-xs font-medium">{data.metrics?.cpuUsage || 0}%</span>
                   </div>
-                  <Progress value={data.metrics.cpuUsage} className="h-2" />
+                  <Progress value={data.metrics?.cpuUsage || 0} className="h-2" />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs">Memory Usage</span>
-                    <span className="text-xs font-medium">{data.metrics.memoryUsage}%</span>
+                    <span className="text-xs font-medium">{data.metrics?.memoryUsage || 0}%</span>
                   </div>
-                  <Progress value={data.metrics.memoryUsage} className="h-2" />
+                  <Progress value={data.metrics?.memoryUsage || 0} className="h-2" />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs">Disk Usage</span>
-                    <span className="text-xs font-medium">{data.metrics.diskUsage}%</span>
+                    <span className="text-xs font-medium">{data.metrics?.diskUsage || 0}%</span>
                   </div>
-                  <Progress value={data.metrics.diskUsage} className="h-2" />
+                  <Progress value={data.metrics?.diskUsage || 0} className="h-2" />
                 </div>
               </div>
             </div>
           </div>
 
-          {data.incidents.length > 0 && (
+          {data.incidents && data.incidents.length > 0 && (
             <div>
               <h3 className="text-sm font-medium mb-2">Active Incidents</h3>
               <div className="space-y-2">
@@ -119,21 +119,21 @@ const SystemStatusPanel = ({ data, isLoading, onRefresh }: SystemStatusPanelProp
                 <Users className="h-4 w-4 mr-1" />
                 <span className="text-xs">Active Users</span>
               </div>
-              <div className="text-2xl font-bold">{data.metrics.activeUsers}</div>
+              <div className="text-2xl font-bold">{data.metrics?.activeUsers || 0}</div>
             </div>
             <div className="bg-gray-50 p-3 rounded-md">
               <div className="flex items-center text-gray-500 mb-1">
                 <Activity className="h-4 w-4 mr-1" />
                 <span className="text-xs">Response Time</span>
               </div>
-              <div className="text-2xl font-bold">{data.metrics.responseTime}<span className="text-xs ml-1">ms</span></div>
+              <div className="text-2xl font-bold">{data.metrics?.responseTime || 0}<span className="text-xs ml-1">ms</span></div>
             </div>
             <div className="bg-gray-50 p-3 rounded-md">
               <div className="flex items-center text-gray-500 mb-1">
                 <Clock className="h-4 w-4 mr-1" />
                 <span className="text-xs">Uptime</span>
               </div>
-              <div className="text-2xl font-bold">{data.metrics.uptime.toFixed(2)}<span className="text-xs ml-1">%</span></div>
+              <div className="text-2xl font-bold">{(data.metrics?.uptime || 0).toFixed(2)}<span className="text-xs ml-1">%</span></div>
             </div>
           </div>
         </div>

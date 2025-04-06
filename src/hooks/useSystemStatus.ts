@@ -1,10 +1,12 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { SystemStatus } from '@/types/system';
 
 // In a real app, this would fetch from an API
 const getMockSystemStatus = (): SystemStatus => {
   return {
+    status: 'healthy',
+    lastUpdated: new Date().toISOString(),
     isHealthy: true,
     components: [
       {
@@ -41,7 +43,7 @@ const getMockSystemStatus = (): SystemStatus => {
         id: '1',
         title: 'Intermittent Email Delivery Delays',
         description: 'Some emails may experience delayed delivery.',
-        severity: 'medium' as const,
+        severity: 'medium',
         date: new Date().toISOString(),
         isResolved: false,
       },
@@ -53,8 +55,7 @@ const getMockSystemStatus = (): SystemStatus => {
       activeUsers: Math.floor(Math.random() * 100) + 50, // 50-150 users
       responseTime: Math.floor(Math.random() * 200) + 50, // 50-250ms
       uptime: Math.floor(Math.random() * 90) + 99.9, // 99.9-99.99%
-    },
-    lastUpdated: new Date().toISOString(),
+    }
   };
 };
 
@@ -80,9 +81,9 @@ export const useSystemStatus = () => {
   }, []);
 
   // Initial fetch
-  useState(() => {
+  useEffect(() => {
     fetchSystemStatus();
-  });
+  }, [fetchSystemStatus]);
 
   return {
     data,

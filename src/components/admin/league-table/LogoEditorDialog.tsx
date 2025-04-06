@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { updateTeamLogo } from '@/services/leagueService';
 import { useImageUpload } from '@/services/images/hooks';
 import { Loader2 } from 'lucide-react';
-import { BucketType } from '@/services/images/types';
+import { BucketType } from '@/types/images';
 
 interface LogoEditorDialogProps {
   team: TeamStats;

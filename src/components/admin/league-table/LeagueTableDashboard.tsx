@@ -35,7 +35,7 @@ const LeagueTableDashboard = () => {
   const fetchLeagueTable = async () => {
     setIsLoading(true);
     try {
-      const data = await leagueService.getLeagueTableData();
+      const data = await leagueService.getLeagueTable();
       setLeagueTable(data);
     } catch (error) {
       console.error("Failed to fetch league table:", error);
@@ -56,9 +56,7 @@ const LeagueTableDashboard = () => {
   
   // The refresh function should take no arguments
   const handleRefreshData = async () => {
-    // Implement refresh logic here
     try {
-      // Call refreshLeagueData with no args
       const success = await leagueService.refreshLeagueData();
       if (success) {
         await fetchLeagueTable();

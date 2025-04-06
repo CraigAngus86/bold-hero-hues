@@ -8,16 +8,22 @@ export interface ImageMetadata {
   name: string;
   size: number;
   type: string;
-  bucketType: BucketType;
+  bucketType?: BucketType;
   url: string;
   alt_text?: string;
   description?: string;
   tags?: string[];
+  categories?: string[];
   dimensions?: {
     width: number;
     height: number;
   };
+  width?: number;
+  height?: number;
   createdAt: string;
+  updatedAt?: string;
+  bucket?: string;
+  path?: string;
 }
 
 // Image optimization options
@@ -42,4 +48,5 @@ export interface StoredImageMetadata {
     width: number;
     height: number;
   };
+  categories?: string[];
 }

@@ -226,7 +226,11 @@ const MediaDetailsDialog: React.FC<MediaDetailsDialogProps> = ({
                 <Paintbrush className="h-4 w-4" /> Dimensions
               </span>
               <p className="font-medium">
-                {editedMedia.width}×{editedMedia.height}
+                {editedMedia.dimensions 
+                  ? `${editedMedia.dimensions.width}×${editedMedia.dimensions.height}` 
+                  : editedMedia.width && editedMedia.height 
+                    ? `${editedMedia.width}×${editedMedia.height}`
+                    : 'Unknown'}
               </p>
             </div>
             

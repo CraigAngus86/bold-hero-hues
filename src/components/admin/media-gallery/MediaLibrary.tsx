@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Grid, Search, FilterX, Filter, RefreshCw, SlidersHorizontal, Download } from 'lucide-react';
 import useDebounce from '@/hooks/useDebounce';
@@ -226,7 +225,9 @@ const MediaLibrary: React.FC = () => {
       <PaginationItem key="prev">
         <PaginationPrevious 
           onClick={() => setCurrentPage(old => Math.max(1, old - 1))}
-          disabled={currentPage === 1} 
+          aria-disabled={currentPage === 1} 
+          tabIndex={currentPage === 1 ? -1 : undefined}
+          className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
         />
       </PaginationItem>
     );
@@ -295,7 +296,9 @@ const MediaLibrary: React.FC = () => {
       <PaginationItem key="next">
         <PaginationNext 
           onClick={() => setCurrentPage(old => Math.min(totalPages, old + 1))}
-          disabled={currentPage === totalPages} 
+          aria-disabled={currentPage === totalPages}
+          tabIndex={currentPage === totalPages ? -1 : undefined}
+          className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
         />
       </PaginationItem>
     );

@@ -1,81 +1,62 @@
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ThemeProvider } from "@/components/theme-provider"
+import { ErrorBoundary } from 'react-error-boundary';
+import { HelmetProvider } from 'react-helmet-async';
+import { Toaster } from "@/components/ui/toaster"
+import { Toaster as Sonner } from "@/components/ui/sonner"
 
-import React, { useEffect } from 'react';
-import {
-  Route,
-  Routes,
-  Navigate,
-} from 'react-router-dom';
-import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { Toaster } from 'sonner';
-import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
+// Import public pages
+import Index from "./pages/Index";
+import NotFound from "./pages/NotFound";
 
-// Import Layouts
-import MainLayout from './components/layout/MainLayout';
-import { AdminLayout } from './components/admin/layout';
-
-// Import Pages
-import Index from './pages/Index';
-import LeagueTablePage from './components/league/LeagueTablePage';
-import NotFoundPage from './pages/admin/NotFoundPage';
+// Import admin pages
+import Dashboard from "./pages/admin/Dashboard";
+import NewsManagement from "./pages/admin/NewsManagement";
+import TeamManagement from "./pages/admin/TeamManagement";
+import FixturesManagement from "./pages/admin/FixturesManagement";
 import LeagueTableManagement from "./pages/admin/LeagueTableManagement";
-import FixturesManagement from './pages/admin/FixturesManagement';
-import Dashboard from './pages/admin/Dashboard';
-import NewsManagement from './pages/admin/NewsManagement';
-import TeamManagement from './pages/admin/TeamManagement';
-import MediaGallery from './pages/admin/MediaGallery';
-import Team from './pages/Team';
-import SponsorsManagement from './pages/admin/SponsorsManagement';
-import TicketsManagement from './pages/admin/TicketsManagement'; // Import the TicketsManagement component
+import MediaGallery from "./pages/admin/MediaGallery";
+import SponsorsManagement from "./pages/admin/SponsorsManagement";
+import TicketsManagement from "./pages/admin/TicketsManagement";
+// Add import for FansManagement
+import FansManagement from "./pages/admin/FansManagement";
+import SettingsManagement from "./pages/admin/SettingsManagement";
 
-// Create a client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60, // 1 minute
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+// Import error fallback component
+import ErrorFallback from './components/ErrorFallback';
 
 function App() {
-  useEffect(() => {
-    // Set document title on initial load
-    document.title = "Banks o' Dee FC";
-  }, []);
-
   return (
-    <QueryClientProvider client={queryClient}>
-      <HelmetProvider>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<Index />} />
-          <Route path="/table" element={<MainLayout><LeagueTablePage /></MainLayout>} />
-          <Route path="/fixtures" element={<MainLayout><div>Fixtures Page</div></MainLayout>} />
-          <Route path="/results" element={<MainLayout><div>Results Page</div></MainLayout>} />
-          <Route path="/news" element={<MainLayout><div>News Page</div></MainLayout>} />
-          <Route path="/team" element={<MainLayout><Team /></MainLayout>} />
-          <Route path="/stadium" element={<MainLayout><div>Spain Park Page</div></MainLayout>} />
-          <Route path="/tickets" element={<MainLayout><div>Tickets Page</div></MainLayout>} />
-          <Route path="/contact" element={<MainLayout><div>Contact Page</div></MainLayout>} />
-          <Route path="/404" element={<MainLayout><NotFoundPage /></MainLayout>} />
-          <Route path="*" element={<Navigate to="/404" replace />} />
-
-          {/* Admin Routes - All using AdminLayout */}
-          <Route path="/admin" element={<Dashboard />} />
-          <Route path="/admin/fixtures" element={<FixturesManagement />} />
-          <Route path="/admin/league-table-management" element={<LeagueTableManagement />} />
-          <Route path="/admin/news" element={<NewsManagement />} />
-          <Route path="/admin/team" element={<TeamManagement />} />
-          <Route path="/admin/images" element={<MediaGallery />} />
-          <Route path="/admin/sponsors" element={<SponsorsManagement />} />
-          <Route path="/admin/tickets" element={<TicketsManagement />} />
-          <Route path="/admin/fans" element={<AdminLayout><div>Fans Zone Management</div></AdminLayout>} />
-          <Route path="/admin/settings" element={<AdminLayout><div>Settings</div></AdminLayout>} />
-        </Routes>
-        <Toaster />
-      </HelmetProvider>
-    </QueryClientProvider>
+    <BrowserRouter>
+      <ThemeProvider defaultTheme="light" storageKey="banks-o-dee-theme">
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <HelmetProvider>
+            <Toaster />
+            <Sonner />
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<Index />} />
+              
+              {/* Admin routes */}
+              <Route path="/admin" element={<Dashboard />} />
+              <Route path="/admin/news" element={<NewsManagement />} />
+              <Route path="/admin/team" element={<TeamManagement />} />
+              <Route path="/admin/fixtures" element={<FixturesManagement />} />
+              <Route path="/admin/league-table-management" element={<LeagueTableManagement />} />
+              <Route path="/admin/images" element={<MediaGallery />} />
+              <Route path="/admin/sponsors" element={<SponsorsManagement />} />
+              <Route path="/admin/tickets" element={<TicketsManagement />} />
+              <Route path="/admin/fans" element={<FansManagement />} />
+              <Route path="/admin/settings" element={<SettingsManagement />} />
+              
+              {/* Not found route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </HelmetProvider>
+        </ErrorBoundary>
+      </ThemeProvider>
+    </BrowserRouter>
   );
 }
 

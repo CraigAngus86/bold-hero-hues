@@ -16,7 +16,7 @@ import FansOverview from '@/components/admin/dashboard/FansOverview';
 import SponsorsOverview from '@/components/admin/dashboard/SponsorsOverview';
 import TicketsOverview from '@/components/admin/dashboard/TicketsOverview';
 import RecentUploads from '@/components/admin/dashboard/RecentUploads';
-import { EnhancedSystemStatus } from '@/components/admin/dashboard/EnhancedSystemStatus';
+import StatusItems from '@/components/admin/dashboard/StatusItems';
 
 const Dashboard = () => {
   const { refreshAll } = useDashboardRefresh();
@@ -35,7 +35,7 @@ const Dashboard = () => {
       >
         <Grid>
           <WebsiteStatus />
-          <EnhancedSystemStatus />
+          <StatusItems />
           <NewsStats />
           <FixturesStats />
           <LeagueStats />

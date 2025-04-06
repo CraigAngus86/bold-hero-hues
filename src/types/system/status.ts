@@ -1,50 +1,41 @@
 
 import { ReactNode } from 'react';
 
-/**
- * Represents a system status item for display purposes
- */
 export interface SystemStatusItemProps {
   name: string;
   status: 'healthy' | 'degraded' | 'error' | 'unknown';
-  lastChecked: string | Date | null;
-  metricValue?: string | number;
+  lastChecked: Date | string | null;
   icon?: ReactNode;
   tooltip?: string;
+  metricValue?: string;
 }
 
-/**
- * Represents complete system status data
- */
-export interface SystemStatusData {
-  database: {
-    status: 'healthy' | 'degraded' | 'error' | 'unknown';
-    lastChecked: string | Date | null;
-    metricValue?: string | number;
-  };
-  api: {
-    status: 'healthy' | 'degraded' | 'error' | 'unknown';
-    lastChecked: string | Date | null;
-    metricValue?: string | number;
-  };
-  content: {
-    status: 'healthy' | 'degraded' | 'error' | 'unknown';
-    lastChecked: string | Date | null;
-    metricValue?: string | number;
-  };
-  uploads: {
-    status: 'healthy' | 'degraded' | 'error' | 'unknown';
-    lastChecked: string | Date | null;
-    metricValue?: string | number;
-  };
-}
-
-/**
- * Props for the SystemStatus component
- */
 export interface SystemStatusProps {
   systems: SystemStatusItemProps[];
-  isLoading: boolean;
-  lastUpdated: Date | null;
-  onRefresh: () => void;
+  isLoading?: boolean;
+  lastUpdated?: Date | null;
+  onRefresh?: () => void;
+}
+
+export interface SystemStatusData {
+  database: {
+    status: string;
+    lastChecked: Date;
+    metricValue: string;
+  };
+  api: {
+    status: string;
+    lastChecked: Date;
+    metricValue: string;
+  };
+  content: {
+    status: string;
+    lastChecked: Date;
+    metricValue: string;
+  };
+  uploads: {
+    status: string;
+    lastChecked: Date;
+    metricValue: string;
+  };
 }

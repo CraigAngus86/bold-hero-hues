@@ -1,88 +1,59 @@
 
 import React from 'react';
-import { StatusSummary } from './StatusSummary';
+import { Database, Server, HardDrive, LineChart } from 'lucide-react';
 import { EnhancedSystemStatus } from './EnhancedSystemStatus';
-import { EventsCalendar } from './EventsCalendar';
-import { contentStatusItems, mockEvents } from './mockData';
-import { Database } from 'lucide-react';
-import { toast } from 'sonner';
-import { SystemStatusData, SystemStatusItemProps } from '@/types/system';
+import { useSystemStatus } from '@/hooks/useSystemStatus';
+import { SystemStatusItemProps } from '@/types/system';
 
-interface StatusItemsProps {
-  systemStatus: SystemStatusData | undefined;
-  isSystemStatusLoading: boolean;
-  systemStatusUpdatedAt: number;
-  refetchSystemStatus: () => void;
-}
-
-export const StatusItems: React.FC<StatusItemsProps> = ({
-  systemStatus,
-  isSystemStatusLoading,
-  systemStatusUpdatedAt,
-  refetchSystemStatus
-}) => {
-  // Convert system status data to the format expected by EnhancedSystemStatus
-  const systemStatusItems: SystemStatusItemProps[] = systemStatus ? [
-    {
-      name: 'Database Connection',
-      status: systemStatus.database.status,
-      lastChecked: systemStatus.database.lastChecked,
-      icon: <Database className="h-4 w-4" />,
-      tooltip: 'Status of the connection to the database'
-    },
-    {
-      name: 'API Services',
-      status: systemStatus.api.status,
-      lastChecked: systemStatus.api.lastChecked,
-      metricValue: systemStatus.api.metricValue,
-      tooltip: 'Status of the API services'
-    },
-    {
-      name: 'Content Service',
-      status: systemStatus.content.status,
-      lastChecked: systemStatus.content.lastChecked,
-      metricValue: systemStatus.content.metricValue,
-      tooltip: 'Status of the content service'
-    },
-    {
-      name: 'Upload Storage',
-      status: systemStatus.uploads.status,
-      lastChecked: systemStatus.uploads.lastChecked,
-      metricValue: systemStatus.uploads.metricValue,
-      tooltip: 'Status of the upload storage service'
-    }
-  ] : [];
-
-  const handleCalendarRefresh = () => {
-    toast.info('Calendar refreshed');
-  };
+export const StatusItems: React.FC = () => {
+  const { status, isLoading, lastUpdated, refresh } = useSystemStatus();
+  
+  const systemItems: SystemStatusItemProps[] = React.useMemo(() => {
+    if (!status) return [];
+    
+    return [
+      {
+        name: 'Database',
+        status: status.database.status as 'healthy' | 'degraded' | 'error' | 'unknown',
+        lastChecked: status.database.lastChecked,
+        icon: <Database className="h-5 w-5 text-blue-500" />,
+        metricValue: status.database.metricValue,
+        tooltip: 'Supabase connection and performance'
+      },
+      {
+        name: 'API Server',
+        status: status.api.status as 'healthy' | 'degraded' | 'error' | 'unknown',
+        lastChecked: status.api.lastChecked,
+        icon: <Server className="h-5 w-5 text-green-500" />,
+        metricValue: status.api.metricValue,
+        tooltip: 'API response times and availability'
+      },
+      {
+        name: 'Content Delivery',
+        status: status.content.status as 'healthy' | 'degraded' | 'error' | 'unknown',
+        lastChecked: status.content.lastChecked,
+        icon: <LineChart className="h-5 w-5 text-purple-500" />,
+        metricValue: status.content.metricValue,
+        tooltip: 'Content delivery statistics and performance'
+      },
+      {
+        name: 'Storage',
+        status: status.uploads.status as 'healthy' | 'degraded' | 'error' | 'unknown',
+        lastChecked: status.uploads.lastChecked,
+        icon: <HardDrive className="h-5 w-5 text-amber-500" />,
+        metricValue: status.uploads.metricValue,
+        tooltip: 'Storage usage and availability'
+      }
+    ];
+  }, [status]);
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mt-6">
-      <div className="lg:col-span-1">
-        <StatusSummary 
-          items={contentStatusItems} 
-          title="Content Status" 
-          viewAllLink="/admin/settings"
-        />
-      </div>
-      
-      <div className="lg:col-span-1">
-        <EnhancedSystemStatus 
-          systems={systemStatusItems} 
-          isLoading={isSystemStatusLoading}
-          lastUpdated={isSystemStatusLoading ? null : new Date(systemStatusUpdatedAt)}
-          onRefresh={refetchSystemStatus}
-        />
-      </div>
-      
-      <div className="lg:col-span-1">
-        <EventsCalendar 
-          events={mockEvents}
-          onRefresh={handleCalendarRefresh}
-        />
-      </div>
-    </div>
+    <EnhancedSystemStatus
+      systems={systemItems}
+      isLoading={isLoading}
+      lastUpdated={lastUpdated}
+      onRefresh={refresh}
+    />
   );
 };
 

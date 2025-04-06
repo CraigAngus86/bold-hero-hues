@@ -9,7 +9,14 @@ import './index.css';
 import { registerFixtureHooks } from './services/fixturesUpdateService';
 
 // Create a new QueryClient instance
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 300000, // 5 minutes
+    },
+  },
+});
 
 // Initialize fixture update service
 registerFixtureHooks().catch(error => {

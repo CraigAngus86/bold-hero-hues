@@ -1,54 +1,40 @@
 
-// Format date for display (e.g., "Sat, 11 Jun")
-export const formatMatchDate = (dateStr: string): string => {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('en-GB', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short'
-  });
+import { Match } from '@/components/fixtures/types';
+import { format, parseISO } from 'date-fns';
+
+/**
+ * Format a match date into a readable format
+ */
+export const formatMatchDate = (dateString: string): string => {
+  try {
+    const date = parseISO(dateString);
+    return format(date, 'EEE, d MMM yyyy');
+  } catch (error) {
+    console.error('Error formatting date:', dateString, error);
+    return dateString;
+  }
 };
 
-// Check if the provided team is Banks o' Dee
-export const isBanksODee = (team: string): boolean => {
-  return team.toLowerCase().includes('banks') && team.toLowerCase().includes('dee');
+/**
+ * Check if a team in a match is Banks o' Dee
+ */
+export const isBanksODee = (teamName: string): boolean => {
+  return teamName.toLowerCase().includes('banks o') || 
+         teamName.toLowerCase().includes("banks o'") ||
+         teamName.toLowerCase().includes('banks-o');
 };
 
-// Format date for display with year (e.g., "11 Jun 2025")
-export const formatDateWithYear = (dateStr: string): string => {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric'
-  });
-};
-
-// Format currency for display
-export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('en-GB', {
-    style: 'currency',
-    currency: 'GBP'
-  }).format(amount);
-};
-
-// Format date range (e.g., "Jun 2023 - Present")
-export const formatDateRange = (startDate: string, endDate?: string): string => {
-  const start = new Date(startDate);
-  const startFormatted = start.toLocaleDateString('en-GB', {
-    month: 'short',
-    year: 'numeric'
-  });
-  
-  if (!endDate) {
-    return `${startFormatted} - Present`;
+/**
+ * Get the score as a string
+ */
+export const getScoreDisplay = (match: Match): string => {
+  if (!match.isCompleted) {
+    return 'vs';
   }
   
-  const end = new Date(endDate);
-  const endFormatted = end.toLocaleDateString('en-GB', {
-    month: 'short',
-    year: 'numeric'
-  });
+  if (match.homeScore !== undefined && match.awayScore !== undefined) {
+    return `${match.homeScore} - ${match.awayScore}`;
+  }
   
-  return `${startFormatted} - ${endFormatted}`;
+  return 'vs';
 };

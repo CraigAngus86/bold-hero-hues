@@ -1,28 +1,6 @@
 
-// The conflicting Match import should be removed and adapted to use our own Match type
-import { Match as OriginalMatch } from '@/components/fixtures/types';
-
-export interface Fixture {
-  id: string;
-  home_team: string;
-  away_team: string;
-  date: string;
-  time: string;
-  venue: string;
-  competition: string;
-  season: string;
-  is_completed: boolean;
-  home_score?: number;
-  away_score?: number;
-  ticket_link?: string;
-  source?: string;
-  import_date: string;
-  created_at: string;
-  updated_at: string;
-  match_report?: string;
-  attendance?: number;
-  referee?: string;
-}
+// This file contains all the types for the fixtures feature
+// to ensure consistent typing across the application
 
 export interface TeamStats {
   id: string;
@@ -36,141 +14,109 @@ export interface TeamStats {
   goalsAgainst: number;
   goalDifference: number;
   points: number;
-  form?: string[];
-  logo?: string;
+  form: string;
+  last_updated?: string;
 }
 
-export interface Competition {
+export interface Fixture {
   id: string;
-  name: string;
-  abbreviation?: string;
-  type: 'league' | 'cup' | 'friendly';
-  season_id?: string;
-}
-
-export interface Venue {
-  id: string;
-  name: string;
-  address?: string;
-  capacity?: number;
-  coordinates?: {
-    latitude: number;
-    longitude: number;
-  };
-}
-
-export interface Season {
-  id: string;
-  name: string;
-  start_date: string;
-  end_date: string;
-  is_current: boolean;
-}
-
-export interface FixtureFilter {
-  season?: string;
-  competition?: string;
-  team?: string;
-  dateFrom?: string;
-  dateTo?: string;
-  status?: 'all' | 'upcoming' | 'completed';
-}
-
-// Define the database fixture type
-export interface DBFixture {
-  id: string;
-  home_team: string;
-  away_team: string;
   date: string;
   time: string;
-  venue: string;
+  home_team: string;
+  away_team: string;
   competition: string;
+  venue: string;
   season: string;
   is_completed: boolean;
   home_score?: number;
   away_score?: number;
   ticket_link?: string;
-  source?: string;
   import_date: string;
   created_at: string;
   updated_at: string;
+  is_next_match?: boolean;
+  is_latest_result?: boolean;
+  date_passed: boolean;
   match_report?: string;
   attendance?: number;
   referee?: string;
 }
 
-// Define the frontend Match type as used in components
-export interface Match {
-  id: string;
-  date: string;
-  time: string;
-  homeTeam: string;
-  awayTeam: string;
-  competition: string;
-  venue: string;
-  isCompleted: boolean;
-  homeScore?: number;
-  awayScore?: number;
-  season?: string;
-  ticketLink?: string;
-  source?: string;
-  match_report?: string;
-  attendance?: number;
-  referee?: string;
-  media?: MatchMedia[];
-  hasMatchPhotos?: boolean;
+export interface FixtureExtended extends Fixture {
+  matchStats?: Record<string, any>;
+  media?: FixtureMedia[];
 }
 
-export interface MatchMedia {
+export interface FixtureMedia {
   id: string;
-  matchId: string;
-  type: 'image' | 'video';
+  fixture_id: string;
   url: string;
+  type: 'image' | 'video';
   caption?: string;
-  isFeatured?: boolean;
-  dateAdded: string;
-  addedBy?: string;
   credit?: string;
-  tags?: string[];
+  is_featured?: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
-// Define scraped fixture interface for external data sources
 export interface ScrapedFixture {
+  date: string;
+  time?: string;
   home_team: string;
   away_team: string;
-  date: string;
-  time: string;
-  venue?: string;
   competition: string;
+  venue?: string;
   is_completed: boolean;
   home_score?: number;
   away_score?: number;
-  source?: string;
-  match_report_url?: string;
   season?: string;
-  external_id?: string;
+  source?: string;
 }
 
-/**
- * Converts database fixtures to frontend Match format
- */
-export function convertToMatches(fixtures: (DBFixture | ScrapedFixture)[]): OriginalMatch[] {
+export interface ImportResult {
+  success: boolean;
+  message: string;
+  added: number;
+  updated: number;
+  valid?: boolean;
+  validFixtures?: ScrapedFixture[];
+}
+
+export interface DBFixture {
+  id: string;
+  date: string;
+  time: string;
+  home_team: string;
+  away_team: string;
+  competition: string;
+  venue: string;
+  is_completed: boolean;
+  home_score?: number;
+  away_score?: number;
+  season: string;
+  ticket_link?: string;
+  import_date: string;
+  created_at: string;
+  updated_at: string;
+  is_next_match?: boolean;
+  is_latest_result?: boolean;
+  date_passed: boolean;
+}
+
+// Helper functions for conversion between different formats
+export function convertToMatches(fixtures: DBFixture[] | ScrapedFixture[]): any[] {
   return fixtures.map(fixture => ({
-    id: 'id' in fixture ? fixture.id : `temp-${Math.random().toString(36).substring(2, 11)}`,
+    id: 'id' in fixture ? fixture.id : `temp-${Math.random().toString(36).substr(2, 9)}`,
     date: fixture.date,
-    time: fixture.time,
+    time: 'time' in fixture ? fixture.time : '',
     homeTeam: fixture.home_team,
     awayTeam: fixture.away_team,
     competition: fixture.competition,
-    venue: fixture.venue || 'Unknown',
+    venue: fixture.venue || 'TBD',
     isCompleted: fixture.is_completed,
     homeScore: fixture.home_score,
     awayScore: fixture.away_score,
-    season: 'season' in fixture ? fixture.season : undefined,
-    ticketLink: 'ticket_link' in fixture ? fixture.ticket_link : undefined,
-    source: fixture.source,
-    match_report: 'match_report' in fixture ? fixture.match_report : undefined,
-    attendance: 'attendance' in fixture ? fixture.attendance : undefined,
-    referee: 'referee' in fixture ? fixture.referee : undefined,
+    season: 'season' in fixture ? fixture.season : '',
+    ticketLink: 'ticket_link' in fixture ? fixture.ticket_link : undefined
   }));
 }

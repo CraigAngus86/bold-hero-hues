@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format, parseISO } from 'date-fns';
 import { ExternalLink, MapPin, Calendar, Clock, Trophy } from 'lucide-react';
-import { Fixture } from '@/types';
+import { Fixture } from '@/types/fixtures';
 
 interface FixturePreviewProps {
   fixture: Fixture;

@@ -1,93 +1,118 @@
 
-import { Trophy, MapPin, Calendar, Clock, Users } from 'lucide-react';
-import { Match, formatDate } from './types';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { format, parseISO } from 'date-fns';
+import { Match } from './types';
+import { Badge } from '@/components/ui/badge';
+import { ExternalLink } from 'lucide-react';
 
 interface MatchCardProps {
   match: Match;
+  highlightTeam?: string;
+  showTicketButton?: boolean;
+  showPhotos?: boolean;
 }
 
-const MatchCard = ({ match }: MatchCardProps) => {
-  const isBanksODee = (team: string) => {
-    return team.toLowerCase().includes('banks') || team.toLowerCase().includes('dee');
-  };
+// Helper to format the date
+const formatDate = (dateString: string): string => {
+  try {
+    const date = parseISO(dateString);
+    return format(date, 'EEE, d MMM yyyy');
+  } catch (error) {
+    return dateString;
+  }
+};
+
+const MatchCard: React.FC<MatchCardProps> = ({
+  match,
+  highlightTeam = "Banks o' Dee",
+  showTicketButton = true,
+  showPhotos = false,
+}) => {
+  const isHighlightedHome = match.homeTeam.includes(highlightTeam);
+  const isHighlightedAway = match.awayTeam.includes(highlightTeam);
   
-  const isHomeWin = match.isCompleted && match.homeScore !== undefined && match.awayScore !== undefined && match.homeScore > match.awayScore;
-  const isAwayWin = match.isCompleted && match.homeScore !== undefined && match.awayScore !== undefined && match.homeScore < match.awayScore;
-  const isDraw = match.isCompleted && match.homeScore !== undefined && match.awayScore !== undefined && match.homeScore === match.awayScore;
+  // Score or vs display
+  const scoreDisplay = match.isCompleted 
+    ? `${match.homeScore} - ${match.awayScore}`
+    : 'vs';
   
-  const banksIsHome = isBanksODee(match.homeTeam);
-  const banksIsAway = isBanksODee(match.awayTeam);
-  
-  const banksWon = (banksIsHome && isHomeWin) || (banksIsAway && isAwayWin);
-  const banksLost = (banksIsHome && isAwayWin) || (banksIsAway && isHomeWin);
-  
-  const resultClass = match.isCompleted
-    ? banksWon
-      ? 'bg-green-100 border-green-300'
-      : banksLost
-        ? 'bg-red-50 border-red-200'
-        : isDraw
-          ? 'bg-yellow-50 border-yellow-200'
-          : 'bg-white border-gray-200'
-    : 'bg-white border-gray-200';
+  // Determine result class for highlighted team if completed
+  let resultClass = '';
+  if (match.isCompleted && (isHighlightedHome || isHighlightedAway)) {
+    if (match.homeScore === match.awayScore) {
+      resultClass = 'border-yellow-300';
+    } else if ((isHighlightedHome && match.homeScore > match.awayScore) || 
+               (isHighlightedAway && match.awayScore > match.homeScore)) {
+      resultClass = 'border-green-300';
+    } else {
+      resultClass = 'border-red-300';
+    }
+  }
   
   return (
-    <div className={`rounded-lg ${resultClass} border p-4 shadow-sm transition-all hover:shadow-md`}>
-      <div className="flex flex-wrap items-center justify-between gap-2 text-sm mb-3">
-        <div className="flex items-center space-x-1.5 text-gray-600">
-          <Calendar className="h-3.5 w-3.5" />
-          <span>{formatDate(match.date)}</span>
-        </div>
-        
-        <div className="flex items-center space-x-1.5">
-          <Trophy className="h-3.5 w-3.5 text-team-blue" />
-          <span className="font-medium text-gray-700">{match.competition}</span>
-        </div>
+    <div className={`bg-white rounded-lg shadow-sm border-l-4 ${resultClass} overflow-hidden`}>
+      {/* Competition & Date Banner */}
+      <div className="bg-gray-50 px-4 py-2 flex justify-between items-center border-b">
+        <Badge variant="outline" className="text-xs font-medium">
+          {match.competition}
+        </Badge>
+        <span className="text-xs text-gray-500">{formatDate(match.date)}</span>
       </div>
       
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex-1 text-right pr-3">
-          <div className={`font-medium text-lg ${banksIsHome ? 'text-team-blue font-semibold' : 'text-gray-800'}`}>
+      {/* Teams & Score */}
+      <div className="p-4">
+        {/* Teams */}
+        <div className="flex items-center justify-between mb-4">
+          <div className={`text-right flex-1 ${isHighlightedHome ? 'font-bold' : ''}`}>
             {match.homeTeam}
           </div>
-        </div>
-        
-        <div className="flex items-center justify-center space-x-2">
-          {match.isCompleted ? (
-            <div className="bg-white rounded-md border border-gray-300 shadow-sm px-3 py-1 min-w-[70px] text-center">
-              <span className={`text-xl font-bold ${banksWon ? 'text-green-600' : banksLost ? 'text-red-500' : 'text-gray-700'}`}>
-                {match.homeScore} - {match.awayScore}
-              </span>
-            </div>
-          ) : (
-            <div className="rounded-md bg-blue-50 border border-blue-200 px-3 py-1 min-w-[70px] text-center">
-              <span className="font-medium text-blue-800">
-                {match.time}
-              </span>
-            </div>
-          )}
-        </div>
-        
-        <div className="flex-1 pl-3">
-          <div className={`font-medium text-lg ${banksIsAway ? 'text-team-blue font-semibold' : 'text-gray-800'}`}>
+          
+          <div className="mx-4 text-center">
+            <span className={`inline-block px-3 py-1 ${match.isCompleted ? 'font-bold text-lg' : 'text-sm text-gray-500'}`}>
+              {scoreDisplay}
+            </span>
+            {match.time && !match.isCompleted && (
+              <div className="text-xs text-gray-400 mt-1">{match.time}</div>
+            )}
+          </div>
+          
+          <div className={`text-left flex-1 ${isHighlightedAway ? 'font-bold' : ''}`}>
             {match.awayTeam}
           </div>
         </div>
+        
+        {/* Venue */}
+        <div className="text-xs text-gray-500 text-center">
+          {match.venue}
+        </div>
       </div>
       
-      <div className="flex flex-wrap justify-between text-xs text-gray-500">
-        <div className="flex items-center space-x-1">
-          <MapPin className="h-3 w-3" />
-          <span>{match.venue}</span>
+      {/* Actions */}
+      {(showTicketButton && match.ticketLink && !match.isCompleted) || 
+       (showPhotos && match.hasMatchPhotos) ? (
+        <div className="px-4 py-2 bg-gray-50 border-t flex justify-center">
+          {showTicketButton && match.ticketLink && !match.isCompleted && (
+            <a 
+              href={match.ticketLink} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-xs text-blue-600 hover:text-blue-800 flex items-center mr-4"
+            >
+              Buy Tickets <ExternalLink className="h-3 w-3 ml-1" />
+            </a>
+          )}
+          
+          {showPhotos && match.hasMatchPhotos && (
+            <Link 
+              to={`/media/match/${match.id}`}
+              className="text-xs text-blue-600 hover:text-blue-800"
+            >
+              View Photos
+            </Link>
+          )}
         </div>
-        
-        {!match.isCompleted && (
-          <div className="flex items-center space-x-1">
-            <Clock className="h-3 w-3" />
-            <span>Kick-off: {match.time}</span>
-          </div>
-        )}
-      </div>
+      ) : null}
     </div>
   );
 };

@@ -1,9 +1,10 @@
+
 import { TeamStats, mockLeagueData, fullMockLeagueData } from '@/components/league/types';
 import { mockMatches } from '@/components/fixtures/fixturesMockData';
 import { getApiConfig } from './config/apiConfig';
 import { convertToMatches } from '@/types/fixtures';
 import { Match } from '@/components/fixtures/types';
-import { supabase } from '@/services/supabase/supabaseClient';
+import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 // This file provides both real API calls and fallback mock data for Highland League information

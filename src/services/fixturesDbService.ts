@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Fixture, DBFixture, convertToMatches } from '@/types/fixtures';
+import { Fixture, convertToMatches } from '@/types/fixtures';
 import { toast } from 'sonner';
 
 /**
@@ -85,7 +85,7 @@ export async function getFixtureById(id: string): Promise<Fixture | null> {
 
     if (error) throw error;
 
-    const fixtures = convertToMatches([data as DBFixture]);
+    const fixtures = convertToMatches([data as Fixture]);
     return fixtures[0];
   } catch (error) {
     console.error(`Failed to load fixture details for ID: ${id}`, error);

@@ -1,5 +1,5 @@
 
-import { ScrapedFixture, DBFixture } from '@/types/fixtures';
+import { Fixture, ScrapedFixture } from '@/types/fixtures';
 
 export interface ImportResult {
   success: boolean;

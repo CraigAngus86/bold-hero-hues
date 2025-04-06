@@ -1,6 +1,5 @@
-
 import { supabase } from '@/services/supabase/supabaseClient';
-import { Fixture, DBFixture, convertToMatches } from '@/types/fixtures';
+import { Fixture as DBFixture, convertToMatches } from '@/types/fixtures'; 
 import { handleDbOperation, DbServiceResponse } from './utils/dbService';
 
 /**
@@ -9,7 +8,7 @@ import { handleDbOperation, DbServiceResponse } from './utils/dbService';
 export async function getAllFixtures(options?: {
   season?: string;
   competition?: string;
-}): Promise<DbServiceResponse<Fixture[]>> {
+}): Promise<DbServiceResponse<DBFixture[]>> {
   return handleDbOperation(
     async () => {
       let query = supabase
@@ -31,7 +30,7 @@ export async function getAllFixtures(options?: {
 
       if (error) throw error;
 
-      return convertToMatches(data as DBFixture[]);
+      return data as DBFixture[];
     },
     'Failed to load fixtures'
   );
@@ -107,7 +106,7 @@ export async function getFixtureById(id: string): Promise<DbServiceResponse<Fixt
 /**
  * Create a new fixture
  */
-export async function createFixture(fixtureData: Omit<DBFixture, 'id' | 'created_at' | 'updated_at'>): Promise<DbServiceResponse<Fixture>> {
+export async function createFixture(fixtureData: Omit<DBFixture, 'id' | 'created_at' | 'updated_at'>): Promise<DbServiceResponse<DBFixture>> {
   return handleDbOperation(
     async () => {
       const { data, error } = await supabase
@@ -118,8 +117,7 @@ export async function createFixture(fixtureData: Omit<DBFixture, 'id' | 'created
 
       if (error) throw error;
 
-      const fixtures = convertToMatches([data as DBFixture]);
-      return fixtures[0];
+      return data as DBFixture;
     },
     'Failed to create fixture'
   );

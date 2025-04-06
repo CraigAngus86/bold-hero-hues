@@ -33,20 +33,20 @@ const RecentResultsList: React.FC<RecentResultsProps> = ({
                 </div>
                 <div className="flex items-center">
                   <div className="flex-1 text-right pr-3">
-                    <span className={`font-medium ${isBanksODee(result.homeTeam) ? 'text-team-blue' : ''}`}>
-                      {result.homeTeam}
+                    <span className={`font-medium ${isBanksODee(result.home_team) ? 'text-team-blue' : ''}`}>
+                      {result.home_team}
                     </span>
                   </div>
                   
                   <div className="flex items-center justify-center space-x-3 font-bold">
-                    <span className="bg-team-lightBlue text-team-blue px-2 py-1 rounded-sm min-w-[24px] text-center">{result.homeScore}</span>
+                    <span className="bg-team-lightBlue text-team-blue px-2 py-1 rounded-sm min-w-[24px] text-center">{result.home_score}</span>
                     <span className="text-xs">-</span>
-                    <span className="bg-team-lightBlue text-team-blue px-2 py-1 rounded-sm min-w-[24px] text-center">{result.awayScore}</span>
+                    <span className="bg-team-lightBlue text-team-blue px-2 py-1 rounded-sm min-w-[24px] text-center">{result.away_score}</span>
                   </div>
                   
                   <div className="flex-1 pl-3">
-                    <span className={`font-medium ${isBanksODee(result.awayTeam) ? 'text-team-blue' : ''}`}>
-                      {result.awayTeam}
+                    <span className={`font-medium ${isBanksODee(result.away_team) ? 'text-team-blue' : ''}`}>
+                      {result.away_team}
                     </span>
                   </div>
                 </div>

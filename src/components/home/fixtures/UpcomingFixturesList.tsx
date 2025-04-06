@@ -32,8 +32,8 @@ const UpcomingFixturesList: React.FC<UpcomingFixturesProps> = ({
               </div>
               <div className="flex items-center">
                 <div className="flex-1 text-right pr-3">
-                  <span className={`font-medium ${isBanksODee(fixture.homeTeam) ? 'text-team-blue' : ''}`}>
-                    {fixture.homeTeam}
+                  <span className={`font-medium ${isBanksODee(fixture.home_team) ? 'text-team-blue' : ''}`}>
+                    {fixture.home_team}
                   </span>
                 </div>
                 
@@ -44,8 +44,8 @@ const UpcomingFixturesList: React.FC<UpcomingFixturesProps> = ({
                 </div>
                 
                 <div className="flex-1 pl-3">
-                  <span className={`font-medium ${isBanksODee(fixture.awayTeam) ? 'text-team-blue' : ''}`}>
-                    {fixture.awayTeam}
+                  <span className={`font-medium ${isBanksODee(fixture.away_team) ? 'text-team-blue' : ''}`}>
+                    {fixture.away_team}
                   </span>
                 </div>
               </div>

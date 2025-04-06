@@ -1,7 +1,6 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Match } from '@/components/fixtures/types';
-import { convertToMatches, ScrapedFixture, DBFixture } from '@/types/fixtures';
+import { convertToMatches, Fixture, ScrapedFixture } from '@/types/fixtures';
 import { ImportResult } from './types';
 import { toast } from 'sonner';
 

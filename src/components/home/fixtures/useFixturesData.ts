@@ -21,13 +21,13 @@ export const useFixturesData = () => {
           
           // Filter for upcoming fixtures (not completed and date is in the future)
           const upcoming = response.data
-            .filter(fixture => !fixture.isCompleted && new Date(fixture.date) >= today)
+            .filter(fixture => !fixture.is_completed && new Date(fixture.date) >= today)
             .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
             .slice(0, 4);
           
           // Filter for recent results (completed)
           const recent = response.data
-            .filter(fixture => fixture.isCompleted)
+            .filter(fixture => fixture.is_completed)
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
             .slice(0, 3);
           

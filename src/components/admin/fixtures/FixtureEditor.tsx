@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -124,8 +125,8 @@ const FixtureEditor: React.FC<FixtureEditorProps> = ({ fixtureId, onSave, onCanc
         if (error) throw error;
         
         if (data) {
-          // Check if match_report exists in the data
-          const match_report = 'match_report' in data ? data.match_report : '';
+          // Convert match_report to string safely
+          const matchReport = data.match_report ? String(data.match_report) : '';
           
           form.reset({
             date: data.date,
@@ -139,7 +140,7 @@ const FixtureEditor: React.FC<FixtureEditorProps> = ({ fixtureId, onSave, onCanc
             away_score: data.away_score,
             ticket_link: data.ticket_link || '',
             season: data.season || '2024-2025',
-            match_report: match_report || '',
+            match_report: matchReport,
           });
         }
       } catch (error) {

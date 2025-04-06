@@ -1,9 +1,10 @@
 
+import React from 'react';
 import { useImageManager } from './ImageManagerContext';
 import FolderGrid from './FolderGrid';
 import ImagesGrid from './ImagesGrid';
 
-const ContentGrid = () => {
+const ContentGrid: React.FC = () => {
   const { 
     subfolders, 
     images, 
@@ -23,8 +24,8 @@ const ContentGrid = () => {
       {/* Display Images */}
       <ImagesGrid 
         images={images} 
-        getImageUrl={getImageUrl}
-        onImageClick={viewImage}
+        getImageUrl={(name) => getImageUrl(name)}
+        onImageClick={(name) => viewImage(getImageUrl(name))}
       />
     </div>
   );

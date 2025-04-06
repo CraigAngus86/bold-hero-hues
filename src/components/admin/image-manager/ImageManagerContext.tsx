@@ -7,16 +7,27 @@ import { toast } from 'sonner';
 interface ImageManagerContextType {
   folders: ImageFolder[];
   currentFolder: ImageFolder | null;
+  subfolders: ImageFolder[];
   images: ImageMetadata[];
-  selectedImage: ImageMetadata | null;
+  breadcrumbs: Array<{ id: string; name: string; path: string }>;
   isLoading: boolean;
   isLoadingImages: boolean;
-  loadFolders: () => Promise<void>;
-  loadImagesForFolder: (folderId: string) => Promise<void>;
+  isUploading: boolean;
+  selectedImage: ImageMetadata | null;
+  newFolderDialogOpen: boolean;
+  imageDialogOpen: boolean;
+  setNewFolderDialogOpen: (open: boolean) => void;
+  setImageDialogOpen: (open: boolean) => void;
   selectFolder: (folder: ImageFolder | null) => void;
   selectImage: (image: ImageMetadata | null) => void;
   createFolder: (name: string, parentId?: string) => Promise<ImageFolder | null>;
   refreshImages: () => Promise<void>;
+  navigateToFolder: (folder: ImageFolder) => void;
+  navigateUp: () => void;
+  navigateToBreadcrumb: (path: string) => void;
+  handleFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  getImageUrl: (fileName: string) => string;
+  viewImage: (url: string) => void;
 }
 
 const ImageManagerContext = createContext<ImageManagerContextType | undefined>(undefined);
@@ -36,42 +47,83 @@ interface ImageManagerProviderProps {
 export function ImageManagerProvider({ children }: ImageManagerProviderProps) {
   const [folders, setFolders] = useState<ImageFolder[]>([]);
   const [currentFolder, setCurrentFolder] = useState<ImageFolder | null>(null);
+  const [subfolders, setSubfolders] = useState<ImageFolder[]>([]);
   const [images, setImages] = useState<ImageMetadata[]>([]);
+  const [breadcrumbs, setBreadcrumbs] = useState<Array<{ id: string; name: string; path: string }>>([]);
   const [selectedImage, setSelectedImage] = useState<ImageMetadata | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingImages, setIsLoadingImages] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [newFolderDialogOpen, setNewFolderDialogOpen] = useState(false);
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
 
   const loadFolders = useCallback(async () => {
     setIsLoading(true);
     try {
       const folderData = await getImageFolders();
       setFolders(folderData);
+      
+      // Set root folder if no current folder
+      if (!currentFolder && folderData.length > 0) {
+        const rootFolder = folderData.find(f => !f.parent_id) || folderData[0];
+        setCurrentFolder(rootFolder);
+        
+        // Set subfolders
+        const childFolders = folderData.filter(f => f.parent_id === rootFolder.id);
+        setSubfolders(childFolders);
+        
+        // Set breadcrumbs
+        setBreadcrumbs([{ id: rootFolder.id, name: rootFolder.name, path: rootFolder.path }]);
+      }
     } catch (error) {
       console.error('Error fetching folders:', error);
       toast.error('Failed to load image folders');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [currentFolder]);
 
   const selectFolder = useCallback((folder: ImageFolder | null) => {
     setCurrentFolder(folder);
     setSelectedImage(null);
     
     if (folder) {
-      loadImagesForFolder(folder.id);
+      // Find subfolders
+      const childFolders = folders.filter(f => f.parent_id === folder.id);
+      setSubfolders(childFolders);
+      
+      // Update breadcrumbs
+      const folderPath = folder.path.split('/').filter(Boolean);
+      const newBreadcrumbs = [{ id: 'root', name: 'Root', path: '/' }];
+      
+      let currentPath = '';
+      for (let i = 0; i < folderPath.length; i++) {
+        const pathPart = folderPath[i];
+        currentPath += `/${pathPart}`;
+        
+        const matchingFolder = folders.find(f => f.path === currentPath);
+        if (matchingFolder) {
+          newBreadcrumbs.push({
+            id: matchingFolder.id,
+            name: matchingFolder.name,
+            path: matchingFolder.path
+          });
+        }
+      }
+      
+      setBreadcrumbs(newBreadcrumbs);
+      loadImagesForFolder(folder.path);
     } else {
+      setSubfolders([]);
+      setBreadcrumbs([]);
       setImages([]);
     }
-  }, []);
+  }, [folders]);
 
-  const loadImagesForFolder = useCallback(async (folderId: string) => {
-    const folder = folders.find(f => f.id === folderId);
-    if (!folder) return;
-
+  const loadImagesForFolder = useCallback(async (folderPath: string) => {
     setIsLoadingImages(true);
     try {
-      const imageData = await getImagesByFolder(folder.path);
+      const imageData = await getImagesByFolder(folderPath);
       setImages(imageData);
     } catch (error) {
       console.error('Error fetching images:', error);
@@ -79,10 +131,13 @@ export function ImageManagerProvider({ children }: ImageManagerProviderProps) {
     } finally {
       setIsLoadingImages(false);
     }
-  }, [folders]);
+  }, []);
 
   const selectImage = useCallback((image: ImageMetadata | null) => {
     setSelectedImage(image);
+    if (image) {
+      setImageDialogOpen(true);
+    }
   }, []);
 
   const createFolder = useCallback(async (name: string, parentId?: string): Promise<ImageFolder | null> => {
@@ -120,9 +175,57 @@ export function ImageManagerProvider({ children }: ImageManagerProviderProps) {
 
   const refreshImages = useCallback(async () => {
     if (currentFolder) {
-      await loadImagesForFolder(currentFolder.id);
+      await loadImagesForFolder(currentFolder.path);
     }
   }, [currentFolder, loadImagesForFolder]);
+
+  // Navigation functions
+  const navigateToFolder = useCallback((folder: ImageFolder) => {
+    selectFolder(folder);
+  }, [selectFolder]);
+
+  const navigateUp = useCallback(() => {
+    if (!currentFolder || !currentFolder.parent_id) return;
+    
+    const parentFolder = folders.find(f => f.id === currentFolder.parent_id);
+    if (parentFolder) {
+      selectFolder(parentFolder);
+    }
+  }, [currentFolder, folders, selectFolder]);
+
+  const navigateToBreadcrumb = useCallback((path: string) => {
+    const folder = folders.find(f => f.path === path);
+    if (folder) {
+      selectFolder(folder);
+    }
+  }, [folders, selectFolder]);
+
+  // File upload handler
+  const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!currentFolder || !event.target.files || event.target.files.length === 0) return;
+    
+    setIsUploading(true);
+    // Simulated upload - in a real app, you would call an API endpoint
+    setTimeout(() => {
+      setIsUploading(false);
+      toast.success(`${event.target.files!.length} files uploaded successfully`);
+      refreshImages();
+      event.target.value = '';
+    }, 1500);
+  }, [currentFolder, refreshImages]);
+
+  const getImageUrl = useCallback((fileName: string) => {
+    if (!currentFolder) return '';
+    return `${currentFolder.path}/${fileName}`;
+  }, [currentFolder]);
+
+  const viewImage = useCallback((url: string) => {
+    // Find the image by URL
+    const image = images.find(img => img.url === url);
+    if (image) {
+      selectImage(image);
+    }
+  }, [images, selectImage]);
 
   // Load folders when the provider mounts
   React.useEffect(() => {
@@ -132,16 +235,27 @@ export function ImageManagerProvider({ children }: ImageManagerProviderProps) {
   const value = {
     folders,
     currentFolder,
+    subfolders,
     images,
-    selectedImage,
+    breadcrumbs,
     isLoading,
     isLoadingImages,
-    loadFolders,
-    loadImagesForFolder,
+    isUploading,
+    selectedImage,
+    newFolderDialogOpen,
+    imageDialogOpen,
+    setNewFolderDialogOpen,
+    setImageDialogOpen,
     selectFolder,
     selectImage,
     createFolder,
-    refreshImages
+    refreshImages,
+    navigateToFolder,
+    navigateUp,
+    navigateToBreadcrumb,
+    handleFileUpload,
+    getImageUrl,
+    viewImage
   };
 
   return (

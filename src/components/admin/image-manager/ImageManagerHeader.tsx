@@ -2,11 +2,9 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { FolderPlus, Upload } from 'lucide-react';
-import { Input } from './Input';
 import { useImageManager } from './ImageManagerContext';
-import ImageUploadUtility from './ImageUploadUtility';
 
-const ImageManagerHeader = () => {
+const ImageManagerHeader: React.FC = () => {
   const { 
     currentFolder, 
     isUploading, 
@@ -62,9 +60,6 @@ const ImageManagerHeader = () => {
           )}
         </div>
       </div>
-      
-      {/* Site image upload utility */}
-      <ImageUploadUtility />
     </div>
   );
 };

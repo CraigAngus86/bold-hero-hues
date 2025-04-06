@@ -3,9 +3,9 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import LeagueTableContent from './league/LeagueTableContent';
-import { TeamStats } from './league/types';
-import { fetchLeagueTableFromSupabase, clearSupabaseCache } from '@/services/supabase/leagueDataService';
+import { fetchLeagueTableFromSupabase } from '@/services/supabase/leagueDataService';
 import { toast } from "sonner";
+import { TeamStats } from '@/types/fixtures';
 
 const LeagueTable = () => {
   const [leagueData, setLeagueData] = useState<TeamStats[]>([]);
@@ -15,8 +15,9 @@ const LeagueTable = () => {
   const loadLeagueData = async (refresh = false) => {
     try {
       if (refresh) {
-        // Clear the cache if refreshing
-        clearSupabaseCache();
+        // We'll handle cache clearing differently since the function doesn't exist
+        // For now we'll just refetch the data
+        console.log('Refreshing league data...');
       } else {
         setIsLoading(true);
       }

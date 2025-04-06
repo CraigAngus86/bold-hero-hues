@@ -32,7 +32,7 @@ export const useFixturesDisplay = () => {
   
   // Set next match with tickets info
   useEffect(() => {
-    if (nextMatch && nextMatch.ticketLink) {
+    if (nextMatch && nextMatch.ticket_link) {
       setNextMatchWithTickets({
         ...nextMatch,
         hasTickets: true

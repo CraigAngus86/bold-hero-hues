@@ -46,6 +46,29 @@ export const getLastUpdateTime = async (): Promise<string | null> => {
 };
 
 /**
+ * Clear the Supabase cache for league data
+ * This allows fresh data to be fetched
+ */
+export const clearSupabaseCache = async (): Promise<boolean> => {
+  try {
+    // Update the cache invalidation timestamp
+    const now = new Date().toISOString();
+    await supabase
+      .from('settings')
+      .upsert({ 
+        key: 'league_data_cache_invalidated', 
+        value: now 
+      }, { onConflict: 'key' });
+      
+    console.log('Supabase league data cache cleared at', now);
+    return true;
+  } catch (error) {
+    console.error('Error clearing Supabase cache:', error);
+    return false;
+  }
+};
+
+/**
  * Trigger a scrape of the league data
  */
 export const triggerLeagueDataScrape = async (): Promise<TeamStats[]> => {

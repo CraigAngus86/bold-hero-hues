@@ -31,6 +31,10 @@ export interface StoredImageMetadata {
   created_at: string;
   updated_at: string;
   created_by?: string;
+  name?: string;
+  type?: string;
+  size?: number;
+  url?: string;
 }
 
 // Define image dimensions type
@@ -40,23 +44,46 @@ export interface ImageDimensions {
 }
 
 // Define bucket types
-export type BucketType = 'images' | 'videos' | 'documents';
+export type BucketType = 'images' | 'videos' | 'documents' | 'avatars' | 'posts' | 'products' | 'general' | 'media' | 'sponsors' | 'players';
+
+// Image optimization options
+export interface ImageOptimizationOptions {
+  maxWidth?: number;
+  maxHeight?: number;
+  quality?: number;
+  format?: 'webp' | 'jpeg' | 'png';
+}
+
+// Define image upload config
+export interface ImageUploadConfig {
+  bucketName: string;
+  allowedTypes: string;
+  maxSizeMB: number;
+  bucket: BucketType;
+  optimizationOptions: ImageOptimizationOptions;
+}
 
 // Define image upload result
 export interface ImageUploadResult {
   success: boolean;
-  url?: string; // Added url property needed by components
   error?: string;
   metadata?: ImageMetadata;
+  data?: {
+    url: string;
+    [key: string]: any;
+  };
+  url?: string; // Added url property needed by components
 }
 
 // Define image upload options
 export interface UseImageUploadOptions {
   bucket: BucketType;
-  path?: string;
+  folderPath?: string;
   maxSize?: number; // in bytes
   allowedTypes?: string[];
   autoUpload?: boolean;
+  onSuccess?: (url: string) => void;
+  onError?: (error: Error) => void;
 }
 
 // Define image upload result
@@ -64,10 +91,22 @@ export interface UseImageUploadResult {
   selectedFile: File | null;
   preview: string | null;
   isUploading: boolean;
-  error: string | null;
+  uploading?: boolean; // Alias for backward compatibility
+  error: Error | null;
   progress: number;
+  uploadProgress?: number; // Alias for backward compatibility
   selectFile: (file: File) => void;
   uploadFile: (file: File) => Promise<ImageUploadResult>;
-  resetUpload: () => void;
   upload: (file: File) => Promise<string>; // Added for compatibility
+  resetUpload: () => void;
+  cancelUpload?: () => void;
+  resetState?: () => void;
+}
+
+// Define image folder type
+export interface ImageFolder {
+  id: string;
+  name: string;
+  path: string;
+  parentId: string | null;
 }

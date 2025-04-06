@@ -1,23 +1,25 @@
 
 import { create } from 'zustand';
-import { TeamMember, MemberType } from '@/types/team';
 import { persist } from 'zustand/middleware';
+import { TeamMember, MemberType } from '@/types/team';
 
 interface TeamStore {
   teamMembers: TeamMember[];
   loading: boolean;
   error: string | null;
   isLoading: boolean; // Added for compatibility with components
-  // Add these methods to the interface
-  addTeamMember: (member: Omit<TeamMember, 'id'>) => void;
-  updateTeamMember: (member: TeamMember) => void;
-  deleteTeamMember: (id: string) => void;
-  // Add required methods for team components
-  loadTeamMembers: () => void;
+  players: TeamMember[]; // For compatibility with components
+  
+  // Required methods for components
+  loadTeamMembers: () => Promise<void>;
   getPlayersByPosition: (position: string) => TeamMember[];
   getManagementStaff: () => TeamMember[];
   getOfficials: () => TeamMember[];
-  players: TeamMember[]; // For compatibility with components that use this property
+  
+  // CRUD operations
+  addTeamMember: (member: Omit<TeamMember, 'id'>) => Promise<void>;
+  updateTeamMember: (member: TeamMember) => Promise<void>;
+  deleteTeamMember: (id: string) => Promise<void>;
 }
 
 // Generate a random ID for team members
@@ -28,18 +30,26 @@ export const useTeamStore = create<TeamStore>()(
     (set, get) => ({
       teamMembers: [],
       loading: false,
+      isLoading: false,
       error: null,
-      isLoading: false, // Added for compatibility
       players: [], // Initialize empty array
-
-      loadTeamMembers: () => {
-        // This would normally fetch from API - for now just marks as loaded
-        set({ 
-          loading: false, 
-          isLoading: false,
-          // Set players for backward compatibility
-          players: get().teamMembers.filter(m => m.member_type === 'player')
-        });
+      
+      loadTeamMembers: async () => {
+        set({ loading: true, isLoading: true, error: null });
+        try {
+          // This would normally fetch from API or database
+          // For now, we're just using the data that's already in the store
+          const players = get().teamMembers.filter(m => m.member_type === 'player');
+          set({ 
+            loading: false, 
+            isLoading: false,
+            players
+          });
+          return Promise.resolve();
+        } catch (error) {
+          set({ error: 'Failed to load team members', loading: false, isLoading: false });
+          return Promise.reject(error);
+        }
       },
       
       getPlayersByPosition: (position) => {
@@ -58,41 +68,70 @@ export const useTeamStore = create<TeamStore>()(
         return get().teamMembers.filter(m => m.member_type === 'official');
       },
       
-      // Implement the existing methods
-      addTeamMember: (member) => set((state) => {
-        const newMember = { 
-          ...member, 
-          id: generateId(),
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-        const updatedMembers = [...state.teamMembers, newMember];
-        return { 
-          teamMembers: updatedMembers,
-          // Update players array for components using it directly
-          players: updatedMembers.filter(m => m.member_type === 'player')
-        };
-      }),
+      addTeamMember: async (member) => {
+        set({ loading: true, isLoading: true });
+        try {
+          const newMember = { 
+            ...member, 
+            id: generateId(),
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+          const updatedMembers = [...get().teamMembers, newMember];
+          const players = updatedMembers.filter(m => m.member_type === 'player');
+          
+          set({ 
+            teamMembers: updatedMembers,
+            players,
+            loading: false,
+            isLoading: false
+          });
+          return Promise.resolve();
+        } catch (error) {
+          set({ error: 'Failed to add team member', loading: false, isLoading: false });
+          return Promise.reject(error);
+        }
+      },
       
-      updateTeamMember: (member) => set((state) => {
-        const updatedMembers = state.teamMembers.map(m => 
-          m.id === member.id ? { ...member, updated_at: new Date().toISOString() } : m
-        );
-        return { 
-          teamMembers: updatedMembers,
-          // Update players array for components using it directly
-          players: updatedMembers.filter(m => m.member_type === 'player')
-        };
-      }),
+      updateTeamMember: async (member) => {
+        set({ loading: true, isLoading: true });
+        try {
+          const updatedMembers = get().teamMembers.map(m => 
+            m.id === member.id ? { ...member, updated_at: new Date().toISOString() } : m
+          );
+          const players = updatedMembers.filter(m => m.member_type === 'player');
+          
+          set({ 
+            teamMembers: updatedMembers,
+            players,
+            loading: false,
+            isLoading: false
+          });
+          return Promise.resolve();
+        } catch (error) {
+          set({ error: 'Failed to update team member', loading: false, isLoading: false });
+          return Promise.reject(error);
+        }
+      },
       
-      deleteTeamMember: (id) => set((state) => {
-        const updatedMembers = state.teamMembers.filter(m => m.id !== id);
-        return { 
-          teamMembers: updatedMembers,
-          // Update players array for components using it directly
-          players: updatedMembers.filter(m => m.member_type === 'player')
-        };
-      }),
+      deleteTeamMember: async (id) => {
+        set({ loading: true, isLoading: true });
+        try {
+          const updatedMembers = get().teamMembers.filter(m => m.id !== id);
+          const players = updatedMembers.filter(m => m.member_type === 'player');
+          
+          set({ 
+            teamMembers: updatedMembers,
+            players,
+            loading: false,
+            isLoading: false
+          });
+          return Promise.resolve();
+        } catch (error) {
+          set({ error: 'Failed to delete team member', loading: false, isLoading: false });
+          return Promise.reject(error);
+        }
+      }
     }),
     {
       name: 'team-storage',
@@ -100,3 +139,6 @@ export const useTeamStore = create<TeamStore>()(
     }
   )
 );
+
+// Re-export TeamMember and MemberType for compatibility
+export type { TeamMember, MemberType };

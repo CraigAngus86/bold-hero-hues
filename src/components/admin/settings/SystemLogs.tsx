@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Card, 
@@ -297,11 +296,11 @@ const SystemLogs = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <Alert variant="destructive" className="mb-6">
+                <Alert variant="default" className="mb-6">
                   <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Critical Issues</AlertTitle>
+                  <AlertTitle>Warning</AlertTitle>
                   <AlertDescription>
-                    There are {errorLogs.length} errors in the system that require attention.
+                    Some logs contain sensitive information. Please handle with care.
                   </AlertDescription>
                 </Alert>
                 

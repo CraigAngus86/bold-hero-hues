@@ -52,7 +52,8 @@ import {
   FileDown,
   Trash2,
   Sparkles,
-  RotateCcw
+  RotateCcw,
+  AlertCircle
 } from 'lucide-react';
 
 const ImportExportTools = () => {

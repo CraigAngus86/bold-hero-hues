@@ -134,7 +134,17 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({ sponsorId, onSaved, onCan
     if (isEditing && sponsorId) {
       updateMutation.mutate({ id: sponsorId, data: values });
     } else {
-      createMutation.mutate(values);
+      // Ensure all required fields are present for creating a new sponsor
+      const sponsorData: Omit<Sponsor, "id"> = {
+        name: values.name, // name is guaranteed to exist due to the form validation
+        tier: values.tier,
+        is_active: values.is_active,
+        website_url: values.website_url || undefined,
+        description: values.description || undefined,
+        logo_url: values.logo_url || undefined
+      };
+      
+      createMutation.mutate(sponsorData);
     }
   };
 

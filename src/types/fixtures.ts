@@ -72,6 +72,7 @@ export interface Match {
   awayScore?: number;
   ticketLink?: string;
   season?: string;
+  hasMatchPhotos?: boolean;
 }
 
 // Helper function to convert DB fixtures to Match objects for UI

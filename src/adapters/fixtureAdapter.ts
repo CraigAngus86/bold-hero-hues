@@ -1,38 +1,32 @@
 
-import { Match } from '@/components/fixtures/types';
-import { Fixture } from '@/types/fixtures';
+import { Fixture, Match } from '@/types/fixtures';
 
 /**
- * Adapts a Fixture to Match type for compatibility between components
+ * Adapter function to convert a Fixture database object to a Match view model
  */
-export function adaptFixtureToMatch(fixture: Fixture): Match {
+export const adaptFixtureToMatch = (fixture: Fixture): Match => {
   return {
-    id: fixture.id,
+    id: fixture.id || '',
     date: fixture.date,
     time: fixture.time,
     homeTeam: fixture.home_team,
     awayTeam: fixture.away_team,
     competition: fixture.competition,
     venue: fixture.venue || '',
-    season: fixture.season || '',
     isCompleted: fixture.is_completed || false,
-    homeScore: fixture.home_score || 0,
-    awayScore: fixture.away_score || 0,
-    ticketLink: fixture.ticket_link || ''
+    homeScore: fixture.home_score !== null ? fixture.home_score : undefined,
+    awayScore: fixture.away_score !== null ? fixture.away_score : undefined,
+    ticketLink: fixture.ticket_link,
+    season: fixture.season,
+    // Add additional properties as needed
+    hasMatchPhotos: false // Default value, update if you have data for this
   };
-}
+};
 
 /**
- * Adapts multiple Fixtures to Match array
+ * Adapter function to convert a Match view model back to a Fixture database object
  */
-export function adaptFixturesToMatches(fixtures: Fixture[]): Match[] {
-  return fixtures.map(adaptFixtureToMatch);
-}
-
-/**
- * Adapts a Match to Fixture type
- */
-export function adaptMatchToFixture(match: Match): Fixture {
+export const adaptMatchToFixture = (match: Match): Fixture => {
   return {
     id: match.id,
     date: match.date,
@@ -41,23 +35,24 @@ export function adaptMatchToFixture(match: Match): Fixture {
     away_team: match.awayTeam,
     competition: match.competition,
     venue: match.venue,
-    season: match.season,
     is_completed: match.isCompleted,
     home_score: match.homeScore,
     away_score: match.awayScore,
     ticket_link: match.ticketLink,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    date_passed: new Date(match.date) < new Date(),
-    import_date: new Date().toISOString(),
-    import_source: 'manual',
-    source: '' // Changed from source_id to source to match Fixture type
+    season: match.season
   };
-}
+};
 
 /**
- * Adapts multiple Matches to Fixture array
+ * Converts an array of Fixtures to an array of Matches
  */
-export function adaptMatchesToFixtures(matches: Match[]): Fixture[] {
+export const adaptFixturesToMatches = (fixtures: Fixture[]): Match[] => {
+  return fixtures.map(adaptFixtureToMatch);
+};
+
+/**
+ * Converts an array of Matches to an array of Fixtures
+ */
+export const adaptMatchesToFixtures = (matches: Match[]): Fixture[] => {
   return matches.map(adaptMatchToFixture);
-}
+};

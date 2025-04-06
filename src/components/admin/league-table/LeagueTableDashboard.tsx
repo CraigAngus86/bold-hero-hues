@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { getLeagueTableData, refreshLeagueData } from '@/services/leagueService';
+import { leagueService } from '@/services/leagueService';
 import LogoEditorDialog from '../league/LogoEditorDialog';
 import { TeamStats } from '@/types/fixtures';
 import {
@@ -34,7 +35,7 @@ const LeagueTableDashboard = () => {
   const fetchLeagueTable = async () => {
     setIsLoading(true);
     try {
-      const data = await getLeagueTableData();
+      const data = await leagueService.getLeagueTableData();
       setLeagueTable(data);
     } catch (error) {
       console.error("Failed to fetch league table:", error);
@@ -58,7 +59,7 @@ const LeagueTableDashboard = () => {
     // Implement refresh logic here
     try {
       // Call refreshLeagueData with no args
-      const success = await refreshLeagueData();
+      const success = await leagueService.refreshLeagueData();
       if (success) {
         await fetchLeagueTable();
         toast.success('League table refreshed successfully');

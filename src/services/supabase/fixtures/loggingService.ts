@@ -1,36 +1,47 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 
-/**
- * Logs a scrape operation to the database
- * @param source Source of the data (e.g., 'bbc-sport', 'highland-league')
- * @param status Status of the operation (success, error, warning)
- * @param itemsFound Number of items found during scraping
- * @param itemsAdded Number of new items added to the database
- * @param itemsUpdated Number of existing items updated
- * @param errorMessage Optional error message if the operation failed
- * @returns Promise resolving to the logged entry
- */
+// Log scraping operations for audit and debugging
 export const logScrapeOperation = async (
   source: string,
-  status: string,
-  itemsFound: number,
-  itemsAdded: number,
-  itemsUpdated: number,
-  errorMessage?: string
+  itemsAdded: number = 0,
+  itemsUpdated: number = 0
 ): Promise<void> => {
   try {
     await supabase.from('scrape_logs').insert({
       source,
-      status,
+      items_added: itemsAdded,
+      items_updated: itemsUpdated,
+      status: 'success',
+      created_at: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error logging scrape operation:', error);
+    // Fail silently - this is just logging
+  }
+};
+
+// Enhanced logging function with more parameters
+export const logScrapeOperationWithDetails = async (
+  source: string,
+  status: 'success' | 'error' | 'warning',
+  itemsFound: number = 0,
+  itemsAdded: number = 0, 
+  itemsUpdated: number = 0,
+  errorMessage?: string | null
+): Promise<void> => {
+  try {
+    await supabase.from('scrape_logs').insert({
+      source,
       items_found: itemsFound,
       items_added: itemsAdded,
       items_updated: itemsUpdated,
-      error_message: errorMessage
+      status: status,
+      error_message: errorMessage,
+      created_at: new Date().toISOString()
     });
-    
-    console.log(`Logged ${status} scrape operation from ${source}`);
   } catch (error) {
     console.error('Error logging scrape operation:', error);
+    // Fail silently - this is just logging
   }
 };

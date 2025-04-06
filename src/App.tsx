@@ -58,10 +58,10 @@ function App() {
           <Route path="/404" element={<MainLayout><NotFoundPage /></MainLayout>} />
           <Route path="*" element={<Navigate to="/404" replace />} />
 
-          {/* Admin Routes - All using Dashboard as parent */}
+          {/* Admin Routes - All using AdminLayout */}
           <Route path="/admin" element={<Dashboard />} />
-          <Route path="/admin/fixtures" element={<FixturesManagement />} />
-          <Route path="/admin/league-table-management" element={<LeagueTableManagement />} />
+          <Route path="/admin/fixtures" element={<AdminLayout><FixturesManagement /></AdminLayout>} />
+          <Route path="/admin/league-table-management" element={<AdminLayout><LeagueTableManagement /></AdminLayout>} />
           <Route path="/admin/news" element={<NewsManagement />} />
           <Route path="/admin/team" element={<TeamManagement />} />
           <Route path="/admin/images" element={<AdminLayout><div>Media Management</div></AdminLayout>} />

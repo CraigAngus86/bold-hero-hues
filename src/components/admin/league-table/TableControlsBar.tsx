@@ -2,7 +2,7 @@
 import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, Filter, TableProperties, RefreshCw } from "lucide-react";
 
 interface TableControlsBarProps {
   viewMode: string;
@@ -26,24 +26,59 @@ const TableControlsBar: React.FC<TableControlsBarProps> = ({
             <SelectValue placeholder="Select view" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="full">Full Table</SelectItem>
-            <SelectItem value="top-half">Top Half</SelectItem>
-            <SelectItem value="bottom-half">Bottom Half</SelectItem>
-            <SelectItem value="promotion">Promotion Zone</SelectItem>
-            <SelectItem value="relegation">Relegation Zone</SelectItem>
+            <SelectItem value="full">
+              <div className="flex items-center gap-2">
+                <TableProperties size={14} />
+                <span>Full Table</span>
+              </div>
+            </SelectItem>
+            <SelectItem value="top-half">
+              <div className="flex items-center gap-2">
+                <Filter size={14} />
+                <span>Top Half</span>
+              </div>
+            </SelectItem>
+            <SelectItem value="bottom-half">
+              <div className="flex items-center gap-2">
+                <Filter size={14} />
+                <span>Bottom Half</span>
+              </div>
+            </SelectItem>
+            <SelectItem value="promotion">
+              <div className="flex items-center gap-2">
+                <Filter size={14} />
+                <span>Promotion Zone</span>
+              </div>
+            </SelectItem>
+            <SelectItem value="relegation">
+              <div className="flex items-center gap-2">
+                <Filter size={14} />
+                <span>Relegation Zone</span>
+              </div>
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>
       
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={handleExportData}
-        className="flex items-center gap-2"
-      >
-        <Download className="h-4 w-4" />
-        Export Data
-      </Button>
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex items-center gap-2"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Refresh
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleExportData}
+          className="flex items-center gap-2"
+        >
+          <Download className="h-4 w-4" />
+          Export Data
+        </Button>
+      </div>
     </div>
   );
 };

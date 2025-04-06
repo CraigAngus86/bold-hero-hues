@@ -23,6 +23,8 @@ export interface NewsItem {
   author?: string;
   is_featured: boolean;
   slug: string;
+  date?: string; // Adding date for backward compatibility
+  image?: string; // Adding image for backward compatibility
 }
 
 export interface NewsQueryOptions {
@@ -31,13 +33,16 @@ export interface NewsQueryOptions {
   featured?: boolean;
   search?: string;
   orderBy?: 'newest' | 'oldest';
+  searchTerm?: string; // Adding missing properties
+  orderDirection?: string;
+  page?: number;
 }
 
 export interface CreateNewsArticleData {
   title: string;
   content: string;
-  category: string; // Make this required
-  slug?: string;
+  category: string;
+  slug: string;  // Making slug required
   image_url?: string;
   publish_date?: string;
   author?: string;
@@ -55,8 +60,8 @@ export interface UpdateNewsArticleData {
   is_featured?: boolean;
 }
 
-// Export interfaces for service usage
-export {
+// Use export type for re-exports
+export type { 
   NewsArticle,
   NewsItem,
   NewsQueryOptions,

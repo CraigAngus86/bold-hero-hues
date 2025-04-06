@@ -1,63 +1,47 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import { SystemStatus } from '@/types/system';
 import { getSystemStatus } from '@/services/logs/systemLogsService';
 
-export function useDashboardRefresh(initialInterval = 60) {
-  const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
-  const [nextRefresh, setNextRefresh] = useState<Date>(new Date(Date.now() + initialInterval * 1000));
-  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
-  const [autoRefresh, setAutoRefresh] = useState<boolean>(true);
-  const [intervalTime] = useState<number>(initialInterval);
+interface DashboardRefreshState {
+  isLoading: boolean;
+  error: Error | null;
+  status: SystemStatus | null;
+}
+
+/**
+ * Hook for refreshing system status data for the dashboard
+ */
+export const useDashboardRefresh = () => {
+  const [state, setState] = useState<DashboardRefreshState>({
+    isLoading: false,
+    error: null,
+    status: null,
+  });
 
   const refresh = useCallback(async () => {
-    setIsRefreshing(true);
+    setState(prev => ({ ...prev, isLoading: true, error: null }));
+    
     try {
-      // Get system status data
-      await getSystemStatus();
-      
-      // Update timestamps
-      const now = new Date();
-      setLastRefreshed(now);
-      setNextRefresh(new Date(now.getTime() + intervalTime * 1000));
+      const status = await getSystemStatus();
+      setState({
+        isLoading: false,
+        error: null,
+        status,
+      });
     } catch (error) {
-      console.error('Error refreshing dashboard data:', error);
-    } finally {
-      setIsRefreshing(false);
+      setState({
+        isLoading: false,
+        error: error instanceof Error ? error : new Error('Failed to refresh dashboard data'),
+        status: null,
+      });
     }
-  }, [intervalTime]);
-
-  const toggleAutoRefresh = useCallback(() => {
-    setAutoRefresh(prev => !prev);
   }, []);
-
-  useEffect(() => {
-    // On initial mount, refresh data
-    refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    let timer: ReturnType<typeof setTimeout>;
-    
-    if (autoRefresh) {
-      timer = setTimeout(() => {
-        refresh();
-      }, intervalTime * 1000);
-    }
-    
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
-  }, [autoRefresh, intervalTime, lastRefreshed, refresh]);
 
   return {
-    lastRefreshed,
-    nextRefresh,
-    isRefreshing,
-    autoRefresh,
-    toggleAutoRefresh,
-    refresh
+    ...state,
+    refresh,
   };
-}
+};
 
 export default useDashboardRefresh;

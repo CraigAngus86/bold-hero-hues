@@ -2,21 +2,23 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Archive, Edit, Eye, Trash2 } from 'lucide-react';
+import { Archive, Eye, Trash2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchNewsArticles } from '@/services/newsService';
+import { NewsArticle } from '@/types/news';
 
-export const NewsArticleArchive = () => {
-  // Filter for archived articles - typically older than a certain date
-  // This is just a placeholder logic
-  const oneMonthAgo = new Date();
-  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-  
+interface NewsArticleArchiveProps {
+  onView?: (article: NewsArticle) => void;
+  onDelete?: (id: string) => void;
+}
+
+export const NewsArticleArchive: React.FC<NewsArticleArchiveProps> = ({ onView, onDelete }) => {
   const { data, isLoading, error } = useQuery({
     queryKey: ['news', { archived: true }],
     queryFn: () => fetchNewsArticles({ 
-      orderBy: 'oldest'
-      // In a real application, you'd have a specific archive flag or date filter
+      orderBy: 'oldest',
+      // In a real app, we might have a status field to filter by archive status
+      // Here we're just getting older articles
     })
   });
 
@@ -39,9 +41,12 @@ export const NewsArticleArchive = () => {
     );
   }
 
-  // Filter for articles older than a month for demonstration purposes
+  // For this example, let's consider articles older than 3 months as archived
+  const threeMonthsAgo = new Date();
+  threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+  
   const archivedArticles = data.data?.filter(article => 
-    article.publish_date && new Date(article.publish_date) < oneMonthAgo
+    article.publish_date && new Date(article.publish_date) < threeMonthsAgo
   ) || [];
 
   return (
@@ -51,36 +56,41 @@ export const NewsArticleArchive = () => {
           <Archive className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-2 text-sm font-semibold text-gray-900">No archived articles</h3>
           <p className="mt-1 text-sm text-gray-500">
-            Your archive is empty.
+            When you archive articles, they will appear here.
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4">
           {archivedArticles.map(article => (
-            <Card key={article.id} className="overflow-hidden bg-gray-50">
+            <Card key={article.id} className="overflow-hidden">
               <CardContent className="p-0">
                 <div className="flex items-center border-b p-4">
                   <div className="flex-1">
                     <h3 className="font-medium truncate">{article.title}</h3>
                     <div className="flex space-x-2 text-xs text-gray-500 mt-1">
-                      <span>Published: {new Date(article.publish_date || article.created_at).toLocaleDateString()}</span>
+                      <span>Published: {new Date(article.publish_date).toLocaleDateString()}</span>
                       <span>•</span>
                       <span>{article.category}</span>
                     </div>
                   </div>
                   <div className="flex space-x-2">
-                    <Button variant="ghost" size="sm">
-                      <Eye className="h-4 w-4 mr-1" />
-                      View
-                    </Button>
-                    <Button variant="ghost" size="sm">
-                      <Edit className="h-4 w-4 mr-1" />
-                      Restore
-                    </Button>
-                    <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50">
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Delete
-                    </Button>
+                    {onView && (
+                      <Button variant="outline" size="sm" onClick={() => onView(article)}>
+                        <Eye className="h-4 w-4 mr-1" />
+                        View
+                      </Button>
+                    )}
+                    {onDelete && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                        onClick={() => onDelete(article.id)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Delete
+                      </Button>
+                    )}
                   </div>
                 </div>
               </CardContent>

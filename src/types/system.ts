@@ -49,3 +49,11 @@ export interface SystemLogsResponse {
   count?: number;
   error?: string;
 }
+
+// Add missing SystemStatusItemProps interface
+export interface SystemStatusItemProps {
+  label: string;
+  value: string | number | boolean | React.ReactNode;
+  status?: 'healthy' | 'warning' | 'error' | 'neutral';
+  icon?: React.ReactNode;
+}

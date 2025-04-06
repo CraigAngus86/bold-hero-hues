@@ -5,8 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Edit, File, Trash2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchNewsArticles } from '@/services/newsService';
+import { NewsArticle } from '@/types/news';
 
-export const NewsArticleDrafts = () => {
+interface NewsArticleDraftsProps {
+  onEdit?: (article: NewsArticle) => void;
+  onDelete?: (id: string) => void;
+}
+
+export const NewsArticleDrafts: React.FC<NewsArticleDraftsProps> = ({ onEdit, onDelete }) => {
   const { data, isLoading, error } = useQuery({
     queryKey: ['news', { isDraft: true }],
     queryFn: () => fetchNewsArticles({ 
@@ -64,14 +70,23 @@ export const NewsArticleDrafts = () => {
                     </div>
                   </div>
                   <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">
-                      <Edit className="h-4 w-4 mr-1" />
-                      Edit
-                    </Button>
-                    <Button variant="outline" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50">
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Delete
-                    </Button>
+                    {onEdit && (
+                      <Button variant="outline" size="sm" onClick={() => onEdit(draft)}>
+                        <Edit className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
+                    )}
+                    {onDelete && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                        onClick={() => onDelete(draft.id)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Delete
+                      </Button>
+                    )}
                   </div>
                 </div>
               </CardContent>

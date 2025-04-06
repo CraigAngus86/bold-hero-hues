@@ -6,8 +6,8 @@ import UpcomingMatchesCarousel from '@/components/fixtures/UpcomingMatchesCarous
 import RecentResultsCarousel from '@/components/fixtures/RecentResultsCarousel';
 import { Button } from '@/components/ui/button';
 import { ExternalLink } from 'lucide-react';
-import { Match } from '@/types/fixtures';
-import { getFixtures } from '@/services/fixturesService'; // Updated import
+import { Match } from '@/components/fixtures/types';
+import { getAllFixtures } from '@/services/fixturesService'; // Updated import
 
 export const MatchCenter: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -18,11 +18,29 @@ export const MatchCenter: React.FC = () => {
     async function loadFixtures() {
       try {
         setIsLoading(true);
-        const result = await getFixtures(); // Updated function call
+        const result = await getAllFixtures(); // Updated function call
         if (result.error) {
           throw new Error(result.error);
         }
-        setFixtures(result.data || []);
+        
+        // Convert fixtures to Match type
+        const matches: Match[] = (result.data || []).map(fixture => ({
+          id: fixture.id,
+          date: fixture.date,
+          time: fixture.time,
+          homeTeam: fixture.home_team,
+          awayTeam: fixture.away_team,
+          competition: fixture.competition,
+          venue: fixture.venue || '',
+          isCompleted: fixture.is_completed,
+          homeScore: fixture.home_score,
+          awayScore: fixture.away_score,
+          season: fixture.season,
+          ticketLink: fixture.ticket_link,
+          source: fixture.source,
+        }));
+        
+        setFixtures(matches);
       } catch (err) {
         console.error('Failed to load fixtures:', err);
         setError('Failed to load fixtures');
@@ -47,9 +65,11 @@ export const MatchCenter: React.FC = () => {
       <CardHeader className="pb-3">
         <div className="flex justify-between items-center">
           <CardTitle>Match Center</CardTitle>
-          <Button variant="outline" size="sm">
-            <span>Full Schedule</span>
-            <ExternalLink className="ml-2 h-4 w-4" />
+          <Button variant="outline" size="sm" asChild>
+            <a href="/fixtures">
+              <span>Full Schedule</span>
+              <ExternalLink className="ml-2 h-4 w-4" />
+            </a>
           </Button>
         </div>
       </CardHeader>

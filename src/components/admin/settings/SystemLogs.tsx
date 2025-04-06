@@ -1,291 +1,161 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { DialogContent, Dialog, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { RefreshCw, Search, Filter, AlertTriangle, Info, CheckCircle, AlertCircle, Trash2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
-import { toast } from 'sonner';
-import { getSystemLogs, SystemLog } from '@/services/logs/systemLogsService';
+import { AlertTriangle, CheckCircle, Info, RefreshCw, XCircle, Trash2 } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { getSystemLogs, clearSystemLogs } from '@/services/logs/systemLogsService';
+import { SystemLog } from '@/types/system';
 
-export interface SystemLogsProps {
-  limit?: number;
-}
-
-export default function SystemLogs({ limit = 100 }: SystemLogsProps) {
+const SystemLogs = () => {
   const [logs, setLogs] = useState<SystemLog[]>([]);
+  const [filter, setFilter] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [levelFilter, setLevelFilter] = useState<string | undefined>(undefined);
-  const [selectedLog, setSelectedLog] = useState<SystemLog | null>(null);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [isClearDialogOpen, setIsClearDialogOpen] = useState(false);
-  
+  const [error, setError] = useState<string | null>(null);
+
   const fetchLogs = async () => {
     setIsLoading(true);
+    setError(null);
     try {
-      const result = await getSystemLogs(limit, levelFilter);
-      if (result.data) {
-        setLogs(result.data);
+      const logType = filter !== 'all' ? filter as 'info' | 'warning' | 'error' | 'success' | 'debug' : undefined;
+      const response = await getSystemLogs(100, logType);
+      if (response.success) {
+        setLogs(response.data || []);
       } else {
-        toast.error('Failed to fetch logs');
+        throw new Error(response.error || 'Failed to fetch logs');
       }
-    } catch (error) {
-      toast.error('Error loading logs');
-      console.error(error);
+    } catch (err) {
+      console.error('Error fetching logs:', err);
+      setError(err instanceof Error ? err.message : 'An unknown error occurred');
     } finally {
       setIsLoading(false);
     }
   };
-  
+
+  const handleClearLogs = async () => {
+    if (window.confirm('Are you sure you want to clear all logs? This action cannot be undone.')) {
+      setIsLoading(true);
+      try {
+        const logType = filter !== 'all' ? filter : undefined;
+        const result = await clearSystemLogs(logType);
+        if (result.success) {
+          setLogs([]);
+        } else {
+          throw new Error(result.error || 'Failed to clear logs');
+        }
+      } catch (err) {
+        console.error('Error clearing logs:', err);
+        setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
   useEffect(() => {
     fetchLogs();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [levelFilter]);
-  
-  const handleClearLogs = async () => {
+  }, [filter]);
+
+  const getLogIcon = (type: string) => {
+    switch (type) {
+      case 'info':
+        return <Info className="h-4 w-4 text-blue-500" />;
+      case 'warning':
+        return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
+      case 'error':
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      case 'success':
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      default:
+        return <Info className="h-4 w-4 text-gray-500" />;
+    }
+  };
+
+  const getRelativeTime = (timestamp: string) => {
     try {
-      // In a real application, this would call an API
-      console.log("Clearing logs (mock implementation)");
-      toast.success('Logs cleared successfully');
-      setLogs([]);
-      setIsClearDialogOpen(false);
+      return formatDistanceToNow(new Date(timestamp), { addSuffix: true });
     } catch (error) {
-      toast.error('Error clearing logs');
+      return 'Unknown time';
     }
   };
-  
-  const filteredLogs = logs.filter(log => 
-    log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    log.source.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-  
-  const getLevelIcon = (level: string) => {
-    switch (level) {
-      case 'error':
-        return <AlertTriangle className="h-4 w-4" />;
-      case 'warning':
-        return <AlertCircle className="h-4 w-4" />;
-      case 'info':
-        return <Info className="h-4 w-4" />;
-      case 'success':
-        return <CheckCircle className="h-4 w-4" />;
-      case 'debug':
-        return <Info className="h-4 w-4" />;
-      default:
-        return <Info className="h-4 w-4" />;
-    }
-  };
-  
-  const getLevelColor = (level: string) => {
-    switch (level) {
-      case 'error':
-        return 'text-red-500 bg-red-100';
-      case 'warning':
-        return 'text-amber-500 bg-amber-100';
-      case 'info':
-        return 'text-blue-500 bg-blue-100';
-      case 'success':
-        return 'text-green-500 bg-green-100';
-      case 'debug':
-        return 'text-purple-500 bg-purple-100';
-      default:
-        return 'text-gray-500 bg-gray-100';
-    }
-  };
-  
-  const showLogDetails = (log: SystemLog) => {
-    setSelectedLog(log);
-    setIsDetailsOpen(true);
-  };
-  
-  const formatLogDate = (dateString: string) => {
-    try {
-      return format(new Date(dateString), 'MMM dd, yyyy HH:mm:ss');
-    } catch (e) {
-      return dateString;
-    }
-  };
-  
+
   return (
-    <Card className="shadow-md border-gray-200">
-      <CardHeader className="border-b pb-3">
-        <div className="flex justify-between items-center">
-          <CardTitle>System Logs</CardTitle>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={fetchLogs}
-              disabled={isLoading}
-            >
-              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => setIsClearDialogOpen(true)}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Clear
-            </Button>
-          </div>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>System Logs</CardTitle>
+        <div className="flex space-x-2">
+          <Select value={filter} onValueChange={setFilter}>
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="Filter" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Logs</SelectItem>
+              <SelectItem value="info">Info</SelectItem>
+              <SelectItem value="warning">Warning</SelectItem>
+              <SelectItem value="error">Error</SelectItem>
+              <SelectItem value="success">Success</SelectItem>
+              <SelectItem value="debug">Debug</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button variant="outline" onClick={fetchLogs} disabled={isLoading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+          <Button variant="destructive" onClick={handleClearLogs} disabled={isLoading || logs.length === 0}>
+            <Trash2 className="h-4 w-4 mr-2" />
+            Clear
+          </Button>
         </div>
       </CardHeader>
-      <CardContent className="p-0">
-        <div className="p-4 border-b flex flex-col md:flex-row gap-3">
-          <div className="relative flex-grow">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-            <Input
-              placeholder="Search logs..."
-              className="pl-9"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+      <CardContent>
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
           </div>
-          <div className="flex items-center">
-            <Filter className="h-4 w-4 mr-2 text-gray-500" />
-            <Select value={levelFilter} onValueChange={setLevelFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by level" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={undefined}>All Levels</SelectItem>
-                <SelectItem value="error">Errors</SelectItem>
-                <SelectItem value="warning">Warnings</SelectItem>
-                <SelectItem value="info">Info</SelectItem>
-                <SelectItem value="success">Success</SelectItem>
-                <SelectItem value="debug">Debug</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+        )}
         
-        <div className="max-h-96 overflow-y-auto">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-10">
-              <RefreshCw className="h-6 w-6 animate-spin text-gray-400" />
-              <span className="ml-2 text-gray-500">Loading logs...</span>
-            </div>
-          ) : filteredLogs.length === 0 ? (
-            <div className="text-center py-10 text-gray-500">
-              No logs found
-            </div>
-          ) : (
-            <div className="divide-y">
-              {filteredLogs.map((log) => (
-                <div 
-                  key={log.id} 
-                  className="px-4 py-3 hover:bg-gray-50 cursor-pointer"
-                  onClick={() => showLogDetails(log)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <Badge className={`mr-3 ${getLevelColor(log.type)}`} variant="outline">
-                        <span className="flex items-center">
-                          {getLevelIcon(log.type)}
-                          <span className="ml-1 uppercase text-xs">{log.type}</span>
-                        </span>
-                      </Badge>
-                      <span className="text-sm font-medium truncate max-w-[400px]">
-                        {log.message}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center gap-3">
-                      <Badge variant="outline" className="bg-gray-100">
-                        {log.source}
-                      </Badge>
-                      <span className="text-xs text-gray-500">
-                        {typeof log.timestamp === 'string' 
-                          ? formatLogDate(log.timestamp) 
-                          : formatLogDate(log.timestamp.toISOString())
-                        }
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </CardContent>
-      
-      {/* Log details dialog */}
-      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              {selectedLog && (
-                <>
-                  <Badge className={getLevelColor(selectedLog.type)} variant="outline">
-                    {selectedLog.type.toUpperCase()}
-                  </Badge>
-                  <span>{selectedLog.source}</span>
-                </>
-              )}
-            </DialogTitle>
-          </DialogHeader>
-          
-          {selectedLog && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Message</h3>
-                <p className="mt-1">{selectedLog.message}</p>
-              </div>
-              
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Timestamp</h3>
-                <p className="mt-1">
-                  {typeof selectedLog.timestamp === 'string' 
-                    ? formatLogDate(selectedLog.timestamp) 
-                    : formatLogDate(selectedLog.timestamp.toISOString())
-                  }
-                </p>
-              </div>
-              
-              {selectedLog.metadata && (
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Metadata</h3>
-                  <pre className="mt-1 p-3 bg-gray-100 rounded-md overflow-x-auto text-xs">
-                    {JSON.stringify(selectedLog.metadata, null, 2)}
-                  </pre>
-                </div>
-              )}
-            </div>
-          )}
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDetailsOpen(false)}>
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Clear logs confirmation dialog */}
-      <Dialog open={isClearDialogOpen} onOpenChange={setIsClearDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-red-600">Clear All System Logs</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <p>Are you sure you want to clear all system logs? This action cannot be undone.</p>
+        {logs.length === 0 ? (
+          <div className="text-center py-12 text-gray-500">
+            No logs found. System logs will appear here when they are generated.
           </div>
-          <DialogFooter className="flex space-x-2">
-            <Button variant="outline" onClick={() => setIsClearDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleClearLogs}>
-              Clear All Logs
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[100px]">Type</TableHead>
+                  <TableHead>Message</TableHead>
+                  <TableHead>Source</TableHead>
+                  <TableHead className="text-right">Time</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {logs.map((log) => (
+                  <TableRow key={log.id}>
+                    <TableCell className="whitespace-nowrap">
+                      <div className="flex items-center space-x-2">
+                        {getLogIcon(log.type)}
+                        <span className="capitalize">{log.type}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>{log.message}</TableCell>
+                    <TableCell>{log.source}</TableCell>
+                    <TableCell className="text-right text-xs">
+                      <span title={new Date(log.timestamp).toLocaleString()}>
+                        {getRelativeTime(log.timestamp)}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
     </Card>
   );
-}
+};
+
+export default SystemLogs;

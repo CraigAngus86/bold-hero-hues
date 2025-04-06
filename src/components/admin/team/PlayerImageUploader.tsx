@@ -6,13 +6,15 @@ import { UploadCloud, X } from 'lucide-react';
 import { useImageUpload } from '@/services/images';
 
 interface PlayerImageUploaderProps {
-  currentImage?: string;
+  currentUrl?: string;
   onUpload: (url: string) => void;
+  playerName?: string;
 }
 
 const PlayerImageUploader: React.FC<PlayerImageUploaderProps> = ({ 
-  currentImage,
-  onUpload
+  currentUrl,
+  onUpload,
+  playerName
 }) => {
   const [isHovering, setIsHovering] = useState(false);
 
@@ -21,7 +23,7 @@ const PlayerImageUploader: React.FC<PlayerImageUploaderProps> = ({
     isUploading, 
     progress 
   } = useImageUpload({
-    bucket: 'public',
+    bucket: "images",
     folder: 'players'
   });
 
@@ -31,7 +33,7 @@ const PlayerImageUploader: React.FC<PlayerImageUploaderProps> = ({
 
     try {
       const result = await uploadFile(file);
-      if (result.success && result.data?.url) {
+      if (result.success && result.data) {
         onUpload(result.data.url);
       }
     } catch (error) {
@@ -45,15 +47,15 @@ const PlayerImageUploader: React.FC<PlayerImageUploaderProps> = ({
 
   return (
     <div>
-      {currentImage ? (
+      {currentUrl ? (
         <div 
           className="relative rounded-md overflow-hidden" 
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
         >
           <img 
-            src={currentImage} 
-            alt="Player" 
+            src={currentUrl} 
+            alt={playerName || "Player"} 
             className="w-full h-48 object-cover rounded-md" 
           />
           {isHovering && (
@@ -82,12 +84,12 @@ const PlayerImageUploader: React.FC<PlayerImageUploaderProps> = ({
               <Button 
                 variant="outline" 
                 disabled={isUploading}
-                onClick={() => document.getElementById('file-upload')?.click()}
+                onClick={() => document.getElementById('player-image-upload')?.click()}
               >
                 {isUploading ? `Uploading (${Math.round(progress)}%)` : 'Select Image'}
               </Button>
               <input
-                id="file-upload"
+                id="player-image-upload"
                 type="file"
                 className="hidden"
                 accept="image/*"

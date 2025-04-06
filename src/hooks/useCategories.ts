@@ -2,7 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { getNewsCategories } from '@/services/newsService';
 
-interface NewsCategory {
+export interface NewsCategory {
   id: string;
   name: string;
 }

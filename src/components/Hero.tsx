@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useNewsStore, formatDate } from '@/services/news';
+import { NewsItem } from '@/types/news';
 
 const Hero = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -11,7 +12,7 @@ const Hero = () => {
   
   const { news } = useNewsStore();
   const heroNews = [...news]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .sort((a, b) => new Date(b.publish_date).getTime() - new Date(a.publish_date).getTime())
     .slice(0, 3);
   
   const goToNext = () => {
@@ -71,7 +72,7 @@ const Hero = () => {
         >
           <div className="absolute inset-0 bg-gradient-to-t from-[#00105a]/90 to-[#00105a]/30 z-10" />
           <img 
-            src={heroNews[currentIndex].image} 
+            src={heroNews[currentIndex].image_url || heroNews[currentIndex].image} 
             alt={heroNews[currentIndex].title}
             className="object-cover w-full h-full"
           />
@@ -105,7 +106,7 @@ const Hero = () => {
                 Read More
               </a>
               <span className="text-white/70 text-sm">
-                {formatDate(heroNews[currentIndex].date)}
+                {formatDate(heroNews[currentIndex].publish_date || heroNews[currentIndex].date || '')}
               </span>
             </div>
           </motion.div>

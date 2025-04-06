@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Edit } from 'lucide-react';
+import { PlusCircle, Edit, Trash2 } from 'lucide-react';
 import { TeamMember } from '@/types/team';
 import { useTeamStore } from '@/services/teamService';
 
@@ -11,15 +11,18 @@ interface StaffListProps {
   onCreateNew: () => void;
 }
 
-const StaffList: React.FC<StaffListProps> = ({ 
-  onSelectStaff, 
-  onCreateNew 
-}) => {
-  const { teamMembers, isLoading, error } = useTeamStore(state => ({
-    teamMembers: state.teamMembers.filter(m => m.member_type === 'management'),
+const StaffList: React.FC<StaffListProps> = ({ onSelectStaff, onCreateNew }) => {
+  const { teamMembers, isLoading, deleteTeamMember } = useTeamStore(state => ({
+    teamMembers: state.teamMembers.filter(m => m.member_type !== 'player'),
     isLoading: state.isLoading,
-    error: state.error
+    deleteTeamMember: state.deleteTeamMember,
   }));
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this staff member?')) {
+      await deleteTeamMember(id);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -33,22 +36,10 @@ const StaffList: React.FC<StaffListProps> = ({
     );
   }
 
-  if (error) {
-    return (
-      <Card>
-        <CardContent className="pt-6">
-          <div className="text-center py-8 text-red-500">
-            Error loading staff: {error.message}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Staff Members</CardTitle>
+        <CardTitle>Staff & Management</CardTitle>
         <Button onClick={onCreateNew} size="sm">
           <PlusCircle className="h-4 w-4 mr-2" />
           Add Staff Member
@@ -66,6 +57,7 @@ const StaffList: React.FC<StaffListProps> = ({
                 <tr className="border-b">
                   <th className="pb-2 font-semibold">Name</th>
                   <th className="pb-2 font-semibold">Position</th>
+                  <th className="pb-2 font-semibold">Nationality</th>
                   <th className="pb-2 font-semibold">Status</th>
                   <th className="pb-2 font-semibold text-right">Actions</th>
                 </tr>
@@ -73,8 +65,20 @@ const StaffList: React.FC<StaffListProps> = ({
               <tbody>
                 {teamMembers.map((staff) => (
                   <tr key={staff.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
-                    <td className="py-3">{staff.name}</td>
+                    <td className="py-3">
+                      <div className="flex items-center">
+                        {staff.image_url && (
+                          <img 
+                            src={staff.image_url} 
+                            alt={staff.name} 
+                            className="w-8 h-8 rounded-full mr-2 object-cover"
+                          />
+                        )}
+                        <span>{staff.name}</span>
+                      </div>
+                    </td>
                     <td className="py-3">{staff.position}</td>
+                    <td className="py-3">{staff.nationality}</td>
                     <td className="py-3">
                       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                         staff.is_active 
@@ -85,14 +89,25 @@ const StaffList: React.FC<StaffListProps> = ({
                       </span>
                     </td>
                     <td className="py-3 text-right">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => onSelectStaff(staff)}
-                      >
-                        <Edit className="h-4 w-4" />
-                        <span className="sr-only">Edit</span>
-                      </Button>
+                      <div className="flex justify-end space-x-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => onSelectStaff(staff)}
+                        >
+                          <Edit className="h-4 w-4" />
+                          <span className="sr-only">Edit</span>
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                          onClick={() => handleDelete(staff.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          <span className="sr-only">Delete</span>
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}

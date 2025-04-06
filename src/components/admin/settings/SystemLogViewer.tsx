@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DataTable } from '@/components/admin/common/DataTable';
 import { AlertCircle, AlertTriangle, Info, Bug, RefreshCw, Filter, Search, Download, CheckCircle } from 'lucide-react';
-import { SystemLog } from '@/types/system';
+import { SystemLog } from '@/types/system/logs';
 import { format, parseISO } from 'date-fns';
 import { spacing, typography } from '@/styles/designTokens';
 
@@ -147,7 +147,7 @@ export const SystemLogViewer: React.FC<SystemLogViewerProps> = ({
           )}
         </div>
       </CardHeader>
-      <CardContent className={spacing.cardPadding}>
+      <CardContent className="p-4">
         <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
           <div className="relative flex-1">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />

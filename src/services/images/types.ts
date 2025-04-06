@@ -44,6 +44,7 @@ export interface ImageMetadata {
   width?: number;
   height?: number;
   categories?: string[];
+  folder?: string; // Add folder property
 }
 
 export interface ImageFolder {
@@ -65,4 +66,51 @@ export interface UploadResult {
   data?: StoredImageMetadata;
   error?: StorageError | Error;
   url?: string;
+}
+
+// Add these missing types
+export enum BucketType {
+  PUBLIC = 'public',
+  PRIVATE = 'private',
+  TEAM = 'team',
+  NEWS = 'news'
+}
+
+export interface ImageOptimizationOptions {
+  resize?: {
+    width?: number;
+    height?: number;
+    fit?: 'cover' | 'contain' | 'fill' | 'inside' | 'outside';
+  };
+  compress?: {
+    quality?: number;
+    lossless?: boolean;
+  };
+  format?: 'webp' | 'jpeg' | 'png' | 'avif';
+  transformations?: string[];
+}
+
+// Export previously missing types
+export interface ImageUploadConfig {
+  bucket?: BucketType;
+  folder?: string;
+  optimization?: ImageOptimizationOptions;
+}
+
+export interface UseImageUploadOptions {
+  bucket?: BucketType;
+  folder?: string;
+  optimization?: ImageOptimizationOptions;
+  onUploadStart?: () => void;
+  onUploadProgress?: (progress: number) => void;
+  onUploadComplete?: (result: UploadResult) => void;
+  onUploadError?: (error: Error) => void;
+}
+
+export interface UseImageUploadResult {
+  uploadFile: (file: File, options?: UploadOptions) => Promise<UploadResult>;
+  uploadFiles: (files: File[], options?: UploadOptions) => Promise<UploadResult[]>;
+  isUploading: boolean;
+  progress: number;
+  error: Error | null;
 }

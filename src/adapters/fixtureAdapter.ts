@@ -28,3 +28,37 @@ export function adaptFixtureToMatch(fixture: Fixture): Match {
 export function adaptFixturesToMatches(fixtures: Fixture[]): Match[] {
   return fixtures.map(adaptFixtureToMatch);
 }
+
+/**
+ * Adapts a Match to Fixture type
+ */
+export function adaptMatchToFixture(match: Match): Fixture {
+  return {
+    id: match.id,
+    date: match.date,
+    time: match.time,
+    home_team: match.homeTeam,
+    away_team: match.awayTeam,
+    competition: match.competition,
+    venue: match.venue,
+    season: match.season,
+    is_completed: match.isCompleted,
+    home_score: match.homeScore,
+    away_score: match.awayScore,
+    ticket_link: match.ticketLink,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    date_passed: new Date(match.date) < new Date(),
+    import_date: new Date().toISOString(),
+    import_source: 'manual',
+    location: match.venue,
+    source_id: ''
+  };
+}
+
+/**
+ * Adapts multiple Matches to Fixture array
+ */
+export function adaptMatchesToFixtures(matches: Match[]): Fixture[] {
+  return matches.map(adaptMatchToFixture);
+}

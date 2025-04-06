@@ -1,106 +1,79 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import { Calendar, CalendarDays, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 
-interface CalendarEvent {
+interface Event {
   id: string;
   title: string;
   date: Date;
-  type: 'match' | 'publication' | 'maintenance' | 'other';
-  link?: string;
+  type: string;
 }
 
-interface EventsCalendarProps {
-  events: CalendarEvent[];
+export interface EventsCalendarProps {
+  events: Event[];
 }
 
-export function EventsCalendar({ events }: EventsCalendarProps) {
-  // Group events by date
-  const groupedEvents: Record<string, CalendarEvent[]> = {};
-  
-  events.forEach(event => {
-    const dateKey = format(event.date, 'yyyy-MM-dd');
-    if (!groupedEvents[dateKey]) {
-      groupedEvents[dateKey] = [];
-    }
-    groupedEvents[dateKey].push(event);
-  });
-  
-  // Get the dates with events
-  const eventDates = Object.keys(groupedEvents).sort();
-  
-  const getEventTypeBadge = (type: CalendarEvent['type']) => {
-    switch (type) {
-      case 'match':
-        return <Badge variant="outline" className="bg-blue-50 border-blue-200 text-blue-600">Match</Badge>;
-      case 'publication':
-        return <Badge variant="outline" className="bg-purple-50 border-purple-200 text-purple-600">Publish</Badge>;
-      case 'maintenance':
-        return <Badge variant="outline" className="bg-amber-50 border-amber-200 text-amber-600">Maintenance</Badge>;
-      default:
-        return <Badge variant="outline" className="bg-gray-50 border-gray-200 text-gray-600">Event</Badge>;
-    }
-  };
-
+export const EventsCalendar: React.FC<EventsCalendarProps & { onRefresh?: () => void }> = ({ 
+  events,
+  onRefresh
+}) => {
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between p-4 pb-0">
-        <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <Calendar className="h-4 w-4" />
-          Upcoming Events
-        </CardTitle>
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-7 w-7">
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7">
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+      <CardHeader className="pb-3">
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle className="text-sm font-medium">Upcoming Events</CardTitle>
+            <CardDescription>Events in the next 14 days</CardDescription>
+          </div>
+          {onRefresh && (
+            <Button variant="outline" size="sm" onClick={onRefresh} className="h-7 px-2 py-0">
+              <RefreshCw className="h-3.5 w-3.5 mr-1" />
+              Refresh
+            </Button>
+          )}
         </div>
       </CardHeader>
-      <CardContent className="p-4">
-        {eventDates.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-2">No upcoming events</p>
+      <CardContent>
+        {events.length === 0 ? (
+          <div className="text-center py-6">
+            <CalendarDays className="mx-auto h-10 w-10 text-muted-foreground/60" />
+            <p className="mt-2 text-sm text-muted-foreground">No upcoming events</p>
+          </div>
         ) : (
           <div className="space-y-4">
-            {eventDates.map((dateKey) => {
-              const eventsOnDate = groupedEvents[dateKey];
-              const date = new Date(dateKey);
-              
-              return (
-                <div key={dateKey} className="border-l-2 border-primary-800 pl-4 pb-1">
-                  <p className="text-xs font-semibold mb-2">{format(date, 'EEEE, MMMM d')}</p>
-                  <div className="space-y-2">
-                    {eventsOnDate.map(event => (
-                      <div key={event.id} className="flex items-center justify-between">
-                        <div className="flex flex-col">
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm font-medium">{event.title}</p>
-                            {getEventTypeBadge(event.type)}
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            {format(event.date, 'h:mm a')}
-                          </p>
-                        </div>
-                        {event.link && (
-                          <Button asChild variant="ghost" size="sm" className="h-7 px-2">
-                            <Link to={event.link}>View</Link>
-                          </Button>
-                        )}
-                      </div>
-                    ))}
+            {events.map(event => (
+              <div key={event.id} className="flex items-start">
+                <div className="mr-4 flex flex-col items-center">
+                  <div className="text-xs text-muted-foreground">{format(event.date, 'MMM')}</div>
+                  <div className="text-xl font-bold">{format(event.date, 'd')}</div>
+                </div>
+                <div className="flex-1 space-y-0.5">
+                  <div className="font-medium">{event.title}</div>
+                  <div className="text-xs text-muted-foreground flex items-center">
+                    <Calendar className="mr-1 h-3 w-3" />
+                    {format(event.date, 'EEEE, MMMM d, yyyy')}
+                  </div>
+                  <div className={`text-xs px-1.5 py-0.5 rounded-full inline-flex mt-1 ${
+                    event.type === 'fixture' 
+                      ? 'bg-blue-100 text-blue-800' 
+                      : event.type === 'meeting' 
+                        ? 'bg-purple-100 text-purple-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {event.type}
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         )}
+        <Button variant="link" size="sm" className="w-full mt-4">View Full Calendar</Button>
       </CardContent>
     </Card>
   );
-}
+};
+
+export default EventsCalendar;

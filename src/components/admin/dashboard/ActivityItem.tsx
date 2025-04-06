@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -8,12 +8,12 @@ import { ExternalLink } from 'lucide-react';
 
 type ActivityType = 'create' | 'update' | 'delete' | 'publish' | 'login' | 'other';
 
-interface ActivityItemProps {
+export interface ActivityItemProps {
   id: string;
   type: ActivityType;
   title: string;
   user: string;
-  timestamp: Date;
+  timestamp: Date | string;
   entityType: string;
   entityId: string;
   editLink?: string;
@@ -57,7 +57,9 @@ export function ActivityItem({
     }
   };
 
-  const timeAgo = formatDistanceToNow(timestamp, { addSuffix: true });
+  // Parse the timestamp if it's a string
+  const date = typeof timestamp === 'string' ? parseISO(timestamp) : timestamp;
+  const timeAgo = formatDistanceToNow(date, { addSuffix: true });
 
   return (
     <div className="flex gap-4 py-3">
@@ -87,3 +89,5 @@ export function ActivityItem({
     </div>
   );
 }
+
+export default ActivityItem;

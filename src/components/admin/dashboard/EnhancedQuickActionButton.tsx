@@ -16,7 +16,7 @@ interface EnhancedQuickActionButtonProps {
   href: string;
   description?: string;
   tooltip?: string;
-  variant?: 'default' | 'outline' | 'secondary' | 'primary';
+  variant?: 'default' | 'outline' | 'secondary' | 'accent' | 'ghost' | 'link' | 'destructive';
   size?: 'default' | 'sm' | 'lg';
   className?: string;
   badgeCount?: number;

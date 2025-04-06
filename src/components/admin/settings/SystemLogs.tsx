@@ -27,7 +27,7 @@ export const SystemLogs: React.FC = () => {
           { id: '2', timestamp: new Date(Date.now() - 7200000).toISOString(), type: 'warning', source: 'system', message: 'Cache storage is nearly full' },
           { id: '3', timestamp: new Date(Date.now() - 10800000).toISOString(), type: 'info', source: 'system', message: 'System backup completed successfully' },
           { id: '4', timestamp: new Date(Date.now() - 14400000).toISOString(), type: 'debug', source: 'system', message: 'Database query timeout' },
-        ];
+        ] as SystemLog[];
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes

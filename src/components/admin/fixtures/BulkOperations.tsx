@@ -1,14 +1,20 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Upload, Download, FileSpreadsheet, Calendar, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Upload, Download, FileSpreadsheet, Calendar, RefreshCw, AlertTriangle, FilePlus2 } from 'lucide-react';
+import { DatePickerWithRange } from '@/components/ui/date-range-picker';
+import { DateRange } from 'react-day-picker';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from '@/components/ui/dialog';
+import { Fixture } from '@/types/fixtures';
 
 interface BulkOperationsProps {
   onRefreshData?: () => void;
@@ -20,6 +26,36 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({ onRefreshData }) => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [updateType, setUpdateType] = useState<'complete' | 'postpone' | 'reschedule'>('complete');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [competition, setCompetition] = useState<string>('all');
+  const [competitions, setCompetitions] = useState<string[]>([]);
+  const [showOnlyCompleted, setShowOnlyCompleted] = useState(false);
+  const [creatingFixtureSeries, setCreatingFixtureSeries] = useState(false);
+  const [seriesCompetition, setSeriesCompetition] = useState('');
+  const [seriesTeams, setSeriesTeams] = useState('');
+  const [seriesVenue, setSeriesVenue] = useState('');
+  
+  // Fetch competitions when component mounts
+  React.useEffect(() => {
+    const fetchCompetitions = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('fixtures')
+          .select('competition')
+          .order('competition');
+        
+        if (error) throw error;
+        
+        const uniqueCompetitions = [...new Set(data.map(item => item.competition))];
+        setCompetitions(['all', ...uniqueCompetitions]);
+      } catch (error) {
+        console.error('Error fetching competitions:', error);
+        toast.error('Failed to load competitions');
+      }
+    };
+    
+    fetchCompetitions();
+  }, []);
   
   // Handle CSV file selection
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,6 +85,7 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({ onRefreshData }) => {
         const headers = rows[0].split(',').map(h => h.trim().toLowerCase());
         
         const fixtures = [];
+        let skippedRows = 0;
         
         for (let i = 1; i < rows.length; i++) {
           if (!rows[i].trim()) continue;
@@ -56,52 +93,83 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({ onRefreshData }) => {
           const values = rows[i].split(',').map(v => v.trim());
           const fixture: Record<string, any> = {};
           
-          headers.forEach((header, index) => {
-            const value = values[index];
+          try {
+            headers.forEach((header, index) => {
+              const value = values[index];
+              
+              switch (header) {
+                case 'date':
+                  // Validate date format
+                  const dateRegex = /^\d{4}-\d{2}-\d{2}$/; // YYYY-MM-DD
+                  if (!dateRegex.test(value)) {
+                    throw new Error(`Invalid date format in row ${i+1}: ${value}. Required format: YYYY-MM-DD`);
+                  }
+                  fixture.date = value;
+                  break;
+                case 'time':
+                  fixture.time = value || '15:00';
+                  break;
+                case 'home_team':
+                case 'hometeam':
+                  fixture.home_team = value;
+                  break;
+                case 'away_team':
+                case 'awayteam':
+                  fixture.away_team = value;
+                  break;
+                case 'competition':
+                  fixture.competition = value;
+                  break;
+                case 'venue':
+                  fixture.venue = value;
+                  break;
+                case 'is_completed':
+                case 'completed':
+                  fixture.is_completed = value.toLowerCase() === 'true';
+                  break;
+                case 'home_score':
+                case 'homescore':
+                  fixture.home_score = parseInt(value) || null;
+                  break;
+                case 'away_score':
+                case 'awayscore':
+                  fixture.away_score = parseInt(value) || null;
+                  break;
+                case 'season':
+                  fixture.season = value;
+                  break;
+                case 'ticket_link':
+                  fixture.ticket_link = value;
+                  break;
+                case 'source':
+                  fixture.source = value;
+                  break;
+                default:
+                  fixture[header] = value;
+              }
+            });
             
-            switch (header) {
-              case 'date':
-                fixture.date = value;
-                break;
-              case 'time':
-                fixture.time = value || '15:00';
-                break;
-              case 'home_team':
-              case 'hometeam':
-                fixture.home_team = value;
-                break;
-              case 'away_team':
-              case 'awayteam':
-                fixture.away_team = value;
-                break;
-              case 'competition':
-                fixture.competition = value;
-                break;
-              case 'venue':
-                fixture.venue = value;
-                break;
-              case 'is_completed':
-              case 'completed':
-                fixture.is_completed = value.toLowerCase() === 'true';
-                break;
-              case 'home_score':
-              case 'homescore':
-                fixture.home_score = parseInt(value) || null;
-                break;
-              case 'away_score':
-              case 'awayscore':
-                fixture.away_score = parseInt(value) || null;
-                break;
-              default:
-                fixture[header] = value;
+            // Add required fields if missing
+            if (fixture.is_completed === undefined) fixture.is_completed = false;
+            if (!fixture.time) fixture.time = '15:00';
+            
+            // Validate required fields
+            if (!fixture.date || !fixture.home_team || !fixture.away_team || !fixture.competition) {
+              throw new Error(`Missing required field(s) in row ${i+1}`);
             }
-          });
-          
-          // Add required fields if missing
-          if (!fixture.is_completed) fixture.is_completed = false;
-          if (!fixture.time) fixture.time = '15:00';
-          
-          fixtures.push(fixture);
+            
+            fixtures.push(fixture);
+          } catch (error) {
+            console.error(`Error processing row ${i}:`, error);
+            skippedRows++;
+            continue;
+          }
+        }
+        
+        if (fixtures.length === 0) {
+          toast.error('No valid fixtures found in CSV file');
+          setIsUploading(false);
+          return;
         }
         
         // Upload to Supabase
@@ -113,7 +181,7 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({ onRefreshData }) => {
           throw error;
         }
         
-        toast.success(`Successfully imported ${fixtures.length} fixtures`);
+        toast.success(`Successfully imported ${fixtures.length} fixtures${skippedRows > 0 ? ` (${skippedRows} rows skipped)` : ''}`);
         
         // Refresh data if callback provided
         if (onRefreshData) onRefreshData();
@@ -127,6 +195,9 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({ onRefreshData }) => {
     } finally {
       setIsUploading(false);
       setCsvFile(null);
+      // Reset the input
+      const fileInput = document.getElementById('csvFile') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
     }
   };
   
@@ -135,16 +206,32 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({ onRefreshData }) => {
     setIsExporting(true);
     
     try {
-      // Fetch all fixtures
-      const { data, error } = await supabase
-        .from('fixtures')
-        .select('*')
-        .order('date', { ascending: true });
+      let query = supabase.from('fixtures').select('*');
+      
+      // Apply filters
+      if (dateRange?.from) {
+        query = query.gte('date', dateRange.from.toISOString().split('T')[0]);
+      }
+      
+      if (dateRange?.to) {
+        query = query.lte('date', dateRange.to.toISOString().split('T')[0]);
+      }
+      
+      if (competition !== 'all') {
+        query = query.eq('competition', competition);
+      }
+      
+      if (showOnlyCompleted) {
+        query = query.eq('is_completed', true);
+      }
+      
+      // Execute query
+      const { data, error } = await query.order('date', { ascending: true });
         
       if (error) throw error;
       
       if (!data || data.length === 0) {
-        toast.error('No fixtures to export');
+        toast.error('No fixtures to export with the current filters');
         return;
       }
       
@@ -163,9 +250,11 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({ onRefreshData }) => {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       const date = new Date().toISOString().split('T')[0];
+      const competitionText = competition !== 'all' ? `-${competition}` : '';
+      const completedText = showOnlyCompleted ? '-completed-only' : '';
       
       link.setAttribute('href', url);
-      link.setAttribute('download', `fixtures-export-${date}.csv`);
+      link.setAttribute('download', `fixtures-export${competitionText}${completedText}-${date}.csv`);
       link.style.visibility = 'hidden';
       
       document.body.appendChild(link);
@@ -181,14 +270,108 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({ onRefreshData }) => {
     }
   };
   
+  // Create a fixture series
+  const handleCreateFixtureSeries = async () => {
+    if (!seriesCompetition || !seriesTeams) {
+      toast.error("Please enter required fields");
+      return;
+    }
+    
+    try {
+      const teams = seriesTeams.split('\n').filter(Boolean).map(team => team.trim());
+      
+      if (teams.length < 2) {
+        toast.error("At least two teams are required");
+        return;
+      }
+      
+      const fixtures: Partial<Fixture>[] = [];
+      
+      // Generate home and away fixtures for each team pair
+      for (let i = 0; i < teams.length; i++) {
+        for (let j = 0; j < teams.length; j++) {
+          if (i === j) continue; // Skip same team
+          
+          fixtures.push({
+            homeTeam: teams[i],
+            awayTeam: teams[j],
+            competition: seriesCompetition,
+            venue: seriesVenue || undefined,
+            date: new Date().toISOString().split('T')[0], // Default to today
+            time: '15:00',
+            isCompleted: false
+          });
+        }
+      }
+      
+      toast.success(`Generated ${fixtures.length} fixtures. Please edit dates and times.`);
+      setCreatingFixtureSeries(false);
+      
+      // Here we would typically open a batch editor UI to let the user edit dates and times
+      // For now, we'll just close this dialog and let the user know
+      toast.info("Add batch editing functionality to edit dates and times");
+      
+    } catch (error) {
+      console.error('Error creating fixture series:', error);
+      toast.error('Failed to create fixture series');
+    }
+  };
+  
   // Bulk update fixtures
   const handleBulkUpdate = async () => {
     setIsUpdating(true);
     
     try {
-      // Implementation will depend on the specific update type
-      // This is a placeholder for now
-      toast.success(`Bulk operation completed successfully`);
+      let query = supabase.from('fixtures').select('id');
+      
+      // Apply filters
+      if (dateRange?.from) {
+        query = query.gte('date', dateRange.from.toISOString().split('T')[0]);
+      }
+      
+      if (dateRange?.to) {
+        query = query.lte('date', dateRange.to.toISOString().split('T')[0]);
+      }
+      
+      if (competition !== 'all') {
+        query = query.eq('competition', competition);
+      }
+      
+      // Execute query to get IDs
+      const { data, error } = await query;
+        
+      if (error) throw error;
+      
+      if (!data || data.length === 0) {
+        toast.error('No fixtures match the current filters');
+        return;
+      }
+      
+      const fixtureIds = data.map(item => item.id);
+      let updateData = {};
+      
+      // Set update data based on the update type
+      if (updateType === 'complete') {
+        updateData = { is_completed: true };
+      } else if (updateType === 'postpone') {
+        updateData = { is_completed: false, notes: 'Match postponed' };
+      } else if (updateType === 'reschedule') {
+        // For rescheduling, we'd typically open a date picker UI
+        // For now, we'll just demonstrate a simple postponement
+        updateData = { is_completed: false, notes: 'Match rescheduled' };
+      }
+      
+      // Update fixtures
+      const { error: updateError } = await supabase
+        .from('fixtures')
+        .update(updateData)
+        .in('id', fixtureIds);
+      
+      if (updateError) throw updateError;
+      
+      toast.success(`Successfully updated ${fixtureIds.length} fixtures`);
+      
+      // Refresh data if callback provided
       if (onRefreshData) onRefreshData();
     } catch (error) {
       console.error('Error during bulk operation:', error);
@@ -196,6 +379,31 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({ onRefreshData }) => {
     } finally {
       setIsUpdating(false);
     }
+  };
+  
+  // Generate template CSV
+  const downloadTemplateCSV = () => {
+    const headers = ['date', 'time', 'home_team', 'away_team', 'competition', 'venue', 'is_completed', 'home_score', 'away_score', 'season', 'ticket_link', 'source'];
+    const sampleRow = ['2024-04-20', '15:00', "Banks o' Dee", 'Opponent FC', 'Highland League', 'Spain Park', 'false', '', '', '2023-2024', '', 'manual'];
+    
+    const csvContent = [
+      headers.join(','),
+      sampleRow.join(',')
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'fixtures-template.csv');
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success('Downloaded CSV template');
   };
   
   return (
@@ -207,6 +415,7 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({ onRefreshData }) => {
           <TabsTrigger value="import">Import</TabsTrigger>
           <TabsTrigger value="export">Export</TabsTrigger>
           <TabsTrigger value="update">Bulk Update</TabsTrigger>
+          <TabsTrigger value="series">Create Series</TabsTrigger>
         </TabsList>
         
         <TabsContent value="import" className="space-y-4">
@@ -219,6 +428,16 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({ onRefreshData }) => {
           </Alert>
           
           <div className="grid gap-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={downloadTemplateCSV}
+              className="w-full sm:w-auto"
+            >
+              <FileSpreadsheet className="h-4 w-4 mr-2" />
+              Download Template CSV
+            </Button>
+            
             <div className="grid gap-2">
               <Label htmlFor="csvFile">CSV File</Label>
               <Input 
@@ -251,12 +470,44 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({ onRefreshData }) => {
         </TabsContent>
         
         <TabsContent value="export" className="space-y-4">
-          <Alert variant="default">
-            <AlertTitle>Export Fixtures</AlertTitle>
-            <AlertDescription>
-              Download all fixtures as a CSV file for backup or editing.
-            </AlertDescription>
-          </Alert>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <Label htmlFor="dateRange">Filter by Date Range</Label>
+              <DatePickerWithRange
+                date={dateRange}
+                onDateChange={setDateRange}
+                className="w-full"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="competition">Filter by Competition</Label>
+              <Select
+                value={competition}
+                onValueChange={setCompetition}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Competition" />
+                </SelectTrigger>
+                <SelectContent>
+                  {competitions.map(comp => (
+                    <SelectItem key={comp} value={comp}>
+                      {comp === 'all' ? 'All Competitions' : comp}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="showOnlyCompleted" 
+                checked={showOnlyCompleted}
+                onCheckedChange={() => setShowOnlyCompleted(!showOnlyCompleted)}
+              />
+              <Label htmlFor="showOnlyCompleted">Only Completed Matches</Label>
+            </div>
+          </div>
           
           <Button
             onClick={handleExportCSV}
@@ -279,53 +530,150 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({ onRefreshData }) => {
         </TabsContent>
         
         <TabsContent value="update" className="space-y-4">
-          <div className="grid gap-4">
-            <div className="grid gap-2">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <Label htmlFor="bulkDateRange">Filter by Date Range</Label>
+              <DatePickerWithRange
+                date={dateRange}
+                onDateChange={setDateRange}
+                className="w-full"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="bulkCompetition">Filter by Competition</Label>
+              <Select
+                value={competition}
+                onValueChange={setCompetition}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Competition" />
+                </SelectTrigger>
+                <SelectContent>
+                  {competitions.map(comp => (
+                    <SelectItem key={comp} value={comp}>
+                      {comp === 'all' ? 'All Competitions' : comp}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="md:col-span-2">
               <Label>Update Type</Label>
-              <div className="flex gap-4">
+              <div className="flex flex-wrap gap-2 mt-2">
                 <Button
-                  variant={updateType === 'complete' ? 'default' : 'default'}
+                  variant={updateType === 'complete' ? 'default' : 'outline'}
                   onClick={() => setUpdateType('complete')}
-                  className="flex-1"
                 >
                   Mark as Complete
                 </Button>
                 <Button
-                  variant={updateType === 'postpone' ? 'default' : 'default'}
+                  variant={updateType === 'postpone' ? 'default' : 'outline'}
                   onClick={() => setUpdateType('postpone')}
-                  className="flex-1"
                 >
                   Postpone
                 </Button>
                 <Button
-                  variant={updateType === 'reschedule' ? 'default' : 'default'}
+                  variant={updateType === 'reschedule' ? 'default' : 'outline'}
                   onClick={() => setUpdateType('reschedule')}
-                  className="flex-1"
                 >
                   Reschedule
                 </Button>
               </div>
             </div>
-            
-            <Button
-              onClick={handleBulkUpdate}
-              disabled={isUpdating}
-              className="w-full"
-              variant="default"
-            >
-              {isUpdating ? (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  Updating...
-                </>
-              ) : (
-                <>
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Apply Bulk Update
-                </>
-              )}
-            </Button>
           </div>
+          
+          <Button
+            onClick={handleBulkUpdate}
+            disabled={isUpdating}
+            className="w-full"
+            variant="default"
+          >
+            {isUpdating ? (
+              <>
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                Updating...
+              </>
+            ) : (
+              <>
+                <Calendar className="h-4 w-4 mr-2" />
+                Apply Bulk Update
+              </>
+            )}
+          </Button>
+        </TabsContent>
+        
+        <TabsContent value="series" className="space-y-4">
+          <Alert variant="default">
+            <FilePlus2 className="h-4 w-4" />
+            <AlertTitle>Create Fixture Series</AlertTitle>
+            <AlertDescription>
+              Quickly generate a series of fixtures for a competition.
+            </AlertDescription>
+          </Alert>
+          
+          <Button
+            onClick={() => setCreatingFixtureSeries(true)}
+            className="w-full"
+            variant="default"
+          >
+            <Calendar className="h-4 w-4 mr-2" />
+            Create New Fixture Series
+          </Button>
+          
+          <Dialog open={creatingFixtureSeries} onOpenChange={setCreatingFixtureSeries}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create Fixture Series</DialogTitle>
+              </DialogHeader>
+              
+              <div className="space-y-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="seriesCompetition">Competition Name</Label>
+                  <Input
+                    id="seriesCompetition"
+                    value={seriesCompetition}
+                    onChange={e => setSeriesCompetition(e.target.value)}
+                    placeholder="e.g. Highland League"
+                  />
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="seriesTeams">Teams (one per line)</Label>
+                  <textarea
+                    id="seriesTeams"
+                    value={seriesTeams}
+                    onChange={e => setSeriesTeams(e.target.value)}
+                    placeholder="Banks o' Dee\nInverurie Locos\nForres Mechanics\nBuckie Thistle"
+                    className="min-h-[120px] p-2 border rounded-md"
+                  />
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="seriesVenue">Default Venue (optional)</Label>
+                  <Input
+                    id="seriesVenue"
+                    value={seriesVenue}
+                    onChange={e => setSeriesVenue(e.target.value)}
+                    placeholder="e.g. Spain Park"
+                  />
+                </div>
+              </div>
+              
+              <DialogFooter>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setCreatingFixtureSeries(false)}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleCreateFixtureSeries}>
+                  Generate Fixtures
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </TabsContent>
       </Tabs>
     </Card>

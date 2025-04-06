@@ -11,7 +11,10 @@ import {
   Download,
   List, 
   FileSpreadsheet,
-  Clock
+  Clock,
+  ImageIcon,
+  FileText,
+  Search
 } from 'lucide-react';
 import { 
   FixturesManager, 
@@ -22,8 +25,73 @@ import {
   VenueManager, 
   CalendarView 
 } from '@/components/admin/fixtures';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Fixture } from '@/types/fixtures';
+import { toast } from 'sonner';
+import { DateRange } from 'react-day-picker';
 
 const FixturesManagement: React.FC = () => {
+  const [fixtures, setFixtures] = useState<Fixture[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  
+  useEffect(() => {
+    fetchFixtures();
+  }, []);
+  
+  const fetchFixtures = async () => {
+    setIsLoading(true);
+    try {
+      // Build the query
+      let query = supabase
+        .from('fixtures')
+        .select('*');
+      
+      // Apply date range filters if set
+      if (dateRange?.from) {
+        query = query.gte('date', dateRange.from.toISOString().split('T')[0]);
+      }
+      
+      if (dateRange?.to) {
+        query = query.lte('date', dateRange.to.toISOString().split('T')[0]);
+      }
+      
+      // Execute the query
+      const { data, error } = await query.order('date', { ascending: true });
+      
+      if (error) throw error;
+      
+      // Convert DB format to our app format
+      const formattedFixtures = data.map(fixture => ({
+        id: fixture.id,
+        date: fixture.date,
+        time: fixture.time,
+        homeTeam: fixture.home_team,
+        awayTeam: fixture.away_team,
+        competition: fixture.competition,
+        venue: fixture.venue,
+        isCompleted: fixture.is_completed,
+        homeScore: fixture.home_score,
+        awayScore: fixture.away_score,
+        ticketLink: fixture.ticket_link,
+        source: fixture.source
+      }));
+      
+      setFixtures(formattedFixtures);
+    } catch (error) {
+      console.error('Error fetching fixtures:', error);
+      toast.error('Failed to load fixtures data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleDateRangeChange = (newRange: DateRange | undefined) => {
+    setDateRange(newRange);
+    fetchFixtures(); // Refetch with new date range
+  };
+  
   return (
     <AdminLayout>
       <div className="container mx-auto px-4 py-6">
@@ -39,7 +107,7 @@ const FixturesManagement: React.FC = () => {
         </div>
         
         <Tabs defaultValue="fixtures" className="space-y-4">
-          <TabsList className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <TabsList className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
             <TabsTrigger value="fixtures" className="flex items-center gap-2">
               <List size={16} />
               Fixtures List
@@ -60,13 +128,13 @@ const FixturesManagement: React.FC = () => {
               <CalendarIcon size={16} />
               Bulk Edit
             </TabsTrigger>
+            <TabsTrigger value="media" className="flex items-center gap-2">
+              <ImageIcon size={16} />
+              Match Media
+            </TabsTrigger>
             <TabsTrigger value="competitions" className="flex items-center gap-2">
               <Settings size={16} />
-              Competitions
-            </TabsTrigger>
-            <TabsTrigger value="venues" className="flex items-center gap-2">
-              <Settings size={16} />
-              Venues
+              Settings
             </TabsTrigger>
           </TabsList>
           
@@ -75,7 +143,11 @@ const FixturesManagement: React.FC = () => {
           </TabsContent>
           
           <TabsContent value="calendar">
-            <CalendarView />
+            <CalendarView 
+              matches={fixtures}
+              isLoading={isLoading}
+              onFilterChange={handleDateRangeChange}
+            />
           </TabsContent>
           
           <TabsContent value="import-export">
@@ -87,15 +159,38 @@ const FixturesManagement: React.FC = () => {
           </TabsContent>
           
           <TabsContent value="bulk">
-            <BulkOperations />
+            <BulkOperations onRefreshData={fetchFixtures} />
+          </TabsContent>
+          
+          <TabsContent value="media">
+            <div className="p-6 bg-white rounded-lg border">
+              <div className="flex items-center justify-center flex-col h-64">
+                <ImageIcon className="h-16 w-16 text-gray-300 mb-4" />
+                <h3 className="text-xl font-bold mb-2">Match Media Management</h3>
+                <p className="text-gray-500 mb-4 text-center max-w-md">
+                  Upload and manage photos, videos, and media related to matches.
+                  Link media to specific fixtures for easy organization.
+                </p>
+                <p className="text-blue-500 text-sm">Coming soon</p>
+              </div>
+            </div>
           </TabsContent>
           
           <TabsContent value="competitions">
-            <CompetitionManager />
-          </TabsContent>
-          
-          <TabsContent value="venues">
-            <VenueManager />
+            <Tabs defaultValue="competitions" className="space-y-4">
+              <TabsList className="mb-4">
+                <TabsTrigger value="competitions">Competitions</TabsTrigger>
+                <TabsTrigger value="venues">Venues</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="competitions">
+                <CompetitionManager />
+              </TabsContent>
+              
+              <TabsContent value="venues">
+                <VenueManager />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
         </Tabs>
       </div>

@@ -22,6 +22,7 @@ import FixturesManagement from './pages/admin/FixturesManagement';
 import Dashboard from './pages/admin/Dashboard';
 import NewsManagement from './pages/admin/NewsManagement';
 import TeamManagement from './pages/admin/TeamManagement';
+import Team from './pages/Team';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -50,19 +51,19 @@ function App() {
           <Route path="/fixtures" element={<MainLayout><div>Fixtures Page</div></MainLayout>} />
           <Route path="/results" element={<MainLayout><div>Results Page</div></MainLayout>} />
           <Route path="/news" element={<MainLayout><div>News Page</div></MainLayout>} />
-          <Route path="/team" element={<MainLayout><div>Team Page</div></MainLayout>} />
+          <Route path="/team" element={<MainLayout><Team /></MainLayout>} />
           <Route path="/stadium" element={<MainLayout><div>Spain Park Page</div></MainLayout>} />
           <Route path="/tickets" element={<MainLayout><div>Tickets Page</div></MainLayout>} />
           <Route path="/contact" element={<MainLayout><div>Contact Page</div></MainLayout>} />
           <Route path="/404" element={<MainLayout><NotFoundPage /></MainLayout>} />
           <Route path="*" element={<Navigate to="/404" replace />} />
 
-          {/* Admin Routes - All using AdminLayout */}
+          {/* Admin Routes - All using Dashboard as parent */}
           <Route path="/admin" element={<Dashboard />} />
-          <Route path="/admin/fixtures" element={<AdminLayout><FixturesManagement /></AdminLayout>} />
-          <Route path="/admin/league-table-management" element={<AdminLayout><LeagueTableManagement /></AdminLayout>} />
-          <Route path="/admin/news" element={<AdminLayout><NewsManagement /></AdminLayout>} />
-          <Route path="/admin/team" element={<AdminLayout><TeamManagement /></AdminLayout>} />
+          <Route path="/admin/fixtures" element={<FixturesManagement />} />
+          <Route path="/admin/league-table-management" element={<LeagueTableManagement />} />
+          <Route path="/admin/news" element={<NewsManagement />} />
+          <Route path="/admin/team" element={<TeamManagement />} />
           <Route path="/admin/images" element={<AdminLayout><div>Media Management</div></AdminLayout>} />
           <Route path="/admin/sponsors" element={<AdminLayout><div>Sponsors Management</div></AdminLayout>} />
           <Route path="/admin/tickets" element={<AdminLayout><div>Tickets Management</div></AdminLayout>} />

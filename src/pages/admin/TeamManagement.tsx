@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import AdminLayout from '@/components/admin/layout/AdminLayout';
+import { AdminLayout } from '@/components/admin/layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Typography } from '@/components/ui';
 import { Button } from '@/components/ui/button';
@@ -41,7 +41,7 @@ const TeamManagement: React.FC = () => {
             <p className="text-gray-500">Manage players, coaching staff, and club officials</p>
           </div>
           <div className="flex gap-2">
-            <Button className="gap-1" onClick={handleAddNewMember}>
+            <Button className="flex items-center gap-1" onClick={handleAddNewMember}>
               <PlusCircle size={16} />
               New Team Member
             </Button>

@@ -4,9 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, AlertTriangle, CheckCircle, Database, Server, Users, Activity, RefreshCw } from 'lucide-react';
+import { SystemStatusData } from '@/services/logs/systemLogsService';
 
 interface SystemStatusPanelProps {
-  data: any;
+  data: SystemStatusData;
   isLoading: boolean;
   onRefresh: () => void;
 }

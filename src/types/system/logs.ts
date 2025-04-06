@@ -1,17 +1,18 @@
 
 export interface SystemLog {
   id: string;
-  timestamp: string | Date;
   type: 'error' | 'warning' | 'info' | 'success' | 'debug';
   message: string;
   source: string;
+  timestamp: Date | string;
+  details?: any;
   metadata?: Record<string, any>;
+  module?: string; // For backward compatibility
+  level?: string; // For backward compatibility
+  created_at?: string; // For backward compatibility
 }
 
-export interface SystemLogFilter {
-  type?: string[];
-  source?: string[];
-  from?: Date | null;
-  to?: Date | null;
-  search?: string;
+export interface SystemLogResponse {
+  data: SystemLog[] | null;
+  error: any | null;
 }

@@ -1,137 +1,103 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { Eye, Edit, Trash } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
 import { NewsArticle } from '@/types/news';
-
-// Mock data for drafts
-const mockDrafts: NewsArticle[] = [
-  {
-    id: 'd1',
-    title: 'Upcoming Summer Training Camp',
-    slug: 'upcoming-summer-training-camp',
-    content: 'Details about our summer training camp schedule.',
-    publish_date: null, // null publish_date indicates a draft
-    is_draft: true,
-    is_published: false,
-    created_at: '2023-04-15T09:24:00Z',
-    updated_at: '2023-04-15T10:30:00Z',
-    author: 'Coach Williams',
-    category: 'Training',
-    image_url: '/placeholder.svg',
-    is_featured: false
-  },
-  {
-    id: 'd2',
-    title: 'New Team Kit Reveal',
-    slug: 'new-team-kit-reveal',
-    content: 'First look at our new team kit for the upcoming season.',
-    publish_date: null,
-    is_draft: true,
-    is_published: false,
-    created_at: '2023-04-10T14:12:00Z',
-    updated_at: '2023-04-10T16:45:00Z',
-    author: 'Marketing Team',
-    category: 'Announcement',
-    image_url: '/placeholder.svg',
-    is_featured: false
-  },
-  {
-    id: 'd3',
-    title: 'Season Review - Work in Progress',
-    slug: 'season-review-wip',
-    content: 'Analyzing the highlights and challenges from this past season.',
-    publish_date: null,
-    is_draft: true,
-    is_published: false,
-    created_at: '2023-04-05T11:30:00Z',
-    updated_at: '2023-04-07T09:15:00Z',
-    author: 'Technical Director',
-    category: 'Analysis',
-    image_url: '/placeholder.svg',
-    is_featured: false
-  }
-];
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { Calendar, Edit } from 'lucide-react';
 
 export const NewsArticleDrafts: React.FC = () => {
-  const [drafts] = useState<NewsArticle[]>(mockDrafts);
-
-  const handlePreview = (draft: NewsArticle) => {
-    console.log('Preview draft:', draft);
-    // In a real app, show a preview modal
-  };
-
-  const handleEdit = (draft: NewsArticle) => {
-    console.log('Edit draft:', draft);
-    // In a real app, redirect to editor with draft ID
-  };
-
-  const handleDelete = (draft: NewsArticle) => {
-    console.log('Delete draft:', draft);
-    // In a real app, show confirmation and delete
-  };
-
-  if (drafts.length === 0) {
-    return (
-      <div className="text-center py-12 text-gray-500">
-        <p>No drafts found.</p>
-      </div>
-    );
-  }
+  // These would be fetched from the API in a real application
+  const mockDrafts: NewsArticle[] = [
+    {
+      id: "draft-1",
+      title: "Upcoming Match Preview Draft",
+      content: "This is a draft of the upcoming match preview...",
+      image_url: "/lovable-uploads/02654c64-77bc-4a05-ae93-7c8173d0dc3c.png",
+      publish_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days in future
+      category: "Match Preview",
+      author: "John Editor",
+      is_featured: false,
+      slug: "upcoming-match-preview-draft",
+      created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      updated_at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: "draft-2",
+      title: "Team News Draft",
+      content: "This is a draft of the latest team news...",
+      image_url: "/lovable-uploads/02654c64-77bc-4a05-ae93-7c8173d0dc3c.png",
+      publish_date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day in future
+      category: "Team News",
+      author: "Sarah Writer",
+      is_featured: false,
+      slug: "team-news-draft",
+      created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+      updated_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: "draft-3",
+      title: "Season Tickets Information Draft",
+      content: "This is a draft about season tickets...",
+      image_url: "/lovable-uploads/02654c64-77bc-4a05-ae93-7c8173d0dc3c.png",
+      publish_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days in future
+      category: "Club News",
+      author: "Admin User",
+      is_featured: true,
+      slug: "season-tickets-information-draft",
+      created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+      updated_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+    }
+  ];
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Draft Articles</h2>
+      <div className="mb-4">
+        <h3 className="text-lg font-medium">Draft Articles</h3>
+        <p className="text-sm text-gray-500">Articles in progress that are not yet published</p>
       </div>
 
-      <div className="grid gap-4">
-        {drafts.map((draft) => (
-          <Card key={draft.id}>
-            <CardContent className="p-4">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-medium">{draft.title}</h3>
-                    <Badge variant="outline" className="bg-yellow-50 text-yellow-800 border-yellow-200">
-                      Draft
-                    </Badge>
-                  </div>
-                  
-                  <div className="text-sm text-gray-500 mb-2">
-                    <span>{draft.category || 'Uncategorized'}</span>
-                    <span className="mx-2">•</span>
-                    <span>By {draft.author || 'Unknown author'}</span>
-                    <span className="mx-2">•</span>
-                    <span>
-                      Last edited {formatDistanceToNow(new Date(draft.updated_at), { addSuffix: true })}
-                    </span>
-                  </div>
-                  
-                  <p className="text-sm text-gray-700 line-clamp-2">
-                    {draft.content?.substring(0, 150)}...
-                  </p>
+      {mockDrafts.length === 0 ? (
+        <div className="text-center py-12 border rounded-lg">
+          <p className="text-muted-foreground">No draft articles found</p>
+          <Button variant="outline" className="mt-4">Create New Draft</Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {mockDrafts.map((draft) => (
+            <Card key={draft.id} className="overflow-hidden">
+              {draft.image_url && (
+                <div className="h-40 overflow-hidden">
+                  <img 
+                    src={draft.image_url} 
+                    alt={draft.title}
+                    className="w-full h-full object-cover transition-transform hover:scale-105" 
+                  />
                 </div>
-
-                <div className="flex gap-2 ml-4">
-                  <Button variant="ghost" size="sm" onClick={() => handlePreview(draft)}>
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleEdit(draft)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleDelete(draft)}>
-                    <Trash className="h-4 w-4" />
-                  </Button>
+              )}
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">{draft.title}</CardTitle>
+              </CardHeader>
+              <CardContent className="pb-2">
+                <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+                  <Calendar className="h-4 w-4" />
+                  <span>Draft • Last edited {new Date(draft.updated_at).toLocaleDateString()}</span>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                <p className="text-sm text-gray-700 line-clamp-3">
+                  {draft.content.replace(/<[^>]*>/g, '').substring(0, 120)}...
+                </p>
+              </CardContent>
+              <CardFooter>
+                <Button variant="outline" className="w-full" size="sm">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Draft
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
+
+export default NewsArticleDrafts;

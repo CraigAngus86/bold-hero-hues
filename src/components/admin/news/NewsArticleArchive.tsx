@@ -1,156 +1,96 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { Eye, ArchiveRestore, Search } from 'lucide-react';
 import { NewsArticle } from '@/types/news';
-import { format, parseISO } from 'date-fns';
-
-// Mock data for archived articles
-const mockArchives: NewsArticle[] = [
-  {
-    id: 'a1',
-    title: 'End of Season Awards 2022',
-    slug: 'end-of-season-awards-2022',
-    content: 'Recap of our annual end of season awards ceremony.',
-    publish_date: '2022-05-30T18:00:00Z',
-    is_draft: false,
-    is_published: true,
-    created_at: '2022-05-28T10:00:00Z',
-    updated_at: '2022-05-30T18:00:00Z',
-    author: 'Club Secretary',
-    category: 'Events',
-    image_url: '/placeholder.svg',
-    is_featured: false,
-    is_archived: true
-  },
-  {
-    id: 'a2',
-    title: 'Winter Training Schedule 2022',
-    slug: 'winter-training-schedule-2022',
-    content: 'Information about our winter training schedule for December through February.',
-    publish_date: '2022-11-15T09:00:00Z',
-    is_draft: false,
-    is_published: true,
-    created_at: '2022-11-10T14:00:00Z',
-    updated_at: '2022-11-15T09:00:00Z',
-    author: 'Coaching Staff',
-    category: 'Training',
-    image_url: '/placeholder.svg',
-    is_featured: false,
-    is_archived: true
-  },
-  {
-    id: 'a3',
-    title: 'Youth Team Tryouts - 2022 Season',
-    slug: 'youth-team-tryouts-2022',
-    content: 'Details about upcoming tryouts for our youth teams for the 2022 season.',
-    publish_date: '2022-02-10T12:00:00Z',
-    is_draft: false,
-    is_published: true,
-    created_at: '2022-02-01T09:30:00Z',
-    updated_at: '2022-02-10T12:00:00Z',
-    author: 'Youth Development Coach',
-    category: 'Youth',
-    image_url: '/placeholder.svg',
-    is_featured: false,
-    is_archived: true
-  }
-];
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { Calendar, RotateCcw } from 'lucide-react';
 
 export const NewsArticleArchive: React.FC = () => {
-  const [archives] = useState<NewsArticle[]>(mockArchives);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-
-  const filteredArchives = archives.filter(article => {
-    const matchesSearch = article.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          article.content.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === 'all' || article.category === categoryFilter;
-    return matchesSearch && matchesCategory;
-  });
-
-  const categories = ['all', ...Array.from(new Set(archives.map(a => a.category)))];
-
-  const handleView = (article: NewsArticle) => {
-    console.log('View archived article:', article);
-    // In a real app, show a preview modal or redirect to article view
-  };
-
-  const handleRestore = (article: NewsArticle) => {
-    console.log('Restore archived article:', article);
-    // In a real app, restore the article from archive
-  };
+  // These would be fetched from the API in a real application
+  const mockArchived: NewsArticle[] = [
+    {
+      id: "archive-1",
+      title: "End of Season Review",
+      content: "Looking back at our successful season...",
+      image_url: "/lovable-uploads/02654c64-77bc-4a05-ae93-7c8173d0dc3c.png",
+      publish_date: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000).toISOString(), // 120 days ago
+      category: "Season Review",
+      author: "John Writer",
+      is_featured: false,
+      slug: "end-of-season-review",
+      created_at: new Date(Date.now() - 125 * 24 * 60 * 60 * 1000).toISOString(),
+      updated_at: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: "archive-2",
+      title: "Summer Transfer Recap",
+      content: "A look at all our summer transfer activity...",
+      image_url: "/lovable-uploads/02654c64-77bc-4a05-ae93-7c8173d0dc3c.png",
+      publish_date: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days ago
+      category: "Transfer News",
+      author: "Sarah Editor",
+      is_featured: true,
+      slug: "summer-transfer-recap",
+      created_at: new Date(Date.now() - 95 * 24 * 60 * 60 * 1000).toISOString(),
+      updated_at: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: "archive-3",
+      title: "Preseason Tour Results",
+      content: "Results and highlights from our preseason tour...",
+      image_url: "/lovable-uploads/02654c64-77bc-4a05-ae93-7c8173d0dc3c.png",
+      publish_date: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(), // 60 days ago
+      category: "Match Reports",
+      author: "Admin User",
+      is_featured: false,
+      slug: "preseason-tour-results",
+      created_at: new Date(Date.now() - 65 * 24 * 60 * 60 * 1000).toISOString(),
+      updated_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString()
+    }
+  ];
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col md:flex-row gap-3 justify-between mb-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-          <Input
-            placeholder="Search archives..."
-            className="pl-8"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="w-full md:w-[180px]">
-            <SelectValue placeholder="Filter by category" />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map((category) => (
-              <SelectItem 
-                key={category} 
-                value={category}
-              >
-                {category === 'all' ? 'All Categories' : category}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="mb-4">
+        <h3 className="text-lg font-medium">Archived Articles</h3>
+        <p className="text-sm text-gray-500">Older articles removed from active rotation</p>
       </div>
 
-      {filteredArchives.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
-          <p>No archived articles found.</p>
+      {mockArchived.length === 0 ? (
+        <div className="text-center py-12 border rounded-lg">
+          <p className="text-muted-foreground">No archived articles found</p>
         </div>
       ) : (
-        <div className="grid gap-4">
-          {filteredArchives.map((article) => (
-            <Card key={article.id}>
-              <CardContent className="p-4">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-medium">{article.title}</h3>
-                      <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
-                        Archived
-                      </Badge>
-                    </div>
-                    
-                    <div className="text-sm text-gray-500 mb-2">
-                      <span>{article.category || 'Uncategorized'}</span>
-                      <span className="mx-2">•</span>
-                      <span>Published on {format(parseISO(article.publish_date), 'MMM d, yyyy')}</span>
-                      <span className="mx-2">•</span>
-                      <span>By {article.author || 'Unknown author'}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2 ml-4">
-                    <Button variant="ghost" size="sm" onClick={() => handleView(article)}>
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleRestore(article)}>
-                      <ArchiveRestore className="h-4 w-4" />
-                    </Button>
-                  </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {mockArchived.map((article) => (
+            <Card key={article.id} className="overflow-hidden">
+              {article.image_url && (
+                <div className="h-40 overflow-hidden">
+                  <img 
+                    src={article.image_url} 
+                    alt={article.title}
+                    className="w-full h-full object-cover opacity-75 grayscale transition-all hover:grayscale-0 hover:opacity-100" 
+                  />
                 </div>
+              )}
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">{article.title}</CardTitle>
+              </CardHeader>
+              <CardContent className="pb-2">
+                <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+                  <Calendar className="h-4 w-4" />
+                  <span>Published {new Date(article.publish_date).toLocaleDateString()}</span>
+                </div>
+                <p className="text-sm text-gray-700 line-clamp-3">
+                  {article.content.replace(/<[^>]*>/g, '').substring(0, 120)}...
+                </p>
               </CardContent>
+              <CardFooter>
+                <Button variant="outline" className="w-full" size="sm">
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Restore
+                </Button>
+              </CardFooter>
             </Card>
           ))}
         </div>
@@ -158,3 +98,5 @@ export const NewsArticleArchive: React.FC = () => {
     </div>
   );
 };
+
+export default NewsArticleArchive;

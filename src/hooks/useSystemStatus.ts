@@ -32,8 +32,8 @@ export function useSystemStatus() {
     data: data as SystemStatusData,
     isLoading,
     error,
-    lastUpdated,
-    refresh
+    refresh,
+    lastUpdated
   };
 }
 

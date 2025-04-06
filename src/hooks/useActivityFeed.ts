@@ -1,29 +1,53 @@
 
-import { useQuery } from '@tanstack/react-query';
-import { mockActivities } from '@/components/admin/dashboard/ActivityFeed';
+import { useState, useEffect } from 'react';
 
-// Keys for React Query
-export const activityKeys = {
-  activities: ['dashboard', 'activities'],
-};
-
-export const useActivityFeed = (limit: number = 10) => {
-  return useQuery({
-    queryKey: [...activityKeys.activities, { limit }],
-    queryFn: async () => {
-      try {
-        // In a real app, fetch from your activity logs table
-        // For now, using mock data but in proper implementation:
-        // const { data, error } = await supabase.from('admin_activities').select('*').order('timestamp', { ascending: false }).limit(limit);
-        
-        // Instead, we'll use the mock data but simulate an API call
-        await new Promise(resolve => setTimeout(resolve, 300));
-        return mockActivities.slice(0, limit);
-      } catch (error) {
-        console.error("Error fetching activity feed:", error);
-        return [];
-      }
+// This is a mock implementation for now
+export function useActivityFeed(limit = 10) {
+  const [data, setData] = useState([
+    {
+      id: '1',
+      type: 'article',
+      title: 'Article published',
+      description: 'New match report published',
+      user: 'admin',
+      timestamp: new Date(Date.now() - 15 * 60000), // 15 mins ago
+      section: 'News'
     },
-    staleTime: 1 * 60 * 1000, // 1 minute
-  });
-};
+    {
+      id: '2',
+      type: 'media',
+      title: 'Image uploaded',
+      description: 'Match photos uploaded',
+      user: 'editor',
+      timestamp: new Date(Date.now() - 45 * 60000), // 45 mins ago
+      section: 'Media'
+    },
+    {
+      id: '3',
+      type: 'event',
+      title: 'Fixture added',
+      description: 'New fixture added to schedule',
+      user: 'admin',
+      timestamp: new Date(Date.now() - 120 * 60000), // 2 hours ago
+      section: 'Fixtures'
+    },
+    {
+      id: '4',
+      type: 'settings',
+      title: 'Settings updated',
+      description: 'System settings updated',
+      user: 'admin',
+      timestamp: new Date(Date.now() - 180 * 60000), // 3 hours ago
+      section: 'Settings'
+    }
+  ]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // In a real app, we'd fetch activities from an API
+  useEffect(() => {
+    // This would be a real API call
+  }, [limit]);
+
+  return { data, isLoading, error };
+}

@@ -8,6 +8,16 @@ import {
   Clock, Users, Mail
 } from 'lucide-react';
 
+interface Activity {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  user: string;
+  timestamp: Date;
+  section: string;
+}
+
 const getActivityIcon = (type: string) => {
   switch (type) {
     case 'article':
@@ -42,8 +52,48 @@ const formatTime = (date: string | Date) => {
   });
 };
 
+const mockActivities: Activity[] = [
+  {
+    id: '1',
+    type: 'article',
+    title: 'Article published',
+    description: 'New match report published',
+    user: 'admin',
+    timestamp: new Date(Date.now() - 15 * 60000), // 15 mins ago
+    section: 'News'
+  },
+  {
+    id: '2',
+    type: 'media',
+    title: 'Image uploaded',
+    description: 'Match photos uploaded',
+    user: 'editor',
+    timestamp: new Date(Date.now() - 45 * 60000), // 45 mins ago
+    section: 'Media'
+  },
+  {
+    id: '3',
+    type: 'event',
+    title: 'Fixture added',
+    description: 'New fixture added to schedule',
+    user: 'admin',
+    timestamp: new Date(Date.now() - 120 * 60000), // 2 hours ago
+    section: 'Fixtures'
+  },
+  {
+    id: '4',
+    type: 'settings',
+    title: 'Settings updated',
+    description: 'System settings updated',
+    user: 'admin',
+    timestamp: new Date(Date.now() - 180 * 60000), // 3 hours ago
+    section: 'Settings'
+  }
+];
+
 const RecentActivityPanel = () => {
-  const { data: activities, isLoading } = useActivityFeed(10);
+  // In a real app, we'd fetch activities from an API
+  const { data: activities, isLoading } = { data: mockActivities, isLoading: false };
 
   return (
     <Card>

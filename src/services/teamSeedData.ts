@@ -1,119 +1,71 @@
 
 import { TeamMember } from '@/types/team';
 
-// Sample team data for initial state or demo purposes
-const sampleTeamMembers: TeamMember[] = [
+// Sample team data for development/testing
+export const seedTeamData: TeamMember[] = [
   {
-    id: '1',
-    name: 'Mark Wilson',
+    id: 'player-1',
+    name: 'John Smith',
     member_type: 'player',
     position: 'Goalkeeper',
-    image_url: '/lovable-uploads/player1.jpg',
-    bio: 'Experienced goalkeeper with strong leadership skills.',
+    image_url: '/lovable-uploads/player-generic.png',
+    bio: 'Experienced goalkeeper with excellent reflexes.',
     nationality: 'Scotland',
+    jersey_number: 1,
     experience: '10 years',
     is_active: true,
     created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    jersey_number: 1,
-    previous_clubs: ['Aberdeen FC', 'Inverness CT'],
-    stats: {
-      appearances: 45,
-      cleanSheets: 20
-    }
+    updated_at: new Date().toISOString()
   },
   {
-    id: '2',
-    name: 'Jamie McDonald',
+    id: 'player-2',
+    name: 'David Williams',
     member_type: 'player',
     position: 'Defender',
-    image_url: '/lovable-uploads/player2.jpg',
-    bio: 'Strong, reliable defender with excellent tackling ability.',
-    nationality: 'Scotland',
+    image_url: '/lovable-uploads/player-generic.png',
+    bio: 'Solid center back with good aerial ability.',
+    nationality: 'England',
+    jersey_number: 5,
     experience: '8 years',
     is_active: true,
     created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    jersey_number: 5,
-    previous_clubs: ['Ross County', 'Inverness CT'],
-    stats: {
-      appearances: 52,
-      goals: 3
-    }
+    updated_at: new Date().toISOString()
   },
   {
-    id: '3',
-    name: 'Ryan Stewart',
+    id: 'player-3',
+    name: 'Andrew Brown',
     member_type: 'player',
     position: 'Midfielder',
-    image_url: '/lovable-uploads/player3.jpg',
-    bio: 'Creative midfielder with excellent vision and passing ability.',
+    image_url: '/lovable-uploads/player-generic.png',
+    bio: 'Creative midfielder with excellent passing range.',
     nationality: 'Scotland',
+    jersey_number: 8,
     experience: '7 years',
     is_active: true,
     created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    jersey_number: 8,
-    previous_clubs: ['Hearts', 'Falkirk'],
-    stats: {
-      appearances: 49,
-      goals: 8,
-      assists: 15
-    }
+    updated_at: new Date().toISOString()
   },
   {
-    id: '4',
-    name: 'David Campbell',
+    id: 'player-4',
+    name: 'James Wilson',
     member_type: 'player',
     position: 'Forward',
-    image_url: '/lovable-uploads/player4.jpg',
-    bio: 'Prolific striker with exceptional finishing ability.',
-    nationality: 'Scotland',
-    experience: '9 years',
+    image_url: '/lovable-uploads/player-generic.png',
+    bio: 'Prolific striker with good movement.',
+    nationality: 'Wales',
+    jersey_number: 9,
+    experience: '6 years',
     is_active: true,
     created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    jersey_number: 10,
-    previous_clubs: ['Dundee', 'St. Johnstone'],
-    stats: {
-      appearances: 50,
-      goals: 23,
-      assists: 7
-    }
+    updated_at: new Date().toISOString()
   },
   {
-    id: '5',
-    name: 'Alan Thompson',
+    id: 'staff-1',
+    name: 'Robert Johnson',
     member_type: 'management',
     position: 'Head Coach',
-    image_url: '/lovable-uploads/coach.jpg',
-    bio: 'Experienced manager with a track record of developing young talent.',
-    nationality: 'Scotland',
-    experience: '12 years',
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: '6',
-    name: 'Ian MacLeod',
-    member_type: 'management',
-    position: 'Assistant Coach',
-    image_url: '/lovable-uploads/assistant.jpg',
-    bio: 'Former professional player turned coach with tactical expertise.',
-    nationality: 'Scotland',
-    experience: '8 years',
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: '7',
-    name: 'John Edwards',
-    member_type: 'official',
-    position: 'Club Chairman',
-    image_url: '/lovable-uploads/chairman.jpg',
-    bio: 'Businessman and long-time supporter of the club.',
+    image_url: '/lovable-uploads/coach-generic.png',
+    bio: 'Experienced coach with a focus on attacking football.',
     nationality: 'Scotland',
     experience: '15 years',
     is_active: true,
@@ -121,23 +73,23 @@ const sampleTeamMembers: TeamMember[] = [
     updated_at: new Date().toISOString()
   },
   {
-    id: '8',
-    name: 'Sarah Mitchell',
+    id: 'official-1',
+    name: 'Thomas Clark',
     member_type: 'official',
-    position: 'Club Secretary',
-    image_url: '/lovable-uploads/secretary.jpg',
-    bio: 'Dedicated administrator ensuring smooth club operations.',
+    position: 'Club Chairman',
+    image_url: '/lovable-uploads/official-generic.png',
+    bio: 'Leading the club since 2018.',
     nationality: 'Scotland',
-    experience: '10 years',
+    experience: '12 years',
     is_active: true,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   }
 ];
 
-// Function to seed the team data
-export const seedTeamData = () => {
-  return sampleTeamMembers;
+// Function to initialize team store with seed data
+export const initializeTeamStore = (addTeamMember) => {
+  seedTeamData.forEach(member => {
+    addTeamMember(member);
+  });
 };
-
-export default seedTeamData;

@@ -71,17 +71,25 @@ export const ImageUploaderProvider: React.FC<ImageUploaderProviderProps> = ({
   
   const maxSizeBytes = maxSizeMB * 1024 * 1024;
   
-  const handlers = useImageUploadHandlers({
-    ...state,
-    acceptedTypes,
-    maxSizeBytes,
+  // Update handlers with the missing parameters
+  const uploadOptions = {
     bucket,
     folderPath,
-    optimizationOptions,
+    maxSize: maxSizeBytes,
+    allowedTypes: acceptedTypes.split(','),
+    onSuccess: onUploadComplete
+  };
+  
+  const { uploadFile } = useImageUpload(uploadOptions);
+  
+  const handlers = useImageUploadHandlers({
+    ...state,
+    uploadFile,
     onUploadComplete
   });
   
-  const value = {
+  // Include acceptedTypes in the context value
+  const value: ImageUploaderContextType = {
     ...state,
     ...handlers,
     acceptedTypes

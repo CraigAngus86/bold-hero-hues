@@ -3,11 +3,11 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { TeamMember, MemberType } from '@/types/team';
 
-interface TeamStore {
+export interface TeamStore {
   teamMembers: TeamMember[];
   loading: boolean;
+  isLoading: boolean; // For compatibility with components
   error: string | null;
-  isLoading: boolean; // Added for compatibility with components
   players: TeamMember[]; // For compatibility with components
   
   // Required methods for components
@@ -38,7 +38,7 @@ export const useTeamStore = create<TeamStore>()(
         set({ loading: true, isLoading: true, error: null });
         try {
           // This would normally fetch from API or database
-          // For now, we're just using the data that's already in the store
+          // For now, we just use the data that's already in the store
           const players = get().teamMembers.filter(m => m.member_type === 'player');
           set({ 
             loading: false, 

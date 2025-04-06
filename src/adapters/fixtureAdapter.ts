@@ -15,7 +15,7 @@ export function adaptFixtureToMatch(fixture: Fixture): Match {
     competition: fixture.competition,
     venue: fixture.venue || '',
     season: fixture.season || '',
-    isCompleted: fixture.is_completed,
+    isCompleted: fixture.is_completed || false,
     homeScore: fixture.home_score || 0,
     awayScore: fixture.away_score || 0,
     ticketLink: fixture.ticket_link || ''

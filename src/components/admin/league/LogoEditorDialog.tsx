@@ -12,24 +12,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TeamStats } from '@/types/fixtures';
 import { toast } from 'sonner';
-
-// Create a simple service for league operations
-const leagueService = {
-  updateTeamLogo: async (teamId: string, logoUrl: string): Promise<boolean> => {
-    try {
-      // This would normally call an API or database
-      console.log(`Updating logo for team ${teamId} with URL ${logoUrl}`);
-      // Simulate success
-      return true;
-    } catch (error) {
-      console.error('Error updating team logo:', error);
-      return false;
-    }
-  }
-};
+import { leagueService } from '@/services/leagueService';
 
 interface LogoEditorDialogProps {
-  team: TeamStats; // Renamed from selectedTeam for clarity
+  team: TeamStats; // Use team prop instead of selectedTeam
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => Promise<void>;

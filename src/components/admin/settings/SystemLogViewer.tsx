@@ -5,9 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DataTable } from '@/components/admin/common/DataTable';
-import { AlertCircle, AlertTriangle, Info, Bug, RefreshCw, Filter, Search, Download } from 'lucide-react';
-import { SystemLog } from '@/types';
+import DataTable from '@/components/admin/common/DataTable';
+import { AlertCircle, AlertTriangle, Info, Bug, RefreshCw, Filter, Search, Download, CheckCircle } from 'lucide-react';
+import { SystemLog } from '@/types/system';
 import { format, parseISO } from 'date-fns';
 import { spacing, typography } from '@/styles/designTokens';
 
@@ -71,6 +71,8 @@ export const SystemLogViewer: React.FC<SystemLogViewerProps> = ({
         return <AlertTriangle className="h-4 w-4 text-amber-500" />;
       case 'info':
         return <Info className="h-4 w-4 text-blue-500" />;
+      case 'success':
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
       case 'debug':
         return <Bug className="h-4 w-4 text-gray-500" />;
       default:
@@ -86,6 +88,8 @@ export const SystemLogViewer: React.FC<SystemLogViewerProps> = ({
         return 'secondary';
       case 'info':
         return 'default';
+      case 'success':
+        return 'success';
       case 'debug':
         return 'outline';
       default:
@@ -164,6 +168,7 @@ export const SystemLogViewer: React.FC<SystemLogViewerProps> = ({
                 <SelectItem value="error">Errors</SelectItem>
                 <SelectItem value="warning">Warnings</SelectItem>
                 <SelectItem value="info">Info</SelectItem>
+                <SelectItem value="success">Success</SelectItem>
                 <SelectItem value="debug">Debug</SelectItem>
               </SelectContent>
             </Select>

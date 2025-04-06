@@ -1,13 +1,13 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getSystemLogs, SystemLog, exportLogsAsJson } from '@/services/logs/systemLogsService';
+import { getSystemLogs, exportLogsAsJson } from '@/services/logs/systemLogsService';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertCircle, AlertTriangle, Info, Bug, RefreshCw, Filter, Search, Download, CheckCircle } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import { SystemLog } from '@/types/system';
 
 const SystemLogs = () => {
   const [logs, setLogs] = useState<SystemLog[]>([]);

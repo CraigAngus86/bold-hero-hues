@@ -9,6 +9,9 @@ import {
   TableProperties,
   Image, 
   Award,
+  ShoppingBag,
+  Users2,
+  Settings,
   LogOut,
   ChevronLeft,
   ChevronRight,
@@ -19,7 +22,6 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Icons } from '@/components/icons';
 import { ModeToggle } from '@/components/mode-toggle';
 import { SidebarNav } from '@/components/ui/sidebar-nav';
 
@@ -35,12 +37,15 @@ interface SidebarNavItem {
 
 const navItems: SidebarNavItem[] = [
   { title: 'Dashboard', href: '/admin', icon: <LayoutDashboard className="h-5 w-5" /> },
-  { title: 'News', href: '/admin/news', icon: <Newspaper className="h-5 w-5" /> },
-  { title: 'Team', href: '/admin/team', icon: <Users className="h-5 w-5" /> },
-  { title: 'Fixtures', href: '/admin/fixtures', icon: <Calendar className="h-5 w-5" /> },
+  { title: 'News Management', href: '/admin/news', icon: <Newspaper className="h-5 w-5" /> },
+  { title: 'Team & Management', href: '/admin/team', icon: <Users className="h-5 w-5" /> },
+  { title: 'Fixtures & Results', href: '/admin/fixtures', icon: <Calendar className="h-5 w-5" /> },
   { title: 'League Table', href: '/admin/league-table-management', icon: <TableProperties className="h-5 w-5" /> },
-  { title: 'Media', href: '/admin/images', icon: <Image className="h-5 w-5" /> },
+  { title: 'Media Gallery', href: '/admin/images', icon: <Image className="h-5 w-5" /> },
   { title: 'Sponsors', href: '/admin/sponsors', icon: <Award className="h-5 w-5" /> },
+  { title: 'Tickets', href: '/admin/tickets', icon: <ShoppingBag className="h-5 w-5" /> },
+  { title: 'Fans', href: '/admin/fans', icon: <Users2 className="h-5 w-5" /> },
+  { title: 'Settings', href: '/admin/settings', icon: <Settings className="h-5 w-5" /> },
 ];
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
@@ -48,6 +53,12 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  
+  // Find the current active section
+  const currentSection = navItems.find(item => 
+    location.pathname === item.href || 
+    (item.href !== '/admin' && location.pathname.startsWith(item.href))
+  );
   
   const handleLogout = () => {
     // Implement logout logic
@@ -66,8 +77,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             "flex items-center font-semibold text-lg transition-opacity duration-300",
             collapsed ? "opacity-0 w-0" : "opacity-100"
           )}>
-            <Icons.logo />
-            <span className={collapsed ? "hidden" : "ml-2"}>Admin</span>
+            <div className="bg-[#00105A] text-white p-2 rounded mr-2">
+              <span className="font-bold">BOD</span>
+            </div>
+            <span className="text-[#00105A] dark:text-[#C5E7FF]">Admin</span>
           </Link>
           <Button
             variant="ghost"
@@ -115,14 +128,17 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
               <Link to="/admin" className="flex items-center font-semibold text-lg">
-                <Icons.logo />
-                <span className="ml-2">Admin</span>
+                <div className="bg-[#00105A] text-white p-2 rounded mr-2">
+                  <span className="font-bold">BOD</span>
+                </div>
+                <span className="text-[#00105A] dark:text-[#C5E7FF]">Admin</span>
               </Link>
             </div>
             
             <div className="flex-grow overflow-y-auto p-4">
               <SidebarNav 
                 items={navItems}
+                onClick={() => setIsMobileSidebarOpen(false)}
               />
             </div>
             
@@ -165,10 +181,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 <Menu className="h-5 w-5" />
               </Button>
               <h1 className="text-lg font-medium">
-                {navItems.find(item => 
-                  location.pathname === item.href || 
-                  (item.href !== '/admin' && location.pathname.startsWith(item.href))
-                )?.title || 'Admin'}
+                {currentSection?.title || 'Admin Dashboard'}
               </h1>
             </div>
             <div className="flex items-center space-x-2">
@@ -177,6 +190,30 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 <AvatarFallback>AD</AvatarFallback>
               </Avatar>
             </div>
+          </div>
+          
+          {/* Breadcrumb */}
+          <div className="px-4 py-2 bg-gray-50 dark:bg-gray-850 border-t border-b border-gray-200 dark:border-gray-700 text-xs">
+            <nav className="flex" aria-label="Breadcrumb">
+              <ol className="inline-flex items-center space-x-1">
+                <li className="inline-flex items-center">
+                  <Link to="/admin" className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+                    Admin
+                  </Link>
+                </li>
+                {currentSection && currentSection.href !== '/admin' && (
+                  <li className="flex items-center">
+                    <span className="mx-1 text-gray-400">/</span>
+                    <Link 
+                      to={currentSection.href} 
+                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                    >
+                      {currentSection.title}
+                    </Link>
+                  </li>
+                )}
+              </ol>
+            </nav>
           </div>
         </header>
         

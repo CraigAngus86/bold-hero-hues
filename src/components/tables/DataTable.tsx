@@ -1,8 +1,16 @@
 
 import React from 'react';
-import { Table } from '@/components/ui/Table';
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from '@/components/ui/Table';
 
-// If you were using CustomTable before, now we need to use the regular Table component
+// Using proper Table component from shadcn/ui
 const DataTable = (props) => {
   return <Table {...props} />;
 };

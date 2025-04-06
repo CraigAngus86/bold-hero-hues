@@ -18,7 +18,7 @@ import LeagueTablePage from './components/league/LeagueTablePage';
 import NotFoundPage from './pages/admin/NotFoundPage';
 import LeagueTableManagement from "./pages/admin/LeagueTableManagement";
 import FixturesManagement from './pages/admin/FixturesManagement';
-import Admin from './pages/Admin';
+import Dashboard from './pages/admin/Dashboard';
 import NewsManagement from './pages/admin/NewsManagement';
 import TeamManagement from './pages/admin/TeamManagement';
 
@@ -45,13 +45,16 @@ function App() {
         <Route path="*" element={<Navigate to="/404" replace />} />
 
         {/* Admin Routes - All using AdminLayout */}
-        <Route path="/admin" element={<Admin />} />
+        <Route path="/admin" element={<Dashboard />} />
         <Route path="/admin/fixtures" element={<AdminLayout><FixturesManagement /></AdminLayout>} />
         <Route path="/admin/league-table-management" element={<AdminLayout><LeagueTableManagement /></AdminLayout>} />
         <Route path="/admin/news" element={<AdminLayout><NewsManagement /></AdminLayout>} />
         <Route path="/admin/team" element={<AdminLayout><TeamManagement /></AdminLayout>} />
         <Route path="/admin/images" element={<AdminLayout><div>Media Management</div></AdminLayout>} />
         <Route path="/admin/sponsors" element={<AdminLayout><div>Sponsors Management</div></AdminLayout>} />
+        <Route path="/admin/tickets" element={<AdminLayout><div>Tickets Management</div></AdminLayout>} />
+        <Route path="/admin/fans" element={<AdminLayout><div>Fans Zone Management</div></AdminLayout>} />
+        <Route path="/admin/settings" element={<AdminLayout><div>Settings</div></AdminLayout>} />
       </Routes>
       <Toaster />
     </HelmetProvider>

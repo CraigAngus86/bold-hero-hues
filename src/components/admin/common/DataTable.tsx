@@ -1,21 +1,7 @@
 
 import React from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
-
-interface Column<T> {
-  key: string;
-  header: React.ReactNode;
-  cell: (item: T) => React.ReactNode;
-  width?: string;
-}
-
-interface DataTableProps<T> {
-  columns: Column<T>[];
-  data: T[];
-  isLoading?: boolean;
-  emptyMessage?: string;
-  rowClassName?: (item: T) => string;
-}
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { DataTableProps } from '@/types/ui';
 
 const DataTable = <T extends Record<string, any>>({
   columns,

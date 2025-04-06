@@ -1,34 +1,42 @@
 
-import { useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
-import { newsKeys } from './useNewsStats';
-import { fixturesKeys } from './useFixturesStats';
-import { leagueKeys } from './useLeagueStats';
-import { mediaKeys } from './useMediaStats';
-import { activityKeys } from './useActivityFeed';
-import { systemKeys } from './useSystemStatus';
+import { useState, useEffect, useCallback } from 'react';
+import { SystemStatusData, getSystemStatus } from '@/services/logs/systemLogsService';
 
-export const useDashboardRefresh = () => {
-  const queryClient = useQueryClient();
+/**
+ * Custom hook for managing dashboard data refresh
+ */
+export function useDashboardRefresh(refreshInterval = 60000) {
+  const [systemStatus, setSystemStatus] = useState<SystemStatusData | undefined>(undefined);
+  const [isSystemStatusLoading, setIsSystemStatusLoading] = useState<boolean>(true);
+  const [systemStatusUpdatedAt, setSystemStatusUpdatedAt] = useState<number>(Date.now());
   
-  const refreshAll = () => {
-    toast.info('Refreshing dashboard data...');
+  const fetchSystemStatus = useCallback(async () => {
+    setIsSystemStatusLoading(true);
+    try {
+      const data = await getSystemStatus();
+      setSystemStatus(data);
+      setSystemStatusUpdatedAt(Date.now());
+    } catch (error) {
+      console.error('Error fetching system status:', error);
+    } finally {
+      setIsSystemStatusLoading(false);
+    }
+  }, []);
+  
+  useEffect(() => {
+    fetchSystemStatus();
     
-    // Invalidate all dashboard-related queries
-    Promise.all([
-      queryClient.invalidateQueries({ queryKey: newsKeys.stats }),
-      queryClient.invalidateQueries({ queryKey: fixturesKeys.stats }),
-      queryClient.invalidateQueries({ queryKey: leagueKeys.stats }),
-      queryClient.invalidateQueries({ queryKey: mediaKeys.stats }),
-      queryClient.invalidateQueries({ queryKey: activityKeys.activities }),
-      queryClient.invalidateQueries({ queryKey: systemKeys.status }),
-    ]).then(() => {
-      toast.success('Dashboard data refreshed successfully');
-    }).catch((error) => {
-      toast.error('Error refreshing some dashboard data');
-      console.error('Error refreshing dashboard data:', error);
-    });
-  };
+    const intervalId = setInterval(() => {
+      fetchSystemStatus();
+    }, refreshInterval);
+    
+    return () => clearInterval(intervalId);
+  }, [fetchSystemStatus, refreshInterval]);
   
-  return { refreshAll };
-};
+  return {
+    systemStatus,
+    isSystemStatusLoading,
+    systemStatusUpdatedAt,
+    refetchSystemStatus: fetchSystemStatus
+  };
+}

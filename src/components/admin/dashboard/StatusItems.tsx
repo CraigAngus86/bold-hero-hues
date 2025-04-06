@@ -6,7 +6,7 @@ import { EventsCalendar } from './EventsCalendar';
 import { contentStatusItems, mockEvents } from './mockData';
 import { Database } from 'lucide-react';
 import { toast } from 'sonner';
-import { SystemStatusData } from '@/services/logs/systemLogsService';
+import { SystemStatusData, SystemStatusItemProps } from '@/types/system';
 
 interface StatusItemsProps {
   systemStatus: SystemStatusData | undefined;
@@ -22,7 +22,7 @@ export const StatusItems: React.FC<StatusItemsProps> = ({
   refetchSystemStatus
 }) => {
   // Convert system status data to the format expected by EnhancedSystemStatus
-  const systemStatusItems = systemStatus ? [
+  const systemStatusItems: SystemStatusItemProps[] = systemStatus ? [
     {
       name: 'Database Connection',
       status: systemStatus.database.status,
@@ -72,7 +72,7 @@ export const StatusItems: React.FC<StatusItemsProps> = ({
           systems={systemStatusItems} 
           isLoading={isSystemStatusLoading}
           lastUpdated={isSystemStatusLoading ? null : new Date(systemStatusUpdatedAt)}
-          onRefresh={() => refetchSystemStatus()}
+          onRefresh={refetchSystemStatus}
         />
       </div>
       

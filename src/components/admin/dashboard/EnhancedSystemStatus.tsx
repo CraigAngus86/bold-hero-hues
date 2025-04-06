@@ -5,26 +5,9 @@ import { AlertCircle, CheckCircle, Clock, AlertTriangle, RefreshCw } from 'lucid
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { SystemStatusData } from '@/services/logs/systemLogsService';
+import { SystemStatusItemProps, SystemStatusProps } from '@/types/system';
 
-// Define the props for each system status item
-export interface SystemStatusItemProps {
-  name: string;
-  status: 'healthy' | 'degraded' | 'error';
-  lastChecked: string;
-  metricValue?: string;
-  icon?: React.ReactNode;
-  tooltip?: string;
-}
-
-interface EnhancedSystemStatusProps {
-  systems: SystemStatusItemProps[];
-  isLoading: boolean;
-  lastUpdated: Date | null;
-  onRefresh: () => void;
-}
-
-export const EnhancedSystemStatus: React.FC<EnhancedSystemStatusProps> = ({
+export const EnhancedSystemStatus: React.FC<SystemStatusProps> = ({
   systems,
   isLoading,
   lastUpdated,
@@ -56,9 +39,10 @@ export const EnhancedSystemStatus: React.FC<EnhancedSystemStatusProps> = ({
     }
   };
 
-  const formatTimestamp = (timestamp: string) => {
+  const formatTimestamp = (timestamp: string | Date | null) => {
+    if (!timestamp) return 'Unknown';
     try {
-      const date = new Date(timestamp);
+      const date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp;
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } catch (e) {
       return 'Unknown';

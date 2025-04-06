@@ -1,6 +1,6 @@
 
 import { FileText, Users, CalendarIcon } from 'lucide-react';
-import type { SystemStatusItemProps } from './EnhancedSystemStatus';
+import { SystemStatusItemProps } from '@/types/system';
 
 // Content status items
 export const contentStatusItems = [

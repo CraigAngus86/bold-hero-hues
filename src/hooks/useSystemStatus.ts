@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getSystemStatus, updateSystemCheckTimestamp, type SystemStatusData } from '@/services/logs/systemLogsService';
 
 export function useSystemStatus() {

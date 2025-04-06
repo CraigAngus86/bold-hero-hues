@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from "@/components/theme-provider"
 import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from "@/components/ui/toaster"
@@ -25,35 +25,33 @@ import SettingsManagement from "./pages/admin/SettingsManagement";
 
 function App() {
   return (
-    <BrowserRouter>
-      <ThemeProvider defaultTheme="light" storageKey="banks-o-dee-theme">
-        <ErrorBoundary>
-          <HelmetProvider>
-            <Toaster />
-            <Sonner />
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={<Index />} />
-              
-              {/* Admin routes */}
-              <Route path="/admin" element={<Dashboard />} />
-              <Route path="/admin/news" element={<NewsManagement />} />
-              <Route path="/admin/team" element={<TeamManagement />} />
-              <Route path="/admin/fixtures" element={<FixturesManagement />} />
-              <Route path="/admin/league-table-management" element={<LeagueTableManagement />} />
-              <Route path="/admin/images" element={<MediaGallery />} />
-              <Route path="/admin/sponsors" element={<SponsorsManagement />} />
-              <Route path="/admin/tickets" element={<TicketsManagement />} />
-              <Route path="/admin/fans" element={<FansManagement />} />
-              <Route path="/admin/settings" element={<SettingsManagement />} />
-              
-              {/* Not found route */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </HelmetProvider>
-        </ErrorBoundary>
-      </ThemeProvider>
-    </BrowserRouter>
+    <ThemeProvider defaultTheme="light" storageKey="banks-o-dee-theme">
+      <ErrorBoundary>
+        <HelmetProvider>
+          <Toaster />
+          <Sonner />
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<Index />} />
+            
+            {/* Admin routes */}
+            <Route path="/admin" element={<Dashboard />} />
+            <Route path="/admin/news" element={<NewsManagement />} />
+            <Route path="/admin/team" element={<TeamManagement />} />
+            <Route path="/admin/fixtures" element={<FixturesManagement />} />
+            <Route path="/admin/league-table-management" element={<LeagueTableManagement />} />
+            <Route path="/admin/images" element={<MediaGallery />} />
+            <Route path="/admin/sponsors" element={<SponsorsManagement />} />
+            <Route path="/admin/tickets" element={<TicketsManagement />} />
+            <Route path="/admin/fans" element={<FansManagement />} />
+            <Route path="/admin/settings" element={<SettingsManagement />} />
+            
+            {/* Not found route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </HelmetProvider>
+      </ErrorBoundary>
+    </ThemeProvider>
   );
 }
 

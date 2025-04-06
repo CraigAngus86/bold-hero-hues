@@ -2,6 +2,7 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Helmet } from 'react-helmet-async';
+import { AdminLayout } from '@/components/admin/layout';
 import LeagueTableDashboard from '@/components/admin/league-table/LeagueTableDashboard';
 import ScraperConfigPanel from '@/components/admin/league-table/ScraperConfigPanel';
 import ScraperLogsPanel from '@/components/admin/league-table/ScraperLogsPanel';
@@ -9,7 +10,6 @@ import OverridePanel from '@/components/admin/league-table/OverridePanel';
 import SeasonArchivePanel from '@/components/admin/league-table/SeasonArchivePanel';
 import AlternativeViewsPanel from '@/components/admin/league-table/AlternativeViewsPanel';
 import { LayoutDashboard, Settings, ScrollText, Edit, History, TableProperties } from 'lucide-react';
-import { AdminLayout } from '@/components/admin/layout';
 
 const LeagueTableManagement = () => {
   return (

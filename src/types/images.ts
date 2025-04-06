@@ -61,7 +61,14 @@ export enum BucketType {
   TEAMS = 'teams',
   NEWS = 'news',
   SPONSORS = 'sponsors',
-  DOCUMENTS = 'documents'
+  DOCUMENTS = 'documents',
+  AVATARS = 'avatars',
+  VIDEOS = 'videos',
+  PRODUCTS = 'products',
+  GENERAL = 'general',
+  MEDIA = 'media',
+  PLAYERS = 'players',
+  PUBLIC = 'public'
 }
 
 // Convert DB image metadata to frontend ImageMetadata

@@ -12,7 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TeamStats } from '@/types/fixtures';
 import { toast } from 'sonner';
-import { leagueService } from '@/services/leagueService';
+import { updateTeamLogo } from '@/services/leagueService';
+import { BucketType } from '@/types/images';
 
 interface LogoEditorDialogProps {
   team: TeamStats; 
@@ -38,7 +39,7 @@ const LogoEditorDialog: React.FC<LogoEditorDialogProps> = ({
         throw new Error('Team ID is required');
       }
       
-      const success = await leagueService.updateTeamLogo(String(team.id), logoUrl);
+      const success = await updateTeamLogo(String(team.id), logoUrl);
       
       if (success) {
         toast.success(`Logo updated for ${team.team}`);

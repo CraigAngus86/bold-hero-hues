@@ -14,12 +14,25 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { userFormSchema, UserFormValues } from './UserFormSchema';
-import { User, getUsers, createUser } from '@/services/userManagementService';
+import { getUsers, createUser } from '@/services/userManagementService';
 import CreateUserDialog from './CreateUserDialog';
 import UsersTable from './UsersTable';
 import UserRolePermissions from './UserRolePermissions';
 import UserActivityLogs from './UserActivityLogs';
 import TwoFactorSetup from './TwoFactorSetup';
+
+// Define the User type that's specific to this component
+interface User {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  name: string; // Required in this context
+  role: string;
+  isActive: boolean;
+  lastLogin?: string;
+  createdAt: string;
+}
 
 const UserManagement = () => {
   const [isCreateUserOpen, setIsCreateUserOpen] = useState(false);
@@ -49,7 +62,19 @@ const UserManagement = () => {
     setIsLoading(true);
     try {
       const loadedUsers = await getUsers();
-      setUsers(loadedUsers);
+      // Map the loaded users to the component-specific User type
+      const mappedUsers: User[] = loadedUsers.map(user => ({
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
+        role: user.role || 'user',
+        isActive: user.isActive !== false,
+        lastLogin: user.lastLogin,
+        createdAt: user.createdAt || new Date().toISOString()
+      }));
+      setUsers(mappedUsers);
     } catch (error) {
       console.error('Error loading users:', error);
       toast({
@@ -81,8 +106,13 @@ const UserManagement = () => {
       }
 
       if (user) {
-        // Add new user to the list
-        setUsers(prevUsers => [...prevUsers, user]);
+        // Add new user to the list with the needed name property
+        const newUser: User = {
+          ...user,
+          name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email
+        };
+        
+        setUsers(prevUsers => [...prevUsers, newUser]);
         
         toast({
           title: "User created",

@@ -5,7 +5,7 @@ import { Folder } from 'lucide-react';
 import { ImageFolder } from '@/types/images';
 
 interface FolderGridProps {
-  folders: any[]; // Using any to handle both types of ImageFolder
+  folders: ImageFolder[];
   onFolderClick: (folder: ImageFolder) => void;
 }
 

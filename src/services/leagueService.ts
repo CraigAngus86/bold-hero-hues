@@ -1,5 +1,16 @@
+
 import { supabase } from '@/lib/supabase';
 import { TeamStats } from '@/types/fixtures';
+
+// Export the service as both named exports and a default export
+// to accommodate different import styles in the codebase
+export const leagueService = {
+  getLeagueTable,
+  updateTeamLogo,
+  getTeamById
+};
+
+export default leagueService;
 
 /**
  * Get all teams from the league table

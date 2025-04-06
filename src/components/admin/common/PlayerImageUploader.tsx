@@ -7,18 +7,22 @@ import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { useImageUpload } from '@/services/images';
 
 interface PlayerImageUploaderProps {
-  onUploadComplete?: (imageUrl: string) => void;
+  initialImageUrl?: string;
+  onUpload: (url: string) => void;
+  playerName?: string;
   className?: string;
 }
 
 export function PlayerImageUploader({
-  onUploadComplete,
+  initialImageUrl = '',
+  onUpload,
+  playerName = '',
   className = '',
 }: PlayerImageUploaderProps) {
   const [dragActive, setDragActive] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(initialImageUrl || null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const { upload, isUploading, progress } = useImageUpload();
+  const { upload, isUploading, uploadProgress } = useImageUpload();
   
   const maxSizeMB = 5;
   const maxSizeBytes = maxSizeMB * 1024 * 1024;
@@ -67,10 +71,10 @@ export function PlayerImageUploader({
   };
   
   const clearSelection = () => {
-    if (previewUrl) {
+    if (previewUrl && !previewUrl.includes('lovable-uploads')) {
       URL.revokeObjectURL(previewUrl);
     }
-    setPreviewUrl(null);
+    setPreviewUrl(initialImageUrl || null);
     setSelectedFile(null);
   };
   
@@ -78,11 +82,14 @@ export function PlayerImageUploader({
     if (!selectedFile) return;
     
     try {
-      const result = await upload(selectedFile, 'player_images', 'profiles');
+      const result = await upload(selectedFile, {
+        folder: 'player_images'
+      });
+      
       if (result.success && result.data) {
-        toast.success('Player image uploaded successfully');
+        toast.success(`${playerName ? playerName + "'s" : 'Player'} image uploaded successfully`);
+        onUpload(result.data.publicUrl);
         clearSelection();
-        onUploadComplete?.(result.data.url);
       }
     } catch (error) {
       console.error('Failed to upload player image:', error);
@@ -147,7 +154,7 @@ export function PlayerImageUploader({
                 {isUploading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Uploading {progress}%
+                    Uploading {uploadProgress}%
                   </>
                 ) : (
                   'Upload Image'

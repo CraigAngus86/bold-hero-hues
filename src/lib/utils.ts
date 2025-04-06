@@ -3,90 +3,122 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 /**
- * Merge Tailwind CSS classes with clsx
+ * Combine class names with tailwind merge
  */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
 /**
- * Create a URL-friendly slug from a string
+ * Generate a random string (useful for IDs)
  */
-export function createSlug(text: string): string {
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, '') // Remove non-word chars
-    .replace(/[\s_-]+/g, '-') // Replace spaces and underscores with hyphens
-    .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+export function generateId(length = 8): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
 }
 
 /**
- * Format a date string to a human-readable format
+ * Format a date object to a readable string
  */
-export function formatDate(date: string | Date, options: Intl.DateTimeFormatOptions = {}): string {
-  const defaultOptions: Intl.DateTimeFormatOptions = {
-    year: 'numeric',
-    month: 'long',
+export function formatDate(date: Date | string): string {
+  if (!date) return '';
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return d.toLocaleDateString('en-GB', {
     day: 'numeric',
-    ...options,
-  };
+    month: 'long',
+    year: 'numeric'
+  });
+}
+
+/**
+ * Capitalize the first letter of a string
+ */
+export function capitalize(str: string): string {
+  if (!str) return '';
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+/**
+ * Truncate a string to a certain length
+ */
+export function truncate(str: string, length: number): string {
+  if (!str) return '';
+  return str.length > length ? str.substring(0, length) + '...' : str;
+}
+
+/**
+ * Get ordinal suffix for a number (1st, 2nd, 3rd, etc.)
+ */
+export function getOrdinalSuffix(num: number): string {
+  const j = num % 10;
+  const k = num % 100;
   
-  return new Date(date).toLocaleDateString('en-GB', defaultOptions);
+  if (j === 1 && k !== 11) {
+    return num + 'st';
+  }
+  if (j === 2 && k !== 12) {
+    return num + 'nd';
+  }
+  if (j === 3 && k !== 13) {
+    return num + 'rd';
+  }
+  return num + 'th';
 }
 
 /**
- * Truncate text to a specified length with ellipsis
+ * Deep clone an object
  */
-export function truncateText(text: string, maxLength: number): string {
-  if (text.length <= maxLength) return text;
-  return `${text.substring(0, maxLength)}...`;
+export function deepClone<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj));
 }
 
 /**
- * Format a price or number with currency symbol
+ * Check if a string is a valid URL
  */
-export function formatPrice(
-  price: number,
-  currency = 'GBP',
-  locale = 'en-GB'
-): string {
-  return new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency,
-  }).format(price);
+export function isValidUrl(str: string): boolean {
+  try {
+    new URL(str);
+    return true;
+  } catch (e) {
+    return false;
+  }
 }
 
 /**
- * Get initials from a name
+ * Format bytes to a human-readable string
  */
-export function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .map(part => part.charAt(0))
-    .join('')
-    .toUpperCase();
+export function formatBytes(bytes: number, decimals = 2): string {
+  if (bytes === 0) return '0 Bytes';
+  
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+  
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
 /**
- * Parse query params from URL
+ * Debounce a function
  */
-export function parseQueryParams<T extends Record<string, string>>(
-  queryString = window.location.search
-): T {
-  return Object.fromEntries(
-    new URLSearchParams(queryString).entries()
-  ) as T;
-}
-
-/**
- * Check if running in browser environment
- */
-export const isBrowser = typeof window !== 'undefined';
-
-/**
- * Generate a random ID
- */
-export function generateId(prefix = 'id'): string {
-  return `${prefix}_${Math.random().toString(36).substring(2, 9)}`;
+export function debounce<T extends (...args: any[]) => any>(
+  func: T, 
+  wait: number
+): (...args: Parameters<T>) => void {
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+  
+  return function(...args: Parameters<T>) {
+    const later = () => {
+      timeout = null;
+      func(...args);
+    };
+    
+    if (timeout) clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
 }

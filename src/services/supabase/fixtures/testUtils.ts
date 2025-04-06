@@ -2,163 +2,81 @@
 import { ScrapedFixture } from '@/types/fixtures';
 
 /**
- * Validates fixture data to ensure it meets the required format
+ * Generate test fixture data for development and testing
  */
-export const validateFixtureData = (data: any): {
-  valid: boolean;
-  message: string;
-  validFixtures?: ScrapedFixture[]
-} => {
-  // Check if data is an array
-  if (!Array.isArray(data)) {
-    return {
-      valid: false,
-      message: 'Data must be an array of fixtures'
-    };
-  }
+export const generateTestFixtures = (count = 5, completed = false): ScrapedFixture[] => {
+  const fixtures: ScrapedFixture[] = [];
+  const teams = ['Banks o\' Dee', 'Fraserburgh', 'Buckie Thistle', 'Brechin City', 'Formartine United', 
+                'Inverurie Locos', 'Keith', 'Huntly', 'Deveronvale', 'Turriff United'];
+  const venues = ['Spain Park', 'Bellslea Park', 'Victoria Park', 'Glebe Park', 'North Lodge Park', 
+                 'Harlaw Park', 'Kynoch Park', 'Christie Park', 'Princess Royal Park', 'The Haughs'];
+  const competitions = ['Highland League', 'Scottish Cup', 'Aberdeenshire Cup', 'Aberdeenshire Shield', 'Morrison Motors Cup'];
   
-  // Check if array is empty
-  if (data.length === 0) {
-    return {
-      valid: false,
-      message: 'No fixtures found in the data'
-    };
-  }
+  const today = new Date();
   
-  // Detect format (standard or Claude)
-  const isCloudeFormat = data[0] && 'opposition' in data[0];
-  
-  // Validate each fixture based on format
-  const validFixtures: ScrapedFixture[] = [];
-  const invalidFixtures: number[] = [];
-  
-  data.forEach((item, index) => {
-    try {
-      if (isCloudeFormat) {
-        // Claude format validation
-        if (!item.opposition || !item.location || !item.date) {
-          invalidFixtures.push(index);
-          return;
-        }
-        
-        const isHome = item.location === 'Home';
-        const [homeScore, awayScore] = item.score?.split('-').map(Number) || [undefined, undefined];
-        
-        validFixtures.push({
-          date: item.date,
-          time: item.kickOffTime || '15:00',
-          homeTeam: isHome ? "Banks o' Dee" : item.opposition,
-          awayTeam: isHome ? item.opposition : "Banks o' Dee",
-          competition: item.competition || 'Highland League',
-          venue: isHome ? "Spain Park" : `${item.opposition} Ground`,
-          isCompleted: !!item.isCompleted,
-          homeScore: homeScore,
-          awayScore: awayScore,
-          source: 'manual-import'
-        });
-      } else {
-        // Standard format validation
-        if (!item.homeTeam || !item.awayTeam || !item.date) {
-          invalidFixtures.push(index);
-          return;
-        }
-        
-        validFixtures.push({
-          date: item.date,
-          time: item.time || '15:00',
-          homeTeam: item.homeTeam,
-          awayTeam: item.awayTeam,
-          competition: item.competition || 'Highland League',
-          venue: item.venue || 'TBD',
-          isCompleted: !!item.isCompleted,
-          homeScore: item.homeScore,
-          awayScore: item.awayScore,
-          source: 'manual-import'
-        });
-      }
-    } catch (error) {
-      invalidFixtures.push(index);
+  for (let i = 0; i < count; i++) {
+    // Random teams - ensure they're different
+    const homeTeamIndex = Math.floor(Math.random() * teams.length);
+    let awayTeamIndex = Math.floor(Math.random() * teams.length);
+    // Make sure home and away teams are different
+    while (awayTeamIndex === homeTeamIndex) {
+      awayTeamIndex = Math.floor(Math.random() * teams.length);
     }
-  });
-  
-  if (invalidFixtures.length > 0) {
-    return {
-      valid: validFixtures.length > 0,
-      message: `${validFixtures.length} valid fixtures found, ${invalidFixtures.length} invalid fixtures detected at positions: ${invalidFixtures.join(', ')}`,
-      validFixtures
+    
+    // Random date - either past (for completed) or future (for upcoming)
+    const randDays = completed ? 
+      -Math.floor(Math.random() * 60) : // Past date for completed fixtures
+      Math.floor(Math.random() * 60);   // Future date for upcoming fixtures
+    
+    const fixtureDate = new Date();
+    fixtureDate.setDate(today.getDate() + randDays);
+    
+    // Format date as YYYY-MM-DD
+    const formattedDate = fixtureDate.toISOString().split('T')[0];
+    
+    // Random times between 13:00 and 19:30
+    const hours = Math.floor(Math.random() * 7) + 13; // 13 to 19
+    const mins = Math.floor(Math.random() * 2) * 30; // 0 or 30
+    const time = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+    
+    const competition = competitions[Math.floor(Math.random() * competitions.length)];
+    const venue = venues[homeTeamIndex]; // Use the venue corresponding to the home team
+    
+    let fixture: ScrapedFixture = {
+      home_team: teams[homeTeamIndex],
+      away_team: teams[awayTeamIndex],
+      date: formattedDate,
+      time: time,
+      competition: competition,
+      venue: venue,
+      is_completed: completed,
+      source: 'test'
     };
+    
+    // Add scores for completed fixtures
+    if (completed) {
+      fixture.home_score = Math.floor(Math.random() * 5);
+      fixture.away_score = Math.floor(Math.random() * 5);
+    }
+    
+    fixtures.push(fixture);
   }
   
-  return {
-    valid: true,
-    message: `${validFixtures.length} valid fixtures found`,
-    validFixtures
+  // Add a specific fixture with Banks o' Dee as home team for testing
+  const specialFixture: ScrapedFixture = {
+    home_team: 'Banks o\' Dee',
+    away_team: teams[Math.floor(Math.random() * teams.length)],
+    date: new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    time: '15:00',
+    competition: 'Highland League',
+    venue: 'Spain Park',
+    is_completed: false,
+    source: 'test'
   };
+  
+  fixtures.push(specialFixture);
+  
+  return fixtures;
 };
 
-/**
- * Function to test the import without actually saving to database
- */
-export const testFixturesImport = async (data: any): Promise<{
-  valid: boolean;
-  message: string;
-  fixtures?: ScrapedFixture[]
-}> => {
-  try {
-    return validateFixtureData(data);
-  } catch (error) {
-    return {
-      valid: false,
-      message: error instanceof Error ? error.message : 'Unknown error validating fixtures'
-    };
-  }
-};
-
-/**
- * Function to download fixtures as JSON file
- */
-export const generateFixturesExport = async () => {
-  try {
-    const { supabase } = await import('@/integrations/supabase/client');
-    
-    // Fetch all fixtures from the database
-    const { data: fixtures, error } = await supabase
-      .from('fixtures')
-      .select('*')
-      .order('date', { ascending: true });
-    
-    if (error) {
-      throw error;
-    }
-    
-    // Format data for export
-    const exportData = fixtures.map(fixture => ({
-      date: fixture.date,
-      time: fixture.time,
-      homeTeam: fixture.home_team,
-      awayTeam: fixture.away_team,
-      competition: fixture.competition,
-      venue: fixture.venue,
-      isCompleted: fixture.is_completed,
-      homeScore: fixture.home_score,
-      awayScore: fixture.away_score
-    }));
-    
-    // Create and download the file
-    const dataStr = JSON.stringify(exportData, null, 2);
-    const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
-    
-    const exportFileDefaultName = `banks-o-dee-fixtures-${new Date().toISOString().split('T')[0]}.json`;
-    
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
-    linkElement.remove();
-    
-    return true;
-  } catch (error) {
-    console.error('Error exporting fixtures:', error);
-    return false;
-  }
-};
+export default generateTestFixtures;

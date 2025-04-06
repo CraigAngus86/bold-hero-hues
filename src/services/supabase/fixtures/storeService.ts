@@ -1,14 +1,11 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { logScrapeOperation } from './loggingService';
 import { ScrapedFixture } from '@/types/fixtures';
+import { ImportResult } from './types';
 
 // Store fixtures in the database
-export const storeFixtures = async (fixtures: ScrapedFixture[], source: string): Promise<{
-  success: boolean;
-  added: number;
-  updated: number;
-  message: string;
-}> => {
+export const storeFixtures = async (fixtures: ScrapedFixture[], source: string): Promise<ImportResult> => {
   try {
     let added = 0;
     let updated = 0;
@@ -23,7 +20,7 @@ export const storeFixtures = async (fixtures: ScrapedFixture[], source: string):
         .eq('time', fixture.time)
         .single();
 
-      if (selectError) {
+      if (selectError && selectError.code !== 'PGRST116') {
         console.error('Error checking existing fixture:', selectError);
         continue; // Skip to the next fixture
       }
@@ -58,9 +55,9 @@ export const storeFixtures = async (fixtures: ScrapedFixture[], source: string):
 
     return {
       success: true,
-      added: 0,
-      updated: 0,
-      message: 'Fixtures stored successfully'
+      added,
+      updated,
+      message: `Stored fixtures successfully: ${added} added, ${updated} updated`
     };
   } catch (error) {
     console.error('Error storing fixtures:', error);

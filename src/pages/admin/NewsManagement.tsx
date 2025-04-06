@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
 import { AdminLayout } from '@/components/admin/layout';
-import { NewsArticleList } from '@/components/admin/news/NewsArticleList';
-import { NewsArticleEditor } from '@/components/admin/news/NewsArticleEditor';
-import { CategoryManagement } from '@/components/admin/news/CategoryManagement';
+import { EnhancedNewsArticleList } from '@/components/admin/news/EnhancedNewsArticleList';
+import { EnhancedNewsArticleEditor } from '@/components/admin/news/EnhancedNewsArticleEditor';
+import { EnhancedCategoryManagement } from '@/components/admin/news/EnhancedCategoryManagement';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Newspaper, Tag, Edit } from 'lucide-react';
@@ -67,11 +67,11 @@ const NewsManagement: React.FC = () => {
         </TabsList>
 
         <TabsContent value="list" className="space-y-6">
-          <NewsArticleList onEditArticle={handleEditArticle} />
+          <EnhancedNewsArticleList onEditArticle={handleEditArticle} />
         </TabsContent>
 
         <TabsContent value="editor">
-          <NewsArticleEditor
+          <EnhancedNewsArticleEditor
             article={editingArticle}
             categories={categoryNames}
             onSaveComplete={handleSaveComplete}
@@ -80,7 +80,7 @@ const NewsManagement: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="categories">
-          <CategoryManagement />
+          <EnhancedCategoryManagement />
         </TabsContent>
       </Tabs>
     </AdminLayout>

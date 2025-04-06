@@ -1,15 +1,16 @@
 
 import { useState, useCallback } from 'react';
+import { toast } from 'sonner';
 import { uploadImage } from './api';
-import { UseImageUploadOptions, UseImageUploadResult, StoredImageMetadata, ImageUploadResult } from './types';
+import { UseImageUploadOptions, UseImageUploadResult, BucketType, ImageUploadResult } from './types';
 
 export function useImageUpload({
-  bucket = 'images',
+  bucket = BucketType.PUBLIC,
   folderPath,
   onSuccess,
   onError
 }: UseImageUploadOptions = {}): UseImageUploadResult {
-  const [uploading, setUploading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<Error | null>(null);
   
@@ -29,12 +30,12 @@ export function useImageUpload({
     return true;
   };
   
-  const upload = useCallback(async (file: File, metadata?: Partial<StoredImageMetadata>): Promise<ImageUploadResult> => {
+  const uploadFile = useCallback(async (file: File, metadata?: any): Promise<ImageUploadResult> => {
     if (!validateFile(file)) {
       return { success: false, error: error?.message || 'Invalid file' };
     }
     
-    setUploading(true);
+    setIsUploading(true);
     setProgress(0);
     setError(null);
     
@@ -78,31 +79,39 @@ export function useImageUpload({
     } finally {
       // Small delay to show 100% completion
       setTimeout(() => {
-        setUploading(false);
+        setIsUploading(false);
       }, 300);
     }
   }, [bucket, folderPath, onSuccess, onError, error]);
   
+  // Alias for backward compatibility
+  const upload = uploadFile;
+  
+  const uploadFiles = useCallback(async (files: File[], options?: any): Promise<ImageUploadResult[]> => {
+    return Promise.all(files.map(file => uploadFile(file, options)));
+  }, [uploadFile]);
+  
   const cancelUpload = useCallback(() => {
     // Not implemented yet
-    setUploading(false);
+    setIsUploading(false);
     setProgress(0);
   }, []);
   
   const resetState = useCallback(() => {
-    setUploading(false);
+    setIsUploading(false);
     setProgress(0);
     setError(null);
   }, []);
   
   return {
-    uploading,
-    isUploading: uploading, // Alias for consistency
+    isUploading,
+    uploading: isUploading, // Alias for backward compatibility
     progress,
-    uploadProgress: progress, // Alias for consistency
+    uploadProgress: progress, // Alias for backward compatibility
     error,
-    upload,
-    uploadFile: upload, // Alias for consistency
+    uploadFile,
+    uploadFiles,
+    upload, // Alias for backward compatibility
     cancelUpload,
     resetState
   };

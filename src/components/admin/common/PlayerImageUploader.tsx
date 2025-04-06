@@ -3,7 +3,7 @@ import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Upload, X, Loader2 } from 'lucide-react';
 import { useImageUpload } from '@/services/images';
 
 interface PlayerImageUploaderProps {
@@ -22,7 +22,7 @@ export function PlayerImageUploader({
   const [dragActive, setDragActive] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(initialImageUrl || null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const { upload, isUploading, uploadProgress } = useImageUpload();
+  const { uploadFile, isUploading, progress } = useImageUpload();
   
   const maxSizeMB = 5;
   const maxSizeBytes = maxSizeMB * 1024 * 1024;
@@ -82,7 +82,7 @@ export function PlayerImageUploader({
     if (!selectedFile) return;
     
     try {
-      const result = await upload(selectedFile, {
+      const result = await uploadFile(selectedFile, {
         // Use metadata compatible options without folder
         altText: `${playerName || 'Player'} profile image`
       });
@@ -137,7 +137,7 @@ export function PlayerImageUploader({
             <div className="aspect-square relative rounded-md overflow-hidden">
               <img
                 src={previewUrl}
-                alt="Preview"
+                alt={`${playerName || 'Player'} preview`}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -156,7 +156,7 @@ export function PlayerImageUploader({
                 {isUploading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Uploading {uploadProgress}%
+                    Uploading {progress}%
                   </>
                 ) : (
                   'Upload Image'

@@ -1,7 +1,5 @@
 
 import type { StorageError } from '@supabase/storage-js';
-// Define JSON type since it's not exported from supabase
-export type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
 
 export interface ImageDimensions {
   width?: number;
@@ -25,7 +23,7 @@ export interface StoredImageMetadata {
   tags?: string[];
   updated_at?: string;
   categories?: string[];
-  folder?: string; // Add folder property to fix errors
+  folder?: string;
 }
 
 export interface ImageMetadata {
@@ -44,7 +42,7 @@ export interface ImageMetadata {
   width?: number;
   height?: number;
   categories?: string[];
-  folder?: string; // Add folder property
+  folder?: string;
 }
 
 export interface ImageFolder {
@@ -61,14 +59,13 @@ export interface UploadOptions {
   tags?: string[];
 }
 
-export interface UploadResult {
+export interface ImageUploadResult {
   success: boolean;
   data?: StoredImageMetadata;
   error?: StorageError | Error;
   url?: string;
 }
 
-// Add these missing types
 export enum BucketType {
   PUBLIC = 'public',
   PRIVATE = 'private',
@@ -88,9 +85,11 @@ export interface ImageOptimizationOptions {
   };
   format?: 'webp' | 'jpeg' | 'png' | 'avif';
   transformations?: string[];
+  maxWidth?: number;
+  maxHeight?: number;
+  quality?: number;
 }
 
-// Export previously missing types
 export interface ImageUploadConfig {
   bucket?: BucketType;
   folder?: string;
@@ -100,17 +99,22 @@ export interface ImageUploadConfig {
 export interface UseImageUploadOptions {
   bucket?: BucketType;
   folder?: string;
+  folderPath?: string;
   optimization?: ImageOptimizationOptions;
+  onSuccess?: (url: string) => void;
+  onError?: (error: Error) => void;
   onUploadStart?: () => void;
   onUploadProgress?: (progress: number) => void;
-  onUploadComplete?: (result: UploadResult) => void;
-  onUploadError?: (error: Error) => void;
+  onUploadComplete?: (result: ImageUploadResult) => void;
 }
 
 export interface UseImageUploadResult {
-  uploadFile: (file: File, options?: UploadOptions) => Promise<UploadResult>;
-  uploadFiles: (files: File[], options?: UploadOptions) => Promise<UploadResult[]>;
+  uploadFile: (file: File, options?: UploadOptions) => Promise<ImageUploadResult>;
+  uploadFiles: (files: File[], options?: UploadOptions) => Promise<ImageUploadResult[]>;
   isUploading: boolean;
+  uploading?: boolean; // Alias for backward compatibility
   progress: number;
+  uploadProgress?: number; // Alias for backward compatibility 
   error: Error | null;
+  upload?: (file: File, options?: any) => Promise<ImageUploadResult>;
 }

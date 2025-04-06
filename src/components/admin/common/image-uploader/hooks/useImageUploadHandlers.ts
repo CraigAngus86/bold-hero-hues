@@ -49,7 +49,7 @@ export const useImageUploadHandlers = ({
 }: UseImageUploadHandlersProps) => {
   const { uploadFile, isUploading, progress } = useImageUpload({
     bucket,
-    folderPath,
+    folder: folderPath,  // Use folder instead of folderPath
     onSuccess: onUploadComplete
   });
   
@@ -131,10 +131,7 @@ export const useImageUploadHandlers = ({
         tags: imageTags
       };
       
-      const result = await uploadFile(
-        selectedFile, 
-        uploadOptions
-      );
+      const result = await uploadFile(selectedFile, uploadOptions);
       
       if (result.success && result.data) {
         toast.success('Image uploaded successfully');

@@ -1,15 +1,11 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Pencil, Image, Calendar, User, FileText, Settings, Clock } from 'lucide-react';
 import { useActivityFeed } from '@/hooks/useActivityFeed';
-import { 
-  FileText, User, Calendar, Settings, 
-  Image, AlertCircle, CheckCircle, 
-  Clock, Users, Mail
-} from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 
-interface Activity {
-  id: string;
+interface ActivityItemProps {
   type: string;
   title: string;
   description: string;
@@ -18,125 +14,106 @@ interface Activity {
   section: string;
 }
 
-const getActivityIcon = (type: string) => {
-  switch (type) {
-    case 'article':
-      return <FileText className="h-4 w-4" />;
-    case 'user':
-      return <User className="h-4 w-4" />;
-    case 'event':
-      return <Calendar className="h-4 w-4" />;
-    case 'settings':
-      return <Settings className="h-4 w-4" />;
-    case 'media':
-      return <Image className="h-4 w-4" />;
-    case 'error':
-      return <AlertCircle className="h-4 w-4 text-red-500" />;
-    case 'success':
-      return <CheckCircle className="h-4 w-4 text-green-500" />;
-    case 'team':
-      return <Users className="h-4 w-4" />;
-    case 'email':
-      return <Mail className="h-4 w-4" />;
-    default:
-      return <Clock className="h-4 w-4" />;
-  }
-};
+const ActivityItem = ({ type, title, description, user, timestamp, section }: ActivityItemProps) => {
+  const getIcon = () => {
+    switch (type) {
+      case 'article': return <FileText className="h-4 w-4" />;
+      case 'media': return <Image className="h-4 w-4" />;
+      case 'event': return <Calendar className="h-4 w-4" />;
+      case 'user': return <User className="h-4 w-4" />;
+      case 'settings': return <Settings className="h-4 w-4" />;
+      case 'edit': return <Pencil className="h-4 w-4" />;
+      default: return <FileText className="h-4 w-4" />;
+    }
+  };
 
-const formatTime = (date: string | Date) => {
-  const activityDate = new Date(date);
-  return activityDate.toLocaleTimeString('en-US', { 
-    hour: '2-digit', 
-    minute: '2-digit',
-    hour12: true 
-  });
-};
+  const getTypeColor = () => {
+    switch (type) {
+      case 'article': return 'bg-blue-500';
+      case 'media': return 'bg-purple-500';
+      case 'event': return 'bg-yellow-500';
+      case 'user': return 'bg-green-500';
+      case 'settings': return 'bg-gray-500';
+      case 'edit': return 'bg-orange-500';
+      default: return 'bg-gray-500';
+    }
+  };
 
-const mockActivities: Activity[] = [
-  {
-    id: '1',
-    type: 'article',
-    title: 'Article published',
-    description: 'New match report published',
-    user: 'admin',
-    timestamp: new Date(Date.now() - 15 * 60000), // 15 mins ago
-    section: 'News'
-  },
-  {
-    id: '2',
-    type: 'media',
-    title: 'Image uploaded',
-    description: 'Match photos uploaded',
-    user: 'editor',
-    timestamp: new Date(Date.now() - 45 * 60000), // 45 mins ago
-    section: 'Media'
-  },
-  {
-    id: '3',
-    type: 'event',
-    title: 'Fixture added',
-    description: 'New fixture added to schedule',
-    user: 'admin',
-    timestamp: new Date(Date.now() - 120 * 60000), // 2 hours ago
-    section: 'Fixtures'
-  },
-  {
-    id: '4',
-    type: 'settings',
-    title: 'Settings updated',
-    description: 'System settings updated',
-    user: 'admin',
-    timestamp: new Date(Date.now() - 180 * 60000), // 3 hours ago
-    section: 'Settings'
-  }
-];
-
-const RecentActivityPanel = () => {
-  // In a real app, we'd fetch activities from an API
-  const { data: activities, isLoading } = { data: mockActivities, isLoading: false };
+  const getSectionBadge = () => {
+    switch (section) {
+      case 'News': return 'bg-blue-100 text-blue-800';
+      case 'Media': return 'bg-purple-100 text-purple-800';
+      case 'Fixtures': return 'bg-yellow-100 text-yellow-800';
+      case 'Users': return 'bg-green-100 text-green-800';
+      case 'Settings': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   return (
-    <Card>
-      <CardHeader>
+    <div className="flex gap-3 py-3">
+      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${getTypeColor()}`}>
+        {getIcon()}
+      </div>
+      <div className="flex-1 space-y-1">
+        <div className="flex items-center">
+          <p className="text-sm font-medium leading-none">{title}</p>
+          <span className={`ml-2 rounded-full px-2 py-0.5 text-xs font-medium ${getSectionBadge()}`}>
+            {section}
+          </span>
+        </div>
+        <p className="text-sm text-muted-foreground line-clamp-2">{description}</p>
+        <div className="flex items-center text-xs text-muted-foreground gap-1">
+          <span>{user}</span>
+          <span>·</span>
+          <Clock className="h-3 w-3" />
+          <span>{formatDistanceToNow(timestamp, { addSuffix: true })}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const RecentActivityPanel = () => {
+  const { data, isLoading, error } = useActivityFeed(5);
+
+  return (
+    <Card className="col-span-3">
+      <CardHeader className="pb-3">
         <CardTitle>Recent Activity</CardTitle>
       </CardHeader>
-      <CardContent className="max-h-96 overflow-auto">
+      <CardContent>
         {isLoading ? (
           <div className="space-y-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="flex gap-3">
-                <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center animate-pulse">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="flex gap-3 animate-pulse">
+                <div className="h-9 w-9 rounded-lg bg-gray-200" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-1/3" />
+                  <div className="h-3 bg-gray-200 rounded w-full" />
+                  <div className="h-3 bg-gray-200 rounded w-1/2" />
                 </div>
-                <div className="space-y-2 flex-1">
-                  <div className="h-4 bg-gray-100 rounded w-3/4 animate-pulse"></div>
-                  <div className="h-3 bg-gray-100 rounded w-1/2 animate-pulse"></div>
-                </div>
-                <div className="h-4 bg-gray-100 rounded w-16 animate-pulse"></div>
               </div>
             ))}
           </div>
+        ) : error ? (
+          <div className="text-center py-4 text-sm text-muted-foreground">
+            Failed to load activity feed
+          </div>
         ) : (
-          <ul className="space-y-4">
-            {(activities || []).map((activity) => (
-              <li key={activity.id} className="flex gap-3">
-                <div className="h-8 w-8 rounded-full bg-primary-50 flex items-center justify-center text-primary-700">
-                  {getActivityIcon(activity.type)}
-                </div>
-                <div className="space-y-1 flex-1">
-                  <p className="text-sm font-medium">
-                    {activity.description}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {activity.user ? `${activity.user} • ` : ''}
-                    {activity.section}
-                  </p>
-                </div>
-                <div className="text-xs text-muted-foreground whitespace-nowrap">
-                  {formatTime(activity.timestamp)}
-                </div>
-              </li>
+          <div className="space-y-2 divide-y">
+            {data.map((activity, index) => (
+              <ActivityItem
+                key={activity.id}
+                type={activity.type}
+                title={activity.title}
+                description={activity.description}
+                user={activity.user}
+                timestamp={activity.timestamp}
+                section={activity.section}
+              />
             ))}
-          </ul>
+          </div>
         )}
       </CardContent>
     </Card>

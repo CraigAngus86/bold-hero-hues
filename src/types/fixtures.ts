@@ -19,6 +19,7 @@ export interface Fixture {
   import_date?: string;
   season?: string;
   source?: string;
+  import_source?: string; // Added this property
   match_report?: string;
   attendance?: string;
   referee?: string;
@@ -50,10 +51,8 @@ export interface TeamStats {
   last_updated?: string;
 }
 
-// Add DBFixture interface for database records
-export interface DBFixture extends Fixture {
-  // Add any additional database-specific fields
-}
+// Use Fixture as DBFixture for backward compatibility
+export type DBFixture = Fixture;
 
 // Add ScrapedFixture interface for scraped fixture data
 export interface ScrapedFixture extends Partial<Fixture> {
@@ -80,11 +79,12 @@ export interface Match {
   homeTeam: string;
   awayTeam: string;
   competition: string;
-  venue?: string;
+  venue: string;
   isCompleted: boolean;
   homeScore?: number;
   awayScore?: number;
   ticketLink?: string;
+  season?: string;
 }
 
 // Import and re-export the conversion functions from the utility file

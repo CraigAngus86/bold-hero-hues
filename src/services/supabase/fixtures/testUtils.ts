@@ -1,112 +1,75 @@
 
-import { ScrapedFixture, ImportResult } from '@/types/fixtures';
+import { ImportResult, ScrapedFixture, Fixture } from '@/types/fixtures';
 
-/**
- * Validates the fixture data structure
- */
-export default function validateFixtureData(data: any): ImportResult {
-  if (!data || !Array.isArray(data)) {
-    return {
-      valid: false,
-      message: 'Invalid data format: Expected an array of fixtures',
-      added: 0,
-      updated: 0,
-      validFixtures: []
-    };
+const createValidationError = (message: string): ImportResult => {
+  return {
+    valid: false,
+    success: false, // Added success property
+    message,
+    added: 0,
+    updated: 0,
+    validFixtures: []
+  };
+};
+
+export const validateFixtures = (data: any[]): ImportResult => {
+  if (!Array.isArray(data)) {
+    return createValidationError('Invalid data format: Expected an array of fixtures');
   }
 
-  // Check if empty
   if (data.length === 0) {
-    return {
-      valid: false,
-      message: 'No fixtures found in the data',
-      added: 0,
-      updated: 0,
-      validFixtures: []
-    };
+    return createValidationError('No fixtures found in the provided data');
   }
 
+  // Filter and transform the valid fixtures
   const validFixtures: ScrapedFixture[] = [];
-  const errors: string[] = [];
+  const currentDate = new Date().toISOString();
 
-  for (let i = 0; i < data.length; i++) {
-    const fixture = data[i];
-    
-    // Check if it has the necessary fields
-    if (!fixture.date) {
-      errors.push(`Fixture at index ${i} is missing date`);
+  for (const item of data) {
+    if (!item.date || !item.time || !item.home_team || !item.away_team || !item.competition) {
       continue;
     }
-    
-    // Check if it's the standard format
-    if (fixture.home_team && fixture.away_team && fixture.competition) {
-      validFixtures.push(fixture as ScrapedFixture);
-      continue;
-    }
-    
-    // Check if it's Claude's format
-    if (fixture.opposition && fixture.location && fixture.competition) {
-      // Convert to standard format
-      const isHome = fixture.location.toLowerCase() === 'home';
-      const homeTeam = isHome ? "Banks o' Dee" : fixture.opposition;
-      const awayTeam = isHome ? fixture.opposition : "Banks o' Dee";
-      
-      // Parse score if available
-      let homeScore, awayScore;
-      let isCompleted = false;
-      
-      if (fixture.score && typeof fixture.score === 'string') {
-        const scoreParts = fixture.score.split('-').map(s => s.trim());
-        if (scoreParts.length === 2) {
-          const score1 = parseInt(scoreParts[0]);
-          const score2 = parseInt(scoreParts[1]);
-          
-          if (!isNaN(score1) && !isNaN(score2)) {
-            homeScore = isHome ? score1 : score2;
-            awayScore = isHome ? score2 : score1;
-            isCompleted = true;
-          }
-        }
-      } else if (fixture.isCompleted) {
-        isCompleted = true;
-      }
-      
-      validFixtures.push({
-        date: fixture.date,
-        time: fixture.kickOffTime || fixture.time || '15:00',
-        home_team: homeTeam,
-        away_team: awayTeam,
-        competition: fixture.competition,
-        venue: fixture.venue || (isHome ? "Spain Park" : "Away"),
-        is_completed: isCompleted,
-        home_score: homeScore,
-        away_score: awayScore,
-        season: fixture.season || undefined
-      });
-      
-      continue;
-    }
-    
-    errors.push(`Fixture at index ${i} has invalid format`);
+
+    // Valid fixture, add it to our array
+    const fixture: ScrapedFixture = {
+      date: item.date,
+      time: item.time,
+      home_team: item.home_team,
+      away_team: item.away_team,
+      competition: item.competition,
+      venue: item.venue,
+      is_completed: item.is_completed || false,
+      home_score: item.is_completed ? item.home_score : null,
+      away_score: item.is_completed ? item.away_score : null,
+      season: item.season || null,
+      source: 'manual_import', // Add required source field
+      import_date: currentDate, // Add required import_date field
+    };
+
+    validFixtures.push(fixture);
   }
 
-  if (errors.length > 0) {
-    return {
-      valid: validFixtures.length > 0,
-      message: `Found ${validFixtures.length} valid fixtures and ${errors.length} errors: ${errors.join('; ')}`,
-      added: 0,
-      updated: 0,
-      validFixtures
-    };
+  if (validFixtures.length === 0) {
+    return createValidationError('No valid fixtures found in the provided data');
   }
 
   return {
     valid: true,
-    message: `All ${validFixtures.length} fixtures are valid`,
-    added: 0,
-    updated: 0,
+    success: true, // Added success property
+    message: `Found ${validFixtures.length} valid fixtures`,
+    added: 0, // Will be updated after import
+    updated: 0, // Will be updated after import
     validFixtures
   };
-}
+};
 
-export { validateFixtureData };
+export const createMockImportResult = (fixtures: ScrapedFixture[], added = 0, updated = 0): ImportResult => {
+  return {
+    valid: true,
+    success: true, // Added success property
+    message: `Processed ${fixtures.length} fixtures: ${added} added, ${updated} updated`,
+    added,
+    updated,
+    validFixtures: fixtures,
+  };
+};

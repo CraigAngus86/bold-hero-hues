@@ -3,7 +3,7 @@ import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Upload, X, Loader2 } from 'lucide-react';
 import { useImageUpload } from '@/services/images';
 
 interface NewsImageUploaderProps {
@@ -18,7 +18,7 @@ export function NewsImageUploader({
   const [dragActive, setDragActive] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const { upload, isUploading, progress } = useImageUpload();
+  const { uploadFile, isUploading, progress } = useImageUpload();
   
   const maxSizeMB = 5;
   const maxSizeBytes = maxSizeMB * 1024 * 1024;
@@ -82,7 +82,7 @@ export function NewsImageUploader({
       const date = new Date();
       const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       
-      const result = await upload(selectedFile, {
+      const result = await uploadFile(selectedFile, {
         // Use alt_text instead of folder
         altText: `News image uploaded on ${date.toLocaleDateString()}`
       });

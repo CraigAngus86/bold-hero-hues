@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { formatDistanceToNow, format, parseISO } from 'date-fns';
 import { CheckCircle, XCircle, AlertCircle, RefreshCw, Search, ChevronDown, ChevronUp } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 
 interface ScrapeLog {
   id: string;
@@ -35,30 +34,28 @@ const ScraperLogsPanel = () => {
     setIsLoading(true);
     
     try {
-      let query = supabase
-        .from('scrape_logs')
-        .select('*')
-        .eq('source', 'highland_league');
+      // Placeholder for actual API call
+      // This would be replaced with your actual data fetching logic
+      const mockLogs: ScrapeLog[] = [
+        {
+          id: '1',
+          created_at: new Date().toISOString(),
+          status: 'completed',
+          source: 'highland_league',
+          items_found: 12,
+          items_added: 2,
+          items_updated: 10
+        },
+        {
+          id: '2',
+          created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+          status: 'failed',
+          source: 'highland_league',
+          error_message: 'Connection timeout'
+        }
+      ];
       
-      // Apply filter
-      if (filter === 'success') {
-        query = query.eq('status', 'completed');
-      } else if (filter === 'failed') {
-        query = query.eq('status', 'failed');
-      }
-      
-      // Apply sorting
-      query = query.order(sortField, { ascending: sortDirection === 'asc' });
-      
-      const { data, error } = await query;
-      
-      if (error) {
-        throw error;
-      }
-      
-      if (data) {
-        setLogs(data);
-      }
+      setLogs(mockLogs);
     } catch (error) {
       console.error('Error fetching scraper logs:', error);
     } finally {

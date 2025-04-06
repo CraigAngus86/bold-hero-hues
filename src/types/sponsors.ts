@@ -10,3 +10,21 @@ export interface Sponsor {
   created_at?: string;
   updated_at?: string;
 }
+
+export interface SponsorshipTier {
+  id: string;
+  name: string;
+  description: string;
+  benefits?: string;
+  order: number;
+}
+
+export interface SponsorDisplaySettings {
+  showOnHomepage: boolean;
+  displayMode: 'grid' | 'carousel' | 'list';
+  sponsorsPerRow: number;
+  carouselSpeed: number;
+  showTierHeadings: boolean;
+  randomizeOrder: boolean;
+  maxLogosHomepage: number;
+}

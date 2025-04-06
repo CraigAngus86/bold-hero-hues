@@ -5,17 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from "@/components/ui/Table";
+import { DataTable } from '@/components/admin/common/DataTable';
 import { AlertCircle, AlertTriangle, Info, Bug, RefreshCw, Filter, Search, Download } from 'lucide-react';
 import { SystemLog } from '@/types';
 import { format, parseISO } from 'date-fns';
+import { spacing, typography } from '@/styles/designTokens';
 
 interface SystemLogViewerProps {
   initialLogs: SystemLog[];
@@ -99,11 +93,41 @@ export const SystemLogViewer: React.FC<SystemLogViewerProps> = ({
     }
   };
 
+  const columns = [
+    {
+      key: 'type',
+      header: 'Type',
+      cell: (log: SystemLog) => (
+        <Badge variant={getLogTypeBadgeVariant(log.type)} className="flex items-center gap-1">
+          {getLogTypeIcon(log.type)}
+          <span className="capitalize">{log.type}</span>
+        </Badge>
+      )
+    },
+    {
+      key: 'message',
+      header: 'Message',
+      cell: (log: SystemLog) => <div className="font-medium">{log.message}</div>
+    },
+    {
+      key: 'source',
+      header: 'Source',
+      cell: (log: SystemLog) => <div>{log.source}</div>
+    },
+    {
+      key: 'timestamp',
+      header: 'Timestamp',
+      cell: (log: SystemLog) => (
+        <div className="text-muted-foreground">{formatTimestamp(log.timestamp)}</div>
+      )
+    }
+  ];
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle>{title}</CardTitle>
+          <CardTitle className={typography.sectionHeader}>{title}</CardTitle>
           {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
         </div>
         <div className="flex space-x-2">
@@ -119,7 +143,7 @@ export const SystemLogViewer: React.FC<SystemLogViewerProps> = ({
           )}
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className={spacing.cardPadding}>
         <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
           <div className="relative flex-1">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -146,41 +170,12 @@ export const SystemLogViewer: React.FC<SystemLogViewerProps> = ({
           </div>
         </div>
 
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[100px]">Type</TableHead>
-                <TableHead>Message</TableHead>
-                <TableHead>Source</TableHead>
-                <TableHead className="w-[180px]">Timestamp</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredLogs.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                    No logs found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredLogs.map((log) => (
-                  <TableRow key={log.id}>
-                    <TableCell>
-                      <Badge variant={getLogTypeBadgeVariant(log.type)} className="flex items-center gap-1">
-                        {getLogTypeIcon(log.type)}
-                        <span className="capitalize">{log.type}</span>
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="font-medium">{log.message}</TableCell>
-                    <TableCell>{log.source}</TableCell>
-                    <TableCell className="text-muted-foreground">{formatTimestamp(log.timestamp)}</TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+        <DataTable 
+          columns={columns}
+          data={filteredLogs}
+          isLoading={isLoading}
+          emptyMessage="No logs found"
+        />
 
         <div className="mt-4 text-sm text-muted-foreground text-right">
           Showing {filteredLogs.length} of {logs.length} logs

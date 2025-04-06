@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { AdminLayout } from '@/components/admin/layout';
+import { AdminPageLayout } from '@/components/admin/layout/AdminPageLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import UserManagement from '@/components/admin/settings/UserManagement';
 import SiteConfiguration from '@/components/admin/settings/SiteConfiguration';
@@ -10,24 +11,18 @@ import EmailConfiguration from '@/components/admin/settings/EmailConfiguration';
 import SystemLogs from '@/components/admin/settings/SystemLogs';
 import ImportExportTools from '@/components/admin/settings/ImportExportTools';
 import { Helmet } from 'react-helmet-async';
+import { spacing, typography } from '@/styles/designTokens';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState<string>('users');
 
   return (
     <AdminLayout>
-      <Helmet>
-        <title>Settings & Configuration | Banks o' Dee FC Admin</title>
-      </Helmet>
-      <div className="container mx-auto p-4 md:p-6">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold">Settings & Configuration</h1>
-          <p className="text-muted-foreground mt-2">
-            Configure system-wide settings and manage administrative tools
-          </p>
-        </div>
-
-        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <AdminPageLayout
+        title="Settings & Configuration"
+        description="Configure system-wide settings and manage administrative tools"
+      >
+        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className={spacing.contentGap}>
           <div className="bg-card rounded-md p-2 overflow-x-auto">
             <TabsList className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 w-full">
               <TabsTrigger value="users">Users</TabsTrigger>
@@ -41,45 +36,45 @@ const Settings = () => {
             </TabsList>
           </div>
 
-          <TabsContent value="users" className="space-y-4 mt-2">
+          <TabsContent value="users" className={`space-y-4 mt-2 ${spacing.sectionMargin}`}>
             <UserManagement />
           </TabsContent>
 
-          <TabsContent value="site" className="space-y-4 mt-2">
+          <TabsContent value="site" className={`space-y-4 mt-2 ${spacing.sectionMargin}`}>
             <SiteConfiguration />
           </TabsContent>
 
-          <TabsContent value="scraper" className="space-y-4 mt-2">
+          <TabsContent value="scraper" className={`space-y-4 mt-2 ${spacing.sectionMargin}`}>
             <ScraperConfiguration />
           </TabsContent>
 
-          <TabsContent value="supabase" className="space-y-4 mt-2">
+          <TabsContent value="supabase" className={`space-y-4 mt-2 ${spacing.sectionMargin}`}>
             <SupabaseConnection />
           </TabsContent>
 
-          <TabsContent value="email" className="space-y-4 mt-2">
+          <TabsContent value="email" className={`space-y-4 mt-2 ${spacing.sectionMargin}`}>
             <EmailConfiguration />
           </TabsContent>
 
-          <TabsContent value="logs" className="space-y-4 mt-2">
+          <TabsContent value="logs" className={`space-y-4 mt-2 ${spacing.sectionMargin}`}>
             <SystemLogs />
           </TabsContent>
 
-          <TabsContent value="data" className="space-y-4 mt-2">
+          <TabsContent value="data" className={`space-y-4 mt-2 ${spacing.sectionMargin}`}>
             <ImportExportTools />
           </TabsContent>
 
-          <TabsContent value="advanced" className="space-y-4 mt-2">
+          <TabsContent value="advanced" className={`space-y-4 mt-2 ${spacing.sectionMargin}`}>
             <div className="bg-card rounded-md border p-6">
-              <h3 className="text-xl font-semibold mb-4">Advanced System Settings</h3>
-              <p className="text-muted-foreground">
+              <h3 className={typography.sectionHeader}>Advanced System Settings</h3>
+              <p className="text-muted-foreground mt-2">
                 These settings can significantly impact system behavior. Use with caution.
               </p>
               {/* Advanced settings would go here */}
             </div>
           </TabsContent>
         </Tabs>
-      </div>
+      </AdminPageLayout>
     </AdminLayout>
   );
 };

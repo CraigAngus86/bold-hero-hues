@@ -1,10 +1,11 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from "@/components/theme-provider"
-import { ErrorBoundary } from 'react-error-boundary';
 import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from "@/components/ui/toaster"
 import { Toaster as Sonner } from "@/components/ui/sonner"
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Import public pages
 import Index from "./pages/Index";
@@ -19,18 +20,14 @@ import LeagueTableManagement from "./pages/admin/LeagueTableManagement";
 import MediaGallery from "./pages/admin/MediaGallery";
 import SponsorsManagement from "./pages/admin/SponsorsManagement";
 import TicketsManagement from "./pages/admin/TicketsManagement";
-// Add import for FansManagement
 import FansManagement from "./pages/admin/FansManagement";
 import SettingsManagement from "./pages/admin/SettingsManagement";
-
-// Import error fallback component
-import ErrorFallback from './components/ErrorFallback';
 
 function App() {
   return (
     <BrowserRouter>
       <ThemeProvider defaultTheme="light" storageKey="banks-o-dee-theme">
-        <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <ErrorBoundary>
           <HelmetProvider>
             <Toaster />
             <Sonner />

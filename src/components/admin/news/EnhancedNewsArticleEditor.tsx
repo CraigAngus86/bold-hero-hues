@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { MoveLeft, Save, Upload, ImagePlus, Eye, DeviceDesktop, Smartphone, Tablet } from 'lucide-react';
+import { MoveLeft, Save, Upload, ImagePlus, Eye, Monitor, Smartphone, Tablet } from 'lucide-react';
 import { useImageUpload } from '@/services/images';
 import { Typography } from '@/components/ui';
 import { NewsArticle, CreateNewsArticleData } from '@/types';
@@ -18,6 +18,7 @@ import { generateSlug } from '@/services/news/utils';
 import { RichTextEditor } from '@/components/admin/common/RichTextEditor';
 import { MediaGalleryModal } from '@/components/admin/media/MediaGalleryModal';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const { H3, Body, Small } = Typography;
 

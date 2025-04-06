@@ -27,7 +27,7 @@ import {
 } from '@/components/admin/fixtures';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Fixture } from '@/types/fixtures';
+import { Fixture } from '@/types';
 import { toast } from 'sonner';
 import { DateRange } from 'react-day-picker';
 
@@ -75,8 +75,11 @@ const FixturesManagement: React.FC = () => {
         homeScore: fixture.home_score,
         awayScore: fixture.away_score,
         ticketLink: fixture.ticket_link,
-        source: fixture.source
-      }));
+        source: fixture.source,
+        match_report: fixture.match_report,
+        attendance: fixture.attendance,
+        referee: fixture.referee
+      })) as Fixture[];
       
       setFixtures(formattedFixtures);
     } catch (error) {
@@ -144,7 +147,7 @@ const FixturesManagement: React.FC = () => {
           
           <TabsContent value="calendar">
             <CalendarView 
-              matches={fixtures}
+              matches={fixtures} 
               isLoading={isLoading}
               onFilterChange={handleDateRangeChange}
             />

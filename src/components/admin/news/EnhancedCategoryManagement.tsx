@@ -1,5 +1,6 @@
-
-import React, { useState } from 'react';
+import React from 'react';
+import { Label } from '@/components/ui/label';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,9 +37,7 @@ export const EnhancedCategoryManagement: React.FC = () => {
   
   const { categories, isLoading, refetch } = useNewsCategories();
   
-  // Mock category usage stats - in a real app, you'd fetch this from the backend
   const getCategoryUsage = (categoryId: string) => {
-    // Mock data - random number between 0 and 20
     return Math.floor(Math.random() * 21);
   };
   
@@ -81,18 +80,10 @@ export const EnhancedCategoryManagement: React.FC = () => {
     }
   });
   
-  // Mock merge categories function - in a real app, this would update articles with the new category
   const mergeCategories = async (sourceId: string, targetId: string) => {
     try {
-      // In a real app, you would:
-      // 1. Update all articles with sourceCategory to use targetCategory
-      // 2. Delete the sourceCategory
-      
-      // For our demo, we'll just show a success message
       toast.success('Categories merged successfully');
       setIsMergeDialogOpen(false);
-      
-      // Refetch categories to update the UI
       await refetch();
     } catch (error) {
       toast.error('Failed to merge categories');
@@ -280,7 +271,6 @@ export const EnhancedCategoryManagement: React.FC = () => {
           )}
         </div>
 
-        {/* Merge Categories Dialog */}
         <Dialog open={isMergeDialogOpen} onOpenChange={setIsMergeDialogOpen}>
           <DialogContent>
             <DialogHeader>

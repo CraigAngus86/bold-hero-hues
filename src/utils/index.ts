@@ -1,4 +1,8 @@
 
 // Utility functions
 export { cn, createSlug, formatDate, getOrdinalSuffix } from '@/lib/utils';
-// Add other utility functions as needed
+
+// Export necessary functions from ErrorHandling
+export { handleApiError, showErrorToUser, createAppError, safeAsync } from './errorHandling';
+
+// Export functions from other utility files as needed

@@ -6,7 +6,7 @@ import { EventsCalendar } from './EventsCalendar';
 import { contentStatusItems, mockEvents } from './mockData';
 import { Database } from 'lucide-react';
 import { toast } from 'sonner';
-import { SystemStatus, SystemStatusData } from '@/hooks/useSystemStatus';
+import { SystemStatusData } from '@/services/logs/systemLogsService';
 
 interface StatusItemsProps {
   systemStatus: SystemStatusData | undefined;
@@ -24,32 +24,32 @@ export const StatusItems: React.FC<StatusItemsProps> = ({
   // Convert system status data to the format expected by EnhancedSystemStatus
   const systemStatusItems = systemStatus ? [
     {
-      name: 'Supabase Connection',
-      status: systemStatus.supabase.status,
-      lastChecked: systemStatus.supabase.lastChecked,
+      name: 'Database Connection',
+      status: systemStatus.database.status,
+      lastChecked: systemStatus.database.lastChecked,
       icon: <Database className="h-4 w-4" />,
-      tooltip: 'Status of the connection to the Supabase database'
+      tooltip: 'Status of the connection to the database'
     },
     {
-      name: 'Fixture Scraper',
-      status: systemStatus.fixtures.status,
-      lastChecked: systemStatus.fixtures.lastChecked,
-      metricValue: systemStatus.fixtures.metricValue,
-      tooltip: 'Status of the BBC fixture scraper service'
+      name: 'API Services',
+      status: systemStatus.api.status,
+      lastChecked: systemStatus.api.lastChecked,
+      metricValue: systemStatus.api.metricValue,
+      tooltip: 'Status of the API services'
     },
     {
-      name: 'Storage Service',
-      status: systemStatus.storage.status,
-      lastChecked: systemStatus.storage.lastChecked,
-      metricValue: systemStatus.storage.metricValue,
-      tooltip: 'Status of the storage service'
+      name: 'Content Service',
+      status: systemStatus.content.status,
+      lastChecked: systemStatus.content.lastChecked,
+      metricValue: systemStatus.content.metricValue,
+      tooltip: 'Status of the content service'
     },
     {
-      name: 'League Table Scraper',
-      status: systemStatus.leagueTable.status,
-      lastChecked: systemStatus.leagueTable.lastChecked,
-      metricValue: systemStatus.leagueTable.metricValue,
-      tooltip: 'Status of the league table scraper service'
+      name: 'Upload Storage',
+      status: systemStatus.uploads.status,
+      lastChecked: systemStatus.uploads.lastChecked,
+      metricValue: systemStatus.uploads.metricValue,
+      tooltip: 'Status of the upload storage service'
     }
   ] : [];
 

@@ -1,251 +1,366 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import SocialMediaFeed from './SocialMediaFeed';
+import { ArrowRight, ThumbsUp, MessageSquare, Heart, Users } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 const FanEngagement: React.FC = () => {
-  const [votedOption, setVotedOption] = useState<string | null>(null);
-  
-  // Example poll data
-  const pollOptions = [
-    { id: '1', text: 'Paul Campbell', votes: 48 },
-    { id: '2', text: 'Lachie Macleod', votes: 36 },
-    { id: '3', text: 'Mark Gilmour', votes: 28 },
-    { id: '4', text: 'Hamish MacLeod', votes: 15 },
+  // Mock social media posts
+  const socialPosts = [
+    {
+      id: 1,
+      platform: 'twitter',
+      author: '@BanksODeeFC',
+      content: 'Exciting news! Our youth academy has been granted elite status. Congratulations to everyone involved in this fantastic achievement! #BanksODee #YouthDevelopment',
+      date: '2h ago',
+      likes: 42,
+      comments: 7,
+      image: '/lovable-uploads/cb95b9fb-0f2d-42ef-9788-10509a80ed6e.png'
+    },
+    {
+      id: 2,
+      platform: 'facebook',
+      author: 'Banks O\' Dee FC',
+      content: 'Match day! We take on Huntly FC at Spain Park. Kick-off at 3pm. Come down and support the team! #COYD',
+      date: '5h ago',
+      likes: 67,
+      comments: 12,
+      image: '/lovable-uploads/73ac703f-7365-4abb-811e-159280ad234b.png'
+    },
+    {
+      id: 3,
+      platform: 'instagram',
+      author: 'banksofdeefc',
+      content: 'Perfect weather for training today at Spain Park! Getting ready for Saturday\'s big match.',
+      date: '1d ago',
+      likes: 89,
+      comments: 4,
+      image: '/lovable-uploads/122628af-86b4-4d7f-bfe3-01d4bf03d053.png'
+    }
   ];
   
-  const totalVotes = pollOptions.reduce((sum, option) => sum + option.votes, 0);
-  
-  const handleVote = (optionId: string) => {
-    if (!votedOption) {
-      setVotedOption(optionId);
+  // Mock fans of the week
+  const fansOfWeek = [
+    {
+      name: 'The Davidson Family',
+      description: 'Season ticket holders for 15 years',
+      image: '/lovable-uploads/7f997ef4-9019-4660-9e9e-4e230d7b1eb3.png'
+    },
+    {
+      name: 'Aberdeen Supporters Club',
+      description: 'Traveling to every away game this season',
+      image: '/lovable-uploads/0c8edeaf-c67c-403f-90f0-61b390e5e89a.png'
+    }
+  ];
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2
+      }
     }
   };
 
-  return (
-    <section className="py-16">
-      <div className="container mx-auto px-4">
-        <h2 className="text-2xl font-bold text-team-blue mb-8">Fan Zone</h2>
-        
-        <Tabs defaultValue="social" className="w-full">
-          <TabsList className="grid grid-cols-2 mb-6 bg-gray-100">
-            <TabsTrigger value="social" className="data-[state=active]:bg-team-blue data-[state=active]:text-white">Social Media</TabsTrigger>
-            <TabsTrigger value="polls" className="data-[state=active]:bg-team-blue data-[state=active]:text-white">Polls & Engagement</TabsTrigger>
-          </TabsList>
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5 }
+    }
+  };
+
+  // Helper function for rendering platform icon
+  const renderPlatformIcon = (platform: string) => {
+    switch (platform) {
+      case 'twitter':
+        return (
+          <svg className="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
+          </svg>
+        );
+      case 'facebook':
+        return (
+          <svg className="w-5 h-5 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+          </svg>
+        );
+      case 'instagram':
+        return (
+          <svg className="w-5 h-5 text-pink-600" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+          </svg>
+        );
+      default:
+        return null;
+    }
+  };
+
+  // Quick poll component
+  const QuickPoll = () => {
+    const [voted, setVoted] = React.useState(false);
+    const [results, setResults] = React.useState({ 
+      home: 65, 
+      draw: 20, 
+      away: 15 
+    });
+    const [selectedOption, setSelectedOption] = React.useState<string | null>(null);
+    
+    const handleVote = () => {
+      if (!selectedOption) return;
+      
+      setVoted(true);
+      // In a real implementation, this would send the vote to a backend
+    };
+    
+    return (
+      <Card className="bg-white border-none shadow-lg rounded-xl overflow-hidden">
+        <CardHeader className="bg-team-blue text-white">
+          <CardTitle className="text-lg font-bold flex items-center">
+            <Users className="h-5 w-5 mr-2" />
+            Fan Poll
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-4">
+          <h3 className="text-lg font-semibold mb-3 text-gray-800">
+            This Weekend's Match Prediction
+          </h3>
           
-          <TabsContent value="social" className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="space-y-6">
-                <SocialMediaFeed />
+          {!voted ? (
+            <div className="space-y-3">
+              <p className="text-gray-600 mb-4">
+                Banks o' Dee vs Formartine United - How do you think we'll do?
+              </p>
+              
+              <div className="space-y-2">
+                <label className="flex items-center p-3 bg-gray-50 rounded-md hover:bg-gray-100 cursor-pointer transition-colors">
+                  <input 
+                    type="radio" 
+                    name="prediction" 
+                    className="mr-3" 
+                    onChange={() => setSelectedOption('home')}
+                  />
+                  <span>Banks o' Dee Win</span>
+                </label>
+                
+                <label className="flex items-center p-3 bg-gray-50 rounded-md hover:bg-gray-100 cursor-pointer transition-colors">
+                  <input 
+                    type="radio" 
+                    name="prediction" 
+                    className="mr-3"
+                    onChange={() => setSelectedOption('draw')}
+                  />
+                  <span>Draw</span>
+                </label>
+                
+                <label className="flex items-center p-3 bg-gray-50 rounded-md hover:bg-gray-100 cursor-pointer transition-colors">
+                  <input 
+                    type="radio" 
+                    name="prediction" 
+                    className="mr-3"
+                    onChange={() => setSelectedOption('away')}
+                  />
+                  <span>Formartine Win</span>
+                </label>
               </div>
               
-              <motion.div 
-                className="bg-gradient-to-br from-team-blue/90 to-team-navy rounded-lg p-6 text-white flex flex-col justify-center shadow-lg relative overflow-hidden"
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
+              <Button 
+                className="w-full mt-3 bg-team-accent text-team-blue hover:bg-team-accent/90"
+                disabled={!selectedOption}
+                onClick={handleVote}
               >
-                <div className="absolute top-0 right-0 w-64 h-64 bg-team-lightBlue rounded-full opacity-10 -mr-20 -mt-20"></div>
-                <div className="absolute bottom-0 left-0 w-40 h-40 bg-team-accent rounded-full opacity-10 -ml-10 -mb-10"></div>
-                
-                <h3 className="text-2xl font-bold mb-4 z-10">Join Our Community</h3>
-                <p className="mb-6 z-10">
-                  Stay connected with Banks o' Dee FC by following our social media channels and engaging with our content.
-                </p>
-                
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 z-10">
-                  <a 
-                    href="https://x.com/banksodee_fc" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center bg-black/20 hover:bg-black/30 p-3 rounded-lg transition-colors"
-                  >
-                    <svg viewBox="0 0 24 24" className="w-6 h-6 mr-2">
-                      <path
-                        fill="currentColor"
-                        d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
-                      />
-                    </svg>
-                    X / Twitter
-                  </a>
-                  <a 
-                    href="https://www.instagram.com/banksodeefc" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center bg-black/20 hover:bg-black/30 p-3 rounded-lg transition-colors"
-                  >
-                    <svg viewBox="0 0 24 24" className="w-6 h-6 mr-2">
-                      <path
-                        fill="currentColor"
-                        d="M12,2.16c3.2,0,3.58,0,4.85.07,3.25.15,4.77,1.69,4.92,4.92.06,1.27.07,1.65.07,4.85,0,3.2,0,3.58-.07,4.85-.15,3.23-1.66,4.77-4.92,4.92-1.27.06-1.65.07-4.85.07-3.2,0-3.58,0-4.85-.07-3.26-.15-4.77-1.7-4.92-4.92-.06-1.27-.07-1.65-.07-4.85,0-3.2,0-3.58.07-4.85C2.33,3.92,3.84,2.38,7.15,2.23,8.42,2.18,8.8,2.16,12,2.16ZM12,0C8.74,0,8.33,0,7.05.07c-4.35.2-6.78,2.62-7,7C0,8.33,0,8.74,0,12S0,15.67.07,17c.2,4.36,2.62,6.78,7,7C8.33,24,8.74,24,12,24s3.67,0,4.95-.07c4.35-.2,6.78-2.62,7-7C24,15.67,24,15.26,24,12s0-3.67-.07-4.95c-.2-4.35-2.62-6.78-7-7C15.67,0,15.26,0,12,0Zm0,5.84A6.16,6.16,0,1,0,18.16,12,6.16,6.16,0,0,0,12,5.84ZM12,16a4,4,0,1,1,4-4A4,4,0,0,1,12,16ZM18.41,4.15a1.44,1.44,0,1,0,1.43,1.44A1.44,1.44,0,0,0,18.41,4.15Z"
-                      />
-                    </svg>
-                    Instagram
-                  </a>
-                  <a 
-                    href="https://www.facebook.com/banksodeejfc" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center bg-black/20 hover:bg-black/30 p-3 rounded-lg transition-colors"
-                  >
-                    <svg viewBox="0 0 24 24" className="w-6 h-6 mr-2">
-                      <path
-                        fill="currentColor"
-                        d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
-                      />
-                    </svg>
-                    Facebook
-                  </a>
-                </div>
-                
-                <div className="mt-6 flex justify-center z-10">
-                  <Button className="bg-white text-team-blue hover:bg-team-lightBlue">
-                    Join Fan Club
-                  </Button>
-                </div>
-              </motion.div>
+                Submit Your Prediction
+              </Button>
             </div>
-          </TabsContent>
-          
-          <TabsContent value="polls" className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Fan Poll */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-              >
-                <Card className="overflow-hidden shadow-md">
-                  <CardHeader className="bg-team-blue text-white">
-                    <CardTitle className="flex items-center text-lg">
-                      <svg viewBox="0 0 24 24" className="w-5 h-5 mr-2">
-                        <path
-                          fill="currentColor"
-                          d="M18 9.5V5.5H6V9.5H18M18 3.5C19.11 3.5 20 4.39 20 5.5V9.5C20 10.61 19.11 11.5 18 11.5H6C4.89 11.5 4 10.61 4 9.5V5.5C4 4.39 4.89 3.5 6 3.5H18M18 14.5V18.5H6V14.5H18M18 12.5H6C4.89 12.5 4 13.39 4 14.5V18.5C4 19.61 4.89 20.5 6 20.5H18C19.11 20.5 20 19.61 20 18.5V14.5C20 13.39 19.11 12.5 18 12.5Z"
-                        />
-                      </svg>
-                      Fan Poll of the Week
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <h3 className="font-bold text-xl mb-4">Who was your Player of the Month?</h3>
-                    
-                    <div className="space-y-4">
-                      {pollOptions.map(option => {
-                        const percentage = Math.round((option.votes / totalVotes) * 100);
-                        const isVoted = votedOption === option.id;
-                        
-                        return (
-                          <div key={option.id} className="space-y-1">
-                            <div className="flex items-center justify-between">
-                              <span className={`text-sm font-medium ${isVoted ? 'text-team-blue' : ''}`}>
-                                {option.text}
-                              </span>
-                              <span className="text-sm font-semibold">{percentage}%</span>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-gray-600 mb-2">
+                Thank you for your prediction! Here's how other fans have voted:
+              </p>
+              
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span>Banks o' Dee Win</span>
+                    <span className="font-medium">{results.home}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-team-blue h-2 rounded-full" style={{ width: `${results.home}%` }}></div>
+                  </div>
+                </div>
+                
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span>Draw</span>
+                    <span className="font-medium">{results.draw}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-gray-500 h-2 rounded-full" style={{ width: `${results.draw}%` }}></div>
+                  </div>
+                </div>
+                
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span>Formartine Win</span>
+                    <span className="font-medium">{results.away}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-red-500 h-2 rounded-full" style={{ width: `${results.away}%` }}></div>
+                  </div>
+                </div>
+              </div>
+              
+              <p className="text-center text-sm text-gray-500 mt-4">
+                Based on 238 fan predictions
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
+
+  return (
+    <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
+      <div className="container mx-auto px-4">
+        <div className="flex justify-between items-center mb-8">
+          <div className="flex items-center">
+            <Heart className="w-6 h-6 text-red-500 mr-3" />
+            <h2 className="text-2xl font-bold text-gray-800">Fan Zone</h2>
+          </div>
+          <Link to="/fans">
+            <Button variant="outline" className="border-team-blue text-team-blue hover:bg-team-blue hover:text-white">
+              Fan Community <ArrowRight className="ml-2 w-4 h-4" />
+            </Button>
+          </Link>
+        </div>
+
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-12 gap-6"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
+          {/* Social Feed Section */}
+          <motion.div variants={itemVariants} className="md:col-span-8">
+            <Card className="bg-white border-none shadow-lg rounded-xl overflow-hidden h-full">
+              <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-400 text-white">
+                <CardTitle className="text-lg font-bold">Social Media Feed</CardTitle>
+              </CardHeader>
+              
+              <CardContent className="p-0">
+                <Carousel className="w-full py-4">
+                  <CarouselContent>
+                    {socialPosts.map((post) => (
+                      <CarouselItem key={post.id} className="md:basis-1/2 lg:basis-1/3 pl-4 pr-0">
+                        <div className="p-4 bg-white border rounded-xl shadow-sm hover:shadow-md transition-shadow h-full">
+                          <div className="flex items-center mb-3">
+                            <div className="mr-2">
+                              {renderPlatformIcon(post.platform)}
                             </div>
-                            <div className="relative">
-                              <Progress value={percentage} className="h-8 bg-gray-100" />
-                              <button
-                                onClick={() => handleVote(option.id)}
-                                disabled={!!votedOption}
-                                className={`absolute inset-0 flex items-center justify-end px-3 text-sm font-medium ${
-                                  isVoted ? 'bg-team-blue/20 border-2 border-team-blue text-team-blue' : ''
-                                } ${!votedOption ? 'hover:bg-gray-200 transition-colors' : ''}`}
-                                style={isVoted ? { width: `${percentage}%` } : {}}
-                              >
-                                {isVoted && <span className="mr-2">✓</span>}
-                                {option.votes} votes
-                              </button>
+                            <div>
+                              <p className="font-medium text-sm">{post.author}</p>
+                              <p className="text-xs text-gray-500">{post.date}</p>
                             </div>
                           </div>
-                        );
-                      })}
-                    </div>
-                    
-                    <div className="mt-6 text-sm text-gray-500 text-center">
-                      {votedOption ? (
-                        <p>Thank you for voting! Poll ends in 2 days.</p>
-                      ) : (
-                        <p>Click on a bar to vote. Total votes: {totalVotes}</p>
-                      )}
-                    </div>
-                  </CardContent>
-                  <CardFooter className="bg-gray-50 flex justify-between px-6 py-3">
-                    <span className="text-xs text-gray-500">Poll started: April 1, 2025</span>
-                    <Button variant="link" size="sm" className="text-team-blue p-0">
-                      View All Polls
-                    </Button>
-                  </CardFooter>
-                </Card>
-              </motion.div>
-              
-              {/* Instagram-Style Fan Photos */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-              >
-                <Card className="overflow-hidden shadow-md">
-                  <CardHeader className="bg-gradient-to-r from-pink-500 to-orange-500 text-white">
-                    <CardTitle className="flex items-center text-lg">
-                      <svg viewBox="0 0 24 24" className="w-5 h-5 mr-2">
-                        <path
-                          fill="currentColor"
-                          d="M12,2.16c3.2,0,3.58,0,4.85.07,3.25.15,4.77,1.69,4.92,4.92.06,1.27.07,1.65.07,4.85,0,3.2,0,3.58-.07,4.85-.15,3.23-1.66,4.77-4.92,4.92-1.27.06-1.65.07-4.85.07-3.2,0-3.58,0-4.85-.07-3.26-.15-4.77-1.7-4.92-4.92-.06-1.27-.07-1.65-.07-4.85,0-3.2,0-3.58.07-4.85C2.33,3.92,3.84,2.38,7.15,2.23,8.42,2.18,8.8,2.16,12,2.16ZM12,0C8.74,0,8.33,0,7.05.07c-4.35.2-6.78,2.62-7,7C0,8.33,0,8.74,0,12S0,15.67.07,17c.2,4.36,2.62,6.78,7,7C8.33,24,8.74,24,12,24s3.67,0,4.95-.07c4.35-.2,6.78-2.62,7-7C24,15.67,24,15.26,24,12s0-3.67-.07-4.95c-.2-4.35-2.62-6.78-7-7C15.67,0,15.26,0,12,0Zm0,5.84A6.16,6.16,0,1,0,18.16,12,6.16,6.16,0,0,0,12,5.84ZM12,16a4,4,0,1,1,4-4A4,4,0,0,1,12,16ZM18.41,4.15a1.44,1.44,0,1,0,1.43,1.44A1.44,1.44,0,0,0,18.41,4.15Z"
-                        />
-                      </svg>
-                      Fan Photos
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <div className="grid grid-cols-3 gap-0.5">
-                      {[
-                        '/lovable-uploads/cb95b9fb-0f2d-42ef-9788-10509a80ed6e.png',
-                        '/lovable-uploads/0c8edeaf-c67c-403f-90f0-61b390e5e89a.png',
-                        '/lovable-uploads/4651b18c-bc2e-4e02-96ab-8993f8dfc145.png',
-                        '/lovable-uploads/73ac703f-7365-4abb-811e-159280ad234b.png',
-                        '/lovable-uploads/8f2cd33f-1e08-494a-9aaa-65792ee9418a.png',
-                        '/lovable-uploads/9cecca5c-daf2-4f52-a6ca-06e02ca9ea44.png',
-                        '/lovable-uploads/02654c64-77bc-4a05-ae93-7c8173d0dc3c.png',
-                        '/lovable-uploads/940ac3a1-b89d-40c9-957e-217a64371120.png',
-                        '/lovable-uploads/e2efc1b0-1c8a-4e98-9826-3030a5f5d247.png',
-                      ].map((img, idx) => (
-                        <div key={idx} className="aspect-square overflow-hidden group relative">
-                          <img src={img} alt="Fan content" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" />
-                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <div className="text-white flex space-x-4">
-                              <span className="flex items-center">
-                                <svg viewBox="0 0 24 24" className="w-5 h-5 mr-1 fill-current">
-                                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                                </svg>
-                                {Math.floor(Math.random() * 100)}
-                              </span>
+                          
+                          {post.image && (
+                            <div className="mb-3 rounded-lg overflow-hidden">
+                              <img src={post.image} alt="" className="w-full h-40 object-cover" />
+                            </div>
+                          )}
+                          
+                          <p className="text-sm text-gray-700 mb-3">{post.content}</p>
+                          
+                          <div className="flex text-xs text-gray-500 pt-2 border-t">
+                            <div className="mr-4 flex items-center">
+                              <ThumbsUp className="w-3 h-3 mr-1" />
+                              <span>{post.likes}</span>
+                            </div>
+                            <div className="flex items-center">
+                              <MessageSquare className="w-3 h-3 mr-1" />
+                              <span>{post.comments}</span>
                             </div>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                  <CardFooter className="bg-gradient-to-r from-pink-500/10 to-orange-500/10 flex justify-center py-3">
-                    <Button variant="secondary" size="sm">
-                      <svg viewBox="0 0 24 24" className="w-4 h-4 mr-2">
-                        <path
-                          fill="currentColor"
-                          d="M19,18H6A4,4,0,0,1,2,14,4,4,0,0,1,6,10H6.71A5.8,5.8,0,0,1,6,7a6,6,0,0,1,6-6,5.91,5.91,0,0,1,5.94,5H18a5,5,0,0,1,5,5,5,5,0,0,1-4,4.9ZM12,3a4,4,0,0,0-4,4,6.38,6.38,0,0,0,.7,2.9L9.41,11H6a2,2,0,0,0-2,2,2,2,0,0,0,2,2H19v-.1A3,3,0,0,0,22,12a3,3,0,0,0-3-3H17.59l-.71-1a2.65,2.65,0,0,0-.26-.35A3.94,3.94,0,0,0,12,3Z"
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <div className="hidden md:block">
+                    <CarouselPrevious className="left-1" />
+                    <CarouselNext className="right-1" />
+                  </div>
+                </Carousel>
+              </CardContent>
+              
+              <CardFooter className="flex justify-center py-4 bg-gray-50 border-t">
+                <Link to="/social">
+                  <Button variant="ghost" size="sm" className="text-blue-600">
+                    Visit Our Social Media <ArrowRight className="ml-1 h-4 w-4" />
+                  </Button>
+                </Link>
+              </CardFooter>
+            </Card>
+          </motion.div>
+
+          {/* Fan Poll Section */}
+          <motion.div variants={itemVariants} className="md:col-span-4">
+            <QuickPoll />
+          </motion.div>
+
+          {/* Fans of the Week */}
+          <motion.div variants={itemVariants} className="md:col-span-12">
+            <Card className="bg-white border-none shadow-lg rounded-xl overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-team-blue to-blue-500 text-white">
+                <CardTitle className="text-lg font-bold">Fans of the Week</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {fansOfWeek.map((fan, index) => (
+                    <div key={index} className="flex items-center space-x-4">
+                      <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-team-blue/20">
+                        <img 
+                          src={fan.image} 
+                          alt={fan.name} 
+                          className="w-full h-full object-cover"
                         />
-                      </svg>
-                      Share Your Photos #BanksODeeFC
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-lg text-gray-800">{fan.name}</h3>
+                        <p className="text-gray-600 text-sm">{fan.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+              <CardFooter className="bg-gray-50 border-t">
+                <div className="text-center w-full">
+                  <p className="text-gray-600 text-sm mb-2">
+                    Want to be featured as our Fan of the Week?
+                  </p>
+                  <Link to="/fans/submit">
+                    <Button size="sm" variant="outline" className="border-team-blue text-team-blue hover:bg-team-blue hover:text-white">
+                      Submit Your Story
                     </Button>
-                  </CardFooter>
-                </Card>
-              </motion.div>
-            </div>
-          </TabsContent>
-        </Tabs>
+                  </Link>
+                </div>
+              </CardFooter>
+            </Card>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   );

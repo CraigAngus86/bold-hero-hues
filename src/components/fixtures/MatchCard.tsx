@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatDate } from '@/utils/dateUtils';
-import { ExternalLink, Calendar, Clock } from 'lucide-react';
+import { ExternalLink, Calendar, Clock, MapPin } from 'lucide-react';
 import { Match } from '@/types/fixtures';
 import { motion } from 'framer-motion';
 
@@ -50,7 +50,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
       }
     }
     
-    return "UPCOMING";
+    return matchDate < today ? "COMPLETED" : "UPCOMING";
   };
   
   const matchStatus = getMatchStatus();
@@ -63,13 +63,15 @@ const MatchCard: React.FC<MatchCardProps> = ({
     const opponentScore = isHomeBanksODee ? match.awayScore : match.homeScore;
     
     if (bankScore === opponentScore) {
-      return { backgroundColor: '#FFE58F', color: '#7B6514' }; // Draw
+      return { badge: 'D', color: '#FFD700', bgColor: '#FFF8E0', textColor: '#7B6514' }; // Draw - gold
     } else if (bankScore > opponentScore) {
-      return { backgroundColor: '#B7EB8F', color: '#135200' }; // Win
+      return { badge: 'W', color: '#4ADE80', bgColor: '#ECFDF5', textColor: '#166534' }; // Win - green
     } else {
-      return { backgroundColor: '#FFCCC7', color: '#A8071A' }; // Loss
+      return { badge: 'L', color: '#F87171', bgColor: '#FEF2F2', textColor: '#B91C1C' }; // Loss - red
     }
   };
+  
+  const resultStyle = getResultStyle();
   
   // Add to calendar function
   const addToCalendar = () => {
@@ -102,77 +104,118 @@ const MatchCard: React.FC<MatchCardProps> = ({
       transition={{ duration: 0.3 }}
       className={className}
     >
-      <Card className="overflow-hidden border shadow-md hover:shadow-lg transition-all duration-300">
+      <Card className="overflow-hidden border shadow-lg hover:shadow-xl transition-all duration-300 bg-white rounded-xl">
         <CardContent className="p-0">
-          <div className="bg-gradient-to-r from-team-blue to-team-navy px-4 py-2 flex justify-between items-center">
+          <div className="bg-gradient-to-r from-team-blue to-team-blue/90 px-4 py-2.5 flex justify-between items-center">
             <div className="text-sm text-white">
               <div className="flex items-center">
-                <Calendar className="w-3.5 h-3.5 mr-1.5" />
+                <Calendar className="w-3.5 h-3.5 mr-1.5 text-team-accent" />
                 <span>{formattedDate}</span>
-                <span className="mx-1">•</span>
-                <Clock className="w-3.5 h-3.5 mr-1.5" />
+                <span className="mx-1.5 text-white/50">•</span>
+                <Clock className="w-3.5 h-3.5 mr-1.5 text-team-accent" />
                 <span>{match.time}</span>
               </div>
             </div>
-            <div className="text-sm font-medium text-white">{match.competition}</div>
+            <div className="text-sm font-medium text-white bg-white/10 px-2 py-0.5 rounded">{match.competition}</div>
           </div>
           
           <div className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex-1 flex flex-col items-center md:items-end">
-                <div className={`font-bold text-base md:text-lg ${isHomeBanksODee ? 'text-team-blue' : ''}`}>
+                <div className="w-12 h-12 bg-gray-100 rounded-full mb-2 flex items-center justify-center border border-gray-200">
+                  {isHomeBanksODee ? (
+                    <img 
+                      src="/lovable-uploads/banks-o-dee-dark-logo.png" 
+                      alt="Banks o' Dee Logo"
+                      className="w-9 h-9 object-contain" 
+                    />
+                  ) : (
+                    <span className="font-bold text-xs text-team-blue">
+                      {match.homeTeam.split(' ').map(word => word[0]).join('')}
+                    </span>
+                  )}
+                </div>
+                <div className={`font-bold text-base ${isHomeBanksODee ? 'text-team-blue' : 'text-gray-800'}`}>
                   {match.homeTeam}
                 </div>
                 {isHomeBanksODee && (
-                  <span className="text-[10px] text-gray-500 uppercase">HOME</span>
+                  <span className="text-[10px] text-white bg-team-blue/80 uppercase px-1.5 py-0.5 rounded-sm mt-1 font-medium">
+                    HOME
+                  </span>
                 )}
               </div>
               
               <div className="px-4 py-2 mx-2 text-center">
                 {isCompleted && hasScores ? (
                   <div className="flex items-center justify-center">
-                    <div className={`text-lg font-bold mx-1 py-1 px-3 rounded`} style={getResultStyle()}>
+                    <div className="mx-1.5 py-1 px-3 font-bold text-lg" style={{ color: resultStyle.textColor }}>
                       {match.homeScore}
                     </div>
-                    <div className="mx-1 text-muted-foreground">-</div>
-                    <div className={`text-lg font-bold mx-1 py-1 px-3 rounded`} style={getResultStyle()}>
+                    <div className="mx-1.5 text-gray-400 font-light">-</div>
+                    <div className="mx-1.5 py-1 px-3 font-bold text-lg" style={{ color: resultStyle.textColor }}>
                       {match.awayScore}
                     </div>
                   </div>
                 ) : (
                   <div>
-                    <div className="text-sm text-muted-foreground mb-1">vs</div>
+                    <div className="text-sm text-gray-500 mb-1">vs</div>
                     {matchStatus === "LIVE" && (
-                      <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full animate-pulse">LIVE</span>
+                      <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded animate-pulse">LIVE</span>
                     )}
                   </div>
+                )}
+                
+                {isCompleted && (
+                  <span className="block mt-1 text-xs font-medium py-0.5 px-2 rounded-full" 
+                    style={{ 
+                      backgroundColor: resultStyle.bgColor,
+                      color: resultStyle.textColor
+                    }}>
+                    FULL TIME
+                  </span>
                 )}
               </div>
               
               <div className="flex-1 flex flex-col items-center md:items-start">
-                <div className={`font-bold text-base md:text-lg ${isAwayBanksODee ? 'text-team-blue' : ''}`}>
+                <div className="w-12 h-12 bg-gray-100 rounded-full mb-2 flex items-center justify-center border border-gray-200">
+                  {isAwayBanksODee ? (
+                    <img 
+                      src="/lovable-uploads/banks-o-dee-dark-logo.png" 
+                      alt="Banks o' Dee Logo"
+                      className="w-9 h-9 object-contain" 
+                    />
+                  ) : (
+                    <span className="font-bold text-xs text-team-blue">
+                      {match.awayTeam.split(' ').map(word => word[0]).join('')}
+                    </span>
+                  )}
+                </div>
+                <div className={`font-bold text-base ${isAwayBanksODee ? 'text-team-blue' : 'text-gray-800'}`}>
                   {match.awayTeam}
                 </div>
                 {isAwayBanksODee && (
-                  <span className="text-[10px] text-gray-500 uppercase">AWAY</span>
+                  <span className="text-[10px] text-white bg-gray-500 uppercase px-1.5 py-0.5 rounded-sm mt-1 font-medium">
+                    AWAY
+                  </span>
                 )}
               </div>
             </div>
             
             {match.venue && (
-              <div className="mt-3 text-xs text-center text-muted-foreground">
+              <div className="mt-3 text-xs text-center flex items-center justify-center text-gray-500">
+                <MapPin className="w-3 h-3 mr-1 text-gray-400" />
                 {match.venue}
               </div>
             )}
             
             {!isCompleted && (
-              <div className="mt-3 flex flex-wrap justify-center gap-2">
+              <div className="mt-4 flex flex-wrap justify-center gap-2">
                 {!matchStatus.includes("LIVE") && (
                   <Button 
                     variant="outline" 
                     size="sm" 
                     onClick={addToCalendar}
-                    className="text-xs bg-gray-50 border-gray-200"
+                    className="text-xs bg-gray-50 border-gray-200 hover:bg-gray-100"
                   >
                     <Calendar className="mr-1 h-3 w-3" />
                     Add to Calendar
@@ -187,7 +230,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                     className="bg-team-accent text-team-blue border-team-accent hover:bg-team-accent/80 hover:text-team-blue"
                   >
                     <a href={match.ticketLink} target="_blank" rel="noopener noreferrer">
-                      <span>Tickets</span>
+                      <span>Buy Tickets</span>
                       <ExternalLink className="ml-1 h-3 w-3" />
                     </a>
                   </Button>

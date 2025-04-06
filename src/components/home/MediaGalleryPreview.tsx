@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { useMediaGallery } from '@/hooks/useMediaGallery';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowRight, Play } from 'lucide-react';
+import { ArrowRight, Play, Image, Video, Instagram } from 'lucide-react';
 import { motion, useAnimation } from 'framer-motion';
 
 const MediaGalleryPreview: React.FC = () => {
@@ -24,7 +24,7 @@ const MediaGalleryPreview: React.FC = () => {
 
   if (isLoading) {
     return (
-      <section className="bg-gray-50 py-16">
+      <section className="py-16 bg-gradient-to-b from-white to-gray-50">
         <div className="container mx-auto px-4">
           <Skeleton className="h-10 w-80 mb-8" />
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -41,44 +41,65 @@ const MediaGalleryPreview: React.FC = () => {
     return null;
   }
 
+  // Masonry-style layout with different sized images
+  const getSpanClass = (index: number) => {
+    if (index === 0) return "md:col-span-2 md:row-span-2";
+    if (index === 3) return "md:col-span-2";
+    return "";
+  };
+
   return (
-    <section className="bg-gray-50 py-16">
+    <section className="py-16 bg-gradient-to-b from-white to-gray-50">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl font-bold text-team-blue">Media Gallery</h2>
+          <div className="flex items-center">
+            <Image className="w-6 h-6 text-team-blue mr-3" />
+            <h2 className="text-2xl font-bold text-gray-800">Media Gallery</h2>
+          </div>
           <Link to="/media">
-            <Button variant="outline" className="border-team-blue text-team-blue hover:bg-team-blue/10">
+            <Button variant="outline" className="border-team-blue text-team-blue hover:bg-team-blue hover:text-white transition-colors duration-300">
               View All <ArrowRight className="ml-2 w-4 h-4" />
             </Button>
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
+        {/* Main Media Grid - Masonry style */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 mb-8">
           {items.slice(0, 6).map((item, index) => (
             <motion.div
               key={item.id}
-              className="aspect-square relative overflow-hidden rounded-md group"
+              className={`relative overflow-hidden rounded-lg shadow-md group ${getSpanClass(index)}`}
               custom={index}
               initial={{ opacity: 0, y: 20 }}
               animate={controls}
             >
-              <Link to={`/media/${item.id}`}>
-                <div className="absolute inset-0 bg-black bg-opacity-30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10">
-                  {item.media_type === 'video' ? (
-                    <div className="w-12 h-12 rounded-full bg-white/80 flex items-center justify-center">
-                      <Play className="text-team-blue w-6 h-6" />
-                    </div>
-                  ) : (
-                    <span className="text-white font-medium">{item.title}</span>
-                  )}
+              <Link to={`/media/${item.id}`} className="block aspect-square w-full h-full">
+                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-opacity duration-300 flex items-center justify-center z-10">
+                  <div className="transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center">
+                    {item.media_type === 'video' ? (
+                      <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center mb-2 shadow-lg">
+                        <Play className="text-team-blue w-8 h-8 ml-1" />
+                      </div>
+                    ) : (
+                      <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center mb-2 shadow-lg">
+                        <Image className="text-team-blue w-8 h-8" />
+                      </div>
+                    )}
+                    <span className="text-white font-medium px-3 py-1 bg-black/50 rounded-full backdrop-blur-sm text-sm max-w-[80%] truncate">{item.title}</span>
+                  </div>
                 </div>
-                <img 
-                  src={item.thumbnail_url || item.image_url} 
-                  alt={item.title}
-                  className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
-                />
+                
+                <div className="absolute inset-0 overflow-hidden">
+                  <img 
+                    src={item.thumbnail_url || item.image_url} 
+                    alt={item.title}
+                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
+                  />
+                </div>
+                
                 {item.media_type === 'video' && (
-                  <div className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded text-xs">
+                  <div className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full text-xs flex items-center shadow-md">
+                    <Video className="w-3 h-3 mr-1" />
                     VIDEO
                   </div>
                 )}
@@ -87,37 +108,36 @@ const MediaGalleryPreview: React.FC = () => {
           ))}
         </div>
 
-        {/* Instagram-style Fan Content Section */}
+        {/* Instagram-style Fan Content Section with improvements */}
         {items.length > 6 && (
-          <Card className="mt-8 overflow-hidden border-none shadow-md">
-            <CardHeader className="bg-gradient-to-r from-pink-500 to-orange-500 pb-3">
+          <Card className="overflow-hidden border-none shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-pink-600 to-orange-500 pb-3 flex flex-row items-center">
               <CardTitle className="text-white flex items-center">
-                <svg viewBox="0 0 24 24" className="w-5 h-5 mr-2">
-                  <path
-                    fill="currentColor"
-                    d="M12,2.16c3.2,0,3.58,0,4.85.07,3.25.15,4.77,1.69,4.92,4.92.06,1.27.07,1.65.07,4.85,0,3.2,0,3.58-.07,4.85-.15,3.23-1.66,4.77-4.92,4.92-1.27.06-1.65.07-4.85.07-3.2,0-3.58,0-4.85-.07-3.26-.15-4.77-1.7-4.92-4.92-.06-1.27-.07-1.65-.07-4.85,0-3.2,0-3.58.07-4.85C2.33,3.92,3.84,2.38,7.15,2.23,8.42,2.18,8.8,2.16,12,2.16ZM12,0C8.74,0,8.33,0,7.05.07c-4.35.2-6.78,2.62-7,7C0,8.33,0,8.74,0,12S0,15.67.07,17c.2,4.36,2.62,6.78,7,7C8.33,24,8.74,24,12,24s3.67,0,4.95-.07c4.35-.2,6.78-2.62,7-7C24,15.67,24,15.26,24,12s0-3.67-.07-4.95c-.2-4.35-2.62-6.78-7-7C15.67,0,15.26,0,12,0Zm0,5.84A6.16,6.16,0,1,0,18.16,12,6.16,6.16,0,0,0,12,5.84ZM12,16a4,4,0,1,1,4-4A4,4,0,0,1,12,16ZM18.41,4.15a1.44,1.44,0,1,0,1.43,1.44A1.44,1.44,0,0,0,18.41,4.15Z"
-                  />
-                </svg>
-                Fan Photos
+                <Instagram className="w-5 h-5 mr-2" />
+                Fan Gallery
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-2">
-              <div className="grid grid-cols-3 gap-1">
+            <CardContent className="p-0 bg-gradient-to-r from-pink-50 to-orange-50">
+              <div className="grid grid-cols-3 gap-0.5 p-0.5">
                 {items.slice(6, 9).map((item) => (
-                  <div key={item.id} className="aspect-square overflow-hidden">
+                  <Link to={`/fan-content/${item.id}`} key={item.id} className="relative aspect-square overflow-hidden group">
                     <img 
                       src={item.image_url} 
-                      alt={item.title}
-                      className="w-full h-full object-cover"
+                      alt={item.title || 'Fan photo'}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500"
                     />
-                  </div>
+                    <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                      <p className="text-xs text-white truncate">{item.title || 'Fan photo'}</p>
+                    </div>
+                  </Link>
                 ))}
               </div>
             </CardContent>
-            <CardFooter className="flex justify-center bg-gradient-to-r from-pink-500/10 to-orange-500/10 py-3">
+            <CardFooter className="flex justify-center bg-gradient-to-r from-pink-50 to-orange-50 py-3 border-t border-pink-100">
               <Link to="/fan-content">
-                <Button variant="ghost" size="sm" className="text-pink-600">
-                  See More Fan Content
+                <Button variant="ghost" size="sm" className="text-pink-600 hover:bg-pink-100">
+                  View Fan Gallery <ArrowRight className="w-3 h-3 ml-1" />
                 </Button>
               </Link>
             </CardFooter>

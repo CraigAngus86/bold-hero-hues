@@ -79,7 +79,7 @@ const EnhancedHero: React.FC = () => {
   
   if (isLoading) {
     return (
-      <div className="w-full h-[80vh] bg-gray-100 animate-pulse flex items-center justify-center">
+      <div className="w-full h-[85vh] bg-gray-100 animate-pulse flex items-center justify-center">
         <div className="text-gray-400">Loading hero content...</div>
       </div>
     );
@@ -87,7 +87,7 @@ const EnhancedHero: React.FC = () => {
   
   if (error || slides.length === 0) {
     return (
-      <div className="w-full h-[80vh] bg-team-blue flex items-center justify-center">
+      <div className="w-full h-[85vh] bg-team-blue flex items-center justify-center">
         <div className="text-white text-center px-4">
           <h2 className="text-2xl font-bold mb-4">Welcome to Banks o' Dee FC</h2>
           <p>Home of Spain Park, Aberdeen</p>
@@ -97,16 +97,21 @@ const EnhancedHero: React.FC = () => {
   }
   
   return (
-    <div className="relative h-[80vh] w-full overflow-hidden bg-black">
+    <div className="relative h-[85vh] w-full overflow-hidden bg-black">
       {/* Breaking News Banner */}
       {breakingNews && breakingNews.active && (
-        <div className="absolute top-0 left-0 right-0 z-30 bg-red-600 text-white px-4 py-2 flex items-center justify-center">
+        <motion.div 
+          initial={{ y: -50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="absolute top-0 left-0 right-0 z-30 bg-red-600 text-white px-4 py-3 flex items-center justify-center"
+        >
           <Bell className="w-4 h-4 mr-2 animate-pulse" />
           <p className="text-sm md:text-base font-medium">{breakingNews.message}</p>
-        </div>
+        </motion.div>
       )}
       
-      {/* Hero Slider */}
+      {/* Hero Slider with crossfade animations */}
       <AnimatePresence initial={false} mode="wait">
         <motion.div
           key={currentIndex}
@@ -114,7 +119,7 @@ const EnhancedHero: React.FC = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 1 }}
         >
           <div className="relative w-full h-full">
             {slides[currentIndex].video_url ? (
@@ -123,30 +128,32 @@ const EnhancedHero: React.FC = () => {
                 muted 
                 loop 
                 className="w-full h-full object-cover"
-                style={{ transform: "scale(1.03)", transition: "transform 8s ease-out" }}
+                style={{ transform: "scale(1.03)" }}
               >
                 <source src={slides[currentIndex].video_url} type="video/mp4" />
               </video>
             ) : (
-              <div className="h-full w-full overflow-hidden">
+              <motion.div 
+                className="h-full w-full overflow-hidden"
+                initial={{ scale: 1 }}
+                animate={{ scale: 1.05 }}
+                transition={{ duration: 8, ease: "easeOut" }}
+              >
                 <img 
                   src={slides[currentIndex].image_url} 
                   alt={slides[currentIndex].title}
-                  className="w-full h-full object-cover transform scale-105"
-                  style={{ 
-                    transform: "scale(1.03)", 
-                    transition: "transform 8s ease-out",
-                    willChange: "transform"
-                  }}
+                  className="w-full h-full object-cover"
                 />
-              </div>
+              </motion.div>
             )}
             
-            {/* Enhanced Dark Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20" />
+            {/* Enhanced Dark Gradient Overlay with texture */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/30" 
+                style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"4\" height=\"4\" viewBox=\"0 0 4 4\"%3E%3Cpath fill=\"%239C92AC\" fill-opacity=\"0.08\" d=\"M1 3h1v1H1V3zm2-2h1v1H3V1z\"%3E%3C/path%3E%3C/svg%3E')" }}
+            />
           </div>
           
-          {/* Content */}
+          {/* Content with improved typography and animations */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="container px-4 py-12 text-white">
               <motion.div
@@ -157,10 +164,10 @@ const EnhancedHero: React.FC = () => {
               >
                 {slides[currentIndex].title && (
                   <motion.h1 
-                    className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 drop-shadow-md"
+                    className="text-4xl md:text-6xl lg:text-7xl font-bold mb-4 drop-shadow-lg leading-tight"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2, duration: 0.5 }}
+                    transition={{ delay: 0.3, duration: 0.7 }}
                   >
                     {slides[currentIndex].title}
                   </motion.h1>
@@ -168,10 +175,10 @@ const EnhancedHero: React.FC = () => {
                 
                 {slides[currentIndex].subtitle && (
                   <motion.p 
-                    className="text-xl md:text-2xl mb-8 max-w-3xl drop-shadow-md"
+                    className="text-xl md:text-2xl mb-8 max-w-2xl drop-shadow-md text-gray-100"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4, duration: 0.5 }}
+                    transition={{ delay: 0.5, duration: 0.7 }}
                   >
                     {slides[currentIndex].subtitle}
                   </motion.p>
@@ -181,10 +188,10 @@ const EnhancedHero: React.FC = () => {
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6, duration: 0.5 }}
+                    transition={{ delay: 0.7, duration: 0.5 }}
                   >
                     <Link to={slides[currentIndex].link_url}>
-                      <Button size="lg" className="bg-team-accent text-team-blue hover:bg-team-accent/90 font-bold">
+                      <Button size="lg" className="bg-team-accent text-team-blue hover:bg-team-accent/90 font-bold rounded-md px-8 py-6 text-lg transform hover:scale-105 transition-all duration-300 shadow-lg">
                         {slides[currentIndex].link_text || 'Learn More'}
                       </Button>
                     </Link>
@@ -196,66 +203,81 @@ const EnhancedHero: React.FC = () => {
         </motion.div>
       </AnimatePresence>
       
-      {/* Next Match Card with Countdown */}
+      {/* Next Match Card with Countdown - Enhanced styling */}
       {nextMatch && !isMobile && (
-        <div className="absolute top-16 right-8 z-20">
-          <div className="bg-white/90 backdrop-blur-sm p-4 rounded-md shadow-lg max-w-[320px]">
-            <div className="text-center mb-2">
-              <Badge variant="outline" className="bg-team-blue text-white border-none uppercase text-xs font-medium px-3 py-1">
+        <motion.div 
+          initial={{ opacity: 0, x: 100 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.8, duration: 0.6 }}
+          className="absolute top-24 right-8 z-20"
+        >
+          <div className="bg-white/95 backdrop-blur-lg p-5 rounded-lg shadow-2xl max-w-[320px] border-l-4 border-team-accent">
+            <div className="text-center mb-3">
+              <Badge variant="outline" className="bg-team-blue text-white border-none uppercase text-xs font-bold px-3 py-1">
                 Next Match
               </Badge>
             </div>
             
             {countdown && (
-              <div className="flex justify-center gap-2 mb-3">
-                <div className="text-center bg-team-blue text-white rounded px-2 py-1">
-                  <span className="block text-lg font-bold">{countdown.days}</span>
-                  <span className="text-xs">days</span>
+              <div className="flex justify-center gap-3 mb-4">
+                <div className="text-center bg-team-blue/90 text-white rounded px-3 py-1 shadow-inner">
+                  <span className="block text-xl font-bold">{countdown.days}</span>
+                  <span className="text-xs uppercase opacity-80">days</span>
                 </div>
-                <div className="text-center bg-team-blue text-white rounded px-2 py-1">
-                  <span className="block text-lg font-bold">{countdown.hours}</span>
-                  <span className="text-xs">hrs</span>
+                <div className="text-center bg-team-blue/90 text-white rounded px-3 py-1 shadow-inner">
+                  <span className="block text-xl font-bold">{countdown.hours}</span>
+                  <span className="text-xs uppercase opacity-80">hrs</span>
                 </div>
-                <div className="text-center bg-team-blue text-white rounded px-2 py-1">
-                  <span className="block text-lg font-bold">{countdown.minutes}</span>
-                  <span className="text-xs">min</span>
+                <div className="text-center bg-team-blue/90 text-white rounded px-3 py-1 shadow-inner">
+                  <span className="block text-xl font-bold">{countdown.minutes}</span>
+                  <span className="text-xs uppercase opacity-80">min</span>
                 </div>
               </div>
             )}
             
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-right mr-3 font-medium">
-                <div className="text-team-blue">{nextMatch.home_team}</div>
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-right mr-3 font-medium flex flex-col items-center">
+                <div className="w-10 h-10 bg-gray-100 rounded-full mb-2 flex items-center justify-center border border-gray-200">
+                  <span className="font-bold text-team-blue text-xs">
+                    {nextMatch.home_team.split(' ').map(word => word[0]).join('')}
+                  </span>
+                </div>
+                <div className="text-team-blue font-bold text-sm">{nextMatch.home_team}</div>
                 <div className="h-4">
                   {nextMatch.home_team === 'Banks o\' Dee' && (
-                    <span className="text-[10px] text-gray-500">HOME</span>
+                    <span className="text-[10px] text-gray-500 bg-gray-100 px-1 rounded">HOME</span>
                   )}
                 </div>
               </div>
-              <div className="text-center text-xs bg-gray-100 rounded p-2">
-                <span className="block text-lg font-bold">VS</span>
+              <div className="text-center text-xs bg-gray-100 rounded-lg p-2 shadow-inner">
+                <span className="block text-lg font-bold text-gray-800">VS</span>
               </div>
-              <div className="text-left ml-3 font-medium">
-                <div className="text-team-blue">{nextMatch.away_team}</div>
+              <div className="text-left ml-3 font-medium flex flex-col items-center">
+                <div className="w-10 h-10 bg-gray-100 rounded-full mb-2 flex items-center justify-center border border-gray-200">
+                  <span className="font-bold text-team-blue text-xs">
+                    {nextMatch.away_team.split(' ').map(word => word[0]).join('')}
+                  </span>
+                </div>
+                <div className="text-team-blue font-bold text-sm">{nextMatch.away_team}</div>
                 <div className="h-4">
                   {nextMatch.away_team === 'Banks o\' Dee' && (
-                    <span className="text-[10px] text-gray-500">AWAY</span>
+                    <span className="text-[10px] text-gray-500 bg-gray-100 px-1 rounded">AWAY</span>
                   )}
                 </div>
               </div>
             </div>
             
-            <div className="space-y-1 text-sm mt-3">
-              <div className="flex items-center text-gray-600">
-                <Calendar className="w-3.5 h-3.5 mr-1.5" />
+            <div className="space-y-1 text-sm mt-4 bg-gray-50 p-2 rounded-md">
+              <div className="flex items-center text-gray-700">
+                <Calendar className="w-3.5 h-3.5 mr-1.5 text-team-blue" />
                 <span>{formatDate(nextMatch.date)}</span>
               </div>
-              <div className="flex items-center text-gray-600">
-                <Clock className="w-3.5 h-3.5 mr-1.5" />
+              <div className="flex items-center text-gray-700">
+                <Clock className="w-3.5 h-3.5 mr-1.5 text-team-blue" />
                 <span>{nextMatch.time}</span>
               </div>
-              <div className="flex items-center text-gray-600">
-                <MapPin className="w-3.5 h-3.5 mr-1.5" />
+              <div className="flex items-center text-gray-700">
+                <MapPin className="w-3.5 h-3.5 mr-1.5 text-team-blue" />
                 <span>{nextMatch.venue}</span>
               </div>
             </div>
@@ -266,77 +288,82 @@ const EnhancedHero: React.FC = () => {
                   href={nextMatch.ticket_link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block w-full bg-team-accent hover:bg-team-accent/90 text-team-blue text-center text-xs font-medium rounded py-2 transition-colors flex items-center justify-center"
+                  className="block w-full bg-team-accent hover:bg-team-accent/90 text-team-blue text-center font-medium rounded-md py-2.5 transition-colors flex items-center justify-center shadow-md transform hover:translate-y-[-2px] hover:shadow-lg transition-all duration-300"
                 >
-                  <Ticket className="w-3.5 h-3.5 mr-1.5" />
+                  <Ticket className="w-4 h-4 mr-1.5" />
                   Buy Match Tickets
                 </a>
               </div>
             )}
           </div>
-        </div>
+        </motion.div>
       )}
       
       {/* Latest Result Card */}
       {latestResult && !isMobile && (
-        <div className="absolute bottom-16 left-8 z-20">
-          <div className="bg-white/90 backdrop-blur-sm p-4 rounded-md shadow-lg max-w-[320px]">
+        <motion.div 
+          initial={{ opacity: 0, x: -100 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.9, duration: 0.6 }}
+          className="absolute bottom-24 left-8 z-20"
+        >
+          <div className="bg-white/95 backdrop-blur-lg p-5 rounded-lg shadow-2xl max-w-[320px] border-l-4 border-gray-800">
             <div className="text-center mb-3">
-              <Badge variant="outline" className="bg-gray-800 text-white border-none uppercase text-xs font-medium">
+              <Badge variant="outline" className="bg-gray-800 text-white border-none uppercase text-xs font-bold">
                 Latest Result
               </Badge>
             </div>
             
             <div className="flex items-center justify-between">
               <div className="text-center flex-1 px-2">
-                <div className="text-team-blue font-bold truncate">{latestResult.home_team}</div>
+                <div className="text-team-blue font-bold truncate text-sm">{latestResult.home_team}</div>
                 <div className="h-4">
                   {latestResult.home_team === 'Banks o\' Dee' && (
-                    <span className="text-[10px] text-gray-500">HOME</span>
+                    <span className="text-[10px] text-gray-500 bg-gray-100 px-1 rounded">HOME</span>
                   )}
                 </div>
               </div>
               
-              <div className="flex justify-center items-center p-2 mx-2 bg-team-blue bg-opacity-10 rounded">
-                <span className="font-bold text-2xl">
+              <div className="flex justify-center items-center p-2 mx-2 bg-gray-800 bg-opacity-10 rounded-lg">
+                <span className="font-bold text-2xl text-gray-800">
                   {latestResult.home_score} - {latestResult.away_score}
                 </span>
               </div>
               
               <div className="text-center flex-1 px-2">
-                <div className="text-team-blue font-bold truncate">{latestResult.away_team}</div>
+                <div className="text-team-blue font-bold truncate text-sm">{latestResult.away_team}</div>
                 <div className="h-4">
                   {latestResult.away_team === 'Banks o\' Dee' && (
-                    <span className="text-[10px] text-gray-500">AWAY</span>
+                    <span className="text-[10px] text-gray-500 bg-gray-100 px-1 rounded">AWAY</span>
                   )}
                 </div>
               </div>
             </div>
             
-            <div className="mt-3 text-sm text-gray-600 text-center">
+            <div className="mt-3 text-sm text-gray-600 text-center bg-gray-50 p-2 rounded-md">
               {latestResult.competition} - {formatDate(latestResult.date)}
             </div>
             
             <div className="mt-3">
               <Link
                 to={`/fixtures/${latestResult.id}`}
-                className="block w-full bg-gray-800 hover:bg-gray-700 text-white text-center text-xs font-medium rounded py-2 transition-colors"
+                className="block w-full bg-gray-800 hover:bg-gray-700 text-white text-center text-xs font-medium rounded-md py-2.5 transition-colors shadow-md transform hover:translate-y-[-2px] hover:shadow-lg transition-all duration-300"
               >
                 Match Details
               </Link>
             </div>
           </div>
-        </div>
+        </motion.div>
       )}
       
-      {/* Navigation Controls */}
+      {/* Navigation Controls - Enhanced styling */}
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex items-center space-x-2 z-20">
         {slides.map((_, index) => (
           <button
             key={index}
             onClick={() => goToSlide(index)}
             className={cn(
-              "w-3 h-3 rounded-full transition-all duration-300 transform",
+              "w-3 h-3 rounded-full transition-all duration-500 transform",
               currentIndex === index 
                 ? "bg-white scale-100 w-6" 
                 : "bg-white/50 hover:bg-white/80 scale-75 hover:scale-90"

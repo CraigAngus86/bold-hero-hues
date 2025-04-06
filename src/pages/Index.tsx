@@ -9,6 +9,7 @@ import FanEngagement from '@/components/home/FanEngagement';
 import SponsorsSection from '@/components/home/SponsorsSection';
 import { useNewsStore } from '@/services/news';
 import { useFeaturedContent } from '@/hooks/useFeaturedContent';
+import { motion } from 'framer-motion';
 
 const Index = () => {
   const { getRecentNews } = useNewsStore();
@@ -86,6 +87,15 @@ const Index = () => {
     return "th";
   };
 
+  // Define animation variants for sections
+  const sectionVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { duration: 0.6 }
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <Navbar />
@@ -94,20 +104,55 @@ const Index = () => {
       <EnhancedHero />
       
       <div className="flex-grow">
-        {/* Featured Content Grid */}
-        <FeaturedContentGrid items={getFeaturedContentItems()} isLoading={isLoading} />
+        {/* Featured Content Grid - Animated */}
+        <motion.section
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={sectionVariants}
+        >
+          <FeaturedContentGrid items={getFeaturedContentItems()} isLoading={isLoading} />
+        </motion.section>
         
-        {/* Match Center */}
-        <MatchCenter />
+        {/* Match Center - Animated */}
+        <motion.section
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={sectionVariants}
+        >
+          <MatchCenter />
+        </motion.section>
         
-        {/* Media Gallery Preview */}
-        <MediaGalleryPreview />
+        {/* Media Gallery Preview - Animated */}
+        <motion.section
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={sectionVariants}
+        >
+          <MediaGalleryPreview />
+        </motion.section>
         
-        {/* Fan Engagement Section */}
-        <FanEngagement />
+        {/* Fan Engagement Section - Animated */}
+        <motion.section
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={sectionVariants}
+        >
+          <FanEngagement />
+        </motion.section>
         
-        {/* Sponsors Section */}
-        <SponsorsSection />
+        {/* Sponsors Section - Animated */}
+        <motion.section
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          variants={sectionVariants}
+        >
+          <SponsorsSection />
+        </motion.section>
       </div>
       
       <Footer />

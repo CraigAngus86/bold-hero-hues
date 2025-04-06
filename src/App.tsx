@@ -13,6 +13,7 @@ import MainLayout from './components/layout/MainLayout';
 import { AdminLayout } from './components/admin/layout';
 
 // Import Pages
+import Index from './pages/Index';
 import LeagueTablePage from './components/league/LeagueTablePage';
 import NotFoundPage from './pages/admin/NotFoundPage';
 import LeagueTableManagement from "./pages/admin/LeagueTableManagement";
@@ -29,7 +30,7 @@ function App() {
     <HelmetProvider>
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={<MainLayout><div>Home Page</div></MainLayout>} />
+        <Route path="/" element={<Index />} />
         <Route path="/table" element={<MainLayout><LeagueTablePage /></MainLayout>} />
         <Route path="/fixtures" element={<MainLayout><div>Fixtures Page</div></MainLayout>} />
         <Route path="/results" element={<MainLayout><div>Results Page</div></MainLayout>} />

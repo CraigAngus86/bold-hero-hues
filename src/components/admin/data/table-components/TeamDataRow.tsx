@@ -37,7 +37,7 @@ export const TeamDataRow: React.FC<TeamDataRowProps> = ({ team }) => {
       <TableCell>{team.goalDifference}</TableCell>
       <TableCell className="font-bold">{team.points}</TableCell>
       <TableCell>
-        <FormDisplay form={team.form} />
+        <FormDisplay form={Array.isArray(team.form) ? team.form : (team.form ? team.form.split('') : [])} />
       </TableCell>
     </TableRow>
   );

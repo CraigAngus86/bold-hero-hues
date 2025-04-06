@@ -120,19 +120,16 @@ export const useImageUploadHandlers = ({
     if (!selectedFile) return;
     
     try {
-      const metadata = {
-        alt_text: altText || selectedFile.name.split('.')[0],
+      const uploadOptions = {
+        folder: folderPath || '',
+        alt: altText || selectedFile.name.split('.')[0],
         description: imageDescription,
         tags: imageTags
       };
       
       const result = await upload(
         selectedFile, 
-        bucket, 
-        folderPath,
-        true, 
-        metadata, 
-        optimizationOptions
+        uploadOptions
       );
       
       if (result.success && result.data) {

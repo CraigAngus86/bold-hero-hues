@@ -1,31 +1,33 @@
 
 import React from 'react';
+import { Badge } from "@/components/ui/badge";
 
 interface FormDisplayProps {
-  form?: string[];
+  form: string[] | string;
 }
 
-/**
- * Component for displaying team form as colored indicators
- */
 export const FormDisplay: React.FC<FormDisplayProps> = ({ form }) => {
-  if (!form || form.length === 0) {
-    return null;
-  }
-
+  // Convert string to array if it's a string
+  const formArray = Array.isArray(form) ? form : (typeof form === 'string' ? form.split('') : []);
+  
   return (
-    <div className="flex space-x-1">
-      {form.map((result, i) => (
-        <span 
-          key={i} 
-          className={`inline-block w-5 h-5 text-xs text-center leading-5 rounded-full
-            ${result === 'W' ? 'bg-green-500 text-white' : 
-              result === 'D' ? 'bg-yellow-500 text-white' : 
-              'bg-red-500 text-white'}`}
-        >
-          {result}
-        </span>
-      ))}
+    <div className="flex gap-1">
+      {formArray.map((result, idx) => {
+        let bg = "bg-gray-200";
+        if (result === "W") bg = "bg-green-500 text-white";
+        if (result === "L") bg = "bg-red-500 text-white";
+        if (result === "D") bg = "bg-yellow-500 text-white";
+        
+        return (
+          <Badge 
+            key={idx} 
+            variant="outline" 
+            className={`h-5 min-w-5 p-0 flex items-center justify-center ${bg}`}
+          >
+            {result}
+          </Badge>
+        );
+      })}
     </div>
   );
 };

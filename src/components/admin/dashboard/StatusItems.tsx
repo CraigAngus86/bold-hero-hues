@@ -1,5 +1,7 @@
-
 import React from 'react';
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ChevronRight } from "lucide-react";
 import { Database, Server, HardDrive, Upload } from 'lucide-react';
 import { EnhancedSystemStatus } from './EnhancedSystemStatus';
 import { useSystemStatus } from '@/hooks/useSystemStatus';

@@ -83,8 +83,7 @@ export function NewsImageUploader({
       const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       
       const result = await upload(selectedFile, {
-        folder: 'news_images',
-        subFolder: yearMonth
+        folder: 'news_images/' + yearMonth
       });
       
       if (result.success && result.data) {

@@ -1,5 +1,5 @@
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Match, groupMatchesByMonth, getAvailableMonths, MatchGroup } from '@/components/fixtures/types';
 
 interface UseFixturesFilterProps {

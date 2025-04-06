@@ -4,22 +4,17 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from "@/components/ui/button";
 import { FileUp, Loader2, CheckSquare } from "lucide-react";
 import { importHistoricFixtures } from '@/services/supabase/fixtures/importExport';
-import validateFixtureData from '@/services/supabase/fixtures/testUtils';
-import testFixturesImport from '@/services/supabase/fixtures/testUtils';
+import { validateFixtureData } from '@/services/supabase/fixtures/testUtils';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ScrapedFixture } from '@/types/fixtures';
+import { ScrapedFixture, ImportResult } from '@/types/fixtures';
 
 export default function FixturesImporter() {
   const [isLoading, setIsLoading] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [validationResult, setValidationResult] = useState<{
-    valid: boolean;
-    message: string;
-    fixtures?: ScrapedFixture[];
-  } | null>(null);
+  const [validationResult, setValidationResult] = useState<ImportResult | null>(null);
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0] || null;
@@ -50,14 +45,10 @@ export default function FixturesImporter() {
       
       // Validate the data structure
       const result = validateFixtureData(jsonData);
-      setValidationResult({
-        valid: result.valid,
-        message: result.message,
-        fixtures: result.validFixtures
-      });
+      setValidationResult(result);
       
       if (result.valid) {
-        toast.success(`Validated ${result.validFixtures.length} fixtures`);
+        toast.success(`Validated ${result.validFixtures?.length} fixtures`);
       } else {
         toast.warning('Validation found issues with the data');
       }

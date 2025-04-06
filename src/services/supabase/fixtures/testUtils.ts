@@ -1,82 +1,112 @@
 
-import { ScrapedFixture } from '@/types/fixtures';
+import { ScrapedFixture, ImportResult } from '@/types/fixtures';
 
 /**
- * Generate test fixture data for development and testing
+ * Validates the fixture data structure
  */
-export const generateTestFixtures = (count = 5, completed = false): ScrapedFixture[] => {
-  const fixtures: ScrapedFixture[] = [];
-  const teams = ['Banks o\' Dee', 'Fraserburgh', 'Buckie Thistle', 'Brechin City', 'Formartine United', 
-                'Inverurie Locos', 'Keith', 'Huntly', 'Deveronvale', 'Turriff United'];
-  const venues = ['Spain Park', 'Bellslea Park', 'Victoria Park', 'Glebe Park', 'North Lodge Park', 
-                 'Harlaw Park', 'Kynoch Park', 'Christie Park', 'Princess Royal Park', 'The Haughs'];
-  const competitions = ['Highland League', 'Scottish Cup', 'Aberdeenshire Cup', 'Aberdeenshire Shield', 'Morrison Motors Cup'];
-  
-  const today = new Date();
-  
-  for (let i = 0; i < count; i++) {
-    // Random teams - ensure they're different
-    const homeTeamIndex = Math.floor(Math.random() * teams.length);
-    let awayTeamIndex = Math.floor(Math.random() * teams.length);
-    // Make sure home and away teams are different
-    while (awayTeamIndex === homeTeamIndex) {
-      awayTeamIndex = Math.floor(Math.random() * teams.length);
-    }
-    
-    // Random date - either past (for completed) or future (for upcoming)
-    const randDays = completed ? 
-      -Math.floor(Math.random() * 60) : // Past date for completed fixtures
-      Math.floor(Math.random() * 60);   // Future date for upcoming fixtures
-    
-    const fixtureDate = new Date();
-    fixtureDate.setDate(today.getDate() + randDays);
-    
-    // Format date as YYYY-MM-DD
-    const formattedDate = fixtureDate.toISOString().split('T')[0];
-    
-    // Random times between 13:00 and 19:30
-    const hours = Math.floor(Math.random() * 7) + 13; // 13 to 19
-    const mins = Math.floor(Math.random() * 2) * 30; // 0 or 30
-    const time = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-    
-    const competition = competitions[Math.floor(Math.random() * competitions.length)];
-    const venue = venues[homeTeamIndex]; // Use the venue corresponding to the home team
-    
-    let fixture: ScrapedFixture = {
-      home_team: teams[homeTeamIndex],
-      away_team: teams[awayTeamIndex],
-      date: formattedDate,
-      time: time,
-      competition: competition,
-      venue: venue,
-      is_completed: completed,
-      source: 'test'
+export default function validateFixtureData(data: any): ImportResult {
+  if (!data || !Array.isArray(data)) {
+    return {
+      valid: false,
+      message: 'Invalid data format: Expected an array of fixtures',
+      added: 0,
+      updated: 0,
+      validFixtures: []
     };
+  }
+
+  // Check if empty
+  if (data.length === 0) {
+    return {
+      valid: false,
+      message: 'No fixtures found in the data',
+      added: 0,
+      updated: 0,
+      validFixtures: []
+    };
+  }
+
+  const validFixtures: ScrapedFixture[] = [];
+  const errors: string[] = [];
+
+  for (let i = 0; i < data.length; i++) {
+    const fixture = data[i];
     
-    // Add scores for completed fixtures
-    if (completed) {
-      fixture.home_score = Math.floor(Math.random() * 5);
-      fixture.away_score = Math.floor(Math.random() * 5);
+    // Check if it has the necessary fields
+    if (!fixture.date) {
+      errors.push(`Fixture at index ${i} is missing date`);
+      continue;
     }
     
-    fixtures.push(fixture);
+    // Check if it's the standard format
+    if (fixture.home_team && fixture.away_team && fixture.competition) {
+      validFixtures.push(fixture as ScrapedFixture);
+      continue;
+    }
+    
+    // Check if it's Claude's format
+    if (fixture.opposition && fixture.location && fixture.competition) {
+      // Convert to standard format
+      const isHome = fixture.location.toLowerCase() === 'home';
+      const homeTeam = isHome ? "Banks o' Dee" : fixture.opposition;
+      const awayTeam = isHome ? fixture.opposition : "Banks o' Dee";
+      
+      // Parse score if available
+      let homeScore, awayScore;
+      let isCompleted = false;
+      
+      if (fixture.score && typeof fixture.score === 'string') {
+        const scoreParts = fixture.score.split('-').map(s => s.trim());
+        if (scoreParts.length === 2) {
+          const score1 = parseInt(scoreParts[0]);
+          const score2 = parseInt(scoreParts[1]);
+          
+          if (!isNaN(score1) && !isNaN(score2)) {
+            homeScore = isHome ? score1 : score2;
+            awayScore = isHome ? score2 : score1;
+            isCompleted = true;
+          }
+        }
+      } else if (fixture.isCompleted) {
+        isCompleted = true;
+      }
+      
+      validFixtures.push({
+        date: fixture.date,
+        time: fixture.kickOffTime || fixture.time || '15:00',
+        home_team: homeTeam,
+        away_team: awayTeam,
+        competition: fixture.competition,
+        venue: fixture.venue || (isHome ? "Spain Park" : "Away"),
+        is_completed: isCompleted,
+        home_score: homeScore,
+        away_score: awayScore,
+        season: fixture.season || undefined
+      });
+      
+      continue;
+    }
+    
+    errors.push(`Fixture at index ${i} has invalid format`);
   }
-  
-  // Add a specific fixture with Banks o' Dee as home team for testing
-  const specialFixture: ScrapedFixture = {
-    home_team: 'Banks o\' Dee',
-    away_team: teams[Math.floor(Math.random() * teams.length)],
-    date: new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    time: '15:00',
-    competition: 'Highland League',
-    venue: 'Spain Park',
-    is_completed: false,
-    source: 'test'
-  };
-  
-  fixtures.push(specialFixture);
-  
-  return fixtures;
-};
 
-export default generateTestFixtures;
+  if (errors.length > 0) {
+    return {
+      valid: validFixtures.length > 0,
+      message: `Found ${validFixtures.length} valid fixtures and ${errors.length} errors: ${errors.join('; ')}`,
+      added: 0,
+      updated: 0,
+      validFixtures
+    };
+  }
+
+  return {
+    valid: true,
+    message: `All ${validFixtures.length} fixtures are valid`,
+    added: 0,
+    updated: 0,
+    validFixtures
+  };
+}
+
+export { validateFixtureData };

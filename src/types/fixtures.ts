@@ -14,7 +14,8 @@ export interface TeamStats {
   goalsAgainst: number;
   goalDifference: number;
   points: number;
-  form: string;
+  form: string | string[];
+  logo?: string;
   last_updated?: string;
 }
 
@@ -101,6 +102,9 @@ export interface DBFixture {
   is_next_match?: boolean;
   is_latest_result?: boolean;
   date_passed: boolean;
+  match_report?: string;
+  attendance?: number;
+  referee?: string;
 }
 
 // Helper functions for conversion between different formats

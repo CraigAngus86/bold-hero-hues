@@ -1,6 +1,5 @@
-
-import { FileText, Users, CalendarIcon } from 'lucide-react';
-import { SystemStatusItemProps } from '@/types/system';
+import { AlertTriangle, CalendarDays, FileText, MessageSquare, TicketIcon, UsersRound } from "lucide-react";
+import { SystemStatusItemProps } from "@/types/system";
 
 // Content status items
 export const contentStatusItems = [
@@ -15,14 +14,14 @@ export const contentStatusItems = [
     name: 'Fixture Updates',
     count: 8,
     color: 'green',
-    icon: CalendarIcon,
+    icon: CalendarDays,
     viewAllLink: '/admin/fixtures'
   },
   {
     name: 'User Signups',
     count: 12,
     color: 'orange',
-    icon: Users,
+    icon: UsersRound,
     viewAllLink: '/admin/users'
   }
 ];

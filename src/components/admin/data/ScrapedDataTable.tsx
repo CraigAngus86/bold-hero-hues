@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { fetchLeagueTableFromSupabase, getLastUpdateTime, triggerLeagueDataScrape } from '@/services/supabase/leagueDataService';
-import { TeamStats } from '@/types';
+import { TeamStats } from '@/types/fixtures';
 import DataActions from './table-components/DataActions';
 import DataWarningAlert from './table-components/DataWarningAlert';
 import LastUpdatedInfo from './table-components/LastUpdatedInfo';
@@ -24,7 +24,7 @@ const ScrapedDataTable: React.FC = () => {
   }, []);
 
   // Function to check for data validity
-  const validateData = (data: TeamStats[]) => {
+  const validateData = (data: any[]): boolean => {
     // Check for numeric team names or other invalid data
     const invalidTeams = data.filter(team => {
       // Check if team name is missing, numeric, or very short
@@ -46,10 +46,28 @@ const ScrapedDataTable: React.FC = () => {
     setIsLoading(true);
     try {
       const data = await fetchLeagueTableFromSupabase();
-      setLeagueTable(data || []);
+      // Ensure consistent types
+      const typedData: TeamStats[] = data ? data.map(item => ({
+        id: String(item.id || ''),
+        position: item.position,
+        team: item.team,
+        played: item.played,
+        won: item.won,
+        drawn: item.drawn,
+        lost: item.lost,
+        goalsFor: item.goalsFor,
+        goalsAgainst: item.goalsAgainst,
+        goalDifference: item.goalDifference,
+        points: item.points,
+        form: item.form || '',
+        logo: item.logo || '',
+        last_updated: item.last_updated
+      })) : [];
+      
+      setLeagueTable(typedData);
       
       // Validate the data
-      validateData(data);
+      validateData(data || []);
       
       // Get last updated time from Supabase
       const lastUpdate = await getLastUpdateTime();
@@ -70,10 +88,29 @@ const ScrapedDataTable: React.FC = () => {
     try {
       toast.info('Refreshing league table data...', { duration: 5000 });
       const data = await triggerLeagueDataScrape();
-      setLeagueTable(data || []);
+      
+      // Ensure consistent types
+      const typedData: TeamStats[] = data ? data.map(item => ({
+        id: String(item.id || ''),
+        position: item.position,
+        team: item.team,
+        played: item.played,
+        won: item.won,
+        drawn: item.drawn,
+        lost: item.lost,
+        goalsFor: item.goalsFor,
+        goalsAgainst: item.goalsAgainst,
+        goalDifference: item.goalDifference,
+        points: item.points,
+        form: item.form || '',
+        logo: item.logo || '',
+        last_updated: item.last_updated
+      })) : [];
+      
+      setLeagueTable(typedData);
       
       // Validate the data
-      const isValid = validateData(data);
+      const isValid = validateData(data || []);
       if (!isValid) {
         toast.warning('Some team names may be invalid. Check the data.');
       } else {

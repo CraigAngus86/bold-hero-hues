@@ -2,7 +2,7 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { TeamStats } from '@/types';
+import { TeamStats } from '@/types/fixtures';
 
 interface LeagueDataTableProps {
   leagueTable: TeamStats[];
@@ -41,7 +41,7 @@ const LeagueDataTable: React.FC<LeagueDataTableProps> = ({ leagueTable }) => {
               <TableCell className="font-medium text-center">{team.position}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
-                  {team.logo && (
+                  {'logo' in team && team.logo && (
                     <img
                       src={team.logo}
                       alt={`${team.team} logo`}
@@ -63,7 +63,22 @@ const LeagueDataTable: React.FC<LeagueDataTableProps> = ({ leagueTable }) => {
               <TableCell className="text-center font-semibold">{team.points}</TableCell>
               <TableCell className="text-center">
                 <div className="flex justify-center gap-1">
-                  {team.form?.map((result, idx) => {
+                  {Array.isArray(team.form) ? team.form.map((result, idx) => {
+                    let bg = "bg-gray-200";
+                    if (result === "W") bg = "bg-green-500 text-white";
+                    if (result === "L") bg = "bg-red-500 text-white";
+                    if (result === "D") bg = "bg-yellow-500 text-white";
+                    
+                    return (
+                      <Badge 
+                        key={idx} 
+                        variant="outline" 
+                        className={`h-5 min-w-5 p-0 flex items-center justify-center ${bg}`}
+                      >
+                        {result}
+                      </Badge>
+                    );
+                  }) : (team.form || '').split('').map((result, idx) => {
                     let bg = "bg-gray-200";
                     if (result === "W") bg = "bg-green-500 text-white";
                     if (result === "L") bg = "bg-red-500 text-white";

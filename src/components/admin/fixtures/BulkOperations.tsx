@@ -1,5 +1,4 @@
-
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -34,6 +33,10 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({ onRefreshData }) => {
   const [seriesCompetition, setSeriesCompetition] = useState('');
   const [seriesTeams, setSeriesTeams] = useState('');
   const [seriesVenue, setSeriesVenue] = useState('');
+  const [bulkAction, setBulkAction] = useState<string | null>(null);
+  const [bulkSeason, setBulkSeason] = useState<string>('');
+  const [bulkCompetition, setBulkCompetition] = useState<string>('');
+  const [bulkTicketLink, setBulkTicketLink] = useState<string>('');
   
   // Fetch competitions when component mounts
   React.useEffect(() => {
@@ -293,13 +296,13 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({ onRefreshData }) => {
           if (i === j) continue; // Skip same team
           
           fixtures.push({
-            homeTeam: teams[i],
-            awayTeam: teams[j],
+            home_team: teams[i],
+            away_team: teams[j],
             competition: seriesCompetition,
             venue: seriesVenue || undefined,
             date: new Date().toISOString().split('T')[0], // Default to today
             time: '15:00',
-            isCompleted: false
+            is_completed: false
           });
         }
       }
@@ -348,17 +351,47 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({ onRefreshData }) => {
       }
       
       const fixtureIds = data.map(item => item.id);
-      let updateData = {};
       
-      // Set update data based on the update type
-      if (updateType === 'complete') {
-        updateData = { is_completed: true };
-      } else if (updateType === 'postpone') {
-        updateData = { is_completed: false, notes: 'Match postponed' };
-      } else if (updateType === 'reschedule') {
-        // For rescheduling, we'd typically open a date picker UI
-        // For now, we'll just demonstrate a simple postponement
-        updateData = { is_completed: false, notes: 'Match rescheduled' };
+      const updateData: Partial<Fixture> = {};
+      
+      if (bulkAction === 'set-season') {
+        updateData.season = bulkSeason;
+      }
+      
+      if (bulkAction === 'set-competition') {
+        updateData.competition = bulkCompetition;
+      }
+      
+      if (bulkAction === 'set-ticket-link') {
+        updateData.ticket_link = bulkTicketLink;
+      }
+      
+      if (bulkAction === 'mark-completed') {
+        updateData.is_completed = true;
+      }
+      
+      if (bulkAction === 'mark-incomplete') {
+        updateData.is_completed = false;
+        updateData.home_score = null;
+        updateData.away_score = null;
+      }
+      
+      if (bulkAction === 'delete') {
+        // Handle delete separately
+        if (window.confirm(`Are you sure you want to delete ${fixtureIds.length} fixtures?`)) {
+          const { error: deleteError } = await supabase
+            .from('fixtures')
+            .delete()
+            .in('id', fixtureIds);
+          
+          if (deleteError) throw deleteError;
+          
+          toast.success(`Successfully deleted ${fixtureIds.length} fixtures`);
+          
+          // Refresh data if callback provided
+          if (onRefreshData) onRefreshData();
+        }
+        return;
       }
       
       // Update fixtures
@@ -544,7 +577,7 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({ onRefreshData }) => {
               <Label htmlFor="bulkCompetition">Filter by Competition</Label>
               <Select
                 value={competition}
-                onValueChange={setCompetition}
+                onValueChange={setBulkCompetition}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select Competition" />
@@ -559,34 +592,69 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({ onRefreshData }) => {
               </Select>
             </div>
             
-            <div className="md:col-span-2">
-              <Label>Update Type</Label>
-              <div className="flex flex-wrap gap-2 mt-2">
-                <Button
-                  variant={updateType === 'complete' ? 'default' : 'outline'}
-                  onClick={() => setUpdateType('complete')}
-                >
-                  Mark as Complete
-                </Button>
-                <Button
-                  variant={updateType === 'postpone' ? 'default' : 'outline'}
-                  onClick={() => setUpdateType('postpone')}
-                >
-                  Postpone
-                </Button>
-                <Button
-                  variant={updateType === 'reschedule' ? 'default' : 'outline'}
-                  onClick={() => setUpdateType('reschedule')}
-                >
-                  Reschedule
-                </Button>
-              </div>
+            <div>
+              <Label htmlFor="bulkAction">Bulk Action</Label>
+              <Select
+                value={bulkAction}
+                onValueChange={setBulkAction}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Action" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="set-season">Set Season</SelectItem>
+                  <SelectItem value="set-competition">Set Competition</SelectItem>
+                  <SelectItem value="set-ticket-link">Set Ticket Link</SelectItem>
+                  <SelectItem value="mark-completed">Mark as Completed</SelectItem>
+                  <SelectItem value="mark-incomplete">Mark as Incomplete</SelectItem>
+                  <SelectItem value="delete">Delete</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+            
+            {bulkAction === 'set-season' && (
+              <div>
+                <Label htmlFor="bulkSeason">Season</Label>
+                <Input
+                  id="bulkSeason"
+                  type="text"
+                  value={bulkSeason}
+                  onChange={(e) => setBulkSeason(e.target.value)}
+                  placeholder="e.g. 2024-2025"
+                />
+              </div>
+            )}
+            
+            {bulkAction === 'set-competition' && (
+              <div>
+                <Label htmlFor="bulkCompetition">Competition</Label>
+                <Input
+                  id="bulkCompetition"
+                  type="text"
+                  value={bulkCompetition}
+                  onChange={(e) => setBulkCompetition(e.target.value)}
+                  placeholder="e.g. Highland League"
+                />
+              </div>
+            )}
+            
+            {bulkAction === 'set-ticket-link' && (
+              <div>
+                <Label htmlFor="bulkTicketLink">Ticket Link</Label>
+                <Input
+                  id="bulkTicketLink"
+                  type="url"
+                  value={bulkTicketLink}
+                  onChange={(e) => setBulkTicketLink(e.target.value)}
+                  placeholder="e.g. https://example.com/tickets"
+                />
+              </div>
+            )}
           </div>
           
           <Button
             onClick={handleBulkUpdate}
-            disabled={isUpdating}
+            disabled={isUpdating || !bulkAction}
             className="w-full"
             variant="default"
           >

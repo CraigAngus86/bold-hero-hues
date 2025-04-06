@@ -28,10 +28,9 @@ export function SponsorLogoUploader({
   const { upload, isUploading, progress } = useImageUpload();
   
   // Use predefined config for sponsor images
-  const config = imageUploadConfigs.sponsors; // Fixed from 'sponsor' to 'sponsors'
+  const config = imageUploadConfigs.sponsors;
   const maxSizeMB = config.maxSizeMB || 5; // Fallback size
-  const maxSizeBytes = maxSizeMB * 1024 * 1024;
-  const acceptedTypes = config.acceptedTypes || 'image/png,image/jpeg,image/svg+xml';
+  const acceptedTypes = 'image/png,image/jpeg,image/svg+xml';
   
   const handleDrag = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -54,7 +53,7 @@ export function SponsorLogoUploader({
   }, []);
   
   const handleFileSelection = (file: File) => {
-    if (file.size > maxSizeBytes) {
+    if (file.size > maxSizeMB * 1024 * 1024) {
       toast.error(`File too large. Maximum size is ${maxSizeMB}MB.`);
       return;
     }
@@ -87,16 +86,15 @@ export function SponsorLogoUploader({
     if (!selectedFile) return;
     
     try {
-      // Use predefined sponsor logo folder
-      const metadata = {
-        alt_text: `${sponsorName} logo`,
-        description: `Logo for ${sponsorName}`,
-        tags: ['sponsor', 'logo']
-      };
+      const alt_text = `${sponsorName} logo`;
+      const description = `Logo for ${sponsorName}`;
+      const tags = ['sponsor', 'logo'];
       
       const result = await upload(selectedFile, {
         folder: 'sponsor_logos',
-        metadata
+        alt: alt_text,
+        description: description,
+        tags: tags
       });
       
       if (result.success && result.data) {

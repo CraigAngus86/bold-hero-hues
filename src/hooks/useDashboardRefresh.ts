@@ -6,7 +6,12 @@ import { fixturesKeys } from './useFixturesStats';
 import { leagueKeys } from './useLeagueStats';
 import { mediaKeys } from './useMediaStats';
 import { activityKeys } from './useActivityFeed';
-import { systemKeys } from './useSystemStatus';
+
+// Define system keys
+const systemKeys = {
+  status: ['system', 'status'],
+  logs: ['system', 'logs']
+};
 
 export const useDashboardRefresh = () => {
   const queryClient = useQueryClient();
@@ -21,7 +26,7 @@ export const useDashboardRefresh = () => {
       queryClient.invalidateQueries({ queryKey: leagueKeys.stats }),
       queryClient.invalidateQueries({ queryKey: mediaKeys.stats }),
       queryClient.invalidateQueries({ queryKey: activityKeys.activities }),
-      queryClient.invalidateQueries({ queryKey: [systemKeys.status] }),
+      queryClient.invalidateQueries({ queryKey: systemKeys.status }),
     ]).then(() => {
       toast.success('Dashboard data refreshed successfully');
     }).catch((error) => {
@@ -32,3 +37,5 @@ export const useDashboardRefresh = () => {
   
   return { refreshAll };
 };
+
+export { systemKeys };

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Twitter, Instagram, Facebook } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
@@ -64,77 +64,19 @@ const realSocialPosts: SocialPost[] = [
     comments: 3,
     mediaUrl: "/lovable-uploads/4651b18c-bc2e-4e02-96ab-8993f8dfc145.png",
     profileImage: "/lovable-uploads/banks-o-dee-dark-logo.png"
-  },
-  {
-    id: "5",
-    platform: "facebook",
-    username: "banksodeejfc",
-    content: "🎟️ TICKETS | Tickets for our upcoming Highland League match against Brechin City are now available online. Get yours early to avoid queues on matchday!",
-    date: "April 1, 2025",
-    likes: 38,
-    comments: 5,
-    shares: 12,
-    profileImage: "/lovable-uploads/banks-o-dee-dark-logo.png"
-  },
-  {
-    id: "6",
-    platform: "twitter",
-    username: "banksodee_fc",
-    content: "📣 NEW SIGNING | We're delighted to announce the signing of midfielder Jack Henderson from Cove Rangers on a two-year deal. Welcome to Spain Park, Jack! #BODTransfer",
-    date: "March 31, 2025",
-    likes: 92,
-    comments: 13,
-    shares: 21,
-    mediaUrl: "/lovable-uploads/4651b18c-bc2e-4e02-96ab-8993f8dfc145.png",
-    profileImage: "/lovable-uploads/banks-o-dee-dark-logo.png"
-  },
-  {
-    id: "7",
-    platform: "facebook",
-    username: "banksodeejfc",
-    content: "🏆 THROWBACK | On this day in 2022, Banks o' Dee lifted the Evening Express Aberdeenshire Cup after a thrilling 3-2 victory against Buckie Thistle at Harlaw Park. What a day for the club!",
-    date: "March 29, 2025",
-    likes: 123,
-    comments: 18,
-    shares: 15,
-    profileImage: "/lovable-uploads/banks-o-dee-dark-logo.png"
-  },
-  {
-    id: "8",
-    platform: "instagram",
-    username: "banksodeefc",
-    content: "💙 Supporting our local community! Players from Banks o' Dee visited Aberdeen Children's Hospital yesterday to donate signed merchandise and spend time with the young patients. #CommunitySpirit",
-    date: "March 27, 2025",
-    likes: 145,
-    comments: 12,
-    mediaUrl: "/lovable-uploads/cb95b9fb-0f2d-42ef-9788-10509a80ed6e.png",
-    profileImage: "/lovable-uploads/banks-o-dee-dark-logo.png"
   }
 ];
 
-const REFRESH_INTERVAL = 10 * 60 * 1000; // 10 minutes
-
-// Mock API function - this would be replaced with actual API calls in production
 const fetchSocialPosts = async (): Promise<SocialPost[]> => {
-  console.log('Fetching social media posts...');
   // This simulates an API call
-  await new Promise(resolve => setTimeout(resolve, 800));
-  
-  // Sort by date (newest first)
-  return [...realSocialPosts].sort((a, b) => {
-    // Convert date strings to Date objects for proper comparison
-    const dateA = new Date(a.date);
-    const dateB = new Date(b.date);
-    return dateB.getTime() - dateA.getTime();
-  });
+  await new Promise(resolve => setTimeout(resolve, 300));
+  return realSocialPosts;
 };
 
-const SocialMediaFeed = () => {
-  const { data: posts, isLoading, error, refetch } = useQuery({
+const SocialMediaFeed: React.FC = () => {
+  const { data: posts, isLoading, error } = useQuery({
     queryKey: ['socialPosts'],
-    queryFn: fetchSocialPosts,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchInterval: REFRESH_INTERVAL // Auto-refresh every 10 minutes
+    queryFn: fetchSocialPosts
   });
   
   const [activeFilter, setActiveFilter] = useState<string>('all');
@@ -145,21 +87,15 @@ const SocialMediaFeed = () => {
     return post.platform === activeFilter;
   }) || [];
   
-  // Refresh posts manually
-  const handleRefresh = () => {
-    refetch();
-    toast.info("Refreshing social media feed...");
-  };
-  
-  // Get platform icon and styling
+  // Get platform icon
   const getPlatformIcon = (platform: string) => {
     switch (platform) {
       case 'twitter':
-        return <Twitter className="w-3.5 h-3.5" />;
+        return <Twitter className="w-3 h-3" />;
       case 'instagram':
-        return <Instagram className="w-3.5 h-3.5" />;
+        return <Instagram className="w-3 h-3" />;
       case 'facebook':
-        return <Facebook className="w-3.5 h-3.5" />;
+        return <Facebook className="w-3 h-3" />;
       default:
         return null;
     }
@@ -177,185 +113,133 @@ const SocialMediaFeed = () => {
         return '';
     }
   };
-
-  const getPlatformUrl = (platform: string, username: string) => {
-    switch (platform) {
-      case 'twitter':
-        return `https://x.com/${username}`;
-      case 'instagram':
-        return `https://www.instagram.com/${username}/`;
-      case 'facebook':
-        return `https://www.facebook.com/${username}/`;
-      default:
-        return '#';
-    }
-  };
+  
+  // Loading skeleton
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="bg-gray-50 rounded-md p-3 animate-pulse">
+            <div className="flex items-center mb-2">
+              <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+              <div className="ml-2">
+                <div className="h-3 bg-gray-200 rounded w-24"></div>
+                <div className="h-2 bg-gray-200 rounded w-16 mt-1"></div>
+              </div>
+            </div>
+            <div className="h-12 bg-gray-200 rounded"></div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  
+  // Error state
+  if (error) {
+    return (
+      <div className="text-center py-4">
+        <p className="text-gray-500 text-sm">Unable to load social posts</p>
+      </div>
+    );
+  }
   
   return (
-    <section className="py-6 bg-team-gray">
-      <div className="container mx-auto px-3">
-        <div className="text-center mb-4">
-          <h2 className="text-2xl font-semibold text-team-blue mb-1">Social Media</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto text-sm">
-            Follow us on social media to stay updated with everything happening at Banks o' Dee FC.
-          </p>
-          
-          <div className="flex justify-center mt-2 space-x-3">
-            <button 
-              onClick={() => setActiveFilter('all')}
-              className={`text-xs px-3 py-1 rounded-full ${
-                activeFilter === 'all' 
-                  ? 'bg-team-blue text-white' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              } transition-colors`}
-            >
-              All
-            </button>
-            <button 
-              onClick={() => setActiveFilter('twitter')}
-              className={`text-xs px-3 py-1 rounded-full flex items-center ${
-                activeFilter === 'twitter' 
-                  ? 'bg-[#1DA1F2] text-white' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              } transition-colors`}
-            >
-              <Twitter className="w-3 h-3 mr-1" /> Twitter
-            </button>
-            <button 
-              onClick={() => setActiveFilter('instagram')}
-              className={`text-xs px-3 py-1 rounded-full flex items-center ${
-                activeFilter === 'instagram' 
-                  ? 'bg-[#C13584] text-white' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              } transition-colors`}
-            >
-              <Instagram className="w-3 h-3 mr-1" /> Instagram
-            </button>
-            <button 
-              onClick={() => setActiveFilter('facebook')}
-              className={`text-xs px-3 py-1 rounded-full flex items-center ${
-                activeFilter === 'facebook' 
-                  ? 'bg-[#1877F2] text-white' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              } transition-colors`}
-            >
-              <Facebook className="w-3 h-3 mr-1" /> Facebook
-            </button>
-          </div>
-        </div>
-        
-        {isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-white rounded-lg overflow-hidden shadow-sm animate-pulse">
-                <div className="p-3 border-b border-gray-100">
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 bg-gray-200 rounded-full mr-2"></div>
-                    <div>
-                      <div className="h-3 bg-gray-200 rounded w-20 mb-1"></div>
-                      <div className="h-2 bg-gray-200 rounded w-12"></div>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-3">
-                  <div className="h-12 bg-gray-200 rounded w-full mb-2"></div>
-                  <div className="h-2 bg-gray-200 rounded w-1/4"></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : error ? (
-          <div className="bg-red-50 p-4 rounded-lg text-red-800 text-center">
-            <p>Unable to load social media posts. Please try again later.</p>
-            <button 
-              onClick={handleRefresh} 
-              className="mt-2 px-4 py-1 bg-red-100 text-red-800 rounded hover:bg-red-200 transition-colors"
-            >
-              Try Again
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {filteredPosts.slice(0, 8).map((post) => (
-              <motion.div
-                key={post.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                viewport={{ once: true }}
-                className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow aspect-square flex flex-col"
-              >
-                {/* Header */}
-                <div className="flex items-center p-3 border-b border-gray-100">
-                  <div className={`p-1.5 rounded-full mr-1.5 ${getPlatformColor(post.platform)}`}>
-                    {getPlatformIcon(post.platform)}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-xs">@{post.username}</p>
-                    <p className="text-[10px] text-gray-500">{post.date}</p>
-                  </div>
-                </div>
-                
-                {/* Content */}
-                <div className="p-3 flex-1 flex flex-col">
-                  <p className="text-xs text-gray-700 mb-2 line-clamp-6 flex-1">{post.content}</p>
-                  
-                  {post.mediaUrl && (
-                    <div className="mb-2 rounded overflow-hidden">
-                      <img 
-                        src={post.mediaUrl} 
-                        alt="Post media" 
-                        className="w-full h-auto object-cover"
-                        loading="lazy"
-                      />
-                    </div>
-                  )}
-                  
-                  {/* Stats */}
-                  <div className="flex justify-between text-[10px] text-gray-500 mt-auto">
-                    <span>{post.likes} Likes</span>
-                    <span>{post.comments} Comments</span>
-                    {post.shares && <span>{post.shares} Shares</span>}
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        )}
-        
-        <div className="text-center mt-4">
-          <div className="flex justify-center space-x-3">
-            <a 
-              href="https://x.com/banksodee_fc" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="bg-team-blue text-white p-2.5 rounded-full hover:bg-team-lightBlue transition-colors"
-              aria-label="Twitter/X"
-            >
-              <Twitter className="w-4 h-4" />
-            </a>
-            <a 
-              href="https://www.instagram.com/banksodeefc/" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="bg-team-blue text-white p-2.5 rounded-full hover:bg-team-lightBlue transition-colors"
-              aria-label="Instagram"
-            >
-              <Instagram className="w-4 h-4" />
-            </a>
-            <a 
-              href="https://www.facebook.com/banksodeejfc/" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="bg-team-blue text-white p-2.5 rounded-full hover:bg-team-lightBlue transition-colors"
-              aria-label="Facebook"
-            >
-              <Facebook className="w-4 h-4" />
-            </a>
-          </div>
-        </div>
+    <div>
+      {/* Filter tabs */}
+      <div className="flex justify-center mb-3 space-x-2">
+        <button 
+          onClick={() => setActiveFilter('all')}
+          className={`text-xs px-2 py-0.5 rounded-full ${
+            activeFilter === 'all' 
+              ? 'bg-gray-700 text-white' 
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          } transition-colors`}
+        >
+          All
+        </button>
+        <button 
+          onClick={() => setActiveFilter('twitter')}
+          className={`text-xs px-2 py-0.5 rounded-full flex items-center ${
+            activeFilter === 'twitter' 
+              ? 'bg-[#1DA1F2] text-white' 
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          } transition-colors`}
+        >
+          <Twitter className="w-2.5 h-2.5 mr-1" /> Twitter
+        </button>
+        <button 
+          onClick={() => setActiveFilter('instagram')}
+          className={`text-xs px-2 py-0.5 rounded-full flex items-center ${
+            activeFilter === 'instagram' 
+              ? 'bg-[#C13584] text-white' 
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          } transition-colors`}
+        >
+          <Instagram className="w-2.5 h-2.5 mr-1" /> Insta
+        </button>
       </div>
-    </section>
+      
+      {/* Posts */}
+      <div className="space-y-4 max-h-[300px] overflow-y-auto hide-scrollbar pr-2">
+        {filteredPosts.map((post, index) => (
+          <motion.div
+            key={post.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: index * 0.1 }}
+            className="bg-gray-50 rounded-md p-3"
+          >
+            {/* Header */}
+            <div className="flex items-center mb-2">
+              <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
+                {post.profileImage ? (
+                  <img 
+                    src={post.profileImage} 
+                    alt={post.username}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-300 text-gray-500">
+                    {post.username.charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </div>
+              <div className="ml-2 flex-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold">@{post.username}</span>
+                  <span className={`text-[10px] rounded-full px-1.5 py-0.5 flex items-center ${getPlatformColor(post.platform)}`}>
+                    {getPlatformIcon(post.platform)}
+                  </span>
+                </div>
+                <div className="text-[10px] text-gray-500">{post.date}</div>
+              </div>
+            </div>
+            
+            {/* Content */}
+            <p className="text-xs text-gray-700 mb-2">{post.content}</p>
+            
+            {/* Media */}
+            {post.mediaUrl && (
+              <div className="rounded-md overflow-hidden mb-2">
+                <img 
+                  src={post.mediaUrl} 
+                  alt="Post media" 
+                  className="w-full h-auto object-cover"
+                  loading="lazy"
+                />
+              </div>
+            )}
+            
+            {/* Stats */}
+            <div className="flex text-[10px] text-gray-500 space-x-3">
+              <span>{post.likes} likes</span>
+              <span>{post.comments} comments</span>
+              {post.shares !== undefined && <span>{post.shares} shares</span>}
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
   );
 };
 

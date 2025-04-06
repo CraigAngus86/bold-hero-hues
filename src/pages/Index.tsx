@@ -6,7 +6,8 @@ import EnhancedHero from '@/components/home/EnhancedHero';
 import FeaturedContentGrid from '@/components/home/FeaturedContentGrid';
 import NewsGrid from '@/components/home/NewsGrid';
 import LeagueTable from '@/components/LeagueTable';
-import MediaGalleryModern from '@/components/home/MediaGalleryModern';
+import MediaGalleryPreview from '@/components/home/MediaGalleryPreview';
+import FanEngagement from '@/components/home/FanEngagement';
 import SponsorsSection from '@/components/home/SponsorsSection';
 
 const MembershipCTA = () => (
@@ -44,13 +45,14 @@ const Index = () => {
           </div>
         </div>
       </div>
-        
-      <div className="mt-12 md:mt-20 bg-team-blue py-12">
-        <div className="container mx-auto px-4">
-          <MediaGalleryModern />
-        </div>
-      </div>
       
+      {/* Media Gallery Preview Section */}
+      <MediaGalleryPreview />
+      
+      {/* Fan Engagement Section */}
+      <FanEngagement />
+      
+      {/* Sponsors Section */}
       <SponsorsSection />
       
       <div className="flex-grow"></div>

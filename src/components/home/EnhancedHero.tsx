@@ -1,309 +1,284 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Calendar, Ticket, ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
+import { ChevronLeft, ChevronRight, Clock, MapPin, Calendar, Ticket } from 'lucide-react';
 import { useHeroSlides } from '@/hooks/useHeroSlides';
-import { formatMatchDate, isBanksODee } from '@/components/home/fixtures/utils';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { Link } from 'react-router-dom';
+import { formatDate } from '@/utils/date';
 
 const EnhancedHero: React.FC = () => {
-  const {
-    slides,
-    currentIndex,
-    currentSlide,
-    isLoading,
-    goToSlide,
-    goToNextSlide,
-    goToPrevSlide,
-    nextMatch,
-    recentResults
-  } = useHeroSlides();
+  const { slides, isLoading, error, nextMatch, latestResult } = useHeroSlides();
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [autoplay, setAutoplay] = useState(true);
   
-  const [isAutoplay, setIsAutoplay] = useState(true);
-  const autoplayRef = useRef<NodeJS.Timeout | null>(null);
-  
-  // Handle autoplay
+  // Handle hero slide autoplay
   useEffect(() => {
-    if (isAutoplay && slides.length > 1) {
-      autoplayRef.current = setInterval(goToNextSlide, 6000);
-    }
+    if (!autoplay || slides.length === 0) return;
     
-    return () => {
-      if (autoplayRef.current) {
-        clearInterval(autoplayRef.current);
-      }
-    };
-  }, [isAutoplay, slides.length, goToNextSlide]);
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % slides.length);
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [slides.length, autoplay]);
   
-  const resetAutoplay = () => {
-    if (autoplayRef.current) {
-      clearInterval(autoplayRef.current);
-      if (isAutoplay && slides.length > 1) {
-        autoplayRef.current = setInterval(goToNextSlide, 6000);
-      }
-    }
+  const handleNext = () => {
+    setAutoplay(false);
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % slides.length);
   };
   
-  const handleManualNavigation = (fn: Function) => {
-    fn();
-    resetAutoplay();
+  const handlePrev = () => {
+    setAutoplay(false);
+    setCurrentIndex((prevIndex) => (prevIndex - 1 + slides.length) % slides.length);
   };
   
-  const handleMouseEnter = () => setIsAutoplay(false);
-  const handleMouseLeave = () => setIsAutoplay(true);
+  const goToSlide = (index: number) => {
+    setAutoplay(false);
+    setCurrentIndex(index);
+  };
   
   if (isLoading) {
-    return <HeroSkeleton />;
+    return (
+      <div className="w-full h-[500px] bg-gray-100 animate-pulse flex items-center justify-center">
+        <div className="text-gray-400">Loading hero content...</div>
+      </div>
+    );
   }
   
-  if (slides.length === 0) {
-    return null;
+  if (error || slides.length === 0) {
+    return (
+      <div className="w-full h-[400px] bg-team-blue flex items-center justify-center">
+        <div className="text-white text-center px-4">
+          <h2 className="text-2xl font-bold mb-4">Welcome to Banks o' Dee FC</h2>
+          <p>Home of the Spain Park, Aberdeen</p>
+        </div>
+      </div>
+    );
   }
   
   return (
-    <section 
-      className="relative w-full h-[90vh] overflow-hidden bg-[#00105a]"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      {/* Slides */}
-      <AnimatePresence initial={false} mode="wait">
+    <div className="relative h-[600px] md:h-[650px] w-full overflow-hidden bg-black">
+      {/* Hero Slider */}
+      <AnimatePresence initial={false}>
         <motion.div
-          key={currentSlide?.id}
+          key={currentIndex}
+          className="absolute inset-0 w-full h-full"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 1 }}
-          className="absolute inset-0 w-full h-full"
+          transition={{ duration: 0.5 }}
         >
-          <div className="absolute inset-0 bg-gradient-to-t from-[#00105a]/90 to-[#00105a]/30 z-10" />
-          
-          {currentSlide?.video_url ? (
+          {slides[currentIndex].video_url ? (
             <video 
-              src={currentSlide.video_url} 
               autoPlay 
               muted 
               loop 
-              className="object-cover w-full h-full"
-            />
+              className="w-full h-full object-cover"
+            >
+              <source src={slides[currentIndex].video_url} type="video/mp4" />
+            </video>
           ) : (
             <img 
-              src={currentSlide?.image_url} 
-              alt={currentSlide?.title}
-              className="object-cover object-center w-full h-full"
+              src={slides[currentIndex].image_url} 
+              alt={slides[currentIndex].title}
+              className="w-full h-full object-cover"
             />
           )}
+          
+          {/* Dark Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-black/10" />
+          
+          {/* Content */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="container px-4 py-12 text-white text-center">
+              <motion.h1 
+                className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+              >
+                {slides[currentIndex].title}
+              </motion.h1>
+              
+              {slides[currentIndex].subtitle && (
+                <motion.p 
+                  className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4, duration: 0.5 }}
+                >
+                  {slides[currentIndex].subtitle}
+                </motion.p>
+              )}
+              
+              {slides[currentIndex].link_url && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6, duration: 0.5 }}
+                >
+                  <Link to={slides[currentIndex].link_url}>
+                    <Button variant="outline" className="bg-white text-team-blue hover:bg-gray-100">
+                      {slides[currentIndex].link_text || 'Learn More'}
+                    </Button>
+                  </Link>
+                </motion.div>
+              )}
+            </div>
+          </div>
         </motion.div>
       </AnimatePresence>
       
-      {/* Content */}
-      <div className="container mx-auto px-4 relative z-20 h-full flex flex-col justify-end pb-20">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Main Hero Content */}
-          <div className="lg:col-span-7">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentSlide?.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ 
-                  duration: 0.5,
-                  ease: [0.22, 1, 0.36, 1]
-                }}
-              >
-                {currentSlide?.subtitle && (
-                  <span className="inline-block px-3 py-1 mb-4 bg-[#C5E7FF] text-[#00105a] text-xs font-semibold rounded">
-                    {currentSlide.subtitle}
-                  </span>
-                )}
-                <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight">
-                  {currentSlide?.title}
-                </h2>
-                
-                {currentSlide?.link_text && currentSlide?.link_url && (
-                  <div className="mt-6">
-                    <Button asChild className="bg-white text-[#00105a] hover:bg-gray-100">
-                      <Link to={currentSlide.link_url}>
-                        {currentSlide.link_text}
-                      </Link>
-                    </Button>
-                  </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-          
-          {/* Next Match Widget */}
-          <div className="lg:col-span-5 space-y-4">
-            {nextMatch && (
-              <div className="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/20">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-white font-semibold flex items-center">
-                    <Calendar className="w-4 h-4 mr-2" /> Next Match
-                  </h3>
-                  <span className="text-white/80 text-sm">
-                    {formatMatchDate(nextMatch.date)}
-                  </span>
-                </div>
-                
-                <div className="flex items-center justify-center my-2 text-white">
-                  <div className="flex-1 text-right">
-                    <p className={cn(
-                      "font-medium",
-                      isBanksODee(nextMatch.homeTeam) ? "text-white" : "text-white/80"
-                    )}>
-                      {nextMatch.homeTeam}
-                    </p>
-                  </div>
-                  <div className="mx-4 text-lg font-bold">vs</div>
-                  <div className="flex-1">
-                    <p className={cn(
-                      "font-medium",
-                      isBanksODee(nextMatch.awayTeam) ? "text-white" : "text-white/80"
-                    )}>
-                      {nextMatch.awayTeam}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-between text-sm text-white/80">
-                  <span>{nextMatch.competition}</span>
-                  <span>{nextMatch.time}</span>
-                </div>
-                
-                {nextMatch.ticketLink && (
-                  <div className="mt-3">
-                    <Button 
-                      asChild
-                      variant="outline" 
-                      className="w-full bg-transparent text-white border-white/30 hover:bg-white/10"
-                    >
-                      <a 
-                        href={nextMatch.ticketLink} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center"
-                      >
-                        <Ticket className="w-4 h-4 mr-2" /> Buy Tickets
-                      </a>
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-            
-            {recentResults.length > 0 && (
-              <div className="hidden lg:block">
-                <div className="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/20">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-white font-semibold">Latest Result</h3>
-                    <Link 
-                      to="/fixtures" 
-                      className="text-white/80 text-xs flex items-center hover:text-white"
-                    >
-                      View All <ArrowRight className="w-3 h-3 ml-1" />
-                    </Link>
-                  </div>
-                  
-                  {recentResults[0] && (
-                    <>
-                      <div className="flex items-center justify-center my-2 text-white">
-                        <div className="flex-1 text-right">
-                          <p className={cn(
-                            "font-medium",
-                            isBanksODee(recentResults[0].homeTeam) ? "text-white" : "text-white/80"
-                          )}>
-                            {recentResults[0].homeTeam}
-                          </p>
-                        </div>
-                        <div className="mx-4 text-lg font-bold">
-                          {recentResults[0].homeScore} - {recentResults[0].awayScore}
-                        </div>
-                        <div className="flex-1">
-                          <p className={cn(
-                            "font-medium",
-                            isBanksODee(recentResults[0].awayTeam) ? "text-white" : "text-white/80"
-                          )}>
-                            {recentResults[0].awayTeam}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center justify-between text-sm text-white/80">
-                        <span>{recentResults[0].competition}</span>
-                        <span>{formatMatchDate(recentResults[0].date)}</span>
-                      </div>
-                    </>
+      {/* Next Match Card */}
+      {nextMatch && (
+        <div className="absolute top-16 right-8 hidden md:block">
+          <div className="bg-white/90 backdrop-blur-sm p-4 rounded-md shadow-lg max-w-[300px]">
+            <div className="text-center mb-2">
+              <Badge variant="outline" className="bg-team-blue text-white border-none uppercase text-xs font-medium">
+                Next Match
+              </Badge>
+            </div>
+            <div className="flex items-center justify-center mb-2">
+              <div className="text-right mr-3 font-medium text-sm">
+                <div className="text-team-blue">{nextMatch.home_team}</div>
+                <div className="h-4">
+                  {nextMatch.home_team === 'Banks o\' Dee' && (
+                    <span className="text-[10px] text-gray-500">HOME</span>
                   )}
                 </div>
               </div>
+              <div className="text-center text-xs bg-gray-100 rounded p-2">
+                <span className="block text-lg font-bold">VS</span>
+              </div>
+              <div className="text-left ml-3 font-medium text-sm">
+                <div className="text-team-blue">{nextMatch.away_team}</div>
+                <div className="h-4">
+                  {nextMatch.away_team === 'Banks o\' Dee' && (
+                    <span className="text-[10px] text-gray-500">AWAY</span>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-1 text-sm mt-3">
+              <div className="flex items-center text-gray-600">
+                <Calendar className="w-3.5 h-3.5 mr-1.5" />
+                <span>{formatDate(nextMatch.date)}</span>
+              </div>
+              <div className="flex items-center text-gray-600">
+                <Clock className="w-3.5 h-3.5 mr-1.5" />
+                <span>{nextMatch.time}</span>
+              </div>
+              <div className="flex items-center text-gray-600">
+                <MapPin className="w-3.5 h-3.5 mr-1.5" />
+                <span>{nextMatch.venue}</span>
+              </div>
+            </div>
+            
+            {nextMatch.ticket_link && (
+              <div className="mt-3">
+                <a 
+                  href={nextMatch.ticket_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full bg-team-blue hover:bg-team-blue/90 text-white text-center text-xs font-medium rounded-sm py-1.5 transition-colors"
+                >
+                  <Ticket className="w-3.5 h-3.5 mr-1.5 inline-block" />
+                  Buy Tickets
+                </a>
+              </div>
             )}
           </div>
         </div>
-      </div>
+      )}
+      
+      {/* Latest Result Card */}
+      {latestResult && (
+        <div className="absolute bottom-16 left-8 hidden md:block">
+          <div className="bg-white/90 backdrop-blur-sm p-4 rounded-md shadow-lg max-w-[300px]">
+            <div className="text-center mb-2">
+              <Badge variant="outline" className="bg-gray-800 text-white border-none uppercase text-xs font-medium">
+                Latest Result
+              </Badge>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="text-center flex-1">
+                <div className="text-team-blue font-bold">{latestResult.home_team}</div>
+                <div className="h-4">
+                  {latestResult.home_team === 'Banks o\' Dee' && (
+                    <span className="text-[10px] text-gray-500">HOME</span>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex justify-center items-center p-2 mx-2">
+                <span className="font-bold text-lg">
+                  {latestResult.home_score} - {latestResult.away_score}
+                </span>
+              </div>
+              
+              <div className="text-center flex-1">
+                <div className="text-team-blue font-bold">{latestResult.away_team}</div>
+                <div className="h-4">
+                  {latestResult.away_team === 'Banks o\' Dee' && (
+                    <span className="text-[10px] text-gray-500">AWAY</span>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-3 text-sm text-gray-600 text-center">
+              {latestResult.competition} - {formatDate(latestResult.date)}
+            </div>
+            
+            <div className="mt-3">
+              <Link
+                to={`/fixtures/${latestResult.id}`}
+                className="block w-full bg-gray-800 hover:bg-gray-700 text-white text-center text-xs font-medium rounded-sm py-1.5 transition-colors"
+              >
+                Match Details
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Navigation Controls */}
-      {slides.length > 1 && (
-        <>
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center space-x-1.5">
+        {slides.map((_, index) => (
           <button
-            onClick={() => handleManualNavigation(goToPrevSlide)}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors"
-            aria-label="Previous slide"
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-          
-          <button
-            onClick={() => handleManualNavigation(goToNextSlide)}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors"
-            aria-label="Next slide"
-          >
-            <ChevronRight className="w-6 h-6" />
-          </button>
-          
-          <div className="absolute bottom-6 left-0 right-0 flex justify-center space-x-2 z-30">
-            {slides.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => handleManualNavigation(() => goToSlide(index))}
-                className={cn(
-                  "w-3 h-3 rounded-full transition-all duration-300",
-                  index === currentIndex 
-                    ? "bg-white scale-100" 
-                    : "bg-white/40 scale-75 hover:bg-white/60"
-                )}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div>
-        </>
-      )}
-    </section>
+            key={index}
+            onClick={() => goToSlide(index)}
+            className={cn(
+              "w-2.5 h-2.5 rounded-full transition-all",
+              currentIndex === index ? "bg-white" : "bg-white/50 hover:bg-white/80"
+            )}
+            aria-label={`Go to slide ${index + 1}`}
+          />
+        ))}
+      </div>
+      
+      <button
+        onClick={handlePrev}
+        className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-black/30 text-white p-2 rounded-full hover:bg-black/50 transition-colors"
+        aria-label="Previous slide"
+      >
+        <ChevronLeft className="w-5 h-5" />
+      </button>
+      
+      <button
+        onClick={handleNext}
+        className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-black/30 text-white p-2 rounded-full hover:bg-black/50 transition-colors"
+        aria-label="Next slide"
+      >
+        <ChevronRight className="w-5 h-5" />
+      </button>
+    </div>
   );
 };
-
-// Loading skeleton for the hero section
-const HeroSkeleton: React.FC = () => (
-  <div className="relative w-full h-[90vh] bg-[#00105a]/90 overflow-hidden">
-    <div className="container mx-auto px-4 relative h-full flex flex-col justify-end pb-20">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-7">
-          <Skeleton className="h-4 w-24 mb-4 bg-white/20" />
-          <Skeleton className="h-14 w-full mb-2 bg-white/20" />
-          <Skeleton className="h-14 w-3/4 mb-4 bg-white/20" />
-          <Skeleton className="h-10 w-32 mt-6 bg-white/20" />
-        </div>
-        <div className="lg:col-span-5 space-y-4">
-          <Skeleton className="h-40 w-full rounded-lg bg-white/20" />
-          <Skeleton className="h-40 w-full rounded-lg bg-white/20 hidden lg:block" />
-        </div>
-      </div>
-    </div>
-  </div>
-);
 
 export default EnhancedHero;

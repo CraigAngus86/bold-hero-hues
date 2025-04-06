@@ -83,12 +83,14 @@ export function PlayerImageUploader({
     
     try {
       const result = await upload(selectedFile, {
-        folder: 'player_images'
+        // Use metadata compatible options without folder
+        altText: `${playerName || 'Player'} profile image`
       });
       
       if (result.success && result.data) {
         toast.success(`${playerName ? playerName + "'s" : 'Player'} image uploaded successfully`);
-        onUpload(result.data.publicUrl);
+        // Use url instead of publicUrl
+        onUpload(result.data.url);
         clearSelection();
       }
     } catch (error) {

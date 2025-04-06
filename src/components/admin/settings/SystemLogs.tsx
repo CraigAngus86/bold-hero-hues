@@ -1,165 +1,163 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { fetchSystemLogs, exportLogsAsJson } from '@/services/logs/systemLogsService';
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertCircle, AlertTriangle, Info, Bug, RefreshCw, Filter, Search, Download, CheckCircle } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
-import { SystemLog } from '@/types/system';
+import React, { useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { DialogContent, Dialog, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { RefreshCw, Search, Filter, AlertTriangle, Info, CheckCircle, AlertCircle, Trash2, X } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns';
+import { toast } from 'sonner';
+import { getSystemLogs, clearSystemLogs, type SystemLog } from '@/services/logs/systemLogsService';
 
-const SystemLogs = () => {
+export interface SystemLogsProps {
+  limit?: number;
+}
+
+export default function SystemLogs({ limit = 100 }: SystemLogsProps) {
   const [logs, setLogs] = useState<SystemLog[]>([]);
-  const [filteredLogs, setFilteredLogs] = useState<SystemLog[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [logTypeFilter, setLogTypeFilter] = useState<string>('all');
+  const [levelFilter, setLevelFilter] = useState<string | undefined>(undefined);
+  const [selectedLog, setSelectedLog] = useState<SystemLog | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isClearDialogOpen, setIsClearDialogOpen] = useState(false);
   
-  useEffect(() => {
-    loadLogs();
-  }, []);
-
-  useEffect(() => {
-    filterLogs();
-  }, [logs, searchTerm, logTypeFilter]);
-
-  const loadLogs = async () => {
+  const fetchLogs = async () => {
     setIsLoading(true);
     try {
-      const logsData = await fetchSystemLogs();
-      setLogs(logsData);
+      const result = await getSystemLogs(limit, levelFilter);
+      if (result.data) {
+        setLogs(result.data);
+      } else {
+        toast.error('Failed to fetch logs');
+      }
     } catch (error) {
-      console.error('Error loading system logs:', error);
+      toast.error('Error loading logs');
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
   };
-
-  const filterLogs = () => {
-    let filtered = [...logs];
-    
-    if (logTypeFilter !== 'all') {
-      filtered = filtered.filter(log => log.type === logTypeFilter);
-    }
-    
-    if (searchTerm) {
-      const search = searchTerm.toLowerCase();
-      filtered = filtered.filter(log => 
-        log.message.toLowerCase().includes(search) || 
-        log.source.toLowerCase().includes(search)
-      );
-    }
-    
-    setFilteredLogs(filtered);
-  };
-
-  const getBadgeVariant = (type: string) => {
-    switch (type.toLowerCase()) {
-      case 'error':
-        return 'destructive';
-      case 'warning':
-        return 'warning';
-      case 'info':
-        return 'secondary';
-      case 'success':
-        return 'success';
-      case 'debug':
-        return 'outline';
-      default:
-        return 'outline';
+  
+  useEffect(() => {
+    fetchLogs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [levelFilter]);
+  
+  const handleClearLogs = async () => {
+    try {
+      const result = clearSystemLogs();
+      if (result.success) {
+        toast.success('Logs cleared successfully');
+        setLogs([]);
+        setIsClearDialogOpen(false);
+      } else {
+        toast.error('Failed to clear logs');
+      }
+    } catch (error) {
+      toast.error('Error clearing logs');
     }
   };
-
-  const getLogTypeIcon = (type: string) => {
-    switch (type.toLowerCase()) {
+  
+  const filteredLogs = logs.filter(log => 
+    log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    log.module.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  
+  const getLevelIcon = (level: string) => {
+    switch (level) {
       case 'error':
-        return <AlertCircle className="h-4 w-4 text-destructive" />;
+        return <AlertTriangle className="h-4 w-4" />;
       case 'warning':
-        return <AlertTriangle className="h-4 w-4 text-amber-500" />;
+        return <AlertCircle className="h-4 w-4" />;
       case 'info':
-        return <Info className="h-4 w-4 text-blue-500" />;
+        return <Info className="h-4 w-4" />;
       case 'success':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
+        return <CheckCircle className="h-4 w-4" />;
       case 'debug':
-        return <Bug className="h-4 w-4 text-gray-500" />;
+        return <Info className="h-4 w-4" />;
       default:
         return <Info className="h-4 w-4" />;
     }
   };
-
-  const handleExportLogs = async () => {
-    try {
-      let logsToExport;
-      if (logTypeFilter !== 'all') {
-        logsToExport = await exportLogsAsJson(logTypeFilter);
-      } else {
-        logsToExport = await exportLogsAsJson();
-      }
-      
-      const dataStr = JSON.stringify(logsToExport, null, 2);
-      const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
-      
-      const exportFileDefaultName = `system-logs-${new Date().toISOString().split('T')[0]}.json`;
-      
-      const linkElement = document.createElement('a');
-      linkElement.setAttribute('href', dataUri);
-      linkElement.setAttribute('download', exportFileDefaultName);
-      linkElement.click();
-    } catch (error) {
-      console.error('Error exporting logs:', error);
+  
+  const getLevelColor = (level: string) => {
+    switch (level) {
+      case 'error':
+        return 'text-red-500 bg-red-100';
+      case 'warning':
+        return 'text-amber-500 bg-amber-100';
+      case 'info':
+        return 'text-blue-500 bg-blue-100';
+      case 'success':
+        return 'text-green-500 bg-green-100';
+      case 'debug':
+        return 'text-purple-500 bg-purple-100';
+      default:
+        return 'text-gray-500 bg-gray-100';
     }
   };
-
+  
+  const showLogDetails = (log: SystemLog) => {
+    setSelectedLog(log);
+    setIsDetailsOpen(true);
+  };
+  
+  const formatLogDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'MMM dd, yyyy HH:mm:ss');
+    } catch (e) {
+      return dateString;
+    }
+  };
+  
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
+    <Card className="shadow-md border-gray-200">
+      <CardHeader className="border-b pb-3">
+        <div className="flex justify-between items-center">
           <CardTitle>System Logs</CardTitle>
-        </div>
-        <div className="flex space-x-2">
-          <Button 
-            onClick={handleExportLogs} 
-            variant="outline" 
-            size="sm"
-            disabled={logs.length === 0 || isLoading}
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Export
-          </Button>
-          <Button 
-            onClick={loadLogs} 
-            variant="outline" 
-            size="sm" 
-            disabled={isLoading}
-          >
-            <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchLogs}
+              disabled={isLoading}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setIsClearDialogOpen(true)}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Clear
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="flex flex-col md:flex-row justify-between gap-4 p-4 border-b">
-          <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <div className="p-4 border-b flex flex-col md:flex-row gap-3">
+          <div className="relative flex-grow">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
             <Input
               placeholder="Search logs..."
-              className="pl-8"
+              className="pl-9"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="w-full md:w-48">
-            <Select value={logTypeFilter} onValueChange={setLogTypeFilter}>
-              <SelectTrigger>
-                <div className="flex items-center">
-                  <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Filter by type" />
-                </div>
+          <div className="flex items-center">
+            <Filter className="h-4 w-4 mr-2 text-gray-500" />
+            <Select value={levelFilter} onValueChange={setLevelFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by level" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Logs</SelectItem>
+                <SelectItem value={undefined}>All Levels</SelectItem>
                 <SelectItem value="error">Errors</SelectItem>
                 <SelectItem value="warning">Warnings</SelectItem>
                 <SelectItem value="info">Info</SelectItem>
@@ -169,49 +167,120 @@ const SystemLogs = () => {
             </Select>
           </div>
         </div>
-
-        {isLoading ? (
-          <div className="p-8 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-2 text-muted-foreground">Loading logs...</p>
-          </div>
-        ) : filteredLogs.length === 0 ? (
-          <div className="p-8 text-center text-muted-foreground">
-            No system logs found matching your criteria.
-          </div>
-        ) : (
-          <div className="divide-y">
-            {filteredLogs.map((log) => (
-              <div key={log.id} className="p-4 hover:bg-muted/50">
-                <div className="flex items-start justify-between mb-1">
-                  <div className="flex items-center gap-2">
-                    <Badge variant={getBadgeVariant(log.type) as any} className="flex items-center gap-1">
-                      {getLogTypeIcon(log.type)}
-                      <span className="capitalize">{log.type}</span>
-                    </Badge>
-                    <span className="font-medium">{log.source}</span>
-                  </div>
-                  <span className="text-xs text-muted-foreground">
-                    {format(parseISO(log.timestamp.toString()), 'MMM d, yyyy HH:mm:ss')}
-                  </span>
-                </div>
-                <p className="text-sm">{log.message}</p>
-                {log.metadata && (
-                  <pre className="mt-2 p-2 text-xs bg-muted rounded overflow-x-auto">
-                    {JSON.stringify(log.metadata, null, 2)}
-                  </pre>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
         
-        <div className="p-4 border-t text-sm text-muted-foreground text-right">
-          Showing {filteredLogs.length} of {logs.length} logs
+        <div className="max-h-96 overflow-y-auto">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-10">
+              <RefreshCw className="h-6 w-6 animate-spin text-gray-400" />
+              <span className="ml-2 text-gray-500">Loading logs...</span>
+            </div>
+          ) : filteredLogs.length === 0 ? (
+            <div className="text-center py-10 text-gray-500">
+              No logs found
+            </div>
+          ) : (
+            <div className="divide-y">
+              {filteredLogs.map((log) => (
+                <div 
+                  key={log.id} 
+                  className="px-4 py-3 hover:bg-gray-50 cursor-pointer"
+                  onClick={() => showLogDetails(log)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Badge className={`mr-3 ${getLevelColor(log.level)}`} variant="outline">
+                        <span className="flex items-center">
+                          {getLevelIcon(log.level)}
+                          <span className="ml-1 uppercase text-xs">{log.level}</span>
+                        </span>
+                      </Badge>
+                      <span className="text-sm font-medium truncate max-w-[400px]">
+                        {log.message}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <Badge variant="outline" className="bg-gray-100">
+                        {log.module}
+                      </Badge>
+                      <span className="text-xs text-gray-500">
+                        {formatLogDate(log.created_at)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </CardContent>
+      
+      {/* Log details dialog */}
+      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {selectedLog && (
+                <>
+                  <Badge className={getLevelColor(selectedLog.level)} variant="outline">
+                    {selectedLog.level.toUpperCase()}
+                  </Badge>
+                  <span>{selectedLog.module}</span>
+                </>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedLog && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Message</h3>
+                <p className="mt-1">{selectedLog.message}</p>
+              </div>
+              
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Timestamp</h3>
+                <p className="mt-1">{formatLogDate(selectedLog.created_at)}</p>
+              </div>
+              
+              {selectedLog.metadata && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Metadata</h3>
+                  <pre className="mt-1 p-3 bg-gray-100 rounded-md overflow-x-auto text-xs">
+                    {JSON.stringify(selectedLog.metadata, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDetailsOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Clear logs confirmation dialog */}
+      <Dialog open={isClearDialogOpen} onOpenChange={setIsClearDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-red-600">Clear All System Logs</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p>Are you sure you want to clear all system logs? This action cannot be undone.</p>
+          </div>
+          <DialogFooter className="flex space-x-2">
+            <Button variant="outline" onClick={() => setIsClearDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleClearLogs}>
+              Clear All Logs
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
-};
-
-export default SystemLogs;
+}

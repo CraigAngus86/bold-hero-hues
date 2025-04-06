@@ -1,95 +1,161 @@
 
 import React from 'react';
-import AdminPageLayout from '@/components/admin/layout/AdminPageLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChartContainer } from '@/components/admin/charts/ChartContainer';
-import StatusItems from '@/components/admin/dashboard/StatusItems';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
-import { useDashboardRefresh } from '@/hooks/useDashboardRefresh';
-import { formatTimeAgo } from '@/utils/date';
-import QuickActions from '@/components/admin/dashboard/QuickActions';
-import ActivityLog from '@/components/admin/dashboard/ActivityLog';
-import { SystemStatusData } from '@/services/logs/systemLogsService';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
+import SystemStatusPanel from '@/components/admin/dashboard/SystemStatusPanel';
+import RecentActivityPanel from '@/components/admin/dashboard/RecentActivityPanel';
+import QuickStatsPanel from '@/components/admin/dashboard/QuickStatsPanel';
+import { useSystemStatus } from '@/hooks/useSystemStatus';
 
-const Dashboard: React.FC = () => {
-  const {
-    data,
-    isLoading,
-    error,
-    refresh,
-    lastRefreshed
-  } = useDashboardRefresh();
-
-  const handleRefresh = () => {
-    refresh();
-  };
-
-  const systemStatus: SystemStatusData | null = data?.system || null;
-
+const Dashboard = () => {
+  const { 
+    data: statusData, 
+    isLoading: statusLoading, 
+    error: statusError, 
+    refresh: refreshStatus 
+  } = useSystemStatus();
+  
   return (
-    <AdminPageLayout 
-      title="Dashboard" 
-      description="Overview of your Banks o' Dee FC admin panel"
-    >
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold">System Status</h2>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={handleRefresh}
-          className="flex items-center"
-        >
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh
-          {!isLoading && (
-            <span className="text-xs ml-2 text-muted-foreground">
-              ({formatTimeAgo(lastRefreshed.toISOString())})
-            </span>
-          )}
-        </Button>
-      </div>
-
-      <div className="mb-8">
-        <StatusItems status={systemStatus} />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Activity Summary</CardTitle>
-              <CardDescription>System activity over the last 30 days</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-80">
-                <ChartContainer 
-                  type="area" 
-                  isLoading={isLoading}
-                />
+    <>
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+          <Button variant="outline" onClick={refreshStatus} disabled={statusLoading}>
+            <RefreshCw className={`mr-2 h-4 w-4 ${statusLoading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
+        
+        {statusError && (
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="p-4 flex items-center gap-3 text-red-800">
+              <AlertTriangle />
+              <div>
+                <p>Failed to load system status</p>
+                <p className="text-sm text-red-600">{String(statusError)}</p>
               </div>
             </CardContent>
           </Card>
-        </div>
-
-        <div>
-          <Card className="h-full">
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-              <CardDescription>Latest actions from administrators</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ActivityLog />
-            </CardContent>
-          </Card>
-        </div>
+        )}
+        
+        <Tabs defaultValue="overview" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="activity">Activity</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="overview" className="space-y-4">
+            {statusData && (
+              <SystemStatusPanel 
+                data={statusData} 
+                isLoading={statusLoading} 
+                onRefresh={refreshStatus}
+              />
+            )}
+            
+            <QuickStatsPanel />
+            
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              {/* Performance metrics cards */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    CPU Usage
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {statusLoading ? (
+                      <div className="h-8 w-16 animate-pulse bg-gray-200 rounded"></div>
+                    ) : (
+                      `${statusData?.metrics.cpuUsage || 0}%`
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Healthy threshold: &lt;80%
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Memory Usage
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {statusLoading ? (
+                      <div className="h-8 w-16 animate-pulse bg-gray-200 rounded"></div>
+                    ) : (
+                      `${statusData?.metrics.memoryUsage || 0}%`
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Healthy threshold: &lt;85%
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Disk Usage
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {statusLoading ? (
+                      <div className="h-8 w-16 animate-pulse bg-gray-200 rounded"></div>
+                    ) : (
+                      `${statusData?.metrics.diskUsage || 0}%`
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Healthy threshold: &lt;90%
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Active Users
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {statusLoading ? (
+                      <div className="h-8 w-16 animate-pulse bg-gray-200 rounded"></div>
+                    ) : (
+                      statusData?.metrics.activeUsers || 0
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Current online users
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="activity" className="space-y-4">
+            <RecentActivityPanel />
+          </TabsContent>
+          
+          <TabsContent value="analytics" className="space-y-4">
+            <Card className="p-8">
+              <p className="text-center text-muted-foreground">
+                Analytics dashboard is coming soon
+              </p>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
-
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-        <QuickActions metrics={systemStatus?.metrics} />
-      </div>
-    </AdminPageLayout>
+    </>
   );
 };
 

@@ -1,268 +1,218 @@
 
-import React, { useState } from 'react';
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { FileWarning, CheckCircle, XCircle, Check, RefreshCw } from 'lucide-react';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { RefreshCw, Download } from 'lucide-react';
 import { format } from 'date-fns';
-import { parseISO } from 'date-fns/parseISO';
-import { TeamDataRow } from './table-components/TeamDataRow';
-import { TeamStats } from '@/types/fixtures';
+import { toast } from 'sonner';
+import { 
+  fetchScrapingLogs, 
+  ScrapingLog, 
+  ScrapingSource, 
+  downloadScrapeData 
+} from '@/services/scrapingService';
 
-interface ScrapedDataTableProps {
-  data: any[];
-  loading?: boolean;
-  onRefresh?: () => void;
-  onImport?: (data: any[]) => void;
-  error?: string | null;
-  lastScrape?: {
-    timestamp: string;
-    status: string;
-    itemsFound?: number;
-    source?: string;
-  };
-  dataType: 'league-table' | 'fixtures' | 'news' | 'generic';
-}
+export const ScrapedDataTable: React.FC = () => {
+  const [logs, setLogs] = useState<ScrapingLog[]>([]);
+  const [filteredLogs, setFilteredLogs] = useState<ScrapingLog[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [activeSource, setActiveSource] = useState<ScrapingSource | 'all'>('all');
+  const [activeTab, setActiveTab] = useState('recent');
 
-export const ScrapedDataTable: React.FC<ScrapedDataTableProps> = ({
-  data,
-  loading = false,
-  onRefresh,
-  onImport,
-  error = null,
-  lastScrape,
-  dataType,
-}) => {
-  const [selectedTab, setSelectedTab] = useState('data');
-
-  // Get timestamp from last scrape with fallback
-  const getTimestampDisplay = () => {
-    if (!lastScrape?.timestamp) return 'Never';
-    
+  const fetchLogs = async () => {
+    setIsLoading(true);
     try {
-      const date = parseISO(lastScrape.timestamp.toString());
-      return format(date, 'MMM d, yyyy HH:mm:ss');
-    } catch {
-      return lastScrape.timestamp.toString();
-    }
-  };
-
-  // Render table content based on dataType
-  const renderTableContent = () => {
-    if (loading) {
-      return (
-        <TableRow>
-          <TableCell colSpan={getColumnCount()} className="text-center py-10">
-            <div className="flex flex-col items-center justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              <p className="mt-2 text-sm text-gray-500">Loading data...</p>
-            </div>
-          </TableCell>
-        </TableRow>
-      );
-    }
-
-    if (error) {
-      return (
-        <TableRow>
-          <TableCell colSpan={getColumnCount()} className="text-center py-10">
-            <Alert variant="destructive">
-              <FileWarning className="h-5 w-5" />
-              <AlertTitle>Scraping Error</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          </TableCell>
-        </TableRow>
-      );
-    }
-
-    if (!data || data.length === 0) {
-      return (
-        <TableRow>
-          <TableCell colSpan={getColumnCount()} className="text-center py-10">
-            <p className="text-gray-500">No data found</p>
-            {onRefresh && (
-              <Button variant="outline" size="sm" className="mt-2" onClick={onRefresh}>
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Fetch Data
-              </Button>
-            )}
-          </TableCell>
-        </TableRow>
-      );
-    }
-
-    if (dataType === 'league-table') {
-      return (data as TeamStats[]).map((team) => <TeamDataRow key={team.id} team={team} />);
-    }
-
-    // Default table display for other data types
-    return data.map((item, index) => (
-      <TableRow key={index}>
-        {getColumnsForDataType(dataType).map((column) => (
-          <TableCell key={column}>{renderCell(item, column)}</TableCell>
-        ))}
-      </TableRow>
-    ));
-  };
-
-  // Helper to determine column count
-  const getColumnCount = (): number => {
-    if (dataType === 'league-table') return 11;
-    return getColumnsForDataType(dataType).length;
-  };
-
-  // Get appropriate columns based on data type
-  const getColumnsForDataType = (type: string): string[] => {
-    switch (type) {
-      case 'league-table':
-        return ['position', 'team', 'played', 'won', 'drawn', 'lost', 'goalsFor', 'goalsAgainst', 'goalDifference', 'points', 'form'];
-      case 'fixtures':
-        return ['date', 'time', 'home_team', 'away_team', 'competition', 'venue'];
-      case 'news':
-        return ['title', 'date', 'category', 'source'];
-      default:
-        return Object.keys(data[0] || {}).slice(0, 6);
-    }
-  };
-
-  // Render individual cell based on column type
-  const renderCell = (item: any, column: string): React.ReactNode => {
-    const value = item[column];
-
-    // Special rendering for date fields
-    if (column.includes('date') && value) {
-      try {
-        return format(parseISO(value.toString()), 'MMM d, yyyy');
-      } catch {
-        return value;
+      const result = await fetchScrapingLogs();
+      if (result.success && result.data) {
+        setLogs(result.data);
+        filterLogs(result.data, activeSource);
+      } else {
+        toast.error('Failed to fetch scraping logs');
       }
+    } catch (error) {
+      toast.error('Error fetching scraping logs');
+    } finally {
+      setIsLoading(false);
     }
-
-    // Special rendering for form array
-    if (column === 'form' && Array.isArray(value)) {
-      return (
-        <div className="flex space-x-1">
-          {value.map((result, idx) => (
-            <span
-              key={idx}
-              className={`inline-block w-5 h-5 text-xs flex items-center justify-center rounded-full ${
-                result === 'W' ? 'bg-green-500 text-white' :
-                result === 'D' ? 'bg-yellow-500 text-white' :
-                result === 'L' ? 'bg-red-500 text-white' : 'bg-gray-200'
-              }`}
-            >
-              {result}
-            </span>
-          ))}
-        </div>
-      );
-    }
-
-    return value;
   };
 
-  // Custom header rendering
-  const renderTableHeader = () => {
-    if (dataType === 'league-table') {
-      return (
-        <TableRow>
-          <TableHead>#</TableHead>
-          <TableHead>Team</TableHead>
-          <TableHead>P</TableHead>
-          <TableHead>W</TableHead>
-          <TableHead>D</TableHead>
-          <TableHead>L</TableHead>
-          <TableHead>GF</TableHead>
-          <TableHead>GA</TableHead>
-          <TableHead>GD</TableHead>
-          <TableHead>Pts</TableHead>
-          <TableHead>Form</TableHead>
-        </TableRow>
-      );
-    }
+  useEffect(() => {
+    fetchLogs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    return (
-      <TableRow>
-        {getColumnsForDataType(dataType).map((column) => (
-          <TableHead key={column} className="capitalize">
-            {column.replace(/_/g, ' ')}
-          </TableHead>
-        ))}
-      </TableRow>
-    );
+  const filterLogs = (logsToFilter: ScrapingLog[], source: ScrapingSource | 'all') => {
+    if (source === 'all') {
+      setFilteredLogs(logsToFilter);
+    } else {
+      setFilteredLogs(logsToFilter.filter(log => log.source === source));
+    }
+  };
+
+  const handleSourceChange = (source: ScrapingSource | 'all') => {
+    setActiveSource(source);
+    filterLogs(logs, source);
+  };
+
+  const handleDownload = async (logId: string) => {
+    try {
+      const result = await downloadScrapeData(logId);
+      if (result.success) {
+        const fileName = `scrape-data-${logId.substring(0, 8)}.json`;
+        const jsonStr = JSON.stringify(result.data, null, 2);
+        const dataBlob = new Blob([jsonStr], { type: 'application/json' });
+        
+        // Create and trigger download
+        const url = URL.createObjectURL(dataBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        toast.success(`Downloaded ${fileName}`);
+      } else {
+        toast.error('Failed to download data');
+      }
+    } catch (error) {
+      toast.error('Error downloading data');
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'success':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'partial':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'failed':
+        return 'bg-red-100 text-red-800 border-red-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'MMM dd, yyyy HH:mm');
+    } catch (e) {
+      return dateString;
+    }
   };
 
   return (
-    <div className="space-y-4">
-      {/* Status Badge */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Badge variant={lastScrape?.status === 'success' ? 'success' : lastScrape?.status === 'error' ? 'destructive' : 'outline'}>
-            {lastScrape?.status === 'success' ? <CheckCircle className="h-3 w-3 mr-1" /> : 
-             lastScrape?.status === 'error' ? <XCircle className="h-3 w-3 mr-1" /> : null}
-            Last scrape: {getTimestampDisplay()}
-          </Badge>
-          {lastScrape?.itemsFound !== undefined && (
-            <Badge variant="outline">{lastScrape.itemsFound} items found</Badge>
-          )}
-          {lastScrape?.source && (
-            <Badge variant="secondary">Source: {lastScrape.source}</Badge>
-          )}
+    <Card>
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle>Scraped Data History</CardTitle>
+            <CardDescription>View and manage data scraped from external sources</CardDescription>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchLogs}
+            disabled={isLoading}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
         </div>
-        <div className="flex space-x-2">
-          {onRefresh && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={onRefresh} 
-              disabled={loading}
-            >
-              <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              Refresh Data
-            </Button>
-          )}
-          {onImport && data?.length > 0 && !loading && (
-            <Button 
-              size="sm" 
-              onClick={() => onImport(data)} 
-              disabled={loading}
-            >
-              <Check className="mr-2 h-4 w-4" />
-              Import Data
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Data Table */}
-      <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-        <TabsList>
-          <TabsTrigger value="data">Table View</TabsTrigger>
-          <TabsTrigger value="raw">Raw Data</TabsTrigger>
-        </TabsList>
-        <TabsContent value="data">
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+            <Tabs defaultValue="recent" onValueChange={setActiveTab} className="w-full sm:w-auto">
+              <TabsList>
+                <TabsTrigger value="recent">Recent</TabsTrigger>
+                <TabsTrigger value="all">All History</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            
+            <div className="w-full sm:w-48">
+              <Select value={activeSource} onValueChange={(val: any) => handleSourceChange(val)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by source" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Sources</SelectItem>
+                  <SelectItem value="league_table">League Table</SelectItem>
+                  <SelectItem value="fixtures">Fixtures</SelectItem>
+                  <SelectItem value="results">Results</SelectItem>
+                  <SelectItem value="news">News</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
           <div className="border rounded-md">
             <Table>
               <TableHeader>
-                {renderTableHeader()}
+                <TableRow>
+                  <TableHead>Source</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Items</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
               </TableHeader>
               <TableBody>
-                {renderTableContent()}
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-10">
+                      <RefreshCw className="h-6 w-6 animate-spin mx-auto text-gray-400" />
+                      <p className="mt-2 text-gray-500">Loading data...</p>
+                    </TableCell>
+                  </TableRow>
+                ) : filteredLogs.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-10">
+                      <p className="text-gray-500">No scraping logs found</p>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredLogs
+                    .filter(log => activeTab === 'recent' ? true : true) // Filter based on tab if needed
+                    .slice(0, activeTab === 'recent' ? 5 : undefined)
+                    .map(log => (
+                      <TableRow key={log.id}>
+                        <TableCell>
+                          <div className="font-medium capitalize">
+                            {log.source.replace('_', ' ')}
+                          </div>
+                        </TableCell>
+                        <TableCell>{formatDate(log.created_at)}</TableCell>
+                        <TableCell>{log.items_count}</TableCell>
+                        <TableCell>
+                          <Badge className={`${getStatusColor(log.status)}`}>
+                            {log.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDownload(log.id)}
+                            disabled={log.status === 'failed' || log.items_count === 0}
+                          >
+                            <Download className="h-4 w-4 mr-1" />
+                            Export
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                )}
               </TableBody>
             </Table>
           </div>
-        </TabsContent>
-        <TabsContent value="raw">
-          <div className="border rounded-md p-4">
-            <pre className="text-xs overflow-auto max-h-96">
-              {JSON.stringify(data, null, 2)}
-            </pre>
-          </div>
-        </TabsContent>
-      </Tabs>
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
+
+export default ScrapedDataTable;

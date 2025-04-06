@@ -1,70 +1,71 @@
 
 import React, { useState } from 'react';
-import { AdminLayout } from '@/components/admin/layout';
-import { AdminPageLayout } from '@/components/admin/layout/AdminPageLayout';
-import EnhancedNewsArticleList from '@/components/admin/news/EnhancedNewsArticleList';
+import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import EnhancedNewsArticleEditor from '@/components/admin/news/EnhancedNewsArticleEditor';
-import { NewsArticle } from '@/types';
+import { EnhancedNewsArticleList } from '@/components/admin/news/EnhancedNewsArticleList';
+import { NewsArticleDrafts } from '@/components/admin/news/NewsArticleDrafts';
+import { NewsArticleArchive } from '@/components/admin/news/NewsArticleArchive';
+import { NewsArticle } from '@/types/news';
 
 const NewsManagement = () => {
-  const [mode, setMode] = useState<'list' | 'create' | 'edit'>('list');
-  const [selectedArticle, setSelectedArticle] = useState<NewsArticle | undefined>(undefined);
+  const [view, setView] = useState('list');
+  const [selectedArticle, setSelectedArticle] = useState<NewsArticle | null>(null);
   
   const handleCreateNew = () => {
-    setSelectedArticle(undefined);
-    setMode('create');
+    setSelectedArticle(null);
+    setView('edit');
   };
   
-  const handleEdit = (article: NewsArticle) => {
+  const handleEditArticle = (article: NewsArticle) => {
     setSelectedArticle(article);
-    setMode('edit');
+    setView('edit');
   };
   
   const handleBack = () => {
-    setMode('list');
-    setSelectedArticle(undefined);
+    setView('list');
+    setSelectedArticle(null);
   };
   
   const handleSaved = () => {
-    setMode('list');
+    setView('list');
+    setSelectedArticle(null);
   };
-
-  const renderContent = () => {
-    switch (mode) {
-      case 'create':
-      case 'edit':
-        return (
-          <EnhancedNewsArticleEditor 
-            article={selectedArticle} 
-            onBack={handleBack}
-            onSaved={handleSaved}
-          />
-        );
-      case 'list':
-      default:
-        return (
-          <EnhancedNewsArticleList 
-            onCreateNew={handleCreateNew} 
-            onEdit={handleEdit}
-          />
-        );
-    }
-  };
-
+  
   return (
-    <AdminLayout>
-      <AdminPageLayout
-        title="News Management"
-        description={mode === 'list' 
-          ? 'Create, edit, and manage news articles for your website.' 
-          : mode === 'create'
-            ? 'Create a new news article'
-            : 'Edit news article'
-        }
-      >
-        {renderContent()}
-      </AdminPageLayout>
-    </AdminLayout>
+    <div className="space-y-4">
+      {view === 'edit' ? (
+        <EnhancedNewsArticleEditor 
+          article={selectedArticle} 
+          onBack={handleBack}
+          onSaved={handleSaved}
+        />
+      ) : (
+        <Card>
+          <CardContent className="p-0">
+            <Tabs defaultValue="all" className="w-full">
+              <TabsList className="w-full rounded-none border-b">
+                <TabsTrigger value="all" className="flex-1">All Articles</TabsTrigger>
+                <TabsTrigger value="drafts" className="flex-1">Drafts</TabsTrigger>
+                <TabsTrigger value="archive" className="flex-1">Archive</TabsTrigger>
+              </TabsList>
+              <TabsContent value="all" className="p-4">
+                <EnhancedNewsArticleList 
+                  onEdit={handleEditArticle}
+                  onCreateNew={handleCreateNew}
+                />
+              </TabsContent>
+              <TabsContent value="drafts" className="p-4">
+                <NewsArticleDrafts />
+              </TabsContent>
+              <TabsContent value="archive" className="p-4">
+                <NewsArticleArchive />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };
 

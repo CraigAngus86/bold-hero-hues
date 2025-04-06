@@ -12,13 +12,15 @@ import { useFeaturedContent } from '@/hooks/useFeaturedContent';
 import { motion } from 'framer-motion';
 
 const Index = () => {
-  const { getRecentNews } = useNewsStore();
+  const newsStore = useNewsStore();
   const { featuredArticle, nextMatch, leaguePosition, isLoading } = useFeaturedContent();
   
   // Get recent news
   useEffect(() => {
-    getRecentNews();
-  }, [getRecentNews]);
+    if (newsStore.fetchRecentNews) {
+      newsStore.fetchRecentNews();
+    }
+  }, [newsStore]);
   
   // Format featured content items
   const getFeaturedContentItems = () => {
@@ -29,7 +31,7 @@ const Index = () => {
       items.push({
         id: featuredArticle.id,
         title: featuredArticle.title,
-        description: featuredArticle.excerpt || featuredArticle.content.substring(0, 120) + '...',
+        description: featuredArticle.content ? featuredArticle.content.substring(0, 120) + '...' : '',
         image: featuredArticle.image_url,
         link: `/news/${featuredArticle.id}`,
         linkText: 'Read More',

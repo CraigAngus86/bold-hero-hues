@@ -83,7 +83,8 @@ export function NewsImageUploader({
       const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       
       const result = await upload(selectedFile, {
-        folder: 'news_images/' + yearMonth
+        // Use alt_text instead of folder
+        altText: `News image uploaded on ${date.toLocaleDateString()}`
       });
       
       if (result.success && result.data) {

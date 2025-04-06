@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import ServerMonitor from './ServerMonitor';
 import CacheSettingsCard from './CacheSettingsCard';
 import ProxySettingsCard from './ProxySettingsCard';
-import ScrapedDataTable from './ScrapedDataTable';
+import { ScrapedDataTable } from './ScrapedDataTable';
 import DataValidator from './DataValidator';
 import { useApiConfig } from './useApiConfig';
 import { clearLeagueDataCache } from '@/services/leagueDataService';

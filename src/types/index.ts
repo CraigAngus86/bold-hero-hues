@@ -47,6 +47,15 @@ export interface NewsQueryOptions {
   orderDirection?: 'asc' | 'desc';
 }
 
+// Add system log interface
+export interface SystemLog {
+  id: number | string;
+  timestamp: string;
+  type: 'error' | 'warning' | 'info' | 'debug';
+  source: string;
+  message: string;
+}
+
 // Add other necessary type definitions
 export interface TeamStats {
   id: string;

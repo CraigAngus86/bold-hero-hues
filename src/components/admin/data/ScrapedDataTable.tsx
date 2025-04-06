@@ -61,7 +61,6 @@ const ScrapedDataTable: React.FC = () => {
         points: item.points,
         form: item.form || '',
         logo: item.logo || '',
-        last_updated: item.last_updated
       })) : [];
       
       setLeagueTable(typedData);
@@ -104,7 +103,6 @@ const ScrapedDataTable: React.FC = () => {
         points: item.points,
         form: item.form || '',
         logo: item.logo || '',
-        last_updated: item.last_updated
       })) : [];
       
       setLeagueTable(typedData);

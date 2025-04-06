@@ -1,116 +1,122 @@
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
-import { ImageFolder } from './types';
+import { useCallback, useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
+import { ImageFolder, mapApiResponseToImageFolder } from './types';
 
-export function useFolders() {
-  const { toast } = useToast();
+export const useFolders = (initialPath = '/') => {
   const [folders, setFolders] = useState<ImageFolder[]>([]);
   const [currentFolder, setCurrentFolder] = useState<ImageFolder | null>(null);
   const [subfolders, setSubfolders] = useState<ImageFolder[]>([]);
-  const [breadcrumbs, setBreadcrumbs] = useState<ImageFolder[]>([]);
+  const [breadcrumbs, setBreadcrumbs] = useState<Array<{name: string; path: string}>>(
+    [{ name: 'Root', path: '/' }]
+  );
 
-  // Load all folders on component mount
+  // Load all folders on mount
   useEffect(() => {
-    fetchAllFolders();
+    const loadFolders = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('image_folders')
+          .select('*');
+          
+        if (error) throw error;
+        
+        // Map API response to ImageFolder type
+        const mappedFolders = data?.map(mapApiResponseToImageFolder) || [];
+        setFolders(mappedFolders);
+        
+        // Set root folder
+        const rootFolder = mappedFolders.find(f => f.path === '/') || {
+          id: 'root',
+          name: 'Root',
+          path: '/',
+          parentId: null
+        };
+        
+        setCurrentFolder(rootFolder);
+        
+        // Set subfolders of root
+        const rootSubfolders = mappedFolders.filter(f => f.parentId === rootFolder.id);
+        setSubfolders(rootSubfolders);
+        
+      } catch (error) {
+        console.error('Error loading folders:', error);
+      }
+    };
+    
+    loadFolders();
   }, []);
 
-  // Effect to update subfolders when current folder changes
-  useEffect(() => {
-    if (folders.length > 0) {
-      // If no current folder, show root folders
-      if (!currentFolder) {
-        const rootFolders = folders.filter(folder => !folder.parent_id);
-        setSubfolders(rootFolders);
-        setBreadcrumbs([]);
-      } else {
-        // Show subfolders of current folder
-        const children = folders.filter(folder => folder.parent_id === currentFolder.id);
-        setSubfolders(children);
-        
-        // Build breadcrumbs
-        buildBreadcrumbs(currentFolder.id);
-      }
-    }
-  }, [currentFolder, folders]);
-
-  // Fetch all folders from Supabase
-  const fetchAllFolders = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('image_folders')
-        .select('*')
-        .order('name');
-      
-      if (error) throw error;
-      
-      if (data) {
-        setFolders(data);
-      }
-    } catch (error) {
-      console.error('Error fetching folders:', error);
-      toast({
-        title: "Failed to load folders",
-        description: "There was a problem loading the folders.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  // Build breadcrumb path
-  const buildBreadcrumbs = (folderId: string) => {
-    const breadcrumbPath = [];
-    let currentId = folderId;
-    let found = true;
-    
-    while (found) {
-      const folder = folders.find(f => f.id === currentId);
-      if (folder) {
-        breadcrumbPath.unshift(folder);
-        currentId = folder.parent_id as string;
-        found = !!folder.parent_id;
-      } else {
-        found = false;
-      }
-    }
-    
-    setBreadcrumbs(breadcrumbPath);
-  };
-
   // Navigate to a folder
-  const navigateToFolder = (folder: ImageFolder) => {
+  const navigateToFolder = useCallback((folder: ImageFolder) => {
     setCurrentFolder(folder);
-  };
+    
+    // Update subfolders
+    const newSubfolders = folders.filter(f => f.parentId === folder.id);
+    setSubfolders(newSubfolders);
+    
+    // Update breadcrumbs
+    const pathParts = folder.path.split('/').filter(Boolean);
+    const newBreadcrumbs = [{ name: 'Root', path: '/' }];
+    
+    let currentPath = '';
+    for (const part of pathParts) {
+      currentPath += `/${part}`;
+      const folderForPath = folders.find(f => f.path === currentPath);
+      if (folderForPath) {
+        newBreadcrumbs.push({
+          name: part,
+          path: currentPath
+        });
+      }
+    }
+    
+    setBreadcrumbs(newBreadcrumbs);
+  }, [folders]);
 
   // Navigate up to parent folder
-  const navigateUp = () => {
-    if (!currentFolder) return;
+  const navigateUp = useCallback(() => {
+    if (!currentFolder || currentFolder.path === '/') return;
     
-    if (currentFolder.parent_id) {
-      const parentFolder = folders.find(f => f.id === currentFolder.parent_id);
-      if (parentFolder) {
-        setCurrentFolder(parentFolder);
-      }
+    const parentFolder = folders.find(f => f.id === currentFolder.parentId);
+    if (parentFolder) {
+      navigateToFolder(parentFolder);
     } else {
-      setCurrentFolder(null);
+      // Navigate to root if parent not found
+      const rootFolder = folders.find(f => f.path === '/') || {
+        id: 'root',
+        name: 'Root',
+        path: '/',
+        parentId: null
+      };
+      navigateToFolder(rootFolder);
     }
-  };
+  }, [currentFolder, folders, navigateToFolder]);
 
   // Navigate using breadcrumb
-  const navigateToBreadcrumb = (folder: ImageFolder | null) => {
-    setCurrentFolder(folder);
-  };
+  const navigateToBreadcrumb = useCallback((path: string) => {
+    const folder = folders.find(f => f.path === path);
+    if (folder) {
+      navigateToFolder(folder);
+    } else if (path === '/') {
+      // Navigate to root
+      const rootFolder = {
+        id: 'root',
+        name: 'Root',
+        path: '/',
+        parentId: null
+      };
+      navigateToFolder(rootFolder);
+    }
+  }, [folders, navigateToFolder]);
 
   return {
     folders,
     currentFolder,
     subfolders,
     breadcrumbs,
-    fetchAllFolders,
     navigateToFolder,
     navigateUp,
-    navigateToBreadcrumb,
-    setCurrentFolder
+    navigateToBreadcrumb
   };
-}
+};

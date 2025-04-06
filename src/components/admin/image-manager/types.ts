@@ -37,21 +37,14 @@ export interface ImageManagerContextType {
   viewImage: (url: string) => void;
 }
 
-// Define ImageMetadata type
-export interface ImageMetadata {
-  id: string;
-  file_name: string;
-  storage_path: string;
-  url: string;
-  alt_text?: string;
-  description?: string;
-  created_at?: string;
-  updated_at?: string;
-  bucket_id?: string;
-  tags?: string[];
-  dimensions?: any;
-  name?: string;
-  type?: string;
-  size?: number;
-  bucket?: string;
-}
+// Helper function to convert API response to ImageFolder
+export const mapApiResponseToImageFolder = (item: any): ImageFolder => {
+  return {
+    id: item.id,
+    name: item.name,
+    path: item.path,
+    parentId: item.parent_id,
+    created_at: item.created_at,
+    updated_at: item.updated_at
+  };
+};

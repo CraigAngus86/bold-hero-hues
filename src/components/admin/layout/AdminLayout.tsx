@@ -53,11 +53,6 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     // Implement logout logic
     navigate('/');
   };
-
-  // Function to close mobile menu - passed to SidebarNav
-  const closeMobileMenu = () => {
-    setIsMobileSidebarOpen(false);
-  };
   
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
@@ -95,6 +90,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <Avatar className="h-8 w-8">
+                <AvatarImage src="/admin-avatar.png" alt="Admin" />
                 <AvatarFallback>AD</AvatarFallback>
               </Avatar>
               <div className="ml-3">
@@ -125,7 +121,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             </div>
             
             <div className="flex-grow overflow-y-auto p-4">
-              <SidebarNav items={navItems} />
+              <SidebarNav 
+                items={navItems}
+              />
             </div>
             
             <div className="p-4 border-t border-gray-200 dark:border-gray-700">
@@ -183,7 +181,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         </header>
         
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto p-4 bg-gray-50 dark:bg-gray-900">
+        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
           {children}
         </main>
       </div>

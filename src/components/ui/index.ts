@@ -1,6 +1,6 @@
 
-import { Typography } from './Typography';
-import { Container } from './Container';
+import Typography from './Typography';
+import Container from './Container';
 import { 
   Table,
   TableBody,
@@ -10,6 +10,7 @@ import {
   TableHeader,
   TableRow 
 } from './Table';
+import { Button } from './button';
 
 export {
   Typography,
@@ -20,5 +21,6 @@ export {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
+  TableRow,
+  Button
 };

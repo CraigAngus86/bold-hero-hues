@@ -16,8 +16,8 @@ import { AdminLayout } from './components/admin/layout';
 import LeagueTablePage from './components/league/LeagueTablePage';
 import NotFoundPage from './pages/admin/NotFoundPage';
 import LeagueTableManagement from "./pages/admin/LeagueTableManagement";
-import Admin from './pages/Admin';
 import FixturesManagement from './pages/admin/FixturesManagement';
+import Admin from './pages/Admin';
 
 function App() {
   useEffect(() => {
@@ -37,10 +37,12 @@ function App() {
         <Route path="/404" element={<MainLayout><NotFoundPage /></MainLayout>} />
         <Route path="*" element={<Navigate to="/404" replace />} />
 
-        {/* Admin Routes */}
+        {/* Admin Routes - All using AdminLayout */}
         <Route path="/admin" element={<Admin />} />
-        <Route path="/admin/fixtures" element={<FixturesManagement />} />
-        <Route path="/admin/league-table-management" element={<LeagueTableManagement />} />
+        <Route path="/admin/fixtures" element={<AdminLayout><FixturesManagement /></AdminLayout>} />
+        <Route path="/admin/league-table-management" element={<AdminLayout><LeagueTableManagement /></AdminLayout>} />
+        
+        {/* Add more admin routes here as needed, all using AdminLayout */}
       </Routes>
       <Toaster />
     </HelmetProvider>

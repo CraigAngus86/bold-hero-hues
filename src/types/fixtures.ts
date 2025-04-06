@@ -1,5 +1,6 @@
 
-import { Match } from '@/components/fixtures/types';
+// The conflicting Match import should be removed and adapted to use our own Match type
+import { Match as OriginalMatch } from '@/components/fixtures/types';
 
 export interface Fixture {
   id: string;
@@ -153,7 +154,7 @@ export interface ScrapedFixture {
 /**
  * Converts database fixtures to frontend Match format
  */
-export function convertToMatches(fixtures: (DBFixture | ScrapedFixture)[]): Match[] {
+export function convertToMatches(fixtures: (DBFixture | ScrapedFixture)[]): OriginalMatch[] {
   return fixtures.map(fixture => ({
     id: 'id' in fixture ? fixture.id : `temp-${Math.random().toString(36).substring(2, 11)}`,
     date: fixture.date,

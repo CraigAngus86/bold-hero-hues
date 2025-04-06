@@ -1,56 +1,57 @@
 
+/**
+ * Represents a news article in the system
+ */
 export interface NewsArticle {
   id: string;
   title: string;
-  slug: string;
   content: string;
-  excerpt?: string;
-  author?: string;
-  category: string;
-  publish_date: string;
-  created_at: string;
-  updated_at: string;
   image_url?: string;
-  is_featured: boolean;
-}
-
-export interface NewsItem {
-  id: number;
-  title: string;
-  excerpt: string;
-  image: string;
-  date: string;
+  publish_date: string;
   category: string;
+  author?: string;
+  is_featured: boolean;
+  slug: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
-export interface NewsQueryOptions {
-  page?: number;
-  limit?: number;
-  orderBy?: string;
-  orderDirection?: 'asc' | 'desc';
-  category?: string;
-  featured?: boolean;
-  searchTerm?: string;
-}
-
+/**
+ * Data required to create a new article
+ */
 export interface CreateNewsArticleData {
   title: string;
   content: string;
+  image_url?: string;
+  publish_date?: string;
   category: string;
   author?: string;
-  image_url?: string;
   is_featured?: boolean;
-  publish_date?: string;
-  slug?: string;
+  slug: string;
 }
 
+/**
+ * Data for updating an existing article
+ */
 export interface UpdateNewsArticleData {
   title?: string;
   content?: string;
+  image_url?: string;
+  publish_date?: string;
   category?: string;
   author?: string;
-  image_url?: string;
   is_featured?: boolean;
-  publish_date?: string;
   slug?: string;
+}
+
+/**
+ * Options for querying news articles
+ */
+export interface NewsQueryOptions {
+  page?: number;
+  pageSize?: number;
+  category?: string;
+  featured?: boolean;
+  orderBy?: 'publish_date' | 'title' | 'created_at';
+  orderDirection?: 'asc' | 'desc';
 }

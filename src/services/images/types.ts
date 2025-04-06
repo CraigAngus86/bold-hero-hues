@@ -1,5 +1,5 @@
 
-import { Json } from '@supabase/supabase-js';
+import { type Json } from "@supabase/supabase-js";
 
 export type BucketType = 'avatars' | 'posts' | 'products' | 'general' | 'media' | 'images' | 'sponsors';
 
@@ -51,14 +51,23 @@ export interface StoredImageMetadata {
 
 export interface ImageMetadata {
   id: string;
+  name: string;
   file_name: string;
   bucket_id: string;
+  bucket?: string;
   storage_path: string;
+  path?: string;
   url: string;
+  type: string;
+  size: number;
+  width?: number;
+  height?: number;
   alt_text?: string;
   description?: string;
   created_at?: string;
+  createdAt?: string;
   updated_at?: string;
+  updatedAt?: string;
   created_by?: string;
   dimensions?: ImageDimensions;
   categories?: string[];
@@ -79,8 +88,12 @@ export interface ImageUploadResult {
   metadata?: StoredImageMetadata;
   data?: {
     url: string;
+    publicUrl?: string;
   };
+  path?: string;
 }
+
+export type UploadResult = ImageUploadResult;
 
 export interface UseImageUploadResult {
   uploading: boolean;

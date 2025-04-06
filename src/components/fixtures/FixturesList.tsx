@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Match } from './types';
+import { Match } from '@/types/fixtures';
 import MatchCard from './MatchCard';
 
 interface FixturesListProps {

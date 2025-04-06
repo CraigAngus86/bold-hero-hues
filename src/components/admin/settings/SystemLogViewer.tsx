@@ -80,7 +80,7 @@ export const SystemLogViewer: React.FC<SystemLogViewerProps> = ({
     }
   };
 
-  const getLogTypeBadgeVariant = (type: SystemLog['type']) => {
+  const getLogTypeBadgeVariant = (type: SystemLog['type']): 'destructive' | 'secondary' | 'default' | 'outline' | 'success' => {
     switch (type) {
       case 'error':
         return 'destructive';

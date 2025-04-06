@@ -59,6 +59,7 @@ export interface DBFixture extends Fixture {
 export interface ScrapedFixture extends Partial<Fixture> {
   source: string;
   import_date: string;
+  success?: boolean;
 }
 
 // Add ImportResult interface for fixture import operations
@@ -69,6 +70,21 @@ export interface ImportResult {
   updated: number;
   valid?: boolean;
   validFixtures?: ScrapedFixture[];
+}
+
+// Match interface for front-end representation
+export interface Match {
+  id: string;
+  date: string;
+  time: string;
+  homeTeam: string;
+  awayTeam: string;
+  competition: string;
+  venue?: string;
+  isCompleted: boolean;
+  homeScore?: number;
+  awayScore?: number;
+  ticketLink?: string;
 }
 
 // Import and re-export the conversion functions from the utility file

@@ -1,65 +1,57 @@
 
-import { useCallback, useEffect, useState } from 'react';
-import { getSystemStatus, SystemStatusData } from '@/services/logs/systemLogsService';
+import { useState, useEffect, useRef } from 'react';
+import { getSystemStatus } from '@/services/logs/systemLogsService';
 
-export interface DashboardData {
-  system: SystemStatusData;
-  lastUpdated: Date;
-}
-
-/**
- * Hook to periodically refresh dashboard data
- * @param initialInterval - Initial refresh interval in milliseconds (default: 60000 = 1 minute)
- */
-export const useDashboardRefresh = (initialInterval = 60000) => {
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [refreshInterval, setRefreshInterval] = useState<number>(initialInterval);
+export function useDashboardRefresh(refreshInterval = 60000) {
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
-  
-  const refresh = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      
-      // Fetch system data
-      const systemData = await getSystemStatus();
-      
-      setData({
-        system: systemData,
-        lastUpdated: new Date()
-      });
-      
-      setLastRefreshed(new Date());
-      setError(null);
-    } catch (err) {
-      console.error('Error fetching dashboard data:', err);
-      setError(err instanceof Error ? err : new Error('Unknown error occurred'));
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-  
-  // Initial load
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
-  
-  // Set up interval for auto-refresh
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      refresh();
-    }, refreshInterval);
+  const [nextRefresh, setNextRefresh] = useState<Date>(new Date(Date.now() + refreshInterval));
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const refresh = async () => {
+    if (isRefreshing) return;
     
-    return () => clearInterval(intervalId);
-  }, [refresh, refreshInterval]);
-  
-  return {
-    data,
-    isLoading,
-    error,
-    refresh,
-    lastRefreshed,
-    setRefreshInterval
+    setIsRefreshing(true);
+    try {
+      // Simulate refresh by getting system status
+      await getSystemStatus();
+      
+      // Update refresh timestamps
+      const now = new Date();
+      setLastRefreshed(now);
+      setNextRefresh(new Date(now.getTime() + refreshInterval));
+    } catch (error) {
+      console.error('Error refreshing dashboard:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
-};
+
+  const toggleAutoRefresh = () => {
+    setAutoRefresh(prev => !prev);
+  };
+
+  useEffect(() => {
+    if (autoRefresh) {
+      timerRef.current = setInterval(() => {
+        refresh();
+      }, refreshInterval);
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [autoRefresh, refreshInterval]);
+
+  return {
+    lastRefreshed,
+    nextRefresh,
+    isRefreshing,
+    autoRefresh,
+    toggleAutoRefresh,
+    refresh
+  };
+}

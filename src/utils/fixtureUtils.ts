@@ -1,47 +1,30 @@
 
-import { Fixture, FixtureExtended } from '@/types/fixtures';
-import { Match } from '@/components/fixtures/types';
+import { Fixture, Match } from '@/types/fixtures';
 
 /**
- * Converts a Fixture or FixtureExtended object to Match format
+ * Convert database fixtures to frontend Match objects
  */
-export const fixtureToMatch = (fixture: Fixture | FixtureExtended): Match => {
-  return {
+export const fixturesToMatches = (fixtures: Fixture[]): Match[] => {
+  return fixtures.map(fixture => ({
     id: fixture.id,
     date: fixture.date,
     time: fixture.time,
     homeTeam: fixture.home_team,
     awayTeam: fixture.away_team,
     competition: fixture.competition,
-    venue: fixture.venue || '',
+    venue: fixture.venue,
     isCompleted: fixture.is_completed || false,
-    homeScore: fixture.home_score !== undefined && fixture.home_score !== null 
-      ? Number(fixture.home_score) 
-      : null,
-    awayScore: fixture.away_score !== undefined && fixture.away_score !== null 
-      ? Number(fixture.away_score) 
-      : null,
-    ticketLink: fixture.ticket_link,
-    season: fixture.season,
-    match_report: fixture.match_report,
-    attendance: fixture.attendance !== undefined ? String(fixture.attendance) : undefined,
-    referee: fixture.referee,
-    hasMatchPhotos: false, // Default value
-  };
+    homeScore: fixture.home_score !== null && fixture.home_score !== undefined ? Number(fixture.home_score) : undefined,
+    awayScore: fixture.away_score !== null && fixture.away_score !== undefined ? Number(fixture.away_score) : undefined,
+    ticketLink: fixture.ticket_link
+  }));
 };
 
 /**
- * Converts an array of Fixtures to Match format
+ * Convert frontend Match objects to database Fixtures
  */
-export const fixturesToMatches = (fixtures: (Fixture | FixtureExtended)[]): Match[] => {
-  return fixtures.map(fixtureToMatch);
-};
-
-/**
- * Converts a Match object to Fixture format
- */
-export const matchToFixture = (match: Match): Fixture => {
-  return {
+export const matchesToFixtures = (matches: Match[]): Fixture[] => {
+  return matches.map(match => ({
     id: match.id,
     date: match.date,
     time: match.time,
@@ -49,17 +32,28 @@ export const matchToFixture = (match: Match): Fixture => {
     away_team: match.awayTeam,
     competition: match.competition,
     venue: match.venue,
-    season: match.season || '',
     is_completed: match.isCompleted,
-    home_score: match.homeScore !== null ? Number(match.homeScore) : null,
-    away_score: match.awayScore !== null ? Number(match.awayScore) : null,
-    ticket_link: match.ticketLink,
-    import_date: new Date().toISOString(),
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    date_passed: new Date(match.date) < new Date(),
-    match_report: match.match_report,
-    attendance: match.attendance,
-    referee: match.referee
-  };
+    home_score: match.homeScore !== undefined ? match.homeScore : null,
+    away_score: match.awayScore !== undefined ? match.awayScore : null,
+    ticket_link: match.ticketLink
+  }));
+};
+
+/**
+ * Check if a fixture date has passed
+ */
+export const hasFixtureDatePassed = (fixture: Fixture): boolean => {
+  if (!fixture.date) return false;
+  
+  const fixtureDate = new Date(fixture.date);
+  
+  // If there's a time, add it to the fixture date
+  if (fixture.time) {
+    const [hours, minutes] = fixture.time.split(':').map(Number);
+    fixtureDate.setHours(hours || 0);
+    fixtureDate.setMinutes(minutes || 0);
+  }
+  
+  const now = new Date();
+  return fixtureDate < now;
 };

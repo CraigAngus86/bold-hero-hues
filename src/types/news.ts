@@ -49,9 +49,24 @@ export interface UpdateNewsArticleData {
  */
 export interface NewsQueryOptions {
   page?: number;
-  pageSize?: number;
+  limit?: number; // Added for API compatibility
+  pageSize?: number; // Used in the UI
   category?: string;
   featured?: boolean;
   orderBy?: 'publish_date' | 'title' | 'created_at';
   orderDirection?: 'asc' | 'desc';
+  searchTerm?: string; // Added for search functionality
+}
+
+/**
+ * Represents a news item in the store
+ * Used for backwards compatibility
+ */
+export interface NewsItem {
+  id: number;
+  title: string;
+  excerpt: string;
+  image: string;
+  date: string;
+  category: string;
 }

@@ -23,8 +23,16 @@ export const createSlug = (text: string): string => {
     .replace(/-+$/, '');            // Trim - from end of text
 };
 
-// Export other utility functions
-export { formatDate } from './date';
+// Define formatDate function directly here instead of importing it
+export const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  const options: Intl.DateTimeFormatOptions = { 
+    weekday: 'long', 
+    day: 'numeric', 
+    month: 'short'
+  };
+  return new Date(dateString).toLocaleDateString('en-GB', options);
+};
 
 // Export the slugify function from stringUtils as an alias for backward compatibility
 export { slugify } from './stringUtils';

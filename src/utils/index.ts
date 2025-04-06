@@ -1,5 +1,4 @@
 
 // Utility functions
-export { cn } from './cn';
-export { formatDate } from './date';
+export { cn, createSlug, formatDate, getOrdinalSuffix } from '@/lib/utils';
 // Add other utility functions as needed

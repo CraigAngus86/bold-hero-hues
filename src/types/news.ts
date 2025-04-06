@@ -32,8 +32,8 @@ export interface NewsQueryOptions {
   category?: string;
   featured?: boolean;
   search?: string;
-  orderBy?: 'newest' | 'oldest';
-  searchTerm?: string; // Adding missing properties
+  orderBy?: 'newest' | 'oldest' | 'title' | 'publish_date' | 'created_at';
+  searchTerm?: string;
   orderDirection?: string;
   page?: number;
 }
@@ -42,7 +42,7 @@ export interface CreateNewsArticleData {
   title: string;
   content: string;
   category: string;
-  slug: string;  // Making slug required
+  slug: string;
   image_url?: string;
   publish_date?: string;
   author?: string;
@@ -60,11 +60,4 @@ export interface UpdateNewsArticleData {
   is_featured?: boolean;
 }
 
-// Use export type for re-exports
-export type { 
-  NewsArticle,
-  NewsItem,
-  NewsQueryOptions,
-  CreateNewsArticleData,
-  UpdateNewsArticleData
-};
+// Remove duplicate exports

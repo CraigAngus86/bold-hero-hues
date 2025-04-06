@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { ImageMetadata } from '@/services/images';
+import { ImageMetadata } from '@/services/images/media-types';
 import {
   Dialog,
   DialogContent,

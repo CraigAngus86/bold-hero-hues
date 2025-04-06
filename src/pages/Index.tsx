@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Navbar, Footer } from '@/components/layout';
 import EnhancedHero from '@/components/home/EnhancedHero';
@@ -17,10 +16,10 @@ const Index = () => {
   
   // Get recent news
   useEffect(() => {
-    if (newsStore.fetchRecentNews) {
-      newsStore.fetchRecentNews();
-    }
-  }, [newsStore]);
+    // Use existing news from the store instead of fetching
+    // We assume news is already loaded from the store persistence
+    // If you need to fetch news, you should implement that separately
+  }, []);
   
   // Format featured content items
   const getFeaturedContentItems = () => {

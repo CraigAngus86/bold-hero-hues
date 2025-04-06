@@ -1,4 +1,5 @@
 
+// Make sure this file is properly exporting useCategories
 import { useQuery } from '@tanstack/react-query';
 import { getNewsCategories } from '@/services/newsService';
 

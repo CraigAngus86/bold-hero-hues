@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 import { useState, useCallback } from 'react';
 import {
@@ -284,12 +283,4 @@ export async function createFolder(bucket: BucketType, folderPath: string): Prom
 }
 
 // Export image metadata types and helper functions
-export type { 
-  BucketType, 
-  ImageOptimizationOptions, 
-  StoredImageMetadata, 
-  ImageDimensions, 
-  ImageUploadResult 
-};
-
-// Removing the duplicate export of createFolder that was causing the error
+export * from './types';

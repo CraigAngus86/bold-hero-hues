@@ -1,4 +1,3 @@
-
 import { Match } from '@/components/fixtures/types';
 import { Fixture } from '@/types/fixtures';
 
@@ -62,3 +61,4 @@ export function adaptMatchToFixture(match: Match): Fixture {
 export function adaptMatchesToFixtures(matches: Match[]): Fixture[] {
   return matches.map(adaptMatchToFixture);
 }
+

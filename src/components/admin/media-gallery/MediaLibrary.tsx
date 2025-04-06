@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Grid, Search, FilterX, Filter, RefreshCw, SlidersHorizontal, Download } from 'lucide-react';
 import useDebounce from '@/hooks/useDebounce';
-import { ImageMetadata } from '@/services/images';
+import { ImageMetadata } from '@/services/images/media-types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -36,7 +36,6 @@ import { toast } from 'sonner';
 import MediaCard from './MediaCard';
 import MediaDetailsDialog from './MediaDetailsDialog';
 
-// Mock data for initial development until Supabase integration is complete
 const mockImages: ImageMetadata[] = [
   {
     id: '1',
@@ -104,7 +103,6 @@ const mockImages: ImageMetadata[] = [
   }
 ];
 
-// Mock categories for filtering
 const mockCategories = [
   { id: '1', name: 'Match Day' },
   { id: '2', name: 'Team' },

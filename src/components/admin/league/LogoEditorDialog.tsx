@@ -1,113 +1,176 @@
-
-import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { TeamStats } from '@/components/league/types';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from "sonner";
+import React, { useState, useCallback } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { toast } from '@/components/ui/use-toast';
+import { useLeagueStore } from '@/services/leagueService';
+import { UploadCloud, Check, X } from 'lucide-react';
 
 interface LogoEditorDialogProps {
-  selectedTeam: TeamStats | null;
   isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSuccess: () => void;
+  onClose: () => void;
+  leagueId: string;
+  currentLogoUrl?: string;
 }
 
-const LogoEditorDialog: React.FC<LogoEditorDialogProps> = ({ 
-  selectedTeam, 
-  isOpen, 
-  onOpenChange,
-  onSuccess
-}) => {
-  const [logoUrl, setLogoUrl] = useState<string>("");
-  
-  // Reset logo URL when selected team changes
-  useEffect(() => {
-    setLogoUrl(selectedTeam?.logo || "");
-  }, [selectedTeam]);
-  
-  const handleUpdateLogo = async () => {
-    if (!selectedTeam || !logoUrl.trim()) return;
-    
+const LogoEditorDialog: React.FC<LogoEditorDialogProps> = ({ isOpen, onClose, leagueId, currentLogoUrl }) => {
+  const { updateLeagueLogo } = useLeagueStore();
+  const [logoUrl, setLogoUrl] = useState(currentLogoUrl || '');
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [newLogoFile, setNewLogoFile] = useState<File | null>(null);
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setNewLogoFile(file);
+    const imageUrl = URL.createObjectURL(file);
+    setLogoUrl(imageUrl);
+  };
+
+  const handleRemoveLogo = () => {
+    setLogoUrl('');
+    setNewLogoFile(null);
+  };
+
+  const handleSave = async () => {
+    setIsUploading(true);
     try {
-      // Check if the team has an id before attempting to update
-      if (selectedTeam.id === undefined) {
-        toast.error('Cannot update team without an ID');
-        return;
+      if (newLogoFile) {
+        // Simulate upload process
+        setUploadProgress(50);
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+        setUploadProgress(100);
+        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate processing delay
+
+        // Here, you would typically upload the file to a storage service
+        // and get the URL of the uploaded file.
+        // For this example, we'll just use a placeholder URL.
+        const uploadedLogoUrl = 'https://example.com/uploaded-logo.png';
+
+        await updateLeagueLogo(leagueId, uploadedLogoUrl);
+        toast({
+          title: "Logo updated",
+          description: "The league logo has been successfully updated."
+        });
+        onClose();
+      } else {
+        // If no new file is selected, but there's a current logo URL, save it
+        if (logoUrl) {
+          await updateLeagueLogo(leagueId, logoUrl);
+          toast({
+            title: "Logo updated",
+            description: "The league logo has been successfully updated."
+          });
+          onClose();
+        } else {
+          toast({
+            title: "No logo selected",
+            description: "Please select a logo to upload.",
+            variant: "destructive"
+          });
+        }
       }
-      
-      const { error } = await supabase
-        .from('highland_league_table')
-        .update({ logo: logoUrl })
-        .eq('id', selectedTeam.id);
-      
-      if (error) throw error;
-      
-      toast.success(`Updated logo for ${selectedTeam.team}`);
-      onSuccess();
-      onOpenChange(false);
     } catch (error) {
-      console.error('Error updating logo:', error);
-      toast.error('Failed to update team logo');
+      console.error("Error updating logo:", error);
+      toast({
+        title: "Error updating logo",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
     }
   };
-  
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
-          <DialogTitle>Update Team Logo</DialogTitle>
+          <DialogTitle>Edit League Logo</DialogTitle>
+          <DialogDescription>
+            Upload a new logo for the league.
+          </DialogDescription>
         </DialogHeader>
-        
-        {selectedTeam && (
-          <div className="space-y-4">
-            <div className="flex items-center space-x-4">
-              <p className="font-medium">{selectedTeam.team}</p>
-              {selectedTeam.logo && (
-                <img 
-                  src={selectedTeam.logo} 
-                  alt={`${selectedTeam.team} current logo`} 
-                  className="h-12 w-12 object-contain border border-gray-200 rounded-md p-1" 
-                />
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="logo" className="text-right">
+              League Logo
+            </Label>
+            <div className="col-span-3">
+              {logoUrl ? (
+                <div className="relative w-32 h-32 rounded-full overflow-hidden">
+                  <img
+                    src={logoUrl}
+                    alt="League Logo"
+                    className="object-cover w-full h-full"
+                  />
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-0 right-0 rounded-full shadow-md"
+                    onClick={handleRemoveLogo}
+                  >
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Remove logo</span>
+                  </Button>
+                </div>
+              ) : (
+                <div className="border-2 border-dashed rounded-md p-4 text-center">
+                  <UploadCloud className="mx-auto h-6 w-6 text-gray-500" />
+                  <p className="mt-2 text-sm text-gray-500">
+                    Click to upload
+                  </p>
+                </div>
               )}
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="logoUrl">Logo URL</Label>
-              <Input 
-                id="logoUrl" 
-                placeholder="Enter logo URL" 
-                value={logoUrl} 
-                onChange={(e) => setLogoUrl(e.target.value)} 
+              <Input
+                type="file"
+                id="logo"
+                accept="image/*"
+                className="hidden"
+                onChange={handleLogoChange}
               />
-              <p className="text-xs text-gray-500">
-                Enter a URL to an image. Ideally a transparent PNG logo.
-              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => document.getElementById('logo')?.click()}
+                disabled={isUploading}
+              >
+                {isUploading ? `Uploading... ${uploadProgress}%` : 'Select Logo'}
+              </Button>
             </div>
-            
-            {logoUrl && (
-              <div className="border border-gray-200 rounded-md p-2">
-                <p className="text-sm font-medium mb-2">Preview:</p>
-                <img 
-                  src={logoUrl} 
-                  alt="Logo preview" 
-                  className="h-12 w-12 object-contain mx-auto"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "https://placehold.co/100x100/gray/white?text=Error";
-                  }}
-                />
-              </div>
-            )}
           </div>
-        )}
-        
+        </div>
         <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
-          </DialogClose>
-          <Button onClick={handleUpdateLogo}>Update Logo</Button>
+          <Button variant="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={isUploading}>
+            {isUploading ? (
+              <>
+                <svg className="animate-spin mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Updating...
+              </>
+            ) : (
+              <>
+                <Check className="mr-2 h-4 w-4" />
+                Save changes
+              </>
+            )}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

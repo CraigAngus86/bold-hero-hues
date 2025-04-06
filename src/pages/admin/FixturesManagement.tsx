@@ -62,25 +62,25 @@ const FixturesManagement: React.FC = () => {
       if (error) throw error;
       
       // Convert DB format to our app format
-      const formattedFixtures = data.map(fixture => ({
+      const fixturesWithFormattedData = data.map(fixture => ({
+        ...fixture,
+        home_team: fixture.homeTeam || fixture.home_team,
+        away_team: fixture.awayTeam || fixture.away_team,
+        ticket_link: fixture.ticketLink || fixture.ticket_link,
+      })) as unknown as Fixture[];
+      
+      const matchesForCalendar = fixturesWithFormattedData.map(fixture => ({
         id: fixture.id,
-        date: fixture.date,
-        time: fixture.time,
         homeTeam: fixture.home_team,
         awayTeam: fixture.away_team,
-        competition: fixture.competition,
+        date: fixture.date,
+        time: fixture.time,
         venue: fixture.venue,
+        competition: fixture.competition,
         isCompleted: fixture.is_completed,
-        homeScore: fixture.home_score,
-        awayScore: fixture.away_score,
-        ticketLink: fixture.ticket_link,
-        source: fixture.source,
-        match_report: fixture.match_report,
-        attendance: fixture.attendance,
-        referee: fixture.referee
-      })) as Fixture[];
+      }));
       
-      setFixtures(formattedFixtures);
+      setFixtures(matchesForCalendar);
     } catch (error) {
       console.error('Error fetching fixtures:', error);
       toast.error('Failed to load fixtures data');

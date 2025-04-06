@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +7,26 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { PlusCircle, Edit, Trash } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { useNewsStore, NewsItem, formatDate, getDbDateFormat } from '@/services/news';
+import { useNewsStore } from '@/hooks/useNewsStore';
+import { NewsItem } from '@/types/news';
+
+// Helper function to format dates
+const formatDate = (dateString: string): string => {
+  try {
+    return new Date(dateString).toLocaleDateString();
+  } catch (e) {
+    return dateString;
+  }
+};
+
+// Helper function to convert date to database format
+const getDbDateFormat = (dateString: string): string => {
+  try {
+    return new Date(dateString).toISOString().split('T')[0];
+  } catch (e) {
+    return dateString;
+  }
+};
 
 const NewsManager = () => {
   const { toast } = useToast();
@@ -16,12 +36,14 @@ const NewsManager = () => {
   
   const openNewDialog = () => {
     setCurrentNews({
-      id: 0, // This will be set by the store
+      id: '', // This will be set by the store
       title: '',
       excerpt: '',
-      image: '',
-      date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
-      category: ''
+      image_url: '',
+      publish_date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
+      category: '',
+      is_featured: false,
+      slug: '',
     });
     setDialogOpen(true);
   };
@@ -30,7 +52,7 @@ const NewsManager = () => {
     // Make sure we convert any display-formatted dates to YYYY-MM-DD
     const formattedNews = {
       ...newsItem,
-      date: getDbDateFormat(newsItem.date)
+      publish_date: getDbDateFormat(newsItem.publish_date)
     };
     setCurrentNews(formattedNews);
     setDialogOpen(true);
@@ -41,7 +63,7 @@ const NewsManager = () => {
     setCurrentNews(null);
   };
   
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     deleteNews(id);
     toast({
       title: "News item deleted",
@@ -54,7 +76,7 @@ const NewsManager = () => {
     
     if (!currentNews) return;
     
-    if (currentNews.id > 0) {
+    if (currentNews.id) {
       // Update existing
       updateNews(currentNews);
       toast({
@@ -98,7 +120,7 @@ const NewsManager = () => {
             <TableRow key={item.id}>
               <TableCell className="font-medium">{item.title}</TableCell>
               <TableCell>{item.category}</TableCell>
-              <TableCell>{formatDate(item.date)}</TableCell>
+              <TableCell>{formatDate(item.publish_date)}</TableCell>
               <TableCell>
                 <div className="flex space-x-2">
                   <Button variant="ghost" size="sm" onClick={() => openEditDialog(item)}>
@@ -146,8 +168,8 @@ const NewsManager = () => {
                 <Input
                   id="date"
                   type="date"
-                  value={currentNews?.date || ''}
-                  onChange={(e) => setCurrentNews(prev => prev ? {...prev, date: e.target.value} : null)}
+                  value={currentNews?.publish_date || ''}
+                  onChange={(e) => setCurrentNews(prev => prev ? {...prev, publish_date: e.target.value} : null)}
                   className="col-span-3"
                   required
                 />
@@ -156,8 +178,8 @@ const NewsManager = () => {
                 <label htmlFor="image" className="text-right text-sm font-medium">Image URL</label>
                 <Input
                   id="image"
-                  value={currentNews?.image || ''}
-                  onChange={(e) => setCurrentNews(prev => prev ? {...prev, image: e.target.value} : null)}
+                  value={currentNews?.image_url || ''}
+                  onChange={(e) => setCurrentNews(prev => prev ? {...prev, image_url: e.target.value} : null)}
                   className="col-span-3"
                   required
                 />

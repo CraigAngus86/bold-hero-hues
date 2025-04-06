@@ -78,7 +78,9 @@ const TeamMembersManager: React.FC<TeamMembersManagerProps> = ({ onEditMember })
       previous_clubs: [],
       experience: '',
       is_active: true,
-      stats: {}
+      stats: {},
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     });
     if (onEditMember) {
       onEditMember(currentMember!);

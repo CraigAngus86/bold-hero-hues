@@ -2,17 +2,28 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { NewsItem } from '@/types/news';
-import { initialNews } from '@/services/news/mockData';
 
 interface NewsStore {
   news: NewsItem[];
   addNews: (news: Omit<NewsItem, 'id'>) => void;
   updateNews: (news: NewsItem) => void;
-  deleteNews: (id: number) => void;
-  getNewsById: (id: number) => NewsItem | undefined;
+  deleteNews: (id: string) => void;
+  getNewsById: (id: string) => NewsItem | undefined;
   clearAllNews: () => void;
   restoreDefaultNews: () => void;
 }
+
+// Convert initialNews ids to strings if they're numbers
+const convertToStringIds = (newsItems: any[]): NewsItem[] => {
+  return newsItems.map(item => ({
+    ...item,
+    id: String(item.id)
+  }));
+};
+
+// Import initialNews and make sure IDs are strings
+import { initialNews as _initialNews } from '@/services/news/mockData';
+const initialNews = convertToStringIds(_initialNews);
 
 // Create a store with persistence
 export const useNewsStore = create<NewsStore>()(
@@ -22,8 +33,8 @@ export const useNewsStore = create<NewsStore>()(
       
       addNews: (newsItem) => set((state) => {
         const newId = state.news.length > 0 
-          ? Math.max(...state.news.map(item => item.id)) + 1 
-          : 1;
+          ? String(Math.max(...state.news.map(item => parseInt(item.id))) + 1)
+          : "1";
         
         return {
           news: [...state.news, { ...newsItem, id: newId }]

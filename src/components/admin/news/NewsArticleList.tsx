@@ -1,678 +1,358 @@
-import React, { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getNewsArticles, deleteNewsArticle, toggleArticleFeatured } from '@/services/newsService';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Typography } from '@/components/ui';
-import DataTable from '@/components/tables/DataTable';
-import { format } from 'date-fns';
-import { 
-  Eye, Trash2, Star, Edit, Search, Filter, Calendar, SlidersHorizontal,
-  FileText, Clock, User, X, ChevronDown, Save
-} from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { useQuery } from '@tanstack/react-query';
+import { fetchNewsArticles, deleteNewsArticle, toggleArticleFeatured } from '@/services/newsService';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { PlusCircle, Search, Edit, Trash2, Star, Filter } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle, 
-  AlertDialogTrigger 
-} from "@/components/ui/alert-dialog";
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { 
-  Popover, 
-  PopoverContent, 
-  PopoverTrigger 
-} from "@/components/ui/popover";
-import { NewsArticle } from '@/types';
-import { cn } from '@/lib/utils';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Separator } from '@/components/ui/separator';
-import { DatePickerWithRange } from '@/components/ui/date-range-picker';
-import { DateRange } from 'react-day-picker';
-
-const { H3, H4, Body, Small } = Typography;
+import { NewsArticle } from '@/types/news';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  getPaginationRowModel,
+  useReactTable,
+} from "@tanstack/react-table"
+import { Checkbox } from "@/components/ui/checkbox"
+import { MoreHorizontal } from "lucide-react"
+import { cn } from "@/lib/utils"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { format } from 'date-fns';
 
 interface EnhancedNewsArticleListProps {
-  onEditArticle: (article: NewsArticle) => void;
+  onEdit: (article: NewsArticle) => void;
+  onCreateNew: () => void;
 }
 
-export const EnhancedNewsArticleList: React.FC<EnhancedNewsArticleListProps> = ({ onEditArticle }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [featuredFilter, setFeaturedFilter] = useState<boolean | undefined>(undefined);
-  const [sortField, setSortField] = useState<'publish_date' | 'title' | 'created_at'>('publish_date');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
-  const [selectedAuthors, setSelectedAuthors] = useState<string[]>([]);
-  const [filterOpen, setFilterOpen] = useState(false);
-  const queryClient = useQueryClient();
+export const EnhancedNewsArticleList: React.FC<EnhancedNewsArticleListProps> = ({ 
+  onEdit,
+  onCreateNew 
+}) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  // User preferences
-  const [userPreferences, setUserPreferences] = useState({
-    savedFilters: false,
+  const {
+    data,
+    isLoading,
+    error,
+    refetch
+  } = useQuery({
+    queryKey: ['news'],
+    queryFn: () => fetchNewsArticles({
+      orderBy: sortOrder
+    })
   });
 
-  // Fetch news articles
-  const { data: responseData, isLoading } = useQuery({
-    queryKey: ['newsArticles'],
-    queryFn: () => getNewsArticles({ 
-      orderBy: sortField, 
-      orderDirection: sortDirection 
-    }),
-  });
-
-  // Process the articles data
-  const articles = React.useMemo(() => {
-    if (!responseData) return [];
-    
-    if (Array.isArray(responseData)) {
-      return responseData;
-    } else if (responseData && typeof responseData === 'object') {
-      if ('success' in responseData && responseData.data) {
-        if (Array.isArray(responseData.data)) {
-          return responseData.data;
-        } else if (responseData.data.data && Array.isArray(responseData.data.data)) {
-          return responseData.data.data;
-        }
-      }
-      else if ('data' in responseData) {
-        return Array.isArray(responseData.data) ? responseData.data : [];
-      }
-    }
-    
-    return [];
-  }, [responseData]);
-
-  // Extract unique categories and authors
-  const categories = React.useMemo(() => {
-    if (!articles || articles.length === 0) return [];
-    return [...new Set(articles.map(article => article.category))].filter(Boolean);
-  }, [articles]);
-
-  const authors = React.useMemo(() => {
-    if (!articles || articles.length === 0) return [];
-    return [...new Set(articles.map(article => article.author))].filter(Boolean);
-  }, [articles]);
-
-  // Filter articles based on all criteria
-  const filteredArticles = React.useMemo(() => {
-    if (!articles || articles.length === 0) return [];
-    
-    return articles.filter(article => {
-      // Search term filter
-      const matchesSearch = searchTerm 
-        ? article.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-          article.content.toLowerCase().includes(searchTerm.toLowerCase())
-        : true;
-        
-      // Category filter
-      const matchesCategory = selectedCategories.length > 0
-        ? selectedCategories.includes(article.category)
-        : true;
-      
-      // Featured filter
-      const matchesFeatured = featuredFilter !== undefined 
-        ? article.is_featured === featuredFilter 
-        : true;
-      
-      // Date range filter
-      const matchesDateRange = dateRange?.from && dateRange?.to
-        ? new Date(article.publish_date) >= dateRange.from && 
-          new Date(article.publish_date) <= (dateRange.to || dateRange.from)
-        : true;
-      
-      // Author filter
-      const matchesAuthor = selectedAuthors.length > 0
-        ? article.author && selectedAuthors.includes(article.author)
-        : true;
-        
-      return matchesSearch && matchesCategory && matchesFeatured && matchesDateRange && matchesAuthor;
-    });
-  }, [articles, searchTerm, selectedCategories, featuredFilter, dateRange, selectedAuthors]);
-
-  // Load saved preferences from localStorage when component mounts
-  useEffect(() => {
-    const savedPreferences = localStorage.getItem('newsFilters');
-    if (savedPreferences && userPreferences.savedFilters) {
-      try {
-        const filters = JSON.parse(savedPreferences);
-        setSelectedCategories(filters.selectedCategories || []);
-        setFeaturedFilter(filters.featuredFilter);
-        setSortField(filters.sortField || 'publish_date');
-        setSortDirection(filters.sortDirection || 'desc');
-        setSelectedAuthors(filters.selectedAuthors || []);
-        // We don't restore date range as it would be confusing
-      } catch (error) {
-        console.error('Error loading saved preferences', error);
-      }
-    }
-  }, [userPreferences.savedFilters]);
-
-  // Save filter preferences when they change
-  useEffect(() => {
-    if (userPreferences.savedFilters) {
-      localStorage.setItem('newsFilters', JSON.stringify({
-        selectedCategories,
-        featuredFilter,
-        sortField,
-        sortDirection,
-        selectedAuthors
-      }));
-    }
-  }, [selectedCategories, featuredFilter, sortField, sortDirection, selectedAuthors, userPreferences.savedFilters]);
-
-  // Delete article mutation
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteNewsArticle(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['newsArticles'] });
-      toast.success('Article deleted successfully');
-    },
-    onError: (error) => {
-      toast.error('Failed to delete article');
-      console.error('Error deleting article:', error);
-    },
-  });
-
-  // Toggle featured status mutation
-  const toggleFeaturedMutation = useMutation({
-    mutationFn: ({ id, featured }: { id: string; featured: boolean }) => 
-      toggleArticleFeatured(id, featured),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['newsArticles'] });
-      toast.success('Article updated successfully');
-    },
-    onError: (error) => {
-      toast.error('Failed to update article');
-      console.error('Error updating article:', error);
-    },
-  });
-
-  const handleToggleFeatured = (id: string, currentStatus: boolean) => {
-    toggleFeaturedMutation.mutate({ id, featured: !currentStatus });
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
   };
 
-  const handleDeleteArticle = (id: string) => {
-    deleteMutation.mutate(id);
-  };
-
-  const clearAllFilters = () => {
-    setSearchTerm('');
-    setSelectedCategories([]);
-    setFeaturedFilter(undefined);
-    setDateRange(undefined);
-    setSelectedAuthors([]);
-  };
-
-  const toggleSaveFilters = () => {
-    setUserPreferences(prev => {
-      const newValue = !prev.savedFilters;
-      
-      if (!newValue) {
-        // Clear saved preferences if disabled
-        localStorage.removeItem('newsFilters');
-      }
-      
-      return { ...prev, savedFilters: newValue };
-    });
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this article?')) return;
     
-    toast.success(
-      userPreferences.savedFilters 
-        ? 'Filter preferences will no longer be saved' 
-        : 'Filter preferences will be saved for future sessions'
-    );
+    try {
+      const result = await deleteNewsArticle(id);
+      if (result.success) {
+        toast.success('Article deleted successfully');
+        refetch();
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      toast.error(`Failed to delete article: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
 
-  const columns = [
-    {
-      key: 'title',
-      title: 'Title',
-      render: (article: NewsArticle) => (
-        <div className="max-w-md truncate font-medium">{article.title}</div>
-      )
-    },
-    {
-      key: 'publish_date',
-      title: 'Date',
-      render: (article: NewsArticle) => (
-        <div className="flex items-center">
-          <Calendar size={14} className="mr-2 text-gray-500" />
-          {format(new Date(article.publish_date), 'MMM d, yyyy')}
-        </div>
-      )
-    },
-    {
-      key: 'category',
-      title: 'Category',
-      render: (article: NewsArticle) => (
-        <Badge variant="secondary" className="font-normal">
-          {article.category}
-        </Badge>
-      )
-    },
-    {
-      key: 'author',
-      title: 'Author',
-      render: (article: NewsArticle) => (
-        <div className="max-w-[150px] truncate">
-          {article.author || <span className="text-gray-400">-</span>}
-        </div>
-      )
-    },
-    {
-      key: 'is_featured',
-      title: 'Featured',
-      render: (article: NewsArticle) => (
-        <Switch
-          checked={article.is_featured}
-          onCheckedChange={() => handleToggleFeatured(article.id, article.is_featured)}
-          className={cn(
-            article.is_featured ? "bg-accent-500" : "bg-gray-200"
-          )}
-        />
-      )
-    },
-    {
-      key: 'actions',
-      title: 'Actions',
-      render: (article: NewsArticle) => (
-        <div className="flex space-x-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onEditArticle(article)}
-            title="Edit article"
-          >
-            <Edit size={16} />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            asChild
-            title="Preview article"
-          >
-            <a href={`/news/${article.slug}`} target="_blank" rel="noopener noreferrer">
-              <Eye size={16} />
-            </a>
-          </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-red-500 hover:bg-red-50 hover:text-red-600"
-                title="Delete article"
-              >
-                <Trash2 size={16} />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete Article</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to delete this article? This action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => handleDeleteArticle(article.id)}
-                  className="bg-red-500 hover:bg-red-600"
-                >
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      )
+  const handleToggleFeatured = async (article: NewsArticle) => {
+    try {
+      const result = await toggleArticleFeatured(article.id, !article.is_featured);
+      if (result.success) {
+        toast.success(`Article ${result.data?.is_featured ? 'featured' : 'unfeatured'} successfully`);
+        refetch();
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      toast.error(`Failed to update article: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  ];
+  };
+
+  const articles = data?.data as NewsArticle[] || [];
+
+  const filteredArticles = articles.filter(article =>
+    article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    article.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    article.category.toLowerCase().includes(searchQuery.toLowerCase())
+  ).filter(article => selectedTags.length === 0 || selectedTags.includes(article.category));
+
+  const columns: ColumnDef<NewsArticle>[] = [
+    {
+      accessorKey: "title",
+      header: "Title",
+    },
+    {
+      accessorKey: "category",
+      header: "Category",
+    },
+    {
+      accessorKey: "publish_date",
+      header: "Published",
+      cell: ({ row }) => {
+        const date = new Date(row.getValue("publish_date"))
+        const formattedDate = format(date, 'MM/dd/yyyy');
+        return <div>{formattedDate}</div>
+      },
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => {
+        const article = row.original;
+        const isPublished = article.publish_date && new Date(article.publish_date) <= new Date();
+        return (
+          <Badge variant={isPublished ? "default" : "secondary"}>
+            {isPublished ? 'Published' : 'Draft'}
+          </Badge>
+        );
+      },
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => {
+        const article = row.original;
+        const [open, setOpen] = React.useState(false)
+
+        const handleTagToggle = (tag: string) => {
+          if (selectedTags.includes(tag)) {
+            setSelectedTags(prev => prev.filter(t => t !== tag) as string[]);
+          } else {
+            setSelectedTags(prev => [...prev, tag] as string[]);
+          }
+        };
+
+        return (
+          <>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => handleToggleFeatured(article)}>
+                  <Star className="mr-2 h-4 w-4" />
+                  {article.is_featured ? 'Unfeature' : 'Feature'}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onEdit(article)}>
+                  <Edit className="mr-2 h-4 w-4" /> Edit
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setOpen(true)}>
+                  <Trash2 className="mr-2 h-4 w-4" /> Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <AlertDialog open={open} onOpenChange={setOpen}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete
+                    the article from our servers.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => setOpen(false)}>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => {
+                    handleDelete(article.id);
+                    setOpen(false);
+                  }}>Continue</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </>
+        )
+      },
+    },
+  ]
+
+  const table = useReactTable({
+    data: filteredArticles,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+  })
+
+  const availableTags = [...new Set(articles.map(article => article.category))];
 
   return (
     <Card>
-      <CardContent className="pt-6">
-        <div className="mb-6 space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4 justify-between">
-            <div className="relative w-full sm:w-72">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
-              <Input
-                placeholder="Search articles..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8"
-              />
-            </div>
-            <div className="flex gap-2">
-              <Popover open={filterOpen} onOpenChange={setFilterOpen}>
-                <PopoverTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    className="flex items-center gap-2"
-                  >
-                    <Filter size={16} />
-                    Filters
-                    {(selectedCategories.length > 0 || featuredFilter !== undefined || 
-                      dateRange !== undefined || selectedAuthors.length > 0) && (
-                      <Badge className="ml-1 bg-primary text-white">
-                        {selectedCategories.length + 
-                         (featuredFilter !== undefined ? 1 : 0) + 
-                         (dateRange !== undefined ? 1 : 0) + 
-                         (selectedAuthors.length > 0 ? 1 : 0)}
-                      </Badge>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80 p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <H4 className="font-medium">Filter Articles</H4>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={clearAllFilters}
-                      className="text-xs h-7"
-                      disabled={selectedCategories.length === 0 && 
-                               featuredFilter === undefined && 
-                               dateRange === undefined &&
-                               selectedAuthors.length === 0}
-                    >
-                      Clear all
-                    </Button>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>Categories</Label>
-                      <div className="max-h-32 overflow-y-auto space-y-1 border rounded-md p-2">
-                        {categories.map((category) => (
-                          <div key={category} className="flex items-center space-x-2">
-                            <Checkbox 
-                              id={`category-${category}`}
-                              checked={selectedCategories.includes(category)}
-                              onCheckedChange={(checked) => {
-                                if (checked) {
-                                  setSelectedCategories(prev => [...prev, category]);
-                                } else {
-                                  setSelectedCategories(prev => 
-                                    prev.filter(c => c !== category)
-                                  );
-                                }
-                              }}
-                            />
-                            <label 
-                              htmlFor={`category-${category}`}
-                              className="text-sm cursor-pointer"
-                            >
-                              {category}
-                            </label>
-                          </div>
-                        ))}
-                        {categories.length === 0 && (
-                          <div className="text-sm text-gray-500 p-1">
-                            No categories available
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label>Featured Status</Label>
-                      <Select 
-                        value={featuredFilter === undefined ? 'all' : featuredFilter ? 'featured' : 'not-featured'}
-                        onValueChange={(value) => {
-                          if (value === 'all') setFeaturedFilter(undefined);
-                          else setFeaturedFilter(value === 'featured');
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="All Articles" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Articles</SelectItem>
-                          <SelectItem value="featured">Featured Only</SelectItem>
-                          <SelectItem value="not-featured">Not Featured</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label>Publication Date</Label>
-                      <DatePickerWithRange 
-                        date={dateRange}
-                        onDateChange={setDateRange}
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label>Authors</Label>
-                      <div className="max-h-32 overflow-y-auto space-y-1 border rounded-md p-2">
-                        {authors.map((author) => (
-                          <div key={author} className="flex items-center space-x-2">
-                            <Checkbox 
-                              id={`author-${author}`}
-                              checked={selectedAuthors.includes(author)}
-                              onCheckedChange={(checked) => {
-                                if (checked) {
-                                  setSelectedAuthors(prev => [...prev, author]);
-                                } else {
-                                  setSelectedAuthors(prev => 
-                                    prev.filter(a => a !== author)
-                                  );
-                                }
-                              }}
-                            />
-                            <label 
-                              htmlFor={`author-${author}`}
-                              className="text-sm cursor-pointer"
-                            >
-                              {author}
-                            </label>
-                          </div>
-                        ))}
-                        {authors.length === 0 && (
-                          <div className="text-sm text-gray-500 p-1">
-                            No authors available
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <Separator />
-                    
-                    <div className="space-y-2 pt-2">
-                      <Label>Sort By</Label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Select
-                          value={sortField}
-                          onValueChange={(value: any) => setSortField(value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Field" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="publish_date">Date</SelectItem>
-                            <SelectItem value="title">Title</SelectItem>
-                            <SelectItem value="created_at">Created</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        
-                        <Select
-                          value={sortDirection}
-                          onValueChange={(value: any) => setSortDirection(value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Order" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="desc">Newest First</SelectItem>
-                            <SelectItem value="asc">Oldest First</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2 pt-1">
-                      <Checkbox 
-                        id="save-filters"
-                        checked={userPreferences.savedFilters}
-                        onCheckedChange={toggleSaveFilters}
-                      />
-                      <label 
-                        htmlFor="save-filters"
-                        className="text-sm cursor-pointer"
-                      >
-                        Save filter preferences
-                      </label>
-                    </div>
-                    
-                    <div className="flex justify-end pt-2">
-                      <Button 
-                        size="sm"
-                        onClick={() => setFilterOpen(false)}
-                      >
-                        Apply Filters
-                      </Button>
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
-              
-              <Select
-                value={sortField}
-                onValueChange={(value: any) => setSortField(value)}
-              >
-                <SelectTrigger className="w-[110px]">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="publish_date">Date</SelectItem>
-                  <SelectItem value="title">Title</SelectItem>
-                  <SelectItem value="created_at">Created</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select
-                value={sortDirection}
-                onValueChange={(value: any) => setSortDirection(value)}
-              >
-                <SelectTrigger className="w-[130px]">
-                  <SelectValue placeholder="Direction" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="desc">Newest First</SelectItem>
-                  <SelectItem value="asc">Oldest First</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle>Articles</CardTitle>
+        <Button onClick={onCreateNew}>
+          <PlusCircle className="mr-2 h-4 w-4" />
+          New Article
+        </Button>
+      </CardHeader>
+      <CardContent>
+        <div className="mb-4">
+          <div className="relative">
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search articles..."
+              value={searchQuery}
+              onChange={handleSearch}
+              className="pl-8"
+            />
           </div>
-          
-          {/* Active filters display */}
-          {(selectedCategories.length > 0 || featuredFilter !== undefined || 
-            dateRange !== undefined || selectedAuthors.length > 0) && (
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm text-gray-500">Filters:</span>
-              
-              {selectedCategories.map(category => (
-                <Badge key={category} variant="secondary" className="pl-2 pr-1 flex items-center gap-1">
-                  {category}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-5 w-5 p-0 text-gray-500 hover:bg-transparent"
-                    onClick={() => {
-                      setSelectedCategories(prev => prev.filter(c => c !== category));
-                    }}
-                  >
-                    <X size={12} />
-                  </Button>
-                </Badge>
-              ))}
-              
-              {featuredFilter !== undefined && (
-                <Badge variant="secondary" className="pl-2 pr-1 flex items-center gap-1">
-                  {featuredFilter ? 'Featured' : 'Not Featured'}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-5 w-5 p-0 text-gray-500 hover:bg-transparent"
-                    onClick={() => setFeaturedFilter(undefined)}
-                  >
-                    <X size={12} />
-                  </Button>
-                </Badge>
-              )}
-              
-              {dateRange?.from && (
-                <Badge variant="secondary" className="pl-2 pr-1 flex items-center gap-1">
-                  {format(dateRange.from, 'MMM d, yyyy')}
-                  {dateRange.to && dateRange.to !== dateRange.from && 
-                    ` - ${format(dateRange.to, 'MMM d, yyyy')}`}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-5 w-5 p-0 text-gray-500 hover:bg-transparent"
-                    onClick={() => setDateRange(undefined)}
-                  >
-                    <X size={12} />
-                  </Button>
-                </Badge>
-              )}
-              
-              {selectedAuthors.map(author => (
-                <Badge key={author} variant="secondary" className="pl-2 pr-1 flex items-center gap-1">
-                  By: {author}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-5 w-5 p-0 text-gray-500 hover:bg-transparent"
-                    onClick={() => {
-                      setSelectedAuthors(prev => prev.filter(a => a !== author));
-                    }}
-                  >
-                    <X size={12} />
-                  </Button>
-                </Badge>
-              ))}
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 text-xs underline"
-                onClick={clearAllFilters}
-              >
-                Clear all
-              </Button>
-            </div>
-          )}
         </div>
 
-        <DataTable
-          columns={columns}
-          data={filteredArticles}
-          isLoading={isLoading}
-          onRowClick={onEditArticle}
-          emptyMessage="No articles found. Create your first article!"
-        />
-        
-        {filteredArticles && filteredArticles.length > 0 && (
-          <div className="mt-4 text-right">
-            <Small className="text-gray-500">
-              Showing {filteredArticles.length} of {articles && articles.length || 0} articles
-            </Small>
+        <div className="flex items-center justify-between py-4">
+          <div className="flex-1 text-sm text-muted-foreground">
+            {table.getFilteredRowModel().rows.length} of {table.getCoreRowModel().rows.length} row(s)
+          </div>
+          <div className="space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+            >
+              <Filter className="mr-2 h-4 w-4" />
+              Filter
+            </Button>
+          </div>
+        </div>
+
+        {isFilterOpen && (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="col-span-4">
+              <Label htmlFor="tags">Tags</Label>
+              <div className="flex flex-wrap gap-1 mt-2">
+                {availableTags.map((tag) => (
+                  <Button
+                    key={tag}
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      "border-2 rounded-full",
+                      selectedTags.includes(tag)
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "border-input"
+                    )}
+                    onClick={() => handleTagToggle(tag)}
+                  >
+                    {tag}
+                  </Button>
+                ))}
+              </div>
+            </div>
           </div>
         )}
+
+        {isLoading ? (
+          <div className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : error ? (
+          <div className="text-center py-8 text-red-500">
+            Error loading articles: {error instanceof Error ? error.message : 'Unknown error'}
+          </div>
+        ) : filteredArticles && filteredArticles.length > 0 ? (
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                {columns.map((column) => (
+                  <TableHead key={column.id}>
+                    {column.header ? (
+                      flexRender(column.header(), table.getHeaderContext(column))
+                    ) : null}
+                  </TableHead>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.cell, cell.getContext( ))}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            No articles found. {searchQuery ? 'Try a different search term.' : 'Create your first article to get started.'}
+          </div>
+        )}
+        <div className="flex items-center justify-between px-2">
+          <div className="flex-1 text-sm text-muted-foreground">
+            {table.getFilteredRowModel().rows.length} of {table.getCoreRowModel().rows.length} row(s)
+          </div>
+          <div className="space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!table.getCanPreviousPage()}
+              onClick={() => table.previousPage()}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!table.getCanNextPage()}
+              onClick={() => table.nextPage()}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
 };
-
-export default EnhancedNewsArticleList;

@@ -1,12 +1,11 @@
-
 import React from 'react';
-import { ImageMetadata } from '@/services/images';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { FileImage, FileVideo } from 'lucide-react';
+import { ImageMetadata } from '@/services/images/media-types';
 
 interface MediaCardProps {
   media: ImageMetadata;
@@ -24,7 +23,6 @@ const MediaCard: React.FC<MediaCardProps> = ({
   const isVideo = media.type.startsWith('video/');
   const isImage = media.type.startsWith('image/');
   
-  // Format file size
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -33,12 +31,10 @@ const MediaCard: React.FC<MediaCardProps> = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  // Get the file extension for displaying in the UI
   const getFileExtension = (filename: string): string => {
     return filename.split('.').pop()?.toUpperCase() || '';
   };
 
-  // Get media item date
   const getRelativeDate = (dateString: string): string => {
     try {
       return formatDistanceToNow(new Date(dateString), { addSuffix: true });
@@ -76,7 +72,6 @@ const MediaCard: React.FC<MediaCardProps> = ({
               className="w-full h-full object-cover"
               loading="lazy"
               onError={(e) => {
-                // Fallback for broken images
                 e.currentTarget.src = '/placeholder.svg';
               }}
             />

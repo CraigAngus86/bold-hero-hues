@@ -9,12 +9,14 @@ interface PlayerImageUploaderProps {
   currentUrl?: string;
   onUpload: (url: string) => void;
   playerName?: string;
+  initialImageUrl?: string;
 }
 
 const PlayerImageUploader: React.FC<PlayerImageUploaderProps> = ({ 
   currentUrl,
   onUpload,
-  playerName
+  playerName,
+  initialImageUrl
 }) => {
   const [isHovering, setIsHovering] = useState(false);
 
@@ -23,7 +25,7 @@ const PlayerImageUploader: React.FC<PlayerImageUploaderProps> = ({
     isUploading, 
     progress 
   } = useImageUpload({
-    bucket: "images",
+    bucket: "players",
     folder: 'players'
   });
 
@@ -86,28 +88,16 @@ const PlayerImageUploader: React.FC<PlayerImageUploaderProps> = ({
                 disabled={isUploading}
                 onClick={() => document.getElementById('player-image-upload')?.click()}
               >
-                {isUploading ? `Uploading (${Math.round(progress)}%)` : 'Select Image'}
+                {isUploading ? `Uploading... ${progress}%` : 'Select File'}
               </Button>
-              <input
+              <input 
                 id="player-image-upload"
-                type="file"
-                className="hidden"
+                type="file" 
                 accept="image/*"
+                className="hidden"
                 onChange={handleFileSelect}
-                disabled={isUploading}
               />
             </div>
-            
-            {isUploading && (
-              <div className="w-full mt-4">
-                <div className="bg-gray-200 rounded-full h-2.5">
-                  <div 
-                    className="bg-primary h-2.5 rounded-full" 
-                    style={{ width: `${progress}%` }}
-                  ></div>
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
       )}

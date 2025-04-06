@@ -13,6 +13,13 @@ export interface ImageMetadata {
   folderId?: string;
   width?: number;
   height?: number;
+  path?: string;
+  dimensions?: ImageDimensions;
+}
+
+export interface ImageDimensions {
+  width?: number;
+  height?: number;
 }
 
 export interface StoredImageMetadata {
@@ -21,9 +28,9 @@ export interface StoredImageMetadata {
   type: string;
   size: number;
   url: string;
-  bucket_id?: string;
-  storage_path?: string;
-  file_name?: string;
+  bucket_id: string;
+  storage_path: string;
+  file_name: string;
   alt_text?: string;
   description?: string;
   tags?: string[];
@@ -33,7 +40,7 @@ export interface StoredImageMetadata {
   dimensions?: any;
 }
 
-export type BucketType = "images" | "products" | "avatars" | "players";
+export type BucketType = "images" | "products" | "avatars" | "players" | "public";
 
 export interface ImageFolder {
   id: string;
@@ -75,19 +82,26 @@ export interface ImageOptimizationOptions {
   grayscale?: boolean;
 }
 
+export interface ImageUploadConfig {
+  maxSizeMB: number;
+  acceptedTypes: string;
+  bucket: BucketType;
+  optimizationOptions: ImageOptimizationOptions;
+}
+
 export interface UseImageUploadOptions {
   bucket: BucketType;
   folder?: string;
+  folderPath?: string;
   maxSize?: number;
   acceptedTypes?: string[];
   optimizationOptions?: ImageOptimizationOptions;
-  folderPath?: string;
   onSuccess?: (result: ImageUploadResult) => void;
   onError?: (error: string) => void;
 }
 
 export interface UseImageUploadResult {
-  uploadFile: (file: File) => Promise<ImageUploadResult>;
+  uploadFile: (file: File, options?: any) => Promise<ImageUploadResult>;
   isUploading: boolean;
   progress: number;
   error: Error | null;

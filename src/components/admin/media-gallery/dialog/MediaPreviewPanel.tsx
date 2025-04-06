@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { ImageMetadata } from '@/services/images';
+import { ImageMetadata } from '@/services/images/media-types';
 import { FileVideo, FileImage } from 'lucide-react';
 
 interface MediaPreviewProps {

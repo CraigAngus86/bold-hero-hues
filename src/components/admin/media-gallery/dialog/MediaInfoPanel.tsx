@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { ImageMetadata } from '@/services/images';
+import { ImageMetadata } from '@/services/images/media-types';
 
 interface MediaInfoPanelProps {
   media: ImageMetadata;

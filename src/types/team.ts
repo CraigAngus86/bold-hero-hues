@@ -1,6 +1,5 @@
 
-// Since this file doesn't exist in the allowed files, let's create it
-
+// Define member types
 export type MemberType = 'player' | 'management' | 'official';
 
 export interface TeamMember {

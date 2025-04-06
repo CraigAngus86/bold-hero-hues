@@ -6,4 +6,6 @@ export interface ImportResult {
   message: string;
   added: number;
   updated: number;
+  valid?: boolean;
+  validFixtures?: ScrapedFixture[];
 }

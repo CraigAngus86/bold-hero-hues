@@ -7,22 +7,13 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogD
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Link, Calendar, Edit, ExternalLink, Loader2, Clock, Info, Image as ImageIcon, FileText, Activity, Users, Timer } from 'lucide-react';
 import { toast } from 'sonner';
-import { Fixture } from '@/types/fixtures';
+import { Fixture, FixtureExtended } from '@/types/fixtures';
 import { format } from 'date-fns';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { DatePickerWithRange } from '@/components/ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-interface FixtureExtended extends Fixture {
-  matchReport?: string;
-  attendance?: number;
-  referee?: string;
-  matchEvents?: MatchEvent[];
-  lineups?: MatchLineup;
-  matchStats?: MatchStats;
-}
 
 interface MatchEvent {
   id: string;
@@ -87,18 +78,7 @@ const FixturesManager = () => {
       if (error) throw error;
       
       const formattedFixtures = data.map(fixture => ({
-        id: fixture.id,
-        date: fixture.date,
-        time: fixture.time,
-        homeTeam: fixture.home_team,
-        awayTeam: fixture.away_team,
-        competition: fixture.competition,
-        venue: fixture.venue,
-        isCompleted: fixture.is_completed,
-        homeScore: fixture.home_score,
-        awayScore: fixture.away_score,
-        ticketLink: fixture.ticket_link,
-        source: fixture.source,
+        ...fixture,
         matchReport: fixture.match_report,
         attendance: fixture.attendance,
         referee: fixture.referee,
@@ -122,7 +102,7 @@ const FixturesManager = () => {
 
   const handleOpenTicketDialog = (fixture: FixtureExtended) => {
     setSelectedFixture(fixture);
-    setTicketLink(fixture.ticketLink || '');
+    setTicketLink(fixture.ticket_link || '');
     setDialogOpen(true);
   };
 
@@ -146,7 +126,7 @@ const FixturesManager = () => {
       if (error) throw error;
       
       setFixtures(fixtures.map(f => 
-        f.id === selectedFixture.id ? {...f, ticketLink} : f
+        f.id === selectedFixture.id ? { ...f, ticket_link: ticketLink } : f
       ));
       
       toast.success('Ticket link updated successfully');
@@ -178,6 +158,7 @@ const FixturesManager = () => {
         f.id === selectedFixture.id ? {
           ...f, 
           matchReport, 
+          match_report: matchReport,
           attendance: attendanceNumber || undefined,
           referee
         } : f
@@ -209,13 +190,13 @@ const FixturesManager = () => {
     
     if (selectedCompetition !== 'all' && fixture.competition !== selectedCompetition) return false;
     
-    if (isCompletedFilter === 'completed' && !fixture.isCompleted) return false;
-    if (isCompletedFilter === 'upcoming' && fixture.isCompleted) return false;
+    if (isCompletedFilter === 'completed' && !fixture.is_completed) return false;
+    if (isCompletedFilter === 'upcoming' && fixture.is_completed) return false;
     
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      const homeTeam = fixture.homeTeam.toLowerCase();
-      const awayTeam = fixture.awayTeam.toLowerCase();
+      const homeTeam = fixture.home_team.toLowerCase();
+      const awayTeam = fixture.away_team.toLowerCase();
       const competition = fixture.competition.toLowerCase();
       const venue = fixture.venue?.toLowerCase() || '';
       
@@ -328,20 +309,20 @@ const FixturesManager = () => {
                   <TableCell>
                     {formatDate(fixture.date)} - {fixture.time}
                   </TableCell>
-                  <TableCell>{fixture.homeTeam}</TableCell>
-                  <TableCell>{fixture.awayTeam}</TableCell>
+                  <TableCell>{fixture.home_team}</TableCell>
+                  <TableCell>{fixture.away_team}</TableCell>
                   <TableCell>{fixture.competition}</TableCell>
                   <TableCell>{fixture.venue || 'TBD'}</TableCell>
                   <TableCell>
-                    {fixture.isCompleted ? (
+                    {fixture.is_completed ? (
                       <span className="text-green-600 font-medium">Completed</span>
                     ) : (
                       <span className="text-amber-600 font-medium">Upcoming</span>
                     )}
                   </TableCell>
                   <TableCell>
-                    {fixture.isCompleted && fixture.homeScore !== undefined && fixture.awayScore !== undefined ? (
-                      <span className="font-semibold">{fixture.homeScore} - {fixture.awayScore}</span>
+                    {fixture.is_completed && fixture.home_score !== undefined && fixture.away_score !== undefined ? (
+                      <span className="font-semibold">{fixture.home_score} - {fixture.away_score}</span>
                     ) : (
                       <span className="text-gray-400">-</span>
                     )}
@@ -367,13 +348,13 @@ const FixturesManager = () => {
         <DialogContent className="sm:max-w-[550px]">
           <DialogHeader>
             <DialogTitle>
-              {selectedFixture?.ticketLink ? 'Edit' : 'Add'} Ticket Link
+              {selectedFixture?.ticket_link ? 'Edit' : 'Add'} Ticket Link
             </DialogTitle>
           </DialogHeader>
 
           <div className="py-4">
             <p className="mb-4">
-              {selectedFixture?.homeTeam} vs {selectedFixture?.awayTeam} on {selectedFixture?.date}
+              {selectedFixture?.home_team} vs {selectedFixture?.away_team} on {selectedFixture?.date}
             </p>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="ticketLink" className="text-right text-sm font-medium">Ticket URL</Label>
@@ -405,7 +386,7 @@ const FixturesManager = () => {
               Match Details
             </DialogTitle>
             <DialogDescription>
-              {selectedFixture?.homeTeam} vs {selectedFixture?.awayTeam} on {selectedFixture?.date}
+              {selectedFixture?.home_team} vs {selectedFixture?.away_team} on {selectedFixture?.date}
             </DialogDescription>
           </DialogHeader>
 
@@ -460,17 +441,17 @@ const FixturesManager = () => {
               <div>
                 <Label htmlFor="result">Match Result</Label>
                 <div className="grid grid-cols-5 gap-2 items-center">
-                  <div className="text-right font-medium">{selectedFixture?.homeTeam}</div>
+                  <div className="text-right font-medium">{selectedFixture?.home_team}</div>
                   <Input 
-                    value={selectedFixture?.homeScore !== undefined ? String(selectedFixture.homeScore) : ''}
+                    value={selectedFixture?.home_score !== undefined ? String(selectedFixture.home_score) : ''}
                     readOnly 
                   />
                   <div className="text-center">-</div>
                   <Input 
-                    value={selectedFixture?.awayScore !== undefined ? String(selectedFixture.awayScore) : ''} 
+                    value={selectedFixture?.away_score !== undefined ? String(selectedFixture.away_score) : ''} 
                     readOnly 
                   />
-                  <div className="font-medium">{selectedFixture?.awayTeam}</div>
+                  <div className="font-medium">{selectedFixture?.away_team}</div>
                 </div>
                 <p className="text-sm text-gray-500 mt-1">
                   To update the score, use the Result Entry feature

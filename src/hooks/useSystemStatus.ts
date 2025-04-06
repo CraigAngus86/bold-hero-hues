@@ -1,51 +1,49 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { getSystemStatus, updateSystemCheckTimestamp, type SystemStatusData } from '@/services/logs/systemLogsService';
+import { getSystemStatus, updateSystemCheckTimestamp, SystemStatusData } from '@/services/logs/systemLogsService';
 
-export function useSystemStatus() {
+interface UseSystemStatusResult {
+  status: SystemStatusData | null;
+  isLoading: boolean;
+  error: Error | null;
+  lastUpdated: Date;
+  refresh: () => Promise<void>;
+}
+
+/**
+ * Hook for fetching and refreshing system status
+ */
+export const useSystemStatus = (): UseSystemStatusResult => {
   const [status, setStatus] = useState<SystemStatusData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<Error | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
-  
-  const fetchStatus = async () => {
+
+  const fetchSystemStatus = useCallback(async () => {
     try {
       setIsLoading(true);
       const data = await getSystemStatus();
       setStatus(data);
       setLastUpdated(new Date());
-      
-      // Update the timestamp in the database
+      setError(null);
       await updateSystemCheckTimestamp();
-    } catch (error) {
-      console.error('Error fetching system status:', error);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('An error occurred fetching system status'));
+      console.error('Failed to fetch system status:', err);
     } finally {
       setIsLoading(false);
     }
-  };
-  
-  useEffect(() => {
-    fetchStatus();
-    
-    // Refresh status every 5 minutes
-    const interval = setInterval(() => {
-      fetchStatus();
-    }, 5 * 60 * 1000);
-    
-    return () => clearInterval(interval);
   }, []);
-  
+
+  useEffect(() => {
+    fetchSystemStatus();
+  }, [fetchSystemStatus]);
+
   return {
     status,
     isLoading,
+    error,
     lastUpdated,
-    refresh: fetchStatus
+    refresh: fetchSystemStatus
   };
-}
-
-// Define system keys for query invalidation
-export const systemKeys = {
-  status: ['system', 'status'],
-  logs: ['system', 'logs']
 };
-
-export type { SystemStatusData };

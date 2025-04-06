@@ -21,7 +21,8 @@ export const imageUploadSchema = z.object({
   maxWidth: z.number().optional(),
   maxHeight: z.number().optional(),
   acceptedTypes: z.array(z.string()).optional(),
-  folder: z.string().optional()
+  folder: z.string().optional(),
+  maxFileSize: z.number().optional()
 });
 
 export type ImageOptimizationOptions = {
@@ -72,4 +73,8 @@ export const imageUploadConfigs: Record<string, ImageUploadConfig> = {
     folder: 'uploads',
     maxFileSize: 5 * 1024 * 1024 // 5MB
   }
+};
+
+export const imageStorageConfig = {
+  bucketName: 'media'
 };

@@ -1,49 +1,65 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { getSystemStatus } from '@/services/logs/systemLogsService';
-import type { SystemStatusData } from '@/services/logs/systemLogsService';
+import { useCallback, useEffect, useState } from 'react';
+import { getSystemStatus, SystemStatusData } from '@/services/logs/systemLogsService';
+
+export interface DashboardData {
+  system: SystemStatusData;
+  lastUpdated: Date;
+}
 
 /**
- * Custom hook for managing dashboard data refresh
+ * Hook to periodically refresh dashboard data
+ * @param initialInterval - Initial refresh interval in milliseconds (default: 60000 = 1 minute)
  */
-export function useDashboardRefresh(refreshInterval = 60000) {
-  const [systemStatus, setSystemStatus] = useState<SystemStatusData | undefined>(undefined);
-  const [isSystemStatusLoading, setIsSystemStatusLoading] = useState<boolean>(true);
-  const [systemStatusUpdatedAt, setSystemStatusUpdatedAt] = useState<number>(Date.now());
+export const useDashboardRefresh = (initialInterval = 60000) => {
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<Error | null>(null);
+  const [refreshInterval, setRefreshInterval] = useState<number>(initialInterval);
+  const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
   
-  const fetchSystemStatus = useCallback(async () => {
-    setIsSystemStatusLoading(true);
+  const refresh = useCallback(async () => {
     try {
-      const data = await getSystemStatus();
-      setSystemStatus(data);
-      setSystemStatusUpdatedAt(Date.now());
-    } catch (error) {
-      console.error('Error fetching system status:', error);
+      setIsLoading(true);
+      
+      // Fetch system data
+      const systemData = await getSystemStatus();
+      
+      setData({
+        system: systemData,
+        lastUpdated: new Date()
+      });
+      
+      setLastRefreshed(new Date());
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching dashboard data:', err);
+      setError(err instanceof Error ? err : new Error('Unknown error occurred'));
     } finally {
-      setIsSystemStatusLoading(false);
+      setIsLoading(false);
     }
   }, []);
   
-  const refreshAll = useCallback(() => {
-    fetchSystemStatus();
-    // Add other refresh functions here if needed
-  }, [fetchSystemStatus]);
-  
+  // Initial load
   useEffect(() => {
-    fetchSystemStatus();
-    
+    refresh();
+  }, [refresh]);
+  
+  // Set up interval for auto-refresh
+  useEffect(() => {
     const intervalId = setInterval(() => {
-      fetchSystemStatus();
+      refresh();
     }, refreshInterval);
     
     return () => clearInterval(intervalId);
-  }, [fetchSystemStatus, refreshInterval]);
+  }, [refresh, refreshInterval]);
   
   return {
-    systemStatus,
-    isSystemStatusLoading,
-    systemStatusUpdatedAt,
-    refetchSystemStatus: fetchSystemStatus,
-    refreshAll
+    data,
+    isLoading,
+    error,
+    refresh,
+    lastRefreshed,
+    setRefreshInterval
   };
-}
+};

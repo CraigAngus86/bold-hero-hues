@@ -3,6 +3,8 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { toast } from 'sonner';
 import { useImageUpload } from '@/services/images';
 import { BucketType, ImageOptimizationOptions } from '@/services/images/types';
+import { useImageUploadState } from './hooks/useImageUploadState';
+import { useImageUploadHandlers } from './hooks/useImageUploadHandlers';
 
 interface ImageUploaderContextType {
   previewUrl: string | null;
@@ -59,118 +61,31 @@ export const ImageUploaderProvider: React.FC<ImageUploaderProviderProps> = ({
   initialDescription = '',
   initialTags = [],
 }) => {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(initialImageUrl);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [altText, setAltText] = useState(initialAlt);
-  const [imageDescription, setImageDescription] = useState(initialDescription);
-  const [imageTags, setImageTags] = useState<string[]>(initialTags);
-  const [tagInput, setTagInput] = useState('');
-  const [dragActive, setDragActive] = useState(false);
+  // Use our custom hooks to organize the state and handlers
+  const state = useImageUploadState({
+    initialImageUrl,
+    initialAlt,
+    initialDescription,
+    initialTags
+  });
   
-  const { upload, isUploading, progress } = useImageUpload();
   const maxSizeBytes = maxSizeMB * 1024 * 1024;
   
-  const handleFileSelection = (file: File) => {
-    if (file.size > maxSizeBytes) {
-      toast.error(`File too large. Maximum size is ${maxSizeMB}MB.`);
-      return;
-    }
-    
-    if (!file.type.match(acceptedTypes.replace(/,/g, '|'))) {
-      toast.error(`Invalid file type. Please upload a supported image format.`);
-      return;
-    }
-    
-    setSelectedFile(file);
-    const fileUrl = URL.createObjectURL(file);
-    setPreviewUrl(fileUrl);
-    
-    if (!altText) {
-      const fileName = file.name.split('.')[0];
-      setAltText(fileName.replace(/-|_/g, ' '));
-    }
-  };
-  
-  const clearSelection = () => {
-    if (previewUrl && previewUrl !== initialImageUrl) {
-      URL.revokeObjectURL(previewUrl);
-    }
-    setPreviewUrl(initialImageUrl);
-    setSelectedFile(null);
-  };
-  
-  const handleAddTag = () => {
-    if (tagInput.trim() && !imageTags.includes(tagInput.trim())) {
-      setImageTags([...imageTags, tagInput.trim()]);
-      setTagInput('');
-    }
-  };
-  
-  const handleRemoveTag = (tagToRemove: string) => {
-    setImageTags(imageTags.filter(tag => tag !== tagToRemove));
-  };
-  
-  const handleTagKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      handleAddTag();
-    }
-  };
-  
-  const handleUpload = async () => {
-    if (!selectedFile) return;
-    
-    try {
-      const metadata = {
-        alt_text: altText || selectedFile.name.split('.')[0],
-        description: imageDescription,
-        tags: imageTags
-      };
-      
-      const result = await upload(
-        selectedFile, 
-        bucket, 
-        folderPath,
-        true, 
-        metadata, 
-        optimizationOptions
-      );
-      
-      if (result.success && result.data) {
-        toast.success('Image uploaded successfully');
-        clearSelection();
-        if (onUploadComplete) onUploadComplete(result.data.url);
-      }
-    } catch (error) {
-      console.error('Failed to upload image:', error);
-      toast.error('Failed to upload image');
-    }
-  };
+  const handlers = useImageUploadHandlers({
+    ...state,
+    initialImageUrl,
+    maxSizeBytes,
+    acceptedTypes,
+    bucket,
+    folderPath,
+    optimizationOptions,
+    onUploadComplete
+  });
   
   const value = {
-    previewUrl,
-    setPreviewUrl,
-    selectedFile,
-    setSelectedFile,
-    altText,
-    setAltText,
-    imageDescription,
-    setImageDescription,
-    imageTags,
-    setImageTags,
-    tagInput,
-    setTagInput,
-    dragActive,
-    setDragActive,
-    isUploading,
-    progress,
-    acceptedTypes,
-    handleFileSelection,
-    clearSelection,
-    handleAddTag,
-    handleRemoveTag,
-    handleTagKeyDown,
-    handleUpload,
+    ...state,
+    ...handlers,
+    acceptedTypes
   };
   
   return (

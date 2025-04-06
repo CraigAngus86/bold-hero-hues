@@ -1,46 +1,44 @@
 
-// Reexport all news-related services for convenient imports
-import {
-  fetchNewsArticles,
-  getNewsCategories,
-  toggleArticleFeatured,
-  deleteNewsArticle
-} from './db/listing';
+import { useNewsStore } from '@/hooks/useNewsStore';
+import { 
+  NewsArticle,
+  NewsItem,
+  NewsQueryOptions,
+  CreateNewsArticleData,
+  UpdateNewsArticleData 
+} from '@/types/news';
 
-import {
-  createNewsArticle,
-  updateNewsArticle,
-  getNewsArticleById,
-  getNewsArticleBySlug
-} from './db/article';
-
-import {
-  formatDate,
-  getDbDateFormat,
-  getISODateString,
-  createExcerpt
-} from './utils';
-
-export {
-  // From listing
-  fetchNewsArticles,
-  getNewsCategories,
-  toggleArticleFeatured,
-  deleteNewsArticle,
-  
-  // From article
-  createNewsArticle,
-  updateNewsArticle,
-  getNewsArticleById,
-  getNewsArticleBySlug,
-  
-  // From utils
-  formatDate,
-  getDbDateFormat,
-  getISODateString,
-  createExcerpt
+// Re-export types for easier importing
+export type {
+  NewsArticle,
+  NewsItem,
+  NewsQueryOptions,
+  CreateNewsArticleData,
+  UpdateNewsArticleData
 };
 
-// Legacy alias for backward compatibility
-export const getArticles = fetchNewsArticles;
-export const getNewsArticles = fetchNewsArticles;
+// Re-export the news store hook
+export { useNewsStore };
+
+// Format date for display
+export const formatDate = (dateString: string): string => {
+  if (!dateString) return '';
+  
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  }).format(date);
+};
+
+// Convert date to database format
+export const getDbDateFormat = (dateString: string): string => {
+  if (!dateString) return '';
+  
+  const date = new Date(dateString);
+  return date.toISOString().split('T')[0]; // YYYY-MM-DD
+};
+
+// Add your API functions here
+export * from './api';

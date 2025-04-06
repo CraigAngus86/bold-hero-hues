@@ -1,150 +1,132 @@
 
-import React, { useState, useRef } from 'react';
-import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase';
+import React, { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Upload, X, Loader2 } from "lucide-react";
+import { useImageUpload } from '@/services/images';
+import { BucketType } from '@/types/system';
 
 export interface ImageUploaderProps {
-  folder?: string;
-  onImageUploaded: (url: string) => void;
-  currentUrl?: string;
-  accept?: string;
-  maxSizeMB?: number;
+  onUploadComplete?: (url: string) => void;
+  isUploading?: boolean;
+  setIsUploading?: (value: boolean) => void;
+  bucketName?: BucketType;
+  folderPath?: string;
   className?: string;
+  maxSizeMB?: number;
+  acceptedTypes?: string;
 }
 
 export const ImageUploader: React.FC<ImageUploaderProps> = ({
-  folder = 'general',
-  onImageUploaded,
-  currentUrl,
-  accept = 'image/jpeg, image/png, image/webp',
+  onUploadComplete,
+  isUploading: externalIsUploading,
+  setIsUploading: externalSetIsUploading,
+  bucketName = BucketType.GENERAL,
+  folderPath = '',
+  className = '',
   maxSizeMB = 5,
-  className = ''
+  acceptedTypes = 'image/jpeg,image/png,image/webp'
 }) => {
-  const [uploading, setUploading] = useState(false);
-  const [preview, setPreview] = useState<string | null>(currentUrl || null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const uploadImage = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const [internalIsUploading, setInternalIsUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  
+  // Use either external or internal state
+  const isUploading = externalIsUploading !== undefined ? externalIsUploading : internalIsUploading;
+  const setIsUploading = externalSetIsUploading || setInternalIsUploading;
+  
+  const { upload } = useImageUpload({
+    bucket: bucketName,
+    folderPath,
+    onSuccess: (url) => {
+      if (onUploadComplete) onUploadComplete(url);
+      setIsUploading(false);
+    },
+    onError: () => {
+      setIsUploading(false);
+    }
+  });
+  
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Validate file type
+    if (!acceptedTypes.includes(file.type)) {
+      alert(`File type not accepted. Please upload one of: ${acceptedTypes}`);
+      return;
+    }
+    
+    // Validate file size
+    if (file.size > maxSizeMB * 1024 * 1024) {
+      alert(`File too large. Maximum size is ${maxSizeMB}MB.`);
+      return;
+    }
+    
+    // Create preview
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewUrl(objectUrl);
+    
+    // Start upload
+    setIsUploading(true);
     try {
-      setUploading(true);
-      
-      const files = event.target.files;
-      if (!files || files.length === 0) {
-        return;
-      }
-      
-      const file = files[0];
-      const maxSizeBytes = maxSizeMB * 1024 * 1024;
-      
-      // Validate file size
-      if (file.size > maxSizeBytes) {
-        throw new Error(`File too large. Maximum size is ${maxSizeMB}MB.`);
-      }
-      
-      // Generate a unique file name
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
-      const filePath = `${folder}/${fileName}`;
-      
-      // Upload file to Supabase Storage
-      const { error: uploadError, data } = await supabase.storage
-        .from('images')
-        .upload(filePath, file, { upsert: true });
-        
-      if (uploadError) {
-        throw uploadError;
-      }
-      
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('images')
-        .getPublicUrl(filePath);
-        
-      // Set preview and trigger callback
-      setPreview(publicUrl);
-      onImageUploaded(publicUrl);
-      
+      await upload(file);
     } catch (error) {
-      console.error('Error uploading image:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to upload image');
-    } finally {
-      setUploading(false);
-      // Clear input value to allow uploading same file again
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      console.error('Upload error:', error);
+      setIsUploading(false);
     }
   };
-
-  const removeImage = () => {
-    setPreview(null);
-    onImageUploaded('');
+  
+  const handleRemovePreview = () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
   };
 
   return (
-    <div className={`flex flex-col items-center space-y-2 ${className}`}>
-      {preview ? (
-        <div className="relative w-full aspect-video bg-gray-100 rounded-md overflow-hidden">
+    <div className={`w-full ${className}`}>
+      {previewUrl ? (
+        <div className="relative border rounded-md overflow-hidden">
           <img 
-            src={preview} 
-            alt="Selected" 
-            className="w-full h-full object-cover"
+            src={previewUrl} 
+            alt="Upload preview" 
+            className="w-full h-auto object-contain max-h-64"
           />
-          <Button
-            type="button"
-            variant="destructive"
-            size="icon"
-            className="absolute top-2 right-2 w-6 h-6 rounded-full opacity-80 hover:opacity-100"
-            onClick={removeImage}
-          >
-            <X className="h-3.5 w-3.5" />
-          </Button>
+          {!isUploading && (
+            <Button 
+              variant="destructive" 
+              size="sm" 
+              className="absolute top-2 right-2"
+              onClick={handleRemovePreview}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+          {isUploading && (
+            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+              <Loader2 className="h-8 w-8 text-white animate-spin" />
+            </div>
+          )}
         </div>
       ) : (
-        <div 
-          onClick={() => fileInputRef.current?.click()} 
-          className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-md w-full aspect-video flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors"
-        >
-          {uploading ? (
-            <Loader2 className="h-10 w-10 text-gray-400 animate-spin" />
-          ) : (
-            <>
-              <ImageIcon className="h-10 w-10 text-gray-400 mb-2" />
-              <p className="text-sm text-gray-500">Click to upload image</p>
-              <p className="text-xs text-gray-400 mt-1">or drag and drop</p>
-              <p className="text-xs text-gray-400 mt-2">
-                Max size: {maxSizeMB}MB
-              </p>
-            </>
-          )}
+        <div className="border-2 border-dashed border-gray-300 rounded-md p-6 flex flex-col items-center justify-center">
           <input
-            ref={fileInputRef}
             type="file"
-            accept={accept}
-            onChange={uploadImage}
-            disabled={uploading}
+            id="file-upload"
             className="hidden"
+            accept={acceptedTypes}
+            onChange={handleFileChange}
+            disabled={isUploading}
           />
+          <label 
+            htmlFor="file-upload"
+            className="cursor-pointer w-full flex flex-col items-center"
+          >
+            <Upload className="h-10 w-10 text-gray-400 mb-2" />
+            <span className="text-sm font-medium text-blue-600">Click to upload</span>
+            <span className="text-xs text-gray-500 mt-1">
+              {acceptedTypes.split(',').map(t => t.replace('image/', '')).join(', ')} (max {maxSizeMB}MB)
+            </span>
+          </label>
         </div>
       )}
-      
-      <div className="flex gap-2 w-full">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={uploading}
-          onClick={() => fileInputRef.current?.click()}
-          className="flex-1"
-        >
-          <Upload className="h-3.5 w-3.5 mr-1.5" />
-          {preview ? 'Change' : 'Upload'} Image
-        </Button>
-      </div>
     </div>
   );
 };
-
-export default ImageUploader;

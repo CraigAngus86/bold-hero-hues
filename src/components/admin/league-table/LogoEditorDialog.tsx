@@ -10,9 +10,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { ImageUploader } from '@/components/common/ImageUploader';
 import { TeamStats } from '@/types/fixtures';
-import { leagueService } from '@/services/leagueService';
+import { updateTeamLogo } from '@/services/leagueService';
 import { toast } from "sonner";
-import { BucketType } from '@/types/storage';
+import { BucketType } from '@/types/system';
 
 interface LogoEditorDialogProps {
   team: TeamStats;
@@ -34,11 +34,11 @@ const LogoEditorDialog: React.FC<LogoEditorDialogProps> = ({
   const handleSaveLogo = async () => {
     try {
       setIsSaving(true);
-      const success = await leagueService.updateTeamLogo(String(team.id), logoUrl);
+      const success = await updateTeamLogo(String(team.id), logoUrl);
       
       if (success) {
         toast.success(`Logo updated for ${team.team}`);
-        onSuccess?.();
+        if (onSuccess) onSuccess();
         onOpenChange(false);
       } else {
         toast.error("Failed to update team logo");

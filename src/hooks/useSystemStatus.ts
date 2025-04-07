@@ -1,54 +1,47 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { SystemStatus } from '@/types/system/status';
-import SystemLogsService from '@/services/logs/systemLogsService';
+import systemLogsService from '@/services/logs/systemLogsService';
 
-interface SystemStatusState {
+export interface UseSystemStatusResult {
   status: SystemStatus | null;
   isLoading: boolean;
   error: string | null;
-  lastChecked: Date | null;
+  refresh: () => Promise<void>;
 }
 
-export const useSystemStatus = () => {
-  const [state, setState] = useState<SystemStatusState>({
-    status: null,
-    isLoading: true,
-    error: null,
-    lastChecked: null
-  });
+/**
+ * Hook to get and manage system status
+ */
+export const useSystemStatus = (): UseSystemStatusResult => {
+  const [status, setStatus] = useState<SystemStatus | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const fetchSystemStatus = async () => {
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
+  const fetchStatus = useCallback(async () => {
     try {
-      const { status, error } = await SystemLogsService.getSystemStatus();
+      setIsLoading(true);
+      setError(null);
       
-      setState({
-        status,
-        isLoading: false,
-        error: error || null,
-        lastChecked: new Date()
-      });
-    } catch (error) {
-      setState({
-        status: null,
-        isLoading: false,
-        error: 'Failed to fetch system status',
-        lastChecked: new Date()
-      });
+      const data = await systemLogsService.getSystemStatus();
+      setStatus(data);
+    } catch (err) {
+      console.error('Error fetching system status:', err);
+      setError('Failed to fetch system status');
+    } finally {
+      setIsLoading(false);
     }
-  };
-
-  // Auto-refresh every 60 seconds
-  useEffect(() => {
-    fetchSystemStatus();
-    const interval = setInterval(fetchSystemStatus, 60000);
-    return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    fetchStatus();
+  }, [fetchStatus]);
+
   return {
-    ...state,
-    refresh: fetchSystemStatus
+    status,
+    isLoading,
+    error,
+    refresh: fetchStatus
   };
 };
 

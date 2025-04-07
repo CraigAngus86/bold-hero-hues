@@ -39,18 +39,18 @@ const FanZoneContent: React.FC = () => {
       id: '1',
       title: 'Match Day Experience',
       type: 'photo',
-      submittedBy: 'John Smith',
-      submittedOn: '2023-05-12T10:30:00',
+      submitted_by: 'John Smith',
+      submitted_on: '2023-05-12T10:30:00',
       status: 'pending',
       featured: false,
-      imageUrl: 'https://placehold.co/600x400/png',
+      image_url: 'https://placehold.co/600x400/png',
     },
     {
       id: '2',
       title: 'My 30 Years Supporting Banks o\' Dee',
       type: 'story',
-      submittedBy: 'Margaret Wilson',
-      submittedOn: '2023-05-10T14:15:00',
+      submitted_by: 'Margaret Wilson',
+      submitted_on: '2023-05-10T14:15:00',
       status: 'approved',
       featured: true,
       content: 'It all started in 1990 when my father took me to Spain Park for my first match...',
@@ -59,18 +59,18 @@ const FanZoneContent: React.FC = () => {
       id: '3',
       title: 'Youth Team Champions',
       type: 'photo',
-      submittedBy: 'David Brown',
-      submittedOn: '2023-05-09T09:45:00',
+      submitted_by: 'David Brown',
+      submitted_on: '2023-05-09T09:45:00',
       status: 'approved',
       featured: false,
-      imageUrl: 'https://placehold.co/600x400/png',
+      image_url: 'https://placehold.co/600x400/png',
     },
     {
       id: '4',
       title: 'Away Day Adventures',
       type: 'story',
-      submittedBy: 'Robert Johnson',
-      submittedOn: '2023-05-08T16:20:00',
+      submitted_by: 'Robert Johnson',
+      submitted_on: '2023-05-08T16:20:00',
       status: 'rejected',
       featured: false,
       content: 'Following the team to away matches has led to some incredible adventures...',
@@ -87,7 +87,7 @@ const FanZoneContent: React.FC = () => {
     // Filter by search query
     const matchesSearch = 
       item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.submittedBy.toLowerCase().includes(searchQuery.toLowerCase());
+      item.submitted_by.toLowerCase().includes(searchQuery.toLowerCase());
     
     // Filter by tab
     if (activeTab === 'all') return matchesSearch;
@@ -194,8 +194,8 @@ const FanZoneContent: React.FC = () => {
                                 {item.type}
                               </Badge>
                             </td>
-                            <td className="p-4">{item.submittedBy}</td>
-                            <td className="p-4">{new Date(item.submittedOn).toLocaleDateString()}</td>
+                            <td className="p-4">{item.submitted_by}</td>
+                            <td className="p-4">{new Date(item.submitted_on).toLocaleDateString()}</td>
                             <td className="p-4">
                               <Badge className={statusStyles[item.status as keyof typeof statusStyles]}>
                                 {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
@@ -300,7 +300,7 @@ const FanZoneContent: React.FC = () => {
                   {selectedContent?.status.charAt(0).toUpperCase() + selectedContent?.status.slice(1)}
                 </Badge>
                 <span className="ml-2 text-sm text-gray-500">
-                  Submitted by {selectedContent?.submittedBy} on {selectedContent && new Date(selectedContent.submittedOn).toLocaleDateString()}
+                  Submitted by {selectedContent?.submitted_by} on {selectedContent && new Date(selectedContent.submitted_on).toLocaleDateString()}
                 </span>
               </div>
               
@@ -309,10 +309,10 @@ const FanZoneContent: React.FC = () => {
               </Badge>
             </div>
             
-            {selectedContent?.type === 'photo' && selectedContent.imageUrl && (
+            {selectedContent?.type === 'photo' && selectedContent.image_url && (
               <div className="overflow-hidden rounded-md">
                 <img 
-                  src={selectedContent.imageUrl} 
+                  src={selectedContent.image_url} 
                   alt={selectedContent.title} 
                   className="w-full object-cover"
                 />

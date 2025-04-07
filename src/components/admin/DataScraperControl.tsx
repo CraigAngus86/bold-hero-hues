@@ -10,6 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from '@/integrations/supabase/client';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { unwrapPromise } from '@/lib/supabaseHelpers';
 
 const DataScraperControl = () => {
   const [isScrapingData, setIsScrapingData] = useState(false);
@@ -44,23 +45,25 @@ const DataScraperControl = () => {
     try {
       setEdgeFunctionStatus('checking');
       
-      const { data, error } = await supabase.functions.invoke('scrape-highland-league', {
-        body: { action: 'status-check' }
-      });
+      const response = await unwrapPromise(
+        supabase.functions.invoke('scrape-highland-league', {
+          body: { action: 'status-check' }
+        })
+      );
       
-      if (error) {
-        if (error.message && error.message.includes('404')) {
+      if (response.error) {
+        if (response.error.message && response.error.message.includes('404')) {
           console.log('Edge Function not found (404 error)');
           setEdgeFunctionStatus('not-deployed');
           return;
         }
         
-        console.warn('Edge Function exists but returned an error:', error);
+        console.warn('Edge Function exists but returned an error:', response.error);
         setEdgeFunctionStatus('deployed');
         return;
       }
       
-      console.log('Edge Function status check response:', data);
+      console.log('Edge Function status check response:', response.data);
       setEdgeFunctionStatus('deployed');
       
     } catch (error) {
@@ -114,14 +117,18 @@ const DataScraperControl = () => {
 
   const handleDownloadData = async () => {
     try {
-      const { data, error } = await supabase
-        .from('highland_league_table')
-        .select('*')
-        .order('position', { ascending: true });
+      const response = await unwrapPromise(
+        supabase
+          .from('highland_league_table')
+          .select('*')
+          .order('position', { ascending: true })
+      );
       
-      if (error) {
-        throw error;
+      if (response.error) {
+        throw response.error;
       }
+      
+      const data = response.data;
       
       if (!data || data.length === 0) {
         toast.warning("No data available to download");

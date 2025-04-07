@@ -24,7 +24,7 @@ export interface Poll {
   title: string;
   description?: string;
   type: string;
-  status: 'draft' | 'published' | 'closed';
+  status: 'draft' | 'published' | 'closed' | 'ended' | 'scheduled' | 'active';
   created_at?: string;
   created_by?: string;
   published_at?: string;
@@ -58,6 +58,7 @@ export interface AudienceGroup {
   id: string;
   name: string;
   description?: string;
+  count?: number; // Number of subscribers in this group
   created_at?: string;
   updated_at?: string;
 }
@@ -107,7 +108,27 @@ export interface CommunityInitiative {
   type: string;
   status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
   participants_count?: number;
+  impact?: string; // Additional property for impact
   impact_summary?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// Additional interface for social media integration
+export interface SocialPost {
+  id: string;
+  platform: 'twitter' | 'facebook' | 'instagram';
+  content: string;
+  image_url?: string;
+  post_url?: string;
+  posted_at?: string;
+  engagement: {
+    likes: number;
+    shares: number;
+    comments: number;
+  };
+  status: 'draft' | 'scheduled' | 'published' | 'failed';
+  scheduled_for?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -123,4 +144,11 @@ export interface PollResponse {
   data: Poll[];
   count: number;
   error?: string;
+}
+
+export interface DbServiceResponse<T> {
+  data: T;
+  error?: any;
+  count?: number;
+  success?: boolean;
 }

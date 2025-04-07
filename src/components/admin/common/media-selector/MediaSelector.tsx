@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Image, Upload, Link2, Check } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from '@/integrations/supabase/client';
+import { unwrapPromise } from '@/lib/supabaseHelpers';
 
 interface MediaSelectorProps {
   onSelect: (url: string) => void;
@@ -42,13 +43,15 @@ export const MediaSelector: React.FC<MediaSelectorProps> = ({
   const loadMediaItems = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('image_metadata')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const response = await unwrapPromise(
+        supabase
+          .from('image_metadata')
+          .select('*')
+          .order('created_at', { ascending: false })
+      );
       
-      if (error) throw error;
-      setMediaItems(data || []);
+      if (response.error) throw response.error;
+      setMediaItems(response.data || []);
     } catch (error) {
       console.error('Error loading media:', error);
       toast.error('Failed to load media items');

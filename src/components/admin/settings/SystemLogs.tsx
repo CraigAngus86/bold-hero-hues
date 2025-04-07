@@ -144,7 +144,7 @@ const SystemLogs = () => {
                     <TableCell>{log.source}</TableCell>
                     <TableCell className="text-right text-xs">
                       <span title={new Date(log.timestamp).toLocaleString()}>
-                        {getRelativeTime(log.timestamp.toString())}
+                        {getRelativeTime(log.timestamp)}
                       </span>
                     </TableCell>
                   </TableRow>

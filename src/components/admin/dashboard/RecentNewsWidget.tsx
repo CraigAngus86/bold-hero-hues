@@ -1,114 +1,90 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useQuery } from '@tanstack/react-query';
+import { fetchNewsArticles } from '@/services/newsService';
 import { Badge } from '@/components/ui/badge';
-import { CalendarIcon, Eye, MessageCircle, Edit } from 'lucide-react';
-
-// Mock data - in a real app, this would be fetched from an API
-const newsArticles = [
-  {
-    id: '1',
-    title: 'Banks o\' Dee secure victory against Formartine',
-    excerpt: 'A stunning performance by the team leads to a 3-1 win in a thrilling match.',
-    category: 'Match Report',
-    author: 'John Smith',
-    publishedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-    views: 238,
-    comments: 12
-  },
-  {
-    id: '2',
-    title: 'New Signing: Michael Johnson joins from Buckie Thistle',
-    excerpt: 'The club is delighted to announce the signing of striker Michael Johnson on a two-year deal.',
-    category: 'Transfer News',
-    author: 'Jane Doe',
-    publishedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000), // 4 days ago
-    views: 412,
-    comments: 27
-  },
-  {
-    id: '3',
-    title: 'Youth Academy Players Selected for Regional Squad',
-    excerpt: 'Three of our youth players have been selected to represent the North Region in the upcoming tournament.',
-    category: 'Youth',
-    author: 'Robert Brown',
-    publishedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
-    views: 156,
-    comments: 5
-  }
-];
-
-const formatDate = (date: Date) => {
-  return new Intl.DateTimeFormat('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric'
-  }).format(date);
-};
-
-const getCategoryColor = (category: string) => {
-  switch (category) {
-    case 'Match Report':
-      return 'bg-green-100 text-green-800 border-green-200';
-    case 'Transfer News':
-      return 'bg-blue-100 text-blue-800 border-blue-200';
-    case 'Youth':
-      return 'bg-purple-100 text-purple-800 border-purple-200';
-    default:
-      return 'bg-gray-100 text-gray-800 border-gray-200';
-  }
-};
+import { Calendar, Star } from 'lucide-react';
+import { format } from 'date-fns';
 
 const RecentNewsWidget = () => {
+  const { data, isLoading } = useQuery({
+    queryKey: ['recentNews'],
+    queryFn: () => fetchNewsArticles({ limit: 4, orderBy: 'newest' }),
+  });
+
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'MMM d, yyyy');
+    } catch (error) {
+      return 'Invalid date';
+    }
+  };
+
   return (
     <Card>
-      <CardHeader className="pb-3 flex flex-row items-center justify-between">
+      <CardHeader className="pb-3">
         <CardTitle>Recent News</CardTitle>
-        <button className="text-blue-500 text-sm font-medium hover:underline">
-          Add News
-        </button>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="divide-y">
-          {newsArticles.map((article) => (
-            <div key={article.id} className="p-4 hover:bg-gray-50 transition-colors">
-              <div className="flex items-center justify-between mb-2">
-                <Badge variant="outline" className={`${getCategoryColor(article.category)}`}>
-                  {article.category}
-                </Badge>
-                <div className="flex items-center text-xs text-gray-500">
-                  <CalendarIcon className="h-3 w-3 mr-1" />
-                  {formatDate(article.publishedAt)}
+        {isLoading ? (
+          <div className="p-4 space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="animate-pulse flex">
+                <div className="bg-gray-200 w-16 h-16 rounded"></div>
+                <div className="ml-4 flex-1">
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/4"></div>
                 </div>
               </div>
-              <h3 className="font-medium text-base mb-1">{article.title}</h3>
-              <p className="text-sm text-gray-600 mb-3 line-clamp-2">{article.excerpt}</p>
-              <div className="flex items-center justify-between text-xs text-gray-500">
-                <div>By {article.author}</div>
-                <div className="flex space-x-3">
-                  <div className="flex items-center">
-                    <Eye className="h-3 w-3 mr-1" />
-                    {article.views}
+            ))}
+          </div>
+        ) : data?.data && data.data.length > 0 ? (
+          <div className="divide-y">
+            {data.data.map((article) => (
+              <div key={article.id} className="p-4 hover:bg-gray-50 transition-colors">
+                <div className="flex items-start">
+                  {article.image_url ? (
+                    <div className="flex-shrink-0">
+                      <div className="w-16 h-16 rounded overflow-hidden">
+                        <img src={article.image_url} alt={article.title} className="w-full h-full object-cover" />
+                      </div>
+                    </div>
+                  ) : null}
+                  <div className={article.image_url ? "ml-4" : ""}>
+                    <div className="flex items-center">
+                      {article.is_featured && (
+                        <Star className="h-3 w-3 text-yellow-400 mr-1" />
+                      )}
+                      <h3 className="font-medium text-sm line-clamp-2">{article.title}</h3>
+                    </div>
+                    <div className="flex items-center text-xs text-gray-500 mt-1">
+                      <Badge variant="outline" size="sm" className="mr-2 text-xs">
+                        {article.category}
+                      </Badge>
+                      <div className="flex items-center">
+                        <Calendar className="h-3 w-3 mr-1" />
+                        {formatDate(article.publish_date)}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center">
-                    <MessageCircle className="h-3 w-3 mr-1" />
-                    {article.comments}
-                  </div>
-                  <button className="flex items-center text-blue-500 hover:underline">
-                    <Edit className="h-3 w-3 mr-1" />
-                    Edit
-                  </button>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-        <div className="bg-gray-50 p-3 border-t">
-          <button className="text-blue-500 font-medium text-sm w-full text-center hover:underline">
-            View All News
-          </button>
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="p-4 text-center text-sm text-gray-500">
+            No recent news found.
+          </div>
+        )}
       </CardContent>
+      <CardFooter className="bg-gray-50 p-3 border-t">
+        <Button variant="ghost" className="w-full text-blue-500">
+          View All News
+        </Button>
+      </CardFooter>
     </Card>
   );
 };

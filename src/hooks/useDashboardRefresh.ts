@@ -13,7 +13,7 @@ export function useDashboardRefresh(interval: number = 60000) {
     try {
       const statusResponse = await getSystemStatus();
       if (statusResponse.success && statusResponse.data) {
-        setSystemStatus(statusResponse.data as SystemStatus);
+        setSystemStatus(statusResponse.data);
       }
     } catch (err) {
       console.error('Error fetching dashboard data:', err);

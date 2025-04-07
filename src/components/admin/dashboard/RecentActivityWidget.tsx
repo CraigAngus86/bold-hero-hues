@@ -69,7 +69,7 @@ const RecentActivityWidget = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {data.map((activity) => (
+            {data?.map((activity) => (
               <div 
                 key={activity.id} 
                 className="flex items-start space-x-3 border-b pb-4 last:border-b-0 last:pb-0"

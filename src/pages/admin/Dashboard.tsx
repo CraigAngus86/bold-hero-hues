@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
+import { Card } from '@/components/ui/card';
 import SystemStatusPanel from '@/components/admin/dashboard/SystemStatusPanel';
 import RecentActivityWidget from '@/components/admin/dashboard/RecentActivityWidget';
 import PendingTasksWidget from '@/components/admin/dashboard/PendingTasksWidget';
@@ -20,31 +21,25 @@ const Dashboard = () => {
       
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* First column */}
+          {/* Left column */}
           <div className="space-y-4">
-            {/* System Status */}
             <SystemStatusPanel />
           </div>
           
-          {/* Second column */}
+          {/* Middle column */}
           <div className="space-y-4">
-            {/* Pending Tasks */}
             <PendingTasksWidget />
           </div>
           
-          {/* Third column */}
+          {/* Right column */}
           <div className="space-y-4">
-            {/* Recent Activity */}
             <RecentActivityWidget />
-            {/* Upcoming Matches */}
             <UpcomingMatchesWidget />
           </div>
         </div>
         
-        {/* Stats Card Grid */}
         <StatsCardGrid />
         
-        {/* Recent News */}
         <RecentNewsWidget />
       </div>
     </>

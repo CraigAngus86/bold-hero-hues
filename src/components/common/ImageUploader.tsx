@@ -113,20 +113,21 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
             className="hidden"
             accept={acceptedTypes}
             onChange={handleFileChange}
-            disabled={isUploading}
           />
-          <label 
+          <Upload className="h-8 w-8 text-gray-400 mb-2" />
+          <label
             htmlFor="file-upload"
-            className="cursor-pointer w-full flex flex-col items-center"
+            className="cursor-pointer text-sm font-medium text-blue-600 hover:text-blue-500"
           >
-            <Upload className="h-10 w-10 text-gray-400 mb-2" />
-            <span className="text-sm font-medium text-blue-600">Click to upload</span>
-            <span className="text-xs text-gray-500 mt-1">
-              {acceptedTypes.split(',').map(t => t.replace('image/', '')).join(', ')} (max {maxSizeMB}MB)
-            </span>
+            Click to upload
           </label>
+          <p className="text-xs text-gray-500 mt-1">
+            {acceptedTypes.split(',').join(', ')} up to {maxSizeMB}MB
+          </p>
         </div>
       )}
     </div>
   );
 };
+
+export default ImageUploader;

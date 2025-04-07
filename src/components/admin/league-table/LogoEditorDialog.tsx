@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ImageUploader } from '@/components/common/ImageUploader';
 import { TeamStats } from '@/types/fixtures';
-import { updateTeamLogo } from '@/services/leagueService';
+import { updateTeamLogo } from '@/services/logs/systemLogsService';
 import { toast } from "sonner";
 import { BucketType } from '@/types/system';
 

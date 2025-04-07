@@ -1,130 +1,169 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CircleCheck, Clock, AlertCircle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-// Mock data - in a real app, this would come from an API
-const tasks = [
-  {
-    id: '1',
-    title: 'Review new fixture submission',
-    priority: 'high',
-    dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // tomorrow
-    status: 'pending'
-  },
-  {
-    id: '2',
-    title: 'Approve player registration form',
-    priority: 'medium',
-    dueDate: new Date(Date.now() + 48 * 60 * 60 * 1000), // 2 days from now
-    status: 'pending'
-  },
-  {
-    id: '3',
-    title: 'Upload match photos',
-    priority: 'low',
-    dueDate: new Date(Date.now() + 72 * 60 * 60 * 1000), // 3 days from now
-    status: 'pending'
-  },
-  {
-    id: '4',
-    title: 'Update league table standings',
-    priority: 'medium',
-    dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // tomorrow
-    status: 'pending'
-  },
-  {
-    id: '5',
-    title: 'Send newsletter to subscribers',
-    priority: 'high',
-    dueDate: new Date(Date.now() + 8 * 60 * 60 * 1000), // 8 hours from now
-    status: 'pending'
-  }
-];
-
-const formatDueDate = (date: Date) => {
-  const now = new Date();
-  const diffMs = date.getTime() - now.getTime();
-  const diffHours = diffMs / (1000 * 60 * 60);
-  
-  if (diffHours < 24) {
-    return `Due in ${Math.ceil(diffHours)} hours`;
-  } else {
-    const days = Math.ceil(diffHours / 24);
-    return `Due in ${days} ${days === 1 ? 'day' : 'days'}`;
-  }
-};
-
-const getPriorityColor = (priority: string) => {
-  switch (priority) {
-    case 'high':
-      return 'bg-red-100 text-red-800 border-red-200';
-    case 'medium':
-      return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-    case 'low':
-      return 'bg-green-100 text-green-800 border-green-200';
-    default:
-      return 'bg-gray-100 text-gray-800 border-gray-200';
-  }
-};
+interface Task {
+  id: string;
+  title: string;
+  dueDate: Date;
+  priority: 'low' | 'medium' | 'high';
+  status: 'pending' | 'in-progress' | 'completed';
+}
 
 const PendingTasksWidget = () => {
-  const toggleTaskCompletion = (taskId: string) => {
-    console.log('Task completed:', taskId);
-    // In a real application, this would update the task's status in the database
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Mock data loading
+  useEffect(() => {
+    const mockTasks: Task[] = [
+      {
+        id: '1',
+        title: 'Update match reports',
+        dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+        priority: 'high',
+        status: 'pending'
+      },
+      {
+        id: '2',
+        title: 'Review sponsor proposals',
+        dueDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
+        priority: 'medium',
+        status: 'in-progress'
+      },
+      {
+        id: '3',
+        title: 'Approve team photos',
+        dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+        priority: 'high',
+        status: 'pending'
+      }
+    ];
+    
+    setTimeout(() => {
+      setTasks(mockTasks);
+      setIsLoading(false);
+    }, 500);
+  }, []);
+
+  const getPriorityBadge = (priority: string) => {
+    switch (priority) {
+      case 'high':
+        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">High</span>;
+      case 'medium':
+        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">Medium</span>;
+      case 'low':
+        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Low</span>;
+      default:
+        return null;
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'in-progress':
+        return <Clock className="h-4 w-4 text-yellow-500" />;
+      case 'pending':
+        return <AlertCircle className="h-4 w-4 text-gray-400" />;
+      default:
+        return null;
+    }
+  };
+
+  const formatDueDate = (date: Date) => {
+    const today = new Date();
+    const tomorrow = new Date();
+    tomorrow.setDate(today.getDate() + 1);
+
+    if (date.toDateString() === today.toDateString()) {
+      return 'Today';
+    } else if (date.toDateString() === tomorrow.toDateString()) {
+      return 'Tomorrow';
+    } else {
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+  };
+
+  const markAsComplete = (id: string) => {
+    setTasks(prevTasks =>
+      prevTasks.map(task =>
+        task.id === id ? { ...task, status: 'completed' as const } : task
+      )
+    );
   };
 
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="flex justify-between items-center">
-          <span>Pending Tasks</span>
-          <Badge variant="outline" className="bg-gray-100">
-            {tasks.length}
-          </Badge>
-        </CardTitle>
+        <CardTitle>Pending Tasks</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <ul className="divide-y">
-          {tasks.map((task) => (
-            <li key={task.id} className="p-4 hover:bg-gray-50 transition-colors">
-              <div className="flex items-start gap-3">
-                <button 
-                  className="mt-0.5 rounded-full border border-gray-300 p-1 hover:bg-gray-100 transition-colors"
-                  onClick={() => toggleTaskCompletion(task.id)}
-                  aria-label="Mark as completed"
-                >
-                  {task.status === 'completed' ? (
-                    <CircleCheck className="h-4 w-4 text-green-500" />
-                  ) : (
-                    <Clock className="h-4 w-4 text-gray-400" />
-                  )}
-                </button>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-medium leading-none">{task.title}</h3>
-                    <Badge 
-                      variant="outline" 
-                      className={`text-xs ${getPriorityColor(task.priority)}`}
-                    >
-                      {task.priority}
-                    </Badge>
-                  </div>
-                  <div className="mt-1 flex items-center text-xs text-gray-500 gap-1">
-                    <AlertCircle className="h-3 w-3" />
-                    <span>{formatDueDate(task.dueDate)}</span>
-                  </div>
+        {isLoading ? (
+          <div className="p-4 space-y-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="flex justify-between">
+                  <div className="h-3 bg-gray-200 rounded w-1/4"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/4"></div>
                 </div>
               </div>
-            </li>
-          ))}
-        </ul>
-        <div className="bg-gray-50 p-3 border-t">
-          <button className="text-blue-500 font-medium text-sm w-full text-center hover:underline">
-            View All Tasks
-          </button>
-        </div>
+            ))}
+          </div>
+        ) : tasks.length === 0 ? (
+          <div className="p-4 text-center text-sm text-gray-500">
+            No pending tasks!
+          </div>
+        ) : (
+          <div>
+            {tasks.map((task) => (
+              <div 
+                key={task.id} 
+                className={`p-4 border-b last:border-b-0 hover:bg-gray-50 transition-colors ${
+                  task.status === 'completed' ? 'bg-gray-50' : ''
+                }`}
+              >
+                <div className="flex justify-between mb-1">
+                  <div className="flex items-center space-x-2">
+                    {getStatusIcon(task.status)}
+                    <span 
+                      className={`text-sm font-medium ${
+                        task.status === 'completed' ? 'line-through text-gray-500' : ''
+                      }`}
+                    >
+                      {task.title}
+                    </span>
+                  </div>
+                  {task.status !== 'completed' && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs"
+                      onClick={() => markAsComplete(task.id)}
+                    >
+                      Complete
+                    </Button>
+                  )}
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <div>Due: <span className={task.dueDate < new Date() ? 'text-red-500 font-medium' : ''}>
+                    {formatDueDate(task.dueDate)}
+                  </span></div>
+                  <div>{getPriorityBadge(task.priority)}</div>
+                </div>
+              </div>
+            ))}
+            <div className="bg-gray-50 p-3 border-t">
+              <button className="text-blue-500 font-medium text-sm w-full text-center hover:underline">
+                View All Tasks
+              </button>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

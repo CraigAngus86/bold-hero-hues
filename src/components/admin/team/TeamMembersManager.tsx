@@ -46,15 +46,23 @@ const TeamMembersManager: React.FC<TeamMembersManagerProps> = ({ memberType, mem
     }
   };
 
+  // Update the component to pass the correct props to PlayersList and StaffList
   const renderList = () => {
     switch (memberType) {
       case 'player':
-        return <PlayersList members={filteredMembers} onEdit={(id) => console.log(`Edit ${id}`)} />;
+        return <PlayersList 
+                 onSelectPlayer={(player) => console.log(`Selected player: ${player.id}`)}
+                 onViewPlayerStats={(player) => console.log(`View stats for: ${player.id}`)}
+                 onCreateNew={handleAddNew} 
+               />;
       case 'staff':
       case 'coach':
       case 'official':
       case 'management':
-        return <StaffList members={filteredMembers} onEdit={(id) => console.log(`Edit ${id}`)} />;
+        return <StaffList 
+                 onSelectStaff={(staff) => console.log(`Selected staff: ${staff.id}`)} 
+                 onCreateNew={handleAddNew} 
+               />;
       default:
         return null;
     }

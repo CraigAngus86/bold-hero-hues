@@ -1,5 +1,5 @@
 
-import React from 'react';
+// Fix the import for FeaturedArticle
 import { FeaturedArticle } from '@/types/news';
 
 // Featured articles data

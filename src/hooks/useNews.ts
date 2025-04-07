@@ -1,7 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { getNewsArticles } from '@/services/news/api';
-import { NewsQueryOptions, NewsArticle } from '@/types/news';
+import { NewsArticle } from '@/types/news';
 
 interface UseNewsResult {
   isLoading: boolean;
@@ -13,8 +13,14 @@ interface UseNewsResult {
   refetch: () => void;
 }
 
-interface UseNewsOptions extends NewsQueryOptions {
+interface UseNewsOptions {
   pageSize?: number;
+  page?: number;
+  featured?: boolean;
+  category?: string; // Add category to fix the error
+  orderBy?: string;
+  orderDirection?: 'asc' | 'desc';
+  searchTerm?: string;
 }
 
 export const useNews = (options: UseNewsOptions): UseNewsResult => {

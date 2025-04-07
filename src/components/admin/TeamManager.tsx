@@ -1,4 +1,5 @@
 
+// Add the required props to TeamMembersManager
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -81,7 +82,10 @@ const TeamManager = () => {
         </TabsContent>
         
         <TabsContent value="all">
-          <TeamMembersManager />
+          <TeamMembersManager 
+            memberType="player"
+            members={teamMembers}
+          />
         </TabsContent>
       </Tabs>
     </div>

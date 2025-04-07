@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { File, Download, Trash2, FileText, FileContract, Receipt, FileSignature } from 'lucide-react';
-import { toast } from 'sonner';
+import { FileText, Download, Plus, Trash2, FileUp } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { formatDistanceToNow } from 'date-fns';
-import {
-  addSponsorDocument,
-  getSponsorDocuments,
+import { toast } from 'sonner';
+import { 
+  createSponsorDocument,
+  fetchSponsorDocuments,
   deleteSponsorDocument,
-  downloadSponsorDocument,
+  downloadSponsorDocumentUrl
 } from '@/services/sponsorsService';
 
 interface SponsorDocumentsManagerProps {
@@ -31,7 +30,7 @@ const SponsorDocumentsManager: React.FC<SponsorDocumentsManagerProps> = ({ spons
   const loadDocuments = async () => {
     setIsLoading(true);
     try {
-      const response = await getSponsorDocuments(sponsorId);
+      const response = await fetchSponsorDocuments(sponsorId);
       if (response.success) {
         setDocuments(response.data);
       } else {
@@ -70,7 +69,7 @@ const SponsorDocumentsManager: React.FC<SponsorDocumentsManagerProps> = ({ spons
       formData.append('file', newDocument.file);
       formData.append('created_by', auth.user?.id || 'system');
 
-      const response = await addSponsorDocument(formData);
+      const response = await createSponsorDocument(formData);
       if (response.success) {
         toast.success('Document added successfully');
         await loadDocuments();
@@ -88,7 +87,7 @@ const SponsorDocumentsManager: React.FC<SponsorDocumentsManagerProps> = ({ spons
 
   const handleDownload = async (doc: any) => {
     try {
-      const response = await downloadSponsorDocument(doc.id);
+      const response = await downloadSponsorDocumentUrl(doc.id);
       if (response.success && response.data) {
         const url = response.data.url;
         window.open(url, '_blank');
@@ -173,7 +172,7 @@ const SponsorDocumentsManager: React.FC<SponsorDocumentsManagerProps> = ({ spons
             <span className="loading loading-spinner loading-sm"></span>
           ) : (
             <>
-              <File className="mr-2 h-4 w-4" />
+              <Plus className="mr-2 h-4 w-4" />
               Add Document
             </>
           )}
@@ -190,7 +189,7 @@ const SponsorDocumentsManager: React.FC<SponsorDocumentsManagerProps> = ({ spons
             <div key={doc.id} className="flex items-center justify-between p-3 border rounded mb-2 bg-white hover:bg-gray-50 transition-colors">
               <div className="flex items-center space-x-3">
                 <div className="text-gray-500">
-                  {getDocumentTypeIcon(doc.type)}
+                  {getDocumentIcon(doc.name)}
                 </div>
                 <div>
                   <p className="font-medium">{doc.name}</p>
@@ -212,18 +211,20 @@ const SponsorDocumentsManager: React.FC<SponsorDocumentsManagerProps> = ({ spons
     </div>
   );
 
-  // Helper function for getting document type icons
-  function getDocumentTypeIcon(type: string) {
-    switch (type) {
-      case 'contract':
-        return <FileContract className="h-5 w-5" />;
-      case 'invoice':
-        return <Receipt className="h-5 w-5" />;
-      case 'agreement':
-        return <FileSignature className="h-5 w-5" />;
-      default:
-        return <FileText className="h-5 w-5" />;
-    }
+  const documentIcons = {
+    pdf: FileText,
+    doc: FileText,
+    docx: FileText,
+    xls: FileText,
+    xlsx: FileText,
+    txt: FileText,
+    default: FileText
+  };
+
+  const getDocumentIcon = (filename: string) => {
+    const extension = filename.split('.').pop()?.toLowerCase() || 'default';
+    const IconComponent = documentIcons[extension as keyof typeof documentIcons] || documentIcons.default;
+    return <IconComponent className="h-5 w-5" />;
   };
 };
 

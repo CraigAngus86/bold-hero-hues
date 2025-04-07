@@ -7,16 +7,20 @@ export interface SystemMetric {
   unit?: string;
 }
 
+export type SystemStatusType = 'healthy' | 'warning' | 'error' | 'unknown' | 'online' | 'offline' | 'degraded' | 'maintenance';
+
 export interface SystemStatus {
-  status: 'healthy' | 'warning' | 'error' | 'unknown' | 'online' | 'offline' | 'degraded' | 'maintenance';
+  status: SystemStatusType;
   lastUpdated: string;
   uptime: number;
   version: string;
+  message?: string;
   metrics: {
     memory: SystemMetric;
     cpu: SystemMetric;
     storage: SystemMetric;
     activeUsers: SystemMetric;
+    requests?: number;
   };
   services: {
     database: {
@@ -34,4 +38,32 @@ export interface SystemStatus {
       totalSize: number;
     };
   };
+}
+
+export interface SystemStatusItemProps {
+  name: string;
+  status: SystemStatusType;
+  metricValue?: string | number;
+  icon?: React.ElementType;
+  tooltip?: string;
+  lastChecked?: string;
+  color?: string;
+  viewAllLink?: string;
+  count?: any;
+  value?: string | number;
+}
+
+export interface SystemStatusProps {
+  systems: SystemStatusItemProps[];
+  isLoading: boolean;
+  lastUpdated: Date;
+  onRefresh: () => void;
+}
+
+export interface SystemLog {
+  id: string;
+  timestamp: string;
+  source: string;
+  message: string;
+  type: string;
 }

@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { NewsItem } from '@/types/news';
+import { NewsItem, NewsArticle } from '@/types/news'; // Update import
 
 interface NewsStore {
   news: NewsItem[];

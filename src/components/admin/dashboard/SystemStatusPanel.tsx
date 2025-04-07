@@ -90,25 +90,25 @@ const SystemStatusPanel = () => {
                 <div>
                   <div className="flex justify-between text-xs mb-1">
                     <span>CPU</span>
-                    <span>{status.metrics.cpu}%</span>
+                    <span>{status.metrics.cpu.value}%</span>
                   </div>
-                  <Progress value={status.metrics.cpu} className="h-1"/>
+                  <Progress value={Number(status.metrics.cpu.value)} className="h-1"/>
                 </div>
                 
                 <div>
                   <div className="flex justify-between text-xs mb-1">
                     <span>Memory</span>
-                    <span>{status.metrics.memory}%</span>
+                    <span>{status.metrics.memory.value}%</span>
                   </div>
-                  <Progress value={status.metrics.memory} className="h-1"/>
+                  <Progress value={Number(status.metrics.memory.value)} className="h-1"/>
                 </div>
                 
                 <div>
                   <div className="flex justify-between text-xs mb-1">
                     <span>Storage</span>
-                    <span>{status.metrics.storage}%</span>
+                    <span>{status.metrics.storage.value}%</span>
                   </div>
-                  <Progress value={status.metrics.storage} className="h-1"/>
+                  <Progress value={Number(status.metrics.storage.value)} className="h-1"/>
                 </div>
               </div>
             )}
@@ -116,12 +116,12 @@ const SystemStatusPanel = () => {
             <div className="mt-2 pt-2 border-t text-xs text-gray-700">
               {status.metrics && (
                 <div className="flex justify-between pb-1">
-                  <span>Requests (24h)</span>
-                  <span>{status.metrics.requests}</span>
+                  <span>Active Users</span>
+                  <span>{status.metrics.activeUsers.value}</span>
                 </div>
               )}
               <div className="flex justify-between">
-                <span>Message</span>
+                <span>Status</span>
                 <span>{status.message || 'No issues detected'}</span>
               </div>
             </div>

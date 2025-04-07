@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,14 +27,17 @@ const PlayerEditor: React.FC<PlayerEditorProps> = ({ playerId, onSaved, onCancel
     setIsSubmitting(true);
     
     try {
-      // Create a new player
+      // Create a new player with required is_active field
       const playerData = {
         name,
         position,
         jersey_number: parseInt(jerseyNumber),
         bio,
         member_type: 'player',
-        image_url: image ? URL.createObjectURL(image) : undefined
+        image_url: image ? URL.createObjectURL(image) : undefined,
+        is_active: true, // Add the required field
+        nationality: '', // Add other required fields with defaults
+        experience: ''
       };
       
       // Using the updated method signature that requires memberType

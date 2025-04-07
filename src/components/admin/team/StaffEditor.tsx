@@ -29,14 +29,16 @@ const StaffEditor: React.FC<StaffEditorProps> = ({ staffId, memberType, onSaved,
     setIsSubmitting(true);
     
     try {
-      // Create a new staff member
+      // Create a new staff member with required is_active field
       const staffData = {
         name,
         position,
         bio,
         experience,
         member_type: memberType,
-        image_url: image ? URL.createObjectURL(image) : undefined
+        image_url: image ? URL.createObjectURL(image) : undefined,
+        is_active: true, // Add required field 
+        nationality: '' // Add other required fields with defaults
       };
       
       // Pass both the data and the memberType to the addTeamMember function

@@ -1,249 +1,203 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Calendar, Plus, Twitter, Instagram, Facebook } from 'lucide-react';
 import { SocialPost } from '@/types/fans';
-import { Facebook, Twitter, Instagram, Share2 } from 'lucide-react';
-import { toast } from 'sonner';
 
 const SocialMediaIntegration: React.FC = () => {
-  const [posts, setPosts] = useState<SocialPost[]>([
+  const [activeTab, setActiveTab] = useState('published');
+  
+  // Mock data with the correct type implementation
+  const socialPosts: SocialPost[] = [
     {
       id: '1',
-      platform: 'twitter',
-      content: 'Excited for the upcoming match this weekend! #MatchDay #Football',
-      image_url: 'https://placehold.co/600x400/png',
-      post_url: 'https://twitter.com/example/status/123456789',
-      posted_at: '2023-05-12T10:30:00',
-      engagement: {
-        likes: 42,
-        shares: 12,
-        comments: 5,
-      },
+      platform: 'instagram',
+      content: 'Check out our match highlights from the weekend victory! #BanksoDeeFc',
+      image_url: '/images/match-celebration.jpg',
+      post_url: 'https://instagram.com/post/123',
+      posted_at: '2025-04-05T14:30:00Z', // Added required posted_at field
       status: 'published',
-      created_at: '2023-05-12T10:20:00',
+      created_at: '2025-04-05T14:30:00Z',
+      engagement: {
+        likes: 124,
+        shares: 18,
+        comments: 22
+      }
     },
     {
       id: '2',
-      platform: 'facebook',
-      content: 'Check out the highlights from our latest victory! What was your favorite moment?',
-      image_url: 'https://placehold.co/600x400/png',
-      post_url: 'https://facebook.com/post/123456789',
+      platform: 'twitter',
+      content: 'Banks o\' Dee are proud to announce our new team captain for the upcoming season! Stay tuned for the announcement this Friday.',
+      posted_at: '2025-04-02T09:15:00Z', // Added required posted_at field
       status: 'published',
-      posted_at: '2023-05-10T14:15:00',
+      created_at: '2025-04-02T09:15:00Z',
       engagement: {
-        likes: 67,
-        shares: 8,
-        comments: 15,
-      },
-      created_at: '2023-05-10T14:00:00',
+        likes: 87,
+        shares: 45,
+        comments: 13
+      }
     },
     {
       id: '3',
-      platform: 'instagram',
-      content: 'Training session at the new facility ⚽️ #Training #TeamSpirit',
-      image_url: 'https://placehold.co/600x400/png',
-      post_url: 'https://instagram.com/p/123456789',
-      status: 'scheduled',
-      scheduled_for: '2023-05-20T15:00:00',
+      platform: 'facebook',
+      content: 'Tickets for our upcoming match against Formartine United are now available online. Book early to avoid disappointment!',
+      post_url: 'https://facebook.com/post/456',
+      posted_at: '2025-04-01T10:00:00Z', // Added required posted_at field
+      created_at: '2025-04-01T10:00:00Z',
       engagement: {
-        likes: 0,
-        shares: 0,
-        comments: 0,
-      },
-      created_at: '2023-05-08T09:45:00',
-    },
+        likes: 56,
+        shares: 32,
+        comments: 8
+      }
+    }
+  ];
+  
+  const scheduledPosts: SocialPost[] = [
     {
       id: '4',
-      platform: 'twitter',
-      content: 'Season tickets now available for the upcoming season!',
-      status: 'draft',
+      platform: 'instagram',
+      content: 'Match day tomorrow! Come support the team as we face Buckie Thistle at Spain Park.',
+      image_url: 'https://example.com/matchday-promo.jpg',
+      post_url: 'https://instagram.com/scheduled/789',
+      status: 'scheduled',
+      scheduled_for: '2025-04-08T10:00:00Z',
+      created_at: '2025-04-06T14:30:00Z',
+      posted_at: '2025-04-08T10:00:00Z', // Added to satisfy the type
       engagement: {
         likes: 0,
         shares: 0,
-        comments: 0,
-      },
-      created_at: '2023-05-07T16:20:00',
-    },
-  ]);
+        comments: 0
+      }
+    }
+  ];
   
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('all');
+  const draftPosts: SocialPost[] = [
+    {
+      id: '5',
+      platform: 'twitter',
+      content: 'Draft post about our community initiative with local schools',
+      status: 'draft',
+      created_at: '2025-04-03T16:45:00Z',
+      posted_at: '2025-04-03T16:45:00Z', // Added to satisfy the type
+      engagement: {
+        likes: 0,
+        shares: 0,
+        comments: 0
+      }
+    }
+  ];
   
-  // Filter posts based on search query and active tab
-  const filteredPosts = posts.filter(item => {
-    // Filter by search query
-    const matchesSearch = 
-      item.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.platform.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    // Filter by tab
-    if (activeTab === 'all') return matchesSearch;
-    if (activeTab === 'published') return matchesSearch && item.status === 'published';
-    if (activeTab === 'scheduled') return matchesSearch && item.status === 'scheduled';
-    if (activeTab === 'draft') return matchesSearch && item.status === 'draft';
-    if (activeTab === 'twitter') return matchesSearch && item.platform === 'twitter';
-    if (activeTab === 'facebook') return matchesSearch && item.platform === 'facebook';
-    if (activeTab === 'instagram') return matchesSearch && item.platform === 'instagram';
-    
-    return matchesSearch;
-  });
-  
-  const handleDelete = (id: string) => {
-    setPosts(prev => prev.filter(post => post.id !== id));
-    toast.success('Post deleted');
-  };
-  
-  const getPlatformIcon = (platform: string) => {
+  const platformIcon = (platform: string) => {
     switch (platform) {
-      case 'twitter': return <Twitter size={16} className="text-blue-400" />;
-      case 'facebook': return <Facebook size={16} className="text-blue-600" />;
-      case 'instagram': return <Instagram size={16} className="text-pink-600" />;
-      default: return <Share2 size={16} />;
+      case 'twitter':
+        return <Twitter className="w-4 h-4 text-blue-400" />;
+      case 'instagram':
+        return <Instagram className="w-4 h-4 text-pink-500" />;
+      case 'facebook':
+        return <Facebook className="w-4 h-4 text-blue-600" />;
+      default:
+        return null;
     }
   };
-
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status) {
-      case 'published': return 'success';
-      case 'scheduled': return 'default';
-      case 'draft': return 'outline';
-      case 'failed': return 'destructive';
-      default: return 'outline';
-    }
-  };
-
-  const displayDate = (post: SocialPost): string => {
-    if (post.status === 'published' && post.posted_at) {
-      return new Date(post.posted_at).toLocaleDateString();
-    } else if (post.status === 'scheduled' && post.scheduled_for) {
-      return `Scheduled: ${new Date(post.scheduled_for).toLocaleDateString()}`;
-    } else {
-      return new Date(post.created_at || '').toLocaleDateString();
-    }
-  };
-
+  
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-6">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
-        <div>
-          <h2 className="text-xl font-semibold">Social Media</h2>
-          <p className="text-gray-600">Manage your social media posts</p>
-        </div>
-        
-        <div className="mt-4 md:mt-0 flex flex-col md:flex-row gap-4">
-          <div className="relative">
-            <Input
-              placeholder="Search posts..."
-              className="w-full md:w-64"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <Button>New Post</Button>
-        </div>
-      </div>
-      
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="published">Published</TabsTrigger>
-          <TabsTrigger value="scheduled">Scheduled</TabsTrigger>
-          <TabsTrigger value="draft">Drafts</TabsTrigger>
-          <TabsTrigger value="twitter">Twitter</TabsTrigger>
-          <TabsTrigger value="facebook">Facebook</TabsTrigger>
-          <TabsTrigger value="instagram">Instagram</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value={activeTab}>
-          <Card>
-            <CardContent className="p-6">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-3 font-medium text-gray-500">Content</th>
-                      <th className="text-left py-3 font-medium text-gray-500">Platform</th>
-                      <th className="text-left py-3 font-medium text-gray-500">Date</th>
-                      <th className="text-left py-3 font-medium text-gray-500">Status</th>
-                      <th className="text-left py-3 font-medium text-gray-500">Engagement</th>
-                      <th className="text-right py-3 font-medium text-gray-500">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredPosts.length > 0 ? (
-                      filteredPosts.map((post) => (
-                        <tr key={post.id} className="border-b hover:bg-gray-50">
-                          <td className="py-3">
-                            <div className="flex items-start gap-3">
-                              {post.image_url && (
-                                <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded">
-                                  <img src={post.image_url} alt="" className="h-full w-full object-cover" />
-                                </div>
-                              )}
-                              <div className="line-clamp-2 text-sm">
-                                {post.content}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-3">
-                            <div className="flex items-center gap-1">
-                              {getPlatformIcon(post.platform)}
-                              <span className="capitalize">{post.platform}</span>
-                            </div>
-                          </td>
-                          <td className="py-3 text-sm text-gray-600">
-                            {displayDate(post)}
-                          </td>
-                          <td className="py-3">
-                            <Badge variant={getStatusBadgeVariant(post.status)}>
-                              {post.status.charAt(0).toUpperCase() + post.status.slice(1)}
-                            </Badge>
-                          </td>
-                          <td className="py-3">
-                            <div className="text-sm">
-                              <span className="mr-2">👍 {post.engagement.likes}</span>
-                              <span className="mr-2">🔄 {post.engagement.shares}</span>
-                              <span>💬 {post.engagement.comments}</span>
-                            </div>
-                          </td>
-                          <td className="py-3 text-right">
-                            <div className="flex justify-end space-x-2">
-                              <Button size="sm" variant="outline">Edit</Button>
-                              <Button 
-                                size="sm" 
-                                variant="ghost"
-                                className="text-red-600"
-                                onClick={() => handleDelete(post.id)}
-                              >
-                                Delete
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={6} className="py-8 text-center text-gray-500">
-                          No posts found
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-      
-      <div className="border-t mt-8 pt-6 text-center text-sm text-gray-500">
-        <p>Connect your social media accounts in the settings to enable automatic posting</p>
-      </div>
-    </div>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>Social Media Management</CardTitle>
+        <Button size="sm">
+          <Plus className="w-4 h-4 mr-1" /> New Post
+        </Button>
+      </CardHeader>
+      <CardContent>
+        <Tabs defaultValue="published" value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="mb-4">
+            <TabsTrigger value="published">Published</TabsTrigger>
+            <TabsTrigger value="scheduled">Scheduled</TabsTrigger>
+            <TabsTrigger value="drafts">Drafts</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="published">
+            <div className="space-y-4">
+              {socialPosts.map(post => (
+                <div key={post.id} className="p-4 border rounded-md">
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center">
+                      {platformIcon(post.platform)}
+                      <span className="ml-2 text-sm font-medium">{post.platform.charAt(0).toUpperCase() + post.platform.slice(1)}</span>
+                    </div>
+                    <div className="text-sm text-muted-foreground flex items-center">
+                      <Calendar className="w-3 h-3 mr-1" />
+                      {new Date(post.posted_at).toLocaleDateString()}
+                    </div>
+                  </div>
+                  <p className="my-2">{post.content}</p>
+                  {post.image_url && (
+                    <div className="mt-2 w-full h-40 bg-gray-100 rounded-md"></div>
+                  )}
+                  <div className="flex mt-3 text-sm">
+                    <span className="mr-3">{post.engagement.likes} likes</span>
+                    <span className="mr-3">{post.engagement.shares} shares</span>
+                    <span>{post.engagement.comments} comments</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="scheduled">
+            <div className="space-y-4">
+              {scheduledPosts.map(post => (
+                <div key={post.id} className="p-4 border rounded-md">
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center">
+                      {platformIcon(post.platform)}
+                      <span className="ml-2 text-sm font-medium">{post.platform.charAt(0).toUpperCase() + post.platform.slice(1)}</span>
+                    </div>
+                    <div className="text-sm text-muted-foreground flex items-center">
+                      <Calendar className="w-3 h-3 mr-1" />
+                      Scheduled: {new Date(post.scheduled_for || '').toLocaleDateString()}
+                    </div>
+                  </div>
+                  <p className="my-2">{post.content}</p>
+                  <div className="flex mt-2">
+                    <Button size="sm" variant="outline" className="mr-2">Edit</Button>
+                    <Button size="sm" variant="outline">Cancel</Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="drafts">
+            <div className="space-y-4">
+              {draftPosts.map(post => (
+                <div key={post.id} className="p-4 border rounded-md">
+                  <div className="flex items-center">
+                    {platformIcon(post.platform)}
+                    <span className="ml-2 text-sm font-medium">{post.platform.charAt(0).toUpperCase() + post.platform.slice(1)}</span>
+                  </div>
+                  <p className="my-2">{post.content}</p>
+                  <div className="flex mt-2">
+                    <Button size="sm" variant="outline" className="mr-2">Edit</Button>
+                    <Button size="sm" variant="outline" className="mr-2">Schedule</Button>
+                    <Button size="sm" variant="outline">Delete</Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="analytics">
+            <div className="p-8 text-center border rounded-md">
+              <p className="text-muted-foreground">Social media analytics will be displayed here</p>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
   );
 };
 

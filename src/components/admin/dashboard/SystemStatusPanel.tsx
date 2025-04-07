@@ -1,196 +1,229 @@
 
 import React from 'react';
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import {
-  CheckCircle,
-  AlertCircle,
-  AlertTriangle,
-  RotateCw,
-  Server,
-  Database,
-  HardDrive,
-  Mail,
-  CreditCard,
-} from "lucide-react";
-import { SystemStatus, Service, SystemStatusName } from "@/types/system/status";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { RefreshCw, Server, Database, HardDrive, Users, Clock } from 'lucide-react';
+import { SystemStatus } from '@/types/system/status';
+import { formatDistanceToNow } from 'date-fns';
 
 interface SystemStatusPanelProps {
   status?: SystemStatus;
-  isLoading?: boolean;
-  onRefresh?: () => Promise<void>;
-  error?: Error;
+  isLoading: boolean;
+  onRefresh: () => void;
+  error: Error | null;
 }
 
-const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({ 
-  status, 
-  isLoading = false, 
-  onRefresh, 
-  error 
+const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
+  status,
+  isLoading,
+  onRefresh,
+  error
 }) => {
-  const getStatusIcon = (statusType: SystemStatusName) => {
-    switch(statusType) {
+  const getStatusBadge = (status: string) => {
+    switch (status) {
       case 'healthy':
-        return <CheckCircle className="h-6 w-6 text-green-500" />;
+        return <Badge className="bg-green-500">Healthy</Badge>;
       case 'warning':
-      case 'degraded':
-        return <AlertTriangle className="h-6 w-6 text-amber-500" />;
+        return <Badge variant="outline" className="bg-yellow-500 text-white">Warning</Badge>;
       case 'error':
-      case 'critical':
-        return <AlertCircle className="h-6 w-6 text-red-500" />;
-      case 'unknown':
+        return <Badge variant="destructive">Error</Badge>;
       default:
-        return <CheckCircle className="h-6 w-6 text-gray-500" />;
+        return <Badge variant="outline">Unknown</Badge>;
+    }
+  };
+  
+  const getServiceIcon = (name: string) => {
+    switch (name.toLowerCase()) {
+      case 'database':
+        return <Database className="h-4 w-4 mr-2" />;
+      case 'api server':
+        return <Server className="h-4 w-4 mr-2" />;
+      case 'storage':
+        return <HardDrive className="h-4 w-4 mr-2" />;
+      default:
+        return <Server className="h-4 w-4 mr-2" />;
     }
   };
 
-  const getServiceIcon = (serviceName: string) => {
-    switch(serviceName.toLowerCase()) {
-      case 'web server':
-        return <Server className="h-5 w-5 text-gray-500" />;
-      case 'database':
-        return <Database className="h-5 w-5 text-gray-500" />;
-      case 'storage service':
-        return <HardDrive className="h-5 w-5 text-gray-500" />;
-      case 'email service':
-        return <Mail className="h-5 w-5 text-gray-500" />;
-      case 'payment gateway':
-        return <CreditCard className="h-5 w-5 text-gray-500" />;
-      default:
-        return <Server className="h-5 w-5 text-gray-500" />;
+  const formatUptime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    
+    if (hours > 24) {
+      const days = Math.floor(hours / 24);
+      return `${days} day${days > 1 ? 's' : ''}`;
     }
+    
+    return `${hours}h ${minutes}m`;
   };
-  
-  // If no status is provided, show loading or error state
-  if (!status) {
-    if (error) {
-      return (
-        <div className="flex flex-col items-center justify-center h-40 bg-red-50 rounded-lg border border-red-200 p-4">
-          <AlertCircle className="h-12 w-12 text-red-500 mb-2" />
-          <h3 className="text-red-700 font-medium text-lg">Error Loading System Status</h3>
-          <p className="text-red-600 text-sm mt-1 mb-3">{error.message}</p>
-          {onRefresh && (
-            <Button variant="outline" size="sm" onClick={onRefresh} disabled={isLoading}>
-              <RotateCw className="h-4 w-4 mr-2" />
-              Try Again
-            </Button>
-          )}
+
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="h-6 bg-gray-200 animate-pulse rounded w-1/4"></div>
+          <div className="h-6 bg-gray-200 animate-pulse rounded w-1/6"></div>
         </div>
-      );
-    }
-    
-    if (isLoading) {
-      return (
-        <div className="flex flex-col items-center justify-center h-40">
-          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mb-3"></div>
-          <p className="text-muted-foreground">Loading system status...</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-24 bg-gray-100 animate-pulse rounded"></div>
+          ))}
         </div>
-      );
-    }
-    
-    return null;
+      </div>
+    );
   }
-  
+
+  if (!status) {
+    return (
+      <div className="text-center py-10">
+        <p>No system status data available.</p>
+        <Button 
+          onClick={onRefresh} 
+          variant="outline"
+          className="mt-2"
+          disabled={isLoading}
+        >
+          <RefreshCw className="h-4 w-4 mr-2" /> Refresh
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          {getStatusIcon(status.overall_status)}
-          <div>
-            <h3 className="text-xl font-semibold">{status.message || "System Status"}</h3>
-            <p className="text-muted-foreground text-sm">{status.uptime}% uptime</p>
-          </div>
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center">
+          <h3 className="text-lg font-medium mr-2">System Status:</h3>
+          {getStatusBadge(status.overall_status)}
         </div>
-        <Badge variant={status.overall_status === 'healthy' ? "outline" : "secondary"} className="px-3 py-0.5">
-          {status.overall_status === 'healthy' ? 'Operational' : status.overall_status}
-        </Badge>
-      </div>
-      
-      <div className="grid gap-4 md:grid-cols-3 mb-6">
-        {/* Performance Metrics */}
-        <Card>
-          <CardContent className="pt-6">
-            <h4 className="text-sm font-medium mb-2 text-muted-foreground">Performance</h4>
-            <dl className="space-y-2">
-              {status.metrics.performance.map((metric) => (
-                <div key={metric.name} className="flex justify-between items-center">
-                  <dt className="text-sm">{metric.name}</dt>
-                  <dd className="font-medium">{metric.value} {metric.unit}</dd>
-                </div>
-              ))}
-            </dl>
-          </CardContent>
-        </Card>
-        
-        {/* Storage Metrics */}
-        <Card>
-          <CardContent className="pt-6">
-            <h4 className="text-sm font-medium mb-2 text-muted-foreground">Storage</h4>
-            <dl className="space-y-2">
-              {status.metrics.storage.map((metric) => (
-                <div key={metric.name} className="flex justify-between items-center">
-                  <dt className="text-sm">{metric.name}</dt>
-                  <dd className="font-medium">{metric.value} {metric.unit}</dd>
-                </div>
-              ))}
-            </dl>
-          </CardContent>
-        </Card>
-        
-        {/* Usage Metrics */}
-        <Card>
-          <CardContent className="pt-6">
-            <h4 className="text-sm font-medium mb-2 text-muted-foreground">Usage</h4>
-            <dl className="space-y-2">
-              {status.metrics.usage.map((metric) => (
-                <div key={metric.name} className="flex justify-between items-center">
-                  <dt className="text-sm">{metric.name}</dt>
-                  <dd className="font-medium">{metric.value} {metric.unit}</dd>
-                </div>
-              ))}
-            </dl>
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Services List */}
-      <div className="space-y-3 mb-6">
-        <h4 className="font-medium mb-2">Services</h4>
-        
-        {status.services.map((service: Service) => (
-          <div key={service.name} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-            <div className="flex items-center gap-3">
-              {getServiceIcon(service.name)}
-              <div>
-                <div className="font-medium">{service.name}</div>
-                <div className="text-sm text-muted-foreground">{service.message}</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <div className="text-sm">{service.uptime}% uptime</div>
-                <div className="text-xs text-muted-foreground">
-                  Last checked: {new Date(service.lastChecked).toLocaleTimeString()}
-                </div>
-              </div>
-              {getStatusIcon(service.status)}
-            </div>
-          </div>
-        ))}
-      </div>
-      
-      <CardFooter className="border-t pt-4 flex justify-between px-0">
-        <div className="text-sm text-muted-foreground">
-          Last updated: {new Date(status.last_updated).toLocaleTimeString()}
-        </div>
-        {onRefresh && (
-          <Button variant="outline" size="sm" onClick={onRefresh} disabled={isLoading}>
-            <RotateCw className={`h-3 w-3 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
-            Refresh
+        <div className="flex items-center text-sm text-muted-foreground">
+          <Clock className="h-4 w-4 mr-1" />
+          <span>Last checked: {
+            status.last_updated ? 
+              formatDistanceToNow(new Date(status.last_updated), { addSuffix: true })
+              : 'Unknown'
+          }</span>
+          <Button 
+            onClick={onRefresh} 
+            size="sm" 
+            variant="ghost"
+            className="ml-2"
+            disabled={isLoading}
+          >
+            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
           </Button>
-        )}
-      </CardFooter>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        {/* Services Section */}
+        <div>
+          <h4 className="text-sm font-medium mb-2">Services</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {status.services.map((service, index) => (
+              <Card key={index} className="border border-gray-200">
+                <CardContent className="p-3">
+                  <div className="flex justify-between items-center mb-1">
+                    <div className="flex items-center">
+                      {getServiceIcon(service.name)}
+                      <h5 className="font-medium text-sm">{service.name}</h5>
+                    </div>
+                    {getStatusBadge(service.status)}
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-1">{service.message}</p>
+                  <div className="flex items-center text-xs text-muted-foreground mt-2">
+                    <Clock className="h-3 w-3 mr-1" />
+                    <span>Uptime: {formatUptime(service.uptime)}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+        
+        {/* Metrics Section */}
+        <div>
+          <h4 className="text-sm font-medium mb-2">Metrics</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <Card>
+              <CardHeader className="p-3 pb-1">
+                <CardTitle className="text-sm font-medium">Performance</CardTitle>
+              </CardHeader>
+              <CardContent className="p-3 pt-0">
+                <ul className="text-sm space-y-1">
+                  {status.metrics.performance.map((metric, idx) => (
+                    <li key={idx} className="flex justify-between">
+                      <span className="text-muted-foreground">{metric.name}</span>
+                      <span className="font-medium">{metric.value} {metric.unit}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="p-3 pb-1">
+                <CardTitle className="text-sm font-medium">Storage</CardTitle>
+              </CardHeader>
+              <CardContent className="p-3 pt-0">
+                <ul className="text-sm space-y-1">
+                  {status.metrics.storage.map((metric, idx) => (
+                    <li key={idx} className="flex justify-between">
+                      <span className="text-muted-foreground">{metric.name}</span>
+                      <span className="font-medium">{metric.value} {metric.unit}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="p-3 pb-1">
+                <CardTitle className="text-sm font-medium">Usage</CardTitle>
+              </CardHeader>
+              <CardContent className="p-3 pt-0">
+                <ul className="text-sm space-y-1">
+                  {status.metrics.usage.map((metric, idx) => (
+                    <li key={idx} className="flex justify-between">
+                      <span className="text-muted-foreground">{metric.name}</span>
+                      <span className="font-medium">{metric.value} {metric.unit}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+        
+        {/* Recent Logs Section */}
+        <div>
+          <h4 className="text-sm font-medium mb-2">Recent Logs</h4>
+          <Card>
+            <CardContent className="p-3">
+              <ul className="divide-y divide-gray-100">
+                {status.logs.slice(0, 3).map((log) => (
+                  <li key={log.id} className="py-2 first:pt-0 last:pb-0">
+                    <div className="flex items-start">
+                      <div className={`mt-1 h-2 w-2 rounded-full mr-2 ${
+                        log.type === 'info' ? 'bg-blue-500' : 
+                        log.type === 'warning' ? 'bg-yellow-500' : 'bg-red-500'
+                      }`} />
+                      <div>
+                        <p className="text-sm">{log.message}</p>
+                        <div className="flex items-center text-xs text-muted-foreground mt-1">
+                          <span className="mr-2">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                          <span className="bg-gray-100 px-1 rounded">{log.source}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 };

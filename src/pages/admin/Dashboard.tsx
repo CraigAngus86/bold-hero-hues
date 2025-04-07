@@ -5,6 +5,60 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import QuickActions from '@/components/admin/dashboard/QuickActions';
 import { useDashboardRefresh } from '@/hooks/useDashboardRefresh';
 import EnhancedSystemStatus from '@/components/admin/dashboard/EnhancedSystemStatus';
+import AdminLayout from '@/components/admin/layout/AdminLayout';
+import DashboardStats from '@/components/admin/dashboard/DashboardStats';
+
+// Create simplified versions of the missing components
+const OverviewTab = () => (
+  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <Card>
+      <CardHeader>
+        <CardTitle>Recent Activity</CardTitle>
+        <CardDescription>Latest system events</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p>Recent activity will be shown here</p>
+      </CardContent>
+    </Card>
+  </div>
+);
+
+const MetricsTab = () => (
+  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <Card>
+      <CardHeader>
+        <CardTitle>System Metrics</CardTitle>
+        <CardDescription>Performance and usage metrics</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p>System metrics will be shown here</p>
+      </CardContent>
+    </Card>
+  </div>
+);
+
+const ActivityLogPanel = () => (
+  <div className="space-y-4">
+    <h2 className="text-xl font-bold">Activity Log</h2>
+    <Card>
+      <CardContent className="p-4">
+        <p>Activity logs will be shown here</p>
+      </CardContent>
+    </Card>
+  </div>
+);
+
+const RecentActivity = () => (
+  <Card>
+    <CardHeader>
+      <CardTitle>Recent Activity</CardTitle>
+      <CardDescription>Latest actions</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <p>Recent activity details will be shown here</p>
+    </CardContent>
+  </Card>
+);
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = React.useState('overview');
@@ -31,9 +85,21 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mt-4">
-        {/* Stats Grid would go here */}
-      </div>
+      {/* Dashboard Stats Section */}
+      <DashboardStats
+        newsStats={{ total: 24, published: 20, drafts: 4 }}
+        fixturesStats={{ upcoming: 5, nextMatch: { opponent: 'Brora Rangers', date: '2025-04-15' } }}
+        leagueStats={{ position: 3, previousPosition: 5, wins: 15, draws: 4, losses: 2 }}
+        mediaStats={{ total: 120, photos: 100, videos: 15, albums: 5 }}
+        isNewsStatsLoading={false}
+        isFixturesStatsLoading={false}
+        isLeagueStatsLoading={false}
+        isMediaStatsLoading={false}
+        refetchNews={() => {}}
+        refetchFixtures={() => {}}
+        refetchLeague={() => {}}
+        refetchMedia={() => {}}
+      />
 
       {/* System Status Card */}
       <Card className="mt-4">
@@ -55,36 +121,13 @@ const Dashboard = () => {
           <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="mt-4">
-          {/* Overview Content */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
-                <CardDescription>Latest system events</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {logs.slice(0, 5).map(log => (
-                    <li key={log.id} className="border-b pb-2 last:border-0">
-                      <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
-                        log.type === 'info' ? 'bg-blue-500' : 
-                        log.type === 'warning' ? 'bg-amber-500' : 'bg-red-500'
-                      }`} />
-                      <span className="text-sm">{log.message}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
+          <OverviewTab />
         </TabsContent>
         <TabsContent value="metrics" className="mt-4">
-          {/* Metrics Content */}
-          <div className="text-center p-4">Metrics tab content</div>
+          <MetricsTab />
         </TabsContent>
         <TabsContent value="activity" className="mt-4">
-          {/* Activity Content */}
-          <div className="text-center p-4">Activity tab content</div>
+          <ActivityLogPanel />
         </TabsContent>
       </Tabs>
     </div>

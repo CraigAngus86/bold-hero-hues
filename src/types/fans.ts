@@ -1,5 +1,4 @@
 
-
 // Define fan-related interfaces to fix type errors
 
 export interface FanContent {
@@ -56,8 +55,8 @@ export interface AudienceGroup {
   id: string;
   name: string;
   description?: string;
-  count?: number; // Non-DB field for UI
-  tags?: string[]; // Added missing property
+  count?: number; 
+  tags?: string[]; 
 }
 
 export interface Subscriber {
@@ -94,10 +93,10 @@ export interface SocialPost {
   content: string;
   image_url?: string;
   posted_at: string;
-  post_url?: string; // Added missing property
-  status?: 'draft' | 'published' | 'scheduled' | 'failed'; // Added missing property
-  scheduled_for?: string; // Added missing property
-  created_at?: string; // Added missing property
+  post_url?: string;
+  status?: 'draft' | 'published' | 'scheduled' | 'failed';
+  scheduled_for?: string;
+  created_at?: string;
   engagement: {
     likes: number;
     shares: number;
@@ -114,9 +113,8 @@ export interface CommunityInitiative {
   end_date?: string;
   location: string;
   status: string;
-  impact?: string; // For UI field not in DB schema
-  participants_count?: number; // Changed from participants to participants_count
+  impact?: string;
+  participants_count?: number;
   volunteers?: any[];
   photos?: any[];
 }
-

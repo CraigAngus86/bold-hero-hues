@@ -1,16 +1,25 @@
 
-// Define type for system status names
-export type SystemStatusName = 'healthy' | 'warning' | 'degraded' | 'error' | 'critical' | 'unknown';
-
-// Define types for system metrics
-export interface Metric {
-  name: string;
-  value: number | string;
-  unit: string;
+/**
+ * System log entry type
+ */
+export interface SystemLog {
+  id: string;
+  timestamp: string;
+  type: string;
+  message: string;
+  source?: string;
+  details?: any;
 }
 
-// Define types for system service statuses
-export interface Service {
+/**
+ * Possible system status names
+ */
+export type SystemStatusName = 'healthy' | 'warning' | 'error' | 'unknown';
+
+/**
+ * Service status type
+ */
+export interface ServiceStatus {
   name: string;
   status: SystemStatusName;
   uptime: number;
@@ -18,37 +27,33 @@ export interface Service {
   lastChecked: string;
 }
 
-// Define type for system logs
-export interface SystemLog {
-  id: string;
-  timestamp: string;
-  type: 'info' | 'warning' | 'error';
-  message: string;
-  source: string;
+/**
+ * System metric type
+ */
+export interface SystemMetric {
+  name: string;
+  value: number;
+  unit: string;
 }
 
-// Define comprehensive system status interface
+/**
+ * System metrics categories
+ */
+export interface SystemMetrics {
+  performance: SystemMetric[];
+  storage: SystemMetric[];
+  usage: SystemMetric[];
+}
+
+/**
+ * Complete system status type
+ */
 export interface SystemStatus {
   overall_status: SystemStatusName;
-  message?: string;
+  message: string;
   uptime: number;
   last_updated: string;
-  services: Service[];
-  metrics: {
-    performance: Metric[];
-    storage: Metric[];
-    usage: Metric[];
-  };
-  logs?: SystemLog[];
-}
-
-// Define interfaces for system status service responses
-export interface GetSystemStatusResponse {
-  status: SystemStatus | null;
-  error: null | string;
-}
-
-export interface UpdateServiceStatusResponse {
-  success: boolean;
-  error: null | string;
+  services: ServiceStatus[];
+  metrics: SystemMetrics;
+  logs: SystemLog[];
 }

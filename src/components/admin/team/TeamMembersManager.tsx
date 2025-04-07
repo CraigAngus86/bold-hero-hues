@@ -35,12 +35,12 @@ const TeamMembersManager: React.FC<TeamMembersManagerProps> = ({ memberType, mem
   const renderEditor = () => {
     switch (memberType) {
       case 'player':
-        return <PlayerEditor onSaved={handleAfterSave} onCancel={() => setActiveTab('list')} />;
+        return <PlayerEditor onSave={handleAfterSave} onCancel={() => setActiveTab('list')} />;
       case 'staff':
       case 'coach':
       case 'official':
       case 'management':
-        return <StaffEditor memberType={memberType} onSaved={handleAfterSave} onCancel={() => setActiveTab('list')} />;
+        return <StaffEditor staff={{ member_type: memberType } as TeamMember} onSave={handleAfterSave} onCancel={() => setActiveTab('list')} />;
       default:
         return null;
     }

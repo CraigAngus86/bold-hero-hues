@@ -8,6 +8,10 @@ export interface SystemStatusItem {
   metricValue: string;
   tooltip?: string;
   details?: string;
+  lastChecked?: Date | string;
+  icon?: React.ComponentType;
+  color?: string;
+  viewAllLink?: string;
 }
 
 export interface SystemStatusItemProps extends SystemStatusItem {
@@ -18,6 +22,10 @@ export interface SystemMetric {
   value: string | number;
   trend?: 'up' | 'down' | 'stable';
   percentage?: number;
+  name?: string;
+  unit?: string;
+  changeDirection?: 'up' | 'down' | 'neutral';
+  change?: number;
 }
 
 export interface SystemStatus {
@@ -29,9 +37,29 @@ export interface SystemStatus {
     cpu: SystemMetric;
     storage: SystemMetric;
     activeUsers: SystemMetric;
-    [key: string]: SystemMetric;
+    requests?: number;
+    [key: string]: SystemMetric | number | undefined;
   };
   message?: string;
+  uptime?: number;
+  version?: string;
+  services?: {
+    database: {
+      status: string;
+      latency: number;
+    };
+    api: {
+      status: string;
+      latency: number;
+      requestsPerMinute: number;
+    };
+    storage: {
+      status: string;
+      availableSpace: number;
+      totalSize: number;
+    };
+    [key: string]: any;
+  };
 }
 
 export interface SystemLog {
@@ -48,4 +76,11 @@ export interface SystemStatusPanelProps {
   isLoading: boolean;
   error?: string | null;
   onRefresh?: () => void;
+}
+
+export interface SystemStatusProps {
+  systems: SystemStatusItem[];
+  isLoading: boolean;
+  lastUpdated: Date;
+  onRefresh: () => void;
 }

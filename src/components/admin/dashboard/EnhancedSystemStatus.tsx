@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatDistanceToNow } from 'date-fns';
-import { SystemStatusProps } from '@/types/system/status';
+import { SystemStatusProps, SystemStatusItem } from '@/types/system/status';
 
-export const EnhancedSystemStatus = ({ systems, isLoading, lastUpdated, onRefresh }: SystemStatusProps) => {
+export const EnhancedSystemStatus: React.FC<SystemStatusProps> = ({ systems, isLoading, lastUpdated, onRefresh }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'healthy':
@@ -52,7 +52,7 @@ export const EnhancedSystemStatus = ({ systems, isLoading, lastUpdated, onRefres
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          {systems.map((system) => (
+          {systems.map((system: SystemStatusItem) => (
             <TooltipProvider key={system.name}>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -94,7 +94,7 @@ export const EnhancedSystemStatus = ({ systems, isLoading, lastUpdated, onRefres
         
         {lastUpdated && (
           <div className="text-xs text-gray-500 mt-4">
-            Last updated: {formatDistanceToNow(new Date(lastUpdated), { addSuffix: true })}
+            Last updated: {formatDistanceToNow(lastUpdated, { addSuffix: true })}
           </div>
         )}
       </CardContent>

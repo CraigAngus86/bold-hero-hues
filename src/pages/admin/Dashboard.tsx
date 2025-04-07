@@ -3,14 +3,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { LayoutDashboard } from "lucide-react";
-import EnhancedSystemStatus from "@/components/admin/dashboard/EnhancedSystemStatus";
+import { EnhancedSystemStatus } from "@/components/admin/dashboard/EnhancedSystemStatus";
 import SystemStatusPanel from "@/components/admin/dashboard/SystemStatusPanel";
 import { useSystemStatus } from "@/hooks/useSystemStatus";
 import { useDashboardRefresh } from "@/hooks/useDashboardRefresh";
 
 export default function Dashboard() {
   const { status, isLoading, error, refresh } = useSystemStatus();
-  const { status: dashboardStatus, refreshStatus } = useDashboardRefresh();
+  const { status: dashboardStatus } = useDashboardRefresh();
   
   const handleRefresh = () => {
     refresh();
@@ -26,7 +26,7 @@ export default function Dashboard() {
         <Card className="col-span-full">
           <CardContent className="pt-6">
             {status && !isLoading ? (
-              <SystemStatusPanel status={status} isLoading={isLoading} error={error} onRefresh={handleRefresh} />
+              <SystemStatusPanel status={status} isLoading={isLoading} onRefresh={handleRefresh} />
             ) : (
               <div className="py-6 text-center">Loading system status...</div>
             )}

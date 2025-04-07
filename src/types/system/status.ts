@@ -1,31 +1,38 @@
 
-import { SystemLog } from './logs';
+export type SystemStatusName = 'healthy' | 'warning' | 'critical' | 'unknown';
 
-/**
- * System status information
- */
-export interface SystemStatus {
-  overall_status: 'healthy' | 'warning' | 'error' | 'unknown';
-  message?: string;
-  status?: 'healthy' | 'warning' | 'error' | 'unknown';
-  services?: Array<{
-    name: string;
-    status: string;
-    uptime: number;
-    message: string;
-    lastChecked: string;
-  }>;
-  metrics?: {
-    performance?: Array<{name: string, value: number, unit: string}>;
-    storage?: Array<{name: string, value: number, unit: string}>;
-    usage?: Array<{name: string, value: number, unit: string}>;
-  };
-  logs?: SystemLog[];
-  uptime?: number;
-  last_updated: string;
+export interface SystemMetric {
+  name: string;
+  value: number;
+  unit: string;
 }
 
-/**
- * Possible system status names
- */
-export type SystemStatusName = 'healthy' | 'warning' | 'error' | 'unknown' | 'degraded' | 'critical' | 'offline' | 'maintenance';
+export interface SystemService {
+  name: string;
+  status: SystemStatusName;
+  uptime: number;
+  message: string;
+  lastChecked: string;
+}
+
+export interface SystemLog {
+  id: string;
+  timestamp: string;
+  type: 'info' | 'warning' | 'error';
+  message: string;
+  source: string;
+}
+
+export interface SystemStatus {
+  overall_status: SystemStatusName;
+  message: string;
+  uptime: number;
+  last_updated: string;
+  services?: SystemService[];
+  metrics?: {
+    performance?: SystemMetric[];
+    storage?: SystemMetric[];
+    usage?: SystemMetric[];
+  };
+  logs?: SystemLog[];
+}

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { RefreshCw, AlertCircle, Server } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert'; 
 import StatusItem from './StatusItem';
-import { SystemStatus } from '@/types/system/status';
+import { SystemStatus, SystemStatusName } from '@/types/system/status';
 
 interface SystemStatusPanelProps {
   status: SystemStatus | null;

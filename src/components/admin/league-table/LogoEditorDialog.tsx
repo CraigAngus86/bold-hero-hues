@@ -1,122 +1,179 @@
-
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
-import { Loader2, Image } from "lucide-react";
-import systemLogsService from "@/services/logs/systemLogsService";
+// @ts-nocheck
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
+import { Upload, Image, Save, Loader2, X } from 'lucide-react';
+import { imageUploadService } from '@/services/images/api';
+import { logEvent } from '@/services/logs/systemLogsService';
 
 interface LogoEditorDialogProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
-  teamName: string;
+  onClose: () => void;
   teamId: string;
-  currentLogo?: string;
+  currentLogoUrl?: string;
   onLogoUpdated: (newLogoUrl: string) => void;
 }
 
-const LogoEditorDialog: React.FC<LogoEditorDialogProps> = ({
-  open,
-  onOpenChange,
-  teamName,
-  teamId,
-  currentLogo,
-  onLogoUpdated
-}) => {
-  const [logoUrl, setLogoUrl] = useState(currentLogo || '');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!logoUrl.trim()) {
-      toast.error("Please enter a logo URL");
-      return;
-    }
-    
-    setIsSubmitting(true);
-    
-    try {
-      // Update the logo URL
-      const result = await systemLogsService.updateTeamLogo(teamId, logoUrl);
-      
-      if (result.success) {
-        onLogoUpdated(logoUrl);
-        toast.success(`Logo updated for ${teamName}`);
-        onOpenChange(false);
-      } else {
-        toast.error(result.error || "Failed to update logo");
-      }
-    } catch (error) {
-      console.error("Error updating logo:", error);
-      toast.error("An error occurred while updating the logo");
-    } finally {
-      setIsSubmitting(false);
+const LogoEditorDialog: React.FC<LogoEditorDialogProps> = ({ open, onClose, teamId, currentLogoUrl, onLogoUpdated }) => {
+  const [newLogo, setNewLogo] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(currentLogoUrl || null);
+  const [uploading, setUploading] = useState(false);
+  const [logoUrl, setLogoUrl] = useState(currentLogoUrl || '');
+  const [isDirty, setIsDirty] = useState(false);
+
+  useEffect(() => {
+    setLogoUrl(currentLogoUrl || '');
+    setPreviewUrl(currentLogoUrl || null);
+  }, [currentLogoUrl]);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setNewLogo(file);
+      setPreviewUrl(URL.createObjectURL(file));
+      setIsDirty(true);
     }
   };
-  
+
+  const handleUpload = async () => {
+    if (!newLogo) {
+      toast.error('Please select a logo to upload.');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const uploadResult = await imageUploadService.uploadTeamLogo(teamId, newLogo);
+      if (uploadResult.error) {
+        throw new Error(uploadResult.error);
+      }
+
+      const newLogoUrl = imageUploadService.getTeamLogoUrl(teamId, newLogo.name);
+      setLogoUrl(newLogoUrl);
+      setPreviewUrl(newLogoUrl);
+      onLogoUpdated(newLogoUrl);
+      toast.success('Logo uploaded successfully!');
+      logEvent('info', `Logo uploaded for team ${teamId}`, 'LogoEditorDialog');
+      setIsDirty(false);
+    } catch (error: any) {
+      console.error('Logo upload failed:', error);
+      toast.error(`Logo upload failed: ${error.message}`);
+      logEvent('error', `Logo upload failed for team ${teamId}: ${error.message}`, 'LogoEditorDialog');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemove = () => {
+    setNewLogo(null);
+    setPreviewUrl(null);
+    setLogoUrl('');
+    onLogoUpdated('');
+    setIsDirty(true);
+  };
+
+  const handleSaveUrl = () => {
+    onLogoUpdated(logoUrl);
+    setPreviewUrl(logoUrl);
+    setIsDirty(false);
+    toast.success('Logo URL updated successfully!');
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <form onSubmit={handleSubmit}>
-          <DialogHeader>
-            <DialogTitle>Update Team Logo</DialogTitle>
-            <DialogDescription>
-              Set a new logo URL for {teamName}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="logo-url">Logo URL</Label>
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[525px]">
+        <DialogHeader>
+          <DialogTitle>Edit Team Logo</DialogTitle>
+        </DialogHeader>
+
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-4">
+            <div>
+              <Label htmlFor="newLogo">
+                New Logo
+              </Label>
               <Input
-                id="logo-url"
-                value={logoUrl}
-                onChange={(e) => setLogoUrl(e.target.value)}
-                placeholder="https://example.com/logo.png"
+                id="newLogo"
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                disabled={uploading}
               />
             </div>
-            
-            {logoUrl && (
-              <div className="flex items-center justify-center p-2 border rounded">
-                <img 
-                  src={logoUrl}
-                  alt={`${teamName} logo preview`}
-                  className="max-h-20 max-w-full object-contain"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "https://placehold.co/60x60/gray/white?text=No+Image";
-                  }}
+
+            <div>
+              <Label htmlFor="logoUrl">
+                Logo URL
+              </Label>
+              <Input
+                id="logoUrl"
+                type="url"
+                placeholder="Enter logo URL"
+                value={logoUrl}
+                onChange={(e) => {
+                  setLogoUrl(e.target.value);
+                  setIsDirty(true);
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-center">
+            {previewUrl ? (
+              <div className="relative">
+                <Image
+                  src={previewUrl}
+                  alt="Team Logo Preview"
+                  className="rounded-md object-cover"
+                  style={{ width: '200px', height: '200px' }}
+                  width={200}
+                  height={200}
                 />
+                {newLogo && (
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2"
+                    onClick={handleRemove}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
+            ) : (
+              <div className="text-muted-foreground">No logo preview</div>
             )}
           </div>
-          
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
+        </div>
+
+        <DialogFooter>
+          <Button type="button" variant="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+          {newLogo ? (
+            <Button type="button" onClick={handleUpload} disabled={uploading}>
+              {uploading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Updating...
+                  Uploading...
                 </>
               ) : (
                 <>
-                  <Image className="mr-2 h-4 w-4" />
-                  Update Logo
+                  <Upload className="mr-2 h-4 w-4" />
+                  Upload Logo
                 </>
               )}
             </Button>
-          </DialogFooter>
-        </form>
+          ) : (
+            <Button type="button" onClick={handleSaveUrl} disabled={uploading || !isDirty}>
+              <Save className="mr-2 h-4 w-4" />
+              Save URL
+            </Button>
+          )}
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

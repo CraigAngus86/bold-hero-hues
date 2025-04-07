@@ -1,176 +1,194 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Cpu, HardDrive, Activity, Server, Clock, Users } from 'lucide-react';
-import StatusItemCard from './StatusItemCard';
-import { SystemStatus, SystemStatusName, SystemMetric, Service } from '@/types/system/status';
+import React from 'react';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import {
+  CheckCircle,
+  AlertCircle,
+  AlertTriangle,
+  RotateCw,
+  Server,
+  Database,
+  HardDrive,
+  Mail,
+  CreditCard
+} from "lucide-react";
+import { SystemStatus, Service } from "@/types/system/status";
 
 interface SystemStatusPanelProps {
   status?: SystemStatus;
   isLoading?: boolean;
+  onRefresh?: () => Promise<void>;
   error?: Error;
-  onRefresh?: () => void;
 }
 
 const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({ 
   status, 
   isLoading = false, 
-  error, 
-  onRefresh 
+  onRefresh, 
+  error 
 }) => {
-  const [activeTab, setActiveTab] = useState('overview');
-
-  useEffect(() => {
-    if (onRefresh) {
-      onRefresh();
-      // Set up polling every 30 seconds
-      const intervalId = setInterval(() => {
-        onRefresh();
-      }, 30000);
-
-      return () => clearInterval(intervalId);
+  const getStatusIcon = (statusType: string) => {
+    switch(statusType) {
+      case 'healthy':
+        return <CheckCircle className="h-6 w-6 text-green-500" />;
+      case 'warning':
+        return <AlertTriangle className="h-6 w-6 text-amber-500" />;
+      case 'error':
+      case 'critical':
+        return <AlertCircle className="h-6 w-6 text-red-500" />;
+      default:
+        return <CheckCircle className="h-6 w-6 text-green-500" />;
     }
-  }, [onRefresh]);
-
-  const renderService = (service: Service, iconComponent: React.ComponentType<any>, color: string) => {
-    return (
-      <StatusItemCard
-        key={service.name}
-        name={service.name}
-        status={service.status}
-        value={service.status === 'healthy' ? 'Operational' : 'Issues Detected'}
-        metricValue={`${service.uptime.toFixed(2)}% uptime`}
-        lastChecked={service.lastChecked}
-        icon={iconComponent}
-        color={color}
-      />
-    );
   };
 
-  // Helper function to render metric cards
-  const renderMetricCards = (metrics: SystemMetric[], title: string) => {
-    if (!metrics || !Array.isArray(metrics) || metrics.length === 0) {
+  const getServiceIcon = (serviceName: string) => {
+    switch(serviceName.toLowerCase()) {
+      case 'web server':
+        return <Server className="h-5 w-5 text-gray-500" />;
+      case 'database':
+        return <Database className="h-5 w-5 text-gray-500" />;
+      case 'storage service':
+        return <HardDrive className="h-5 w-5 text-gray-500" />;
+      case 'email service':
+        return <Mail className="h-5 w-5 text-gray-500" />;
+      case 'payment gateway':
+        return <CreditCard className="h-5 w-5 text-gray-500" />;
+      default:
+        return <Server className="h-5 w-5 text-gray-500" />;
+    }
+  };
+  
+  // If no status is provided, show loading or error state
+  if (!status) {
+    if (error) {
       return (
-        <div className="text-center p-4 text-gray-500">
-          No {title.toLowerCase()} metrics available
+        <div className="flex flex-col items-center justify-center h-40 bg-red-50 rounded-lg border border-red-200 p-4">
+          <AlertCircle className="h-12 w-12 text-red-500 mb-2" />
+          <h3 className="text-red-700 font-medium text-lg">Error Loading System Status</h3>
+          <p className="text-red-600 text-sm mt-1 mb-3">{error.message}</p>
+          {onRefresh && (
+            <Button variant="outline" size="sm" onClick={onRefresh} disabled={isLoading}>
+              <RotateCw className="h-4 w-4 mr-2" />
+              Try Again
+            </Button>
+          )}
         </div>
       );
     }
-
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {metrics.map((metric) => (
-          <Card key={metric.name} className="p-4">
-            <div className="flex justify-between items-start">
+    
+    if (isLoading) {
+      return (
+        <div className="flex flex-col items-center justify-center h-40">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mb-3"></div>
+          <p className="text-muted-foreground">Loading system status...</p>
+        </div>
+      );
+    }
+    
+    return null;
+  }
+  
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          {getStatusIcon(status.overall_status)}
+          <div>
+            <h3 className="text-xl font-semibold">{status.message || "System Status"}</h3>
+            <p className="text-muted-foreground text-sm">{status.uptime}% uptime</p>
+          </div>
+        </div>
+        <Badge variant={status.overall_status === 'healthy' ? "outline" : "secondary"} className="px-3 py-0.5">
+          {status.overall_status === 'healthy' ? 'Operational' : status.overall_status}
+        </Badge>
+      </div>
+      
+      <div className="grid gap-4 md:grid-cols-3 mb-6">
+        {/* Performance Metrics */}
+        <Card>
+          <CardContent className="pt-6">
+            <h4 className="text-sm font-medium mb-2 text-muted-foreground">Performance</h4>
+            <dl className="space-y-2">
+              {status.metrics.performance.map((metric) => (
+                <div key={metric.name} className="flex justify-between items-center">
+                  <dt className="text-sm">{metric.name}</dt>
+                  <dd className="font-medium">{metric.value} {metric.unit}</dd>
+                </div>
+              ))}
+            </dl>
+          </CardContent>
+        </Card>
+        
+        {/* Storage Metrics */}
+        <Card>
+          <CardContent className="pt-6">
+            <h4 className="text-sm font-medium mb-2 text-muted-foreground">Storage</h4>
+            <dl className="space-y-2">
+              {status.metrics.storage.map((metric) => (
+                <div key={metric.name} className="flex justify-between items-center">
+                  <dt className="text-sm">{metric.name}</dt>
+                  <dd className="font-medium">{metric.value} {metric.unit}</dd>
+                </div>
+              ))}
+            </dl>
+          </CardContent>
+        </Card>
+        
+        {/* Usage Metrics */}
+        <Card>
+          <CardContent className="pt-6">
+            <h4 className="text-sm font-medium mb-2 text-muted-foreground">Usage</h4>
+            <dl className="space-y-2">
+              {status.metrics.usage.map((metric) => (
+                <div key={metric.name} className="flex justify-between items-center">
+                  <dt className="text-sm">{metric.name}</dt>
+                  <dd className="font-medium">{metric.value} {metric.unit}</dd>
+                </div>
+              ))}
+            </dl>
+          </CardContent>
+        </Card>
+      </div>
+      
+      {/* Services List */}
+      <div className="space-y-3 mb-6">
+        <h4 className="font-medium mb-2">Services</h4>
+        
+        {status.services.map((service) => (
+          <div key={service.name} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+            <div className="flex items-center gap-3">
+              {React.createElement(() => getServiceIcon(service.name))}
               <div>
-                <p className="text-sm text-gray-500">{metric.name}</p>
-                <div className="flex items-center mt-1">
-                  <p className="text-2xl font-bold">
-                    {metric.value}
-                    {metric.unit && <span className="text-sm ml-1">{metric.unit}</span>}
-                  </p>
-                </div>
-                {metric.description && (
-                  <p className="text-xs text-gray-500 mt-1">{metric.description}</p>
-                )}
+                <div className="font-medium">{service.name}</div>
+                <div className="text-sm text-muted-foreground">{service.message}</div>
               </div>
-              {metric.change !== undefined && (
-                <div className={`px-2 py-1 rounded text-xs ${
-                  metric.changeType === 'positive' ? 'bg-green-100 text-green-800' :
-                  metric.changeType === 'negative' ? 'bg-red-100 text-red-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {metric.change > 0 ? '+' : ''}{metric.change}%
-                </div>
-              )}
             </div>
-          </Card>
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <div className="text-sm">{service.uptime}% uptime</div>
+                <div className="text-xs text-muted-foreground">
+                  Last checked: {new Date(service.lastChecked).toLocaleTimeString()}
+                </div>
+              </div>
+              {getStatusIcon(service.status)}
+            </div>
+          </div>
         ))}
       </div>
-    );
-  };
-
-  if (isLoading) {
-    return (
-      <div className="p-8 text-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-        <p className="text-gray-500">Loading system status...</p>
-      </div>
-    );
-  }
-
-  if (!status) {
-    return (
-      <div className="p-8 text-center">
-        <p className="text-gray-500">System status data unavailable</p>
-      </div>
-    );
-  }
-
-  const { metrics, services } = status;
-
-  return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatusItemCard
-          name="System Status"
-          status={status.overall_status}
-          value={
-            status.overall_status === 'healthy' ? 'All Systems Normal' :
-            status.overall_status === 'warning' ? 'Performance Degraded' :
-            status.overall_status === 'critical' ? 'Critical Issues' : 'System Status Unknown'
-          }
-          metricValue={`${status.uptime.toFixed(2)}% uptime`}
-          lastChecked={status.last_updated}
-          icon={Server}
-          color="blue"
-        />
-        
-        {services && services.length > 0 && services[0] && 
-          renderService(services[0], Cpu, 'green')}
-        
-        {services && services.length > 1 && services[1] && 
-          renderService(services[1], HardDrive, 'amber')}
-        
-        {services && services.length > 2 && services[2] && 
-          renderService(services[2], Activity, 'purple')}
-      </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="performance">Performance</TabsTrigger>
-          <TabsTrigger value="storage">Storage</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="mt-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {services && services.map((service, index) => {
-              const icons = [Server, Cpu, HardDrive, Activity, Clock, Users];
-              const colors = ['blue', 'green', 'amber', 'purple', 'indigo', 'red'];
-              const IconComponent = icons[index % icons.length];
-              const color = colors[index % colors.length];
-              
-              return renderService(service, IconComponent, color);
-            })}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="performance" className="mt-4">
-          {metrics && metrics.performance ? 
-            renderMetricCards(metrics.performance, 'Performance') : 
-            <div className="text-center p-4 text-gray-500">No performance metrics available</div>
-          }
-        </TabsContent>
-
-        <TabsContent value="storage" className="mt-4">
-          {metrics && metrics.storage ? 
-            renderMetricCards(metrics.storage, 'Storage') : 
-            <div className="text-center p-4 text-gray-500">No storage metrics available</div>
-          }
-        </TabsContent>
-      </Tabs>
+      
+      <CardFooter className="border-t pt-4 flex justify-between px-0">
+        <div className="text-sm text-muted-foreground">
+          Last updated: {new Date(status.last_updated).toLocaleTimeString()}
+        </div>
+        {onRefresh && (
+          <Button variant="outline" size="sm" onClick={onRefresh} disabled={isLoading}>
+            <RotateCw className={`h-3 w-3 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        )}
+      </CardFooter>
     </div>
   );
 };

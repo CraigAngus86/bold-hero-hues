@@ -1,31 +1,17 @@
 
-import { ReactNode } from 'react';
-
-export type SystemStatusName = 'healthy' | 'warning' | 'degraded' | 'critical' | 'unknown';
+export type SystemStatusName = 'healthy' | 'warning' | 'error' | 'critical' | 'unknown';
 
 export interface SystemMetric {
   name: string;
   value: number;
-  unit?: string;
-  change?: number;
-  changeType?: 'positive' | 'negative' | 'neutral';
-  changeDirection?: 'up' | 'down';
-  icon?: ReactNode;
-  description?: string;
-}
-
-export interface SystemMetricsGroups {
-  performance: SystemMetric[];
-  storage: SystemMetric[];
-  usage: SystemMetric[];
-  [key: string]: SystemMetric[] | any;
+  unit: string;
 }
 
 export interface Service {
   name: string;
   status: SystemStatusName;
-  lastChecked: Date | string;
-  message?: string;
+  lastChecked: string;
+  message: string;
   uptime: number;
 }
 
@@ -33,16 +19,20 @@ export interface SystemStatus {
   overall_status: SystemStatusName;
   message: string;
   uptime: number;
-  metrics: SystemMetricsGroups;
+  metrics: {
+    performance: SystemMetric[];
+    storage: SystemMetric[];
+    usage: SystemMetric[];
+  };
   services: Service[];
-  messages?: string[];
-  last_updated: Date | string;
-  version?: string;
+  messages: string[];
+  last_updated: string;
+  version: string;
 }
 
 export interface SystemLog {
   id: string;
-  timestamp: Date | string;
+  timestamp: string;
   type: 'info' | 'warning' | 'error';
   source: string;
   message: string;

@@ -3,16 +3,16 @@ import React, { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SystemStatusPanel from '@/components/admin/dashboard/SystemStatusPanel';
-import { QuickActions } from '@/components/admin/dashboard/QuickActions';
+import QuickActions from '@/components/admin/dashboard/QuickActions';
 import { useDashboardRefresh } from '@/hooks/useDashboardRefresh';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = React.useState('overview');
-  const { refresh, refreshData, setRefreshData, status, logs } = useDashboardRefresh();
+  const { refresh, status, logs } = useDashboardRefresh();
 
   // Make this function async to handle the Promise
   const handleRefresh = async (): Promise<void> => {
-    setRefreshData(true);
+    await refresh();
     // Return a resolved promise to satisfy the Promise<void> return type
     return Promise.resolve();
   };

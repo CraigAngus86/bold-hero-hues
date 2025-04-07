@@ -1,5 +1,5 @@
 
-// Define fan-related interfaces
+// Define fan-related interfaces to fix type errors
 
 export interface FanContent {
   id: string;
@@ -7,31 +7,31 @@ export interface FanContent {
   content?: string;
   image_url?: string;
   submitted_by: string;
-  submitted_on?: string;
-  status: 'pending' | 'approved' | 'rejected';
+  submitted_on: string;
   type: string;
+  status: 'pending' | 'approved' | 'rejected';
   featured: boolean;
   user_reputation?: number;
   moderated_by?: string;
   moderation_date?: string;
   moderation_notes?: string;
-  created_at?: string;
-  updated_at?: string;
 }
 
 export interface Poll {
   id: string;
   title: string;
   description?: string;
-  type: string;
-  status: 'draft' | 'published' | 'closed' | 'ended' | 'scheduled' | 'active';
-  created_at?: string;
+  type: 'poll' | 'survey';
+  status: 'draft' | 'active' | 'scheduled' | 'ended';
+  startDate?: string;
+  endDate?: string;
+  is_featured: boolean;
   created_by?: string;
   published_at?: string;
-  start_date?: string;
-  end_date?: string;
-  is_featured: boolean;
+  created_at: string;
   updated_at?: string;
+  questions?: PollQuestion[];
+  responses?: number;
 }
 
 export interface PollQuestion {
@@ -39,29 +39,23 @@ export interface PollQuestion {
   poll_id: string;
   text: string;
   type: 'multiple_choice' | 'single_choice' | 'text' | 'rating';
-  order_position?: number;
-  required?: boolean;
-  created_at?: string;
-  updated_at?: string;
+  required: boolean;
+  order_position: number;
+  options?: PollOption[];
 }
 
 export interface PollOption {
   id: string;
   question_id: string;
   text: string;
-  order_position?: number;
-  created_at?: string;
-  updated_at?: string;
+  order_position: number;
 }
 
 export interface AudienceGroup {
   id: string;
   name: string;
   description?: string;
-  count?: number; // Number of subscribers in this group
-  tags?: string[];
-  created_at?: string;
-  updated_at?: string;
+  count?: number; // Non-DB field for UI
 }
 
 export interface Subscriber {
@@ -69,10 +63,8 @@ export interface Subscriber {
   email: string;
   first_name?: string;
   last_name?: string;
-  status: 'active' | 'inactive' | 'unsubscribed';
-  subscribed_at?: string;
-  created_at?: string;
-  updated_at?: string;
+  status: 'active' | 'unsubscribed' | 'bounced';
+  subscribed_at: string;
 }
 
 export interface MessageTemplate {
@@ -80,9 +72,7 @@ export interface MessageTemplate {
   name: string;
   subject: string;
   content: string;
-  type: 'email' | 'sms' | 'push';
-  created_at?: string;
-  updated_at?: string;
+  type: 'email' | 'notification';
 }
 
 export interface FanMessage {
@@ -90,67 +80,36 @@ export interface FanMessage {
   title: string;
   subject: string;
   content: string;
-  type: 'email' | 'sms' | 'push';
-  status: 'draft' | 'scheduled' | 'sent' | 'cancelled';
-  scheduled_for?: string;
-  sent_at?: string;
-  template_id?: string;
-  created_at?: string;
-  updated_at?: string;
+  type: 'email' | 'notification';
+  status: 'draft' | 'scheduled' | 'sent';
+  scheduledFor?: string;
+  template?: string;
+}
+
+export interface SocialPost {
+  id: string;
+  platform: 'twitter' | 'facebook' | 'instagram';
+  content: string;
+  image_url?: string;
+  posted_at: string;
+  engagement: {
+    likes: number;
+    shares: number;
+    comments: number;
+  };
 }
 
 export interface CommunityInitiative {
   id: string;
   title: string;
   description: string;
+  type: string;
   date: string;
   end_date?: string;
   location: string;
-  type: string;
-  status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
-  participants_count?: number;
-  impact?: string; // Additional property for impact
-  impact_summary?: string;
-  volunteers?: string[];
-  created_at?: string;
-  updated_at?: string;
-}
-
-// Additional interface for social media integration
-export interface SocialPost {
-  id: string;
-  platform: 'twitter' | 'facebook' | 'instagram' | 'youtube';
-  content: string;
-  image_url?: string;
-  post_url?: string;
-  posted_at?: string;
-  engagement: {
-    likes: number;
-    shares: number;
-    comments: number;
-  };
-  status: 'draft' | 'scheduled' | 'published' | 'failed';
-  scheduled_for?: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-// Define fan-related response types
-export interface FanContentResponse {
-  data: FanContent[];
-  count: number;
-  error?: string;
-}
-
-export interface PollResponse {
-  data: Poll[];
-  count: number;
-  error?: string;
-}
-
-export interface DbServiceResponse<T> {
-  data: T;
-  error?: any;
-  count?: number;
-  success?: boolean;
+  status: string;
+  impact?: string; // For UI field not in DB schema
+  participants?: number;
+  volunteers?: any[];
+  photos?: any[];
 }

@@ -1,5 +1,5 @@
 
-export type SystemStatusName = 'healthy' | 'warning' | 'error' | 'critical' | 'unknown';
+export type SystemStatusName = 'healthy' | 'warning' | 'error' | 'critical' | 'unknown' | 'degraded';
 
 export interface SystemMetric {
   name: string;

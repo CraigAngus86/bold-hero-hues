@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { ImageUploader as ImageUploaderComponent } from '@/components/admin/common/image-uploader';
 import { 
   useImageUploaderContext, 

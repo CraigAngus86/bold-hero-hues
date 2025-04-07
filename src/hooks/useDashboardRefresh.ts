@@ -1,42 +1,51 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getSystemStatus } from '@/services/logs/systemLogsService';
-import { SystemStatus } from '@/types/system/status';
+import { SystemStatus } from '@/types/system';
 
-export function useDashboardRefresh(interval: number = 60000) {
-  const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export function useDashboardRefresh(refreshInterval = 30000) {
+    const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
 
-  const fetchData = async () => {
-    setIsLoading(true);
-    try {
-      const statusResponse = await getSystemStatus();
-      if (statusResponse.success && statusResponse.data) {
-        setSystemStatus(statusResponse.data);
-      }
-    } catch (err) {
-      console.error('Error fetching dashboard data:', err);
-      setError(err instanceof Error ? err.message : 'Unknown error refreshing dashboard data');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    const refreshData = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            // Fetch system status
+            const statusResponse = await getSystemStatus();
+            if (statusResponse.success && statusResponse.data) {
+                setSystemStatus(statusResponse.data);
+            }
+            
+            // Update last refreshed time
+            setLastRefreshed(new Date());
+        } catch (error) {
+            console.error('Error refreshing dashboard data:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
 
-  useEffect(() => {
-    fetchData();
-    
-    // Set up interval refresh if interval is > 0
-    if (interval > 0) {
-      const intervalId = setInterval(fetchData, interval);
-      return () => clearInterval(intervalId);
-    }
-  }, [interval]);
+    // Initial load
+    useEffect(() => {
+        refreshData();
+    }, [refreshData]);
 
-  return {
-    systemStatus,
-    isLoading,
-    error,
-    refreshData: fetchData
-  };
+    // Set up interval for auto-refresh
+    useEffect(() => {
+        if (refreshInterval <= 0) return;
+        
+        const intervalId = setInterval(() => {
+            refreshData();
+        }, refreshInterval);
+        
+        return () => clearInterval(intervalId);
+    }, [refreshData, refreshInterval]);
+
+    return {
+        systemStatus,
+        isLoading,
+        lastRefreshed,
+        refreshData
+    };
 }

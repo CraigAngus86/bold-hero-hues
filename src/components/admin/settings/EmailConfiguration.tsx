@@ -257,11 +257,18 @@ const EmailConfiguration = () => {
 
   const onConfigSubmit = async (values: z.infer<typeof emailConfigSchema>) => {
     try {
-      const result = await updateEmailConfig({
-        ...values,
+      const configData: EmailConfig = {
+        host: values.host,
+        port: values.port,
+        secure: values.secure,
+        username: values.username,
         password: values.password || "", // Handle empty password
+        fromName: values.fromName,
+        fromEmail: values.fromEmail,
         replyTo: values.replyTo || values.fromEmail,
-      });
+      };
+      
+      const result = await updateEmailConfig(configData);
 
       if (result.success) {
         toast({
@@ -316,7 +323,14 @@ const EmailConfiguration = () => {
 
   const onCreateTemplateSubmit = async (values: z.infer<typeof emailTemplateSchema>) => {
     try {
-      const result = await createEmailTemplate(values);
+      const templateData = {
+        name: values.name,
+        subject: values.subject,
+        content: values.content,
+        description: values.description || ""
+      };
+      
+      const result = await createEmailTemplate(templateData);
 
       if (result.template) {
         toast({
@@ -430,7 +444,6 @@ const EmailConfiguration = () => {
           <TabsTrigger value="logs">Email Logs</TabsTrigger>
         </TabsList>
 
-        {/* SMTP Settings Tab */}
         <TabsContent value="settings" className="space-y-6 mt-6">
           <Card>
             <CardHeader>
@@ -688,7 +701,6 @@ const EmailConfiguration = () => {
           </Card>
         </TabsContent>
 
-        {/* Email Templates Tab */}
         <TabsContent value="templates" className="space-y-6 mt-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
@@ -776,7 +788,6 @@ const EmailConfiguration = () => {
             </CardContent>
           </Card>
 
-          {/* Create Template Dialog */}
           <Dialog
             open={isCreateTemplateOpen}
             onOpenChange={setIsCreateTemplateOpen}
@@ -889,7 +900,6 @@ The Banks o' Dee FC Team"
             </DialogContent>
           </Dialog>
 
-          {/* Edit Template Dialog */}
           <Dialog
             open={isEditTemplateOpen}
             onOpenChange={setIsEditTemplateOpen}
@@ -994,7 +1004,6 @@ The Banks o' Dee FC Team"
           </Dialog>
         </TabsContent>
 
-        {/* Email Logs Tab */}
         <TabsContent value="logs" className="space-y-6 mt-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">

@@ -1,75 +1,34 @@
-import { useState, useEffect } from 'react';
-import OfficialCard from './OfficialCard';
-import { useTeamStore, TeamMember } from '@/services/teamService';
+import React, { useState, useEffect } from 'react';
+import { TeamMember } from '@/types/team';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
-interface ClubOfficialsProps {
-  officials?: { 
-    name: string; 
-    role: string; 
-    image: string; 
-    bio: string; 
-    experience: string;
-  }[];
-}
-
-export default function ClubOfficials({ officials: propOfficials }: ClubOfficialsProps = {}) {
+const ClubOfficials: React.FC = () => {
   const [officials, setOfficials] = useState<TeamMember[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { getOfficials, loadTeamMembers, isLoading } = useTeamStore();
   
   useEffect(() => {
-    const fetchOfficials = async () => {
-      try {
-        // If officials are provided as props, use those
-        if (propOfficials && propOfficials.length > 0) {
-          // Convert prop officials to TeamMember format
-          const convertedOfficials = propOfficials.map((official, index) => ({
-            id: `official-${index}`,
-            name: official.name,
-            member_type: 'official' as const,
-            position: official.role,
-            image_url: official.image,
-            bio: official.bio,
-            experience: official.experience,
-            is_active: true
-          }));
-          
-          setOfficials(convertedOfficials);
-          setLoading(false);
-          return;
-        }
-        
-        // Otherwise load from team store
-        await loadTeamMembers();
-        const officialMembers = await getOfficials();
-        setOfficials(officialMembers);
-      } catch (error) {
-        console.error("Error fetching officials:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    const mockOfficials: TeamMember[] = [
+      {
+        id: '1',
+        name: 'John Smith',
+        member_type: 'official',
+        position: 'Chairman',
+        image_url: '/assets/officials/chairman.jpg',
+        bio: 'Joined the club in 2015.',
+        experience: '10+ years in sports management',
+        is_active: true,
+        created_at: '2022-01-01T00:00:00Z',
+        updated_at: '2022-01-01T00:00:00Z',
+        nationality: 'Scottish'
+      },
+      // Add more officials as needed
+    ];
     
-    fetchOfficials();
-  }, [propOfficials, getOfficials, loadTeamMembers]);
-  
-  if (loading || isLoading) {
-    return <div className="text-center py-10">Loading club officials...</div>;
-  }
-  
-  if (officials.length === 0) {
-    return <div className="text-center py-10">No officials found.</div>;
-  }
+    setOfficials(mockOfficials);
+  }, []);
   
   return (
-    <div className="mt-8">
-      <h2 className="text-2xl font-bold text-team-blue mb-6">Club Officials</h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {officials.map((official) => (
-          <OfficialCard key={official.id} official={official} />
-        ))}
-      </div>
-    </div>
+    <div>Club Officials component content</div>
   );
-}
+};
+
+export default ClubOfficials;

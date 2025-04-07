@@ -1,356 +1,343 @@
 import React, { useState, useEffect } from 'react';
+import { TeamMember } from '@/types/team';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { PlusCircle, Edit, Trash, Loader2, Search, Filter, UserCircle, Database } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Plus, Edit, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useTeamStore, TeamMember, MemberType } from '@/services/teamService';
-import { createTeamMember, updateTeamMember, deleteTeamMember, getAllTeamMembers } from '@/services/teamDbService';
-import { seedTeamData } from '@/services/teamSeedData';
 
-interface TeamMembersManagerProps {
-  onEditMember?: (member: TeamMember) => void;
-}
-
-const TeamMembersManager: React.FC<TeamMembersManagerProps> = ({ onEditMember }) => {
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [currentMember, setCurrentMember] = useState<TeamMember | null>(null);
+const TeamMembersManager: React.FC = () => {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [typeFilter, setTypeFilter] = useState<string>('all-types');
-  const [statusFilter, setStatusFilter] = useState<string>('all-statuses');
-  const [seeding, setSeeding] = useState(false);
-  const { loadTeamMembers } = useTeamStore();
-  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
+  const [name, setName] = useState('');
+  const [memberType, setMemberType] = useState<'player' | 'staff' | 'coach' | 'official'>('player');
+  const [position, setPosition] = useState('');
+  const [jerseyNumber, setJerseyNumber] = useState<number | undefined>(undefined);
+  const [imageUrl, setImageUrl] = useState('');
+  const [bio, setBio] = useState('');
+  const [nationality, setNationality] = useState('');
+  const [experience, setExperience] = useState('');
+  const [isActive, setIsActive] = useState(true);
+
   useEffect(() => {
-    loadTeamMemberData();
+    // Mock data for demonstration
+    const mockTeamMembers: TeamMember[] = [
+      {
+        id: '1',
+        name: 'Lionel Messi',
+        member_type: 'player',
+        position: 'Forward',
+        jersey_number: 10,
+        image_url: '/assets/players/messi.jpg',
+        bio: 'The GOAT',
+        nationality: 'Argentinian',
+        experience: '20+ years',
+        is_active: true,
+        created_at: '2023-01-01T00:00:00Z',
+        updated_at: '2023-01-01T00:00:00Z',
+      },
+      {
+        id: '2',
+        name: 'Cristiano Ronaldo',
+        member_type: 'player',
+        position: 'Forward',
+        jersey_number: 7,
+        image_url: '/assets/players/ronaldo.jpg',
+        bio: 'SIUUUUUU',
+        nationality: 'Portuguese',
+        experience: '20+ years',
+        is_active: true,
+        created_at: '2023-01-01T00:00:00Z',
+        updated_at: '2023-01-01T00:00:00Z',
+      },
+    ];
+    setTeamMembers(mockTeamMembers);
   }, []);
-  
-  const loadTeamMemberData = async () => {
-    setLoading(true);
-    try {
-      const response = await getAllTeamMembers();
-      if (response.success) {
-        setTeamMembers(response.data);
-      } else {
-        toast.error("Failed to load team members");
-      }
-    } catch (error) {
-      console.error("Error loading team members:", error);
-      toast.error("Failed to load team members");
-    } finally {
-      setLoading(false);
-    }
+
+  const openModal = () => {
+    setIsModalOpen(true);
   };
 
-  const handleSeedData = async () => {
-    if (confirm("This will replace all existing team members with sample data. Continue?")) {
-      setSeeding(true);
-      try {
-        await seedTeamData();
-        await loadTeamMemberData();
-        await loadTeamMembers();
-        toast.success("Team data seeded successfully!");
-      } catch (error) {
-        console.error("Error seeding team data:", error);
-        toast.error("Failed to seed team data");
-      } finally {
-        setSeeding(false);
-      }
-    }
+  const closeModal = () => {
+    setIsModalOpen(false);
+    clearForm();
   };
-  
-  const openNewDialog = () => {
-    setCurrentMember({
-      id: '',
-      name: '',
-      member_type: 'player',
-      position: '',
-      image_url: '',
-      bio: '',
-      nationality: '',
-      jersey_number: 0,
-      previous_clubs: [],
-      experience: '',
-      is_active: true,
-      stats: {},
+
+  const clearForm = () => {
+    setName('');
+    setMemberType('player');
+    setPosition('');
+    setJerseyNumber(undefined);
+    setImageUrl('');
+    setBio('');
+    setNationality('');
+    setExperience('');
+    setIsActive(true);
+    setEditingMember(null);
+  };
+
+  const handleSave = () => {
+    if (!name || !memberType) {
+      toast.error('Please fill out all required fields');
+      return;
+    }
+
+    const newMember: TeamMember = {
+      id: editingMember?.id || Date.now().toString(),
+      name,
+      member_type: memberType,
+      position,
+      jersey_number: jerseyNumber,
+      image_url: imageUrl,
+      bio,
+      nationality,
+      experience,
+      is_active: isActive,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    });
-    if (onEditMember) {
-      onEditMember(currentMember!);
+      updated_at: new Date().toISOString(),
+    };
+
+    if (editingMember) {
+      // Update existing member
+      const updatedMembers = teamMembers.map((member) =>
+        member.id === editingMember.id ? newMember : member
+      );
+      setTeamMembers(updatedMembers);
+      toast.success('Team member updated successfully');
     } else {
-      setDialogOpen(true);
+      // Add new member
+      setTeamMembers([...teamMembers, newMember]);
+      toast.success('Team member added successfully');
     }
+
+    closeModal();
   };
-  
-  const openEditDialog = (member: TeamMember) => {
-    setCurrentMember(member);
-    if (onEditMember) {
-      onEditMember(member);
-    } else {
-      setDialogOpen(true);
-    }
+
+  const handleEdit = (member: TeamMember) => {
+    setEditingMember(member);
+    setName(member.name);
+    setMemberType(member.member_type);
+    setPosition(member.position || '');
+    setJerseyNumber(member.jersey_number);
+    setImageUrl(member.image_url || '');
+    setBio(member.bio || '');
+    setNationality(member.nationality || '');
+    setExperience(member.experience || '');
+    setIsActive(member.is_active);
+    openModal();
   };
-  
-  const closeDialog = () => {
-    setDialogOpen(false);
-    setCurrentMember(null);
-  };
-  
-  const handleDeleteMember = async (id: string) => {
-    try {
-      if (window.confirm("Are you sure you want to delete this team member?")) {
-        const response = await deleteTeamMember(id);
-        if (response.success) {
-          await loadTeamMemberData();
-          await loadTeamMembers();
-          toast.success("Team member deleted successfully");
-        } else {
-          toast.error("Failed to delete team member");
-        }
-      }
-    } catch (error) {
-      console.error("Error deleting team member:", error);
-      toast.error("Failed to delete team member");
-    }
-  };
-  
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!currentMember) return;
-    
-    try {
-      if (currentMember.id) {
-        const response = await updateTeamMember(currentMember.id, currentMember);
-        if (response.success) {
-          toast.success("Team member updated successfully");
-        } else {
-          toast.error("Failed to update team member");
-        }
-      } else {
-        const response = await createTeamMember(currentMember);
-        if (response.success) {
-          toast.success("Team member added successfully");
-        } else {
-          toast.error("Failed to add team member");
-        }
-      }
-      
-      await loadTeamMemberData();
-      await loadTeamMembers();
-      closeDialog();
-    } catch (error) {
-      console.error("Error saving team member:", error);
-      toast.error("Failed to save team member");
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('Are you sure you want to delete this team member?')) {
+      const updatedMembers = teamMembers.filter((member) => member.id !== id);
+      setTeamMembers(updatedMembers);
+      toast.success('Team member deleted successfully');
     }
   };
 
-  const filteredMembers = teamMembers.filter(member => {
-    const matchesSearch = searchTerm 
-      ? member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (member.position?.toLowerCase().includes(searchTerm.toLowerCase()) || false)
-      : true;
-      
-    const matchesType = typeFilter === 'all-types'
-      ? true
-      : member.member_type === typeFilter;
-      
-    const matchesStatus = statusFilter === 'all-statuses'
-      ? true
-      : (statusFilter === 'active' ? member.is_active : !member.is_active);
-      
-    return matchesSearch && matchesType && matchesStatus;
-  });
-  
-  const getMemberTypeLabel = (type: string): string => {
-    switch (type) {
-      case 'player': return 'Player';
-      case 'management': return 'Management';
-      case 'official': return 'Official';
-      default: return type;
-    }
-  };
-  
   return (
-    <div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Team Members</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-              <div className="relative w-full sm:w-64">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
-                <Input
-                  placeholder="Search members..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8"
-                />
+    <Card>
+      <CardHeader>
+        <CardTitle>Manage Team Members</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="mb-4">
+          <Button onClick={openModal}>
+            <Plus className="mr-2 h-4 w-4" /> Add Team Member
+          </Button>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr>
+                <th className="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
+                  Name
+                </th>
+                <th className="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
+                  Type
+                </th>
+                <th className="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
+                  Position
+                </th>
+                <th className="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 bg-gray-50"></th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {teamMembers.map((member) => (
+                <tr key={member.id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {member.name}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {member.member_type}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {member.position}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {member.is_active ? 'Active' : 'Inactive'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(member)}
+                    >
+                      <Edit className="mr-2 h-4 w-4" /> Edit
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDelete(member.id)}
+                      className="ml-2"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" /> Delete
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Modal */}
+        {isModalOpen && (
+          <div className="fixed z-10 inset-0 overflow-y-auto">
+            <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+              <div className="fixed inset-0 transition-opacity">
+                <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
               </div>
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="w-full sm:w-40">
-                  <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Filter by type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all-types">All Types</SelectItem>
-                  <SelectItem value="player">Players</SelectItem>
-                  <SelectItem value="management">Management</SelectItem>
-                  <SelectItem value="official">Officials</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-40">
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all-statuses">All Statuses</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex gap-2">
-              <Button onClick={() => openNewDialog()} className="w-full sm:w-auto">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add Team Member
-              </Button>
-              <Button 
-                onClick={handleSeedData} 
-                variant="outline" 
-                disabled={seeding} 
-                className="w-full sm:w-auto"
-              >
-                {seeding ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Database className="h-4 w-4 mr-2" />
-                )}
-                Seed Sample Data
-              </Button>
+
+              <span className="hidden sm:inline-block sm:align-middle sm:h-screen"></span>&#8203;
+              <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900">
+                    {editingMember ? 'Edit Team Member' : 'Add Team Member'}
+                  </h3>
+                  <div className="mt-2">
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <Label htmlFor="name">Name *</Label>
+                        <Input
+                          type="text"
+                          id="name"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="memberType">Member Type *</Label>
+                        <Select
+                          value={memberType}
+                          onValueChange={(value) => setMemberType(value as 'player' | 'staff' | 'coach' | 'official')}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a member type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="player">Player</SelectItem>
+                            <SelectItem value="staff">Staff</SelectItem>
+                            <SelectItem value="coach">Coach</SelectItem>
+                            <SelectItem value="official">Official</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="position">Position</Label>
+                        <Input
+                          type="text"
+                          id="position"
+                          value={position}
+                          onChange={(e) => setPosition(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="jerseyNumber">Jersey Number</Label>
+                        <Input
+                          type="number"
+                          id="jerseyNumber"
+                          value={jerseyNumber !== undefined ? jerseyNumber.toString() : ''}
+                          onChange={(e) => setJerseyNumber(e.target.value ? parseInt(e.target.value) : undefined)}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="imageUrl">Image URL</Label>
+                        <Input
+                          type="text"
+                          id="imageUrl"
+                          value={imageUrl}
+                          onChange={(e) => setImageUrl(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="bio">Bio</Label>
+                        <Textarea
+                          id="bio"
+                          value={bio}
+                          onChange={(e) => setBio(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="nationality">Nationality</Label>
+                        <Input
+                          type="text"
+                          id="nationality"
+                          value={nationality}
+                          onChange={(e) => setNationality(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="experience">Experience</Label>
+                        <Input
+                          type="text"
+                          id="experience"
+                          value={experience}
+                          onChange={(e) => setExperience(e.target.value)}
+                        />
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="isActive"
+                          checked={isActive}
+                          onCheckedChange={() => setIsActive(!isActive)}
+                        />
+                        <Label htmlFor="isActive">Is Active</Label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                  <Button
+                    onClick={handleSave}
+                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:ml-3 sm:w-auto sm:text-sm"
+                  >
+                    Save
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                    onClick={closeModal}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
-          
-          {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-            </div>
-          ) : (
-            <div>
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Member</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Position</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="w-[100px]">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredMembers.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                          No team members found
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      filteredMembers.map((member) => (
-                        <TableRow key={member.id}>
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              <div className="h-10 w-10 rounded-full bg-gray-100 overflow-hidden flex-shrink-0">
-                                {member.image_url ? (
-                                  <img 
-                                    src={member.image_url} 
-                                    alt={member.name} 
-                                    className="h-full w-full object-cover" 
-                                  />
-                                ) : (
-                                  <div className="h-full w-full flex items-center justify-center bg-gray-200">
-                                    <UserCircle className="h-6 w-6 text-gray-400" />
-                                  </div>
-                                )}
-                              </div>
-                              <div>
-                                <div className="font-medium">{member.name}</div>
-                                {member.member_type === 'player' && member.jersey_number && (
-                                  <div className="text-xs text-gray-500">#{member.jersey_number}</div>
-                                )}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">
-                              {getMemberTypeLabel(member.member_type)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{member.position || '-'}</TableCell>
-                          <TableCell>
-                            <Badge variant={member.is_active ? "success" : "secondary"}>
-                              {member.is_active ? 'Active' : 'Inactive'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex space-x-2">
-                              <Button variant="ghost" size="sm" onClick={() => openEditDialog(member)} title="Edit">
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                onClick={() => handleDeleteMember(member.id)}
-                                className="text-red-500 hover:bg-red-50 hover:text-red-600"
-                                title="Delete"
-                              >
-                                <Trash className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-              <div className="mt-4 text-sm text-gray-500 text-right">
-                Showing {filteredMembers.length} of {teamMembers.length} team members
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-      
-      {!onEditMember && dialogOpen && (
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="sm:max-w-[550px]">
-            <DialogHeader>
-              <DialogTitle>{currentMember?.id ? 'Edit Team Member' : 'Add Team Member'}</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSave}>
-              <div className="grid gap-4 py-4">
-                {/* Basic form fields for inline editing */}
-                {/* In a real implementation, this would include more fields similar to TeamMemberEditor */}
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={closeDialog}>Cancel</Button>
-                <Button type="submit">Save</Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-      )}
-    </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

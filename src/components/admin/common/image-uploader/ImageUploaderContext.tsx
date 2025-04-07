@@ -1,208 +1,116 @@
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { toast } from 'sonner';
+import React, { createContext, useContext, useState } from 'react';
 import { BucketType } from '@/types/system/images';
 
-interface ImageUploaderContextType {
+interface ImageUploaderContextProps {
   previewUrl: string | null;
-  setPreviewUrl: (url: string | null) => void;
-  selectedFile: File | null;
-  setSelectedFile: (file: File | null) => void;
   altText: string;
-  setAltText: (text: string) => void;
-  imageDescription: string;
-  setImageDescription: (desc: string) => void;
-  imageTags: string[];
-  setImageTags: (tags: string[]) => void;
-  tagInput: string;
-  setTagInput: (input: string) => void;
-  dragActive: boolean;
-  setDragActive: (active: boolean) => void;
   isUploading: boolean;
   progress: number;
-  acceptedTypes: string;
-  handleFileSelection: (file: File) => void;
-  clearSelection: () => void;
-  handleAddTag: () => void;
-  handleRemoveTag: (tag: string) => void;
-  handleTagKeyDown: (e: React.KeyboardEvent) => void;
+  bucket: BucketType;
+  folderPath: string;
   handleUpload: () => Promise<void>;
+  setFile: (file: File | null) => void;
+  setPreviewUrl: (url: string | null) => void;
+  setAltText: (text: string) => void;
+  clearSelection: () => void;
 }
+
+const defaultContext: ImageUploaderContextProps = {
+  previewUrl: null,
+  altText: '',
+  isUploading: false,
+  progress: 0,
+  bucket: BucketType.IMAGES,
+  folderPath: '',
+  handleUpload: async () => {},
+  setFile: () => {},
+  setPreviewUrl: () => {},
+  setAltText: () => {},
+  clearSelection: () => {},
+};
+
+const ImageUploaderContext = createContext<ImageUploaderContextProps>(defaultContext);
 
 interface ImageUploaderProviderProps {
-  children: ReactNode;
-  initialImageUrl: string | null;
-  acceptedTypes: string;
-  maxSizeMB: number;
-  onUploadComplete?: (imageUrl: string) => void;
-  bucket: BucketType;
+  children: React.ReactNode;
+  bucket?: BucketType;
   folderPath?: string;
-  optimizationOptions?: {
-    maxWidth?: number;
-    maxHeight?: number;
-    quality?: number;
-    format?: 'jpeg' | 'png' | 'webp';
-  };
-  initialAlt?: string;
-  initialDescription?: string;
-  initialTags?: string[];
+  onUploadComplete?: (url: string) => void;
 }
-
-export const ImageUploaderContext = createContext<ImageUploaderContextType | undefined>(undefined);
 
 export const ImageUploaderProvider: React.FC<ImageUploaderProviderProps> = ({
   children,
-  initialImageUrl,
-  acceptedTypes,
-  maxSizeMB,
-  onUploadComplete,
-  bucket,
-  folderPath,
-  optimizationOptions,
-  initialAlt = '',
-  initialDescription = '',
-  initialTags = [],
+  bucket = BucketType.IMAGES,
+  folderPath = '',
+  onUploadComplete
 }) => {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(initialImageUrl);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [altText, setAltText] = useState(initialAlt);
-  const [imageDescription, setImageDescription] = useState(initialDescription);
-  const [imageTags, setImageTags] = useState<string[]>(initialTags);
-  const [tagInput, setTagInput] = useState('');
-  const [dragActive, setDragActive] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [altText, setAltText] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
-  
-  const maxSizeBytes = maxSizeMB * 1024 * 1024;
-  
-  const handleFileSelection = (file: File) => {
-    if (!file) return;
-    
-    // Validate file type
-    if (!acceptedTypes.split(',').includes(file.type)) {
-      toast.error(`File type not allowed. Accepted: ${acceptedTypes}`);
-      return;
-    }
-    
-    // Validate file size
-    if (file.size > maxSizeBytes) {
-      toast.error(`File too large. Maximum: ${maxSizeMB}MB`);
-      return;
-    }
-    
-    setSelectedFile(file);
-    
-    // Create preview URL
-    const objectUrl = URL.createObjectURL(file);
-    setPreviewUrl(objectUrl);
-  };
-  
+
   const clearSelection = () => {
-    if (previewUrl && previewUrl !== initialImageUrl) {
-      URL.revokeObjectURL(previewUrl);
-    }
-    
-    setSelectedFile(null);
-    setPreviewUrl(initialImageUrl);
-    setAltText(initialAlt);
-    setImageDescription(initialDescription);
-    setImageTags(initialTags);
+    setFile(null);
+    setPreviewUrl(null);
+    setAltText('');
+    setProgress(0);
   };
-  
-  const handleAddTag = () => {
-    if (!tagInput.trim()) return;
-    
-    if (!imageTags.includes(tagInput.trim())) {
-      setImageTags([...imageTags, tagInput.trim()]);
-    }
-    
-    setTagInput('');
-  };
-  
-  const handleRemoveTag = (tag: string) => {
-    setImageTags(imageTags.filter(t => t !== tag));
-  };
-  
-  const handleTagKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleAddTag();
-    }
-  };
-  
+
   const handleUpload = async () => {
-    if (!selectedFile) {
-      toast.error('No file selected');
-      return;
-    }
-    
+    if (!file) return;
+
     setIsUploading(true);
     setProgress(0);
-    
+
     try {
       // Simulate upload progress
-      const interval = setInterval(() => {
-        setProgress(prev => {
-          const next = prev + 10;
-          if (next >= 100) {
-            clearInterval(interval);
-            return 100;
-          }
-          return next;
+      const intervalId = setInterval(() => {
+        setProgress((prev) => {
+          const next = prev + Math.floor(Math.random() * 15);
+          return next > 95 ? 95 : next;
         });
       }, 300);
-      
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      clearInterval(interval);
+
+      // Simulate API delay
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      clearInterval(intervalId);
       setProgress(100);
-      
-      // Mock successful upload
-      const uploadedUrl = URL.createObjectURL(selectedFile);
+
+      // In a real app, we'd upload the file to storage here
+      const mockUrl = `https://example.com/storage/${bucket}/${folderPath}/${file.name}`;
       
       if (onUploadComplete) {
-        onUploadComplete(uploadedUrl);
+        onUploadComplete(mockUrl);
       }
       
-      toast.success('Image uploaded successfully');
-      
-      // Clear selection after successful upload
-      setSelectedFile(null);
-      setIsUploading(false);
+      // Clear the selection after successful upload
+      setTimeout(() => {
+        clearSelection();
+        setIsUploading(false);
+      }, 500);
     } catch (error) {
-      console.error('Error uploading image:', error);
-      toast.error('Failed to upload image');
+      console.error('Upload error:', error);
       setIsUploading(false);
     }
   };
-  
-  const value: ImageUploaderContextType = {
+
+  const value = {
     previewUrl,
-    setPreviewUrl,
-    selectedFile,
-    setSelectedFile,
     altText,
-    setAltText,
-    imageDescription,
-    setImageDescription,
-    imageTags,
-    setImageTags,
-    tagInput,
-    setTagInput,
-    dragActive,
-    setDragActive,
     isUploading,
     progress,
-    acceptedTypes,
-    handleFileSelection,
-    clearSelection,
-    handleAddTag,
-    handleRemoveTag,
-    handleTagKeyDown,
-    handleUpload
+    bucket,
+    folderPath,
+    handleUpload,
+    setFile,
+    setPreviewUrl,
+    setAltText,
+    clearSelection
   };
-  
+
   return (
     <ImageUploaderContext.Provider value={value}>
       {children}
@@ -212,7 +120,7 @@ export const ImageUploaderProvider: React.FC<ImageUploaderProviderProps> = ({
 
 export const useImageUploaderContext = () => {
   const context = useContext(ImageUploaderContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useImageUploaderContext must be used within an ImageUploaderProvider');
   }
   return context;

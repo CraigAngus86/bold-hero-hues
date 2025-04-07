@@ -4,5 +4,5 @@ export * from './status';
 export * from './logs';
 export * from './images';
 
-// Explicitly re-export SystemStatus to avoid ambiguity
-export { SystemStatus } from './status';
+// To avoid ambiguity, use export type for type re-exports
+export type { SystemStatus } from './status';

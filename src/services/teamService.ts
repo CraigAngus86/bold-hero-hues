@@ -1,12 +1,17 @@
 
-import { TeamMember, MemberType } from '@/types/team';
+import { TeamMember } from '@/types/team';
 import { supabase } from '@/lib/supabase';
 import { create } from 'zustand';
 
+// Export the MemberType enum for use in other files
+export type MemberType = 'player' | 'staff' | 'coach' | 'official' | 'management';
+
 export interface TeamState {
   members: TeamMember[];
+  teamMembers: TeamMember[];
   players: TeamMember[];
   staff: TeamMember[];
+  isLoading: boolean;
   loading: boolean;
   error: string | null;
   
@@ -14,6 +19,9 @@ export interface TeamState {
   getPlayerById: (id: string) => TeamMember | undefined;
   getStaffById: (id: string) => TeamMember | undefined;
   getMembersByType: (type: MemberType | string) => TeamMember[];
+  getPlayersByPosition: (position: string) => TeamMember[];
+  getManagementStaff: () => TeamMember[];
+  loadTeamMembers: () => Promise<void>;
   addTeamMember: (member: Omit<TeamMember, 'id'>) => Promise<{ success: boolean; data?: TeamMember; error?: string }>;
   updateTeamMember: (id: string, updates: Partial<TeamMember>) => Promise<{ success: boolean; error?: string }>;
   deleteTeamMember: (id: string) => Promise<{ success: boolean; error?: string }>;
@@ -22,13 +30,19 @@ export interface TeamState {
 // Create the store
 export const useTeamStore = create<TeamState>((set, get) => ({
   members: [],
+  teamMembers: [],
   players: [],
   staff: [],
   loading: false,
+  isLoading: false,
   error: null,
   
+  loadTeamMembers: async () => {
+    return get().fetchTeamMembers();
+  },
+  
   fetchTeamMembers: async () => {
-    set({ loading: true, error: null });
+    set({ loading: true, isLoading: true, error: null });
     
     try {
       const { data, error } = await supabase
@@ -51,14 +65,16 @@ export const useTeamStore = create<TeamState>((set, get) => ({
       
       set({ 
         members: allMembers, 
+        teamMembers: allMembers,
         players: players,
         staff: staff,
-        loading: false 
+        loading: false,
+        isLoading: false
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch team members';
       console.error('Error fetching team members:', error);
-      set({ error: errorMessage, loading: false });
+      set({ error: errorMessage, loading: false, isLoading: false });
     }
   },
   
@@ -72,6 +88,17 @@ export const useTeamStore = create<TeamState>((set, get) => ({
   
   getMembersByType: (type: MemberType | string) => {
     return get().members.filter(m => m.member_type === type);
+  },
+  
+  getPlayersByPosition: (position: string) => {
+    if (position === "All") {
+      return get().members.filter(m => m.member_type === 'player');
+    }
+    return get().members.filter(m => m.member_type === 'player' && m.position === position);
+  },
+  
+  getManagementStaff: () => {
+    return get().members.filter(m => m.member_type === 'management' || m.member_type === 'coach' || m.member_type === 'staff');
   },
   
   addTeamMember: async (member: Omit<TeamMember, 'id'>) => {
@@ -134,6 +161,7 @@ export const useTeamStore = create<TeamState>((set, get) => ({
       // Update local state by filtering out the deleted member
       set(state => ({
         members: state.members.filter(m => m.id !== id),
+        teamMembers: state.teamMembers.filter(m => m.id !== id),
         players: state.players.filter(p => p.id !== id),
         staff: state.staff.filter(s => s.id !== id),
       }));
@@ -146,6 +174,9 @@ export const useTeamStore = create<TeamState>((set, get) => ({
     }
   }
 }));
+
+// Export TeamMember type from the service for convenience
+export { TeamMember } from '@/types/team';
 
 export const getTeamMembers = async (): Promise<TeamMember[]> => {
   try {

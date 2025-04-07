@@ -177,7 +177,12 @@ export const supabase = {
         error: null
       });
     }
-  }
+  },
+  channel: (name: string) => ({
+    on: (event: string, callback: () => void) => ({
+      subscribe: () => {}
+    })
+  })
 };
 
 // Add helper for type-safe access to supabase tables

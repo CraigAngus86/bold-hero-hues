@@ -6,7 +6,7 @@ export interface TeamMember {
   position?: string;
   image_url?: string;
   bio?: string;
-  is_active: boolean;  // This is required in some usages, so we're making it required everywhere
+  is_active: boolean;  // This is required in some usages
   created_at?: string;
   updated_at?: string;
   jersey_number?: number;

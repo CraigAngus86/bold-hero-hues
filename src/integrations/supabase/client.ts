@@ -8,9 +8,7 @@ export const supabase = {
       const baseResponse = {
         data: [],
         error: null,
-        count: 0,
-        data: null,
-        error: null,
+        count: 0
       };
       
       const chainableMethods = {
@@ -98,15 +96,13 @@ export const supabase = {
           data: [],
           error: null,
         }),
-        count: (options?: { exact?: boolean }) => Promise.resolve({ data: 0, error: null }),
+        count: (options?: { exact?: boolean }) => Promise.resolve({ data: 0, error: null, count: 0 }),
         then: (callback: any) => Promise.resolve({ data: [], error: null, count: 0 }).then(callback)
       };
       
       return {
         ...chainableMethods,
-        ...baseResponse,
-        data: [],
-        error: null,
+        ...baseResponse
       };
     },
     insert: (data: any) => {
@@ -162,6 +158,11 @@ export const supabase = {
   functions: {
     invoke: (name: string, options?: { body?: any }) => Promise.resolve({ data: null, error: null }),
   },
+  channel: (name: string) => ({
+    on: (event: string, callback: () => void) => ({
+      subscribe: () => {}
+    })
+  })
 };
 
 // Utility types for Supabase response patterns

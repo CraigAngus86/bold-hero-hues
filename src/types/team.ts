@@ -12,6 +12,7 @@ export interface TeamMember {
   jersey_number?: number;
   nationality?: string;
   experience?: string;
+  previous_clubs?: string[];
   stats?: {
     goals?: number;
     assists?: number;
@@ -54,4 +55,13 @@ export interface Formation {
   description?: string;
   positions: FormationPosition[];
   isDefault?: boolean;
+}
+
+// Add the MemberType enum
+export enum MemberType {
+  PLAYER = 'player',
+  STAFF = 'staff',
+  COACH = 'coach',
+  OFFICIAL = 'official',
+  MANAGEMENT = 'management',
 }

@@ -75,18 +75,14 @@ export interface SponsorDocument {
 export interface SponsorCommunication {
   id: string;
   sponsor_id: string;
-  user_id: string;
   date: string;
-  communication_type: 'email' | 'call' | 'meeting' | 'other';
-  notes: string;
-  outcome?: string;
-  follow_up_date?: string;
-  created_at?: string;
-  updated_at?: string;
-  type?: string;
-  subject?: string;
+  type: 'email' | 'call' | 'meeting' | 'other';
+  subject: string;
   content?: string;
   created_by?: string;
+  created_at?: string;
+  updated_at?: string;
+  contact_id?: string;
 }
 
 export interface DbServiceResponse<T> {

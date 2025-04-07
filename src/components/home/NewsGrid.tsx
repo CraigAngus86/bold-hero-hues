@@ -1,124 +1,153 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Clock, Tag } from 'lucide-react';
-import { useNewsGrid } from '@/hooks/useNewsGrid';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ChevronRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { formatDate } from '@/utils/date';
 
-const NewsGrid: React.FC = () => {
-  const { articles, isLoading, error } = useNewsGrid(6, true);
+interface NewsItem {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt?: string;
+  content?: string;
+  category: string;
+  image_url?: string;
+  author?: string;
+  publish_date: string;
+  is_featured: boolean;
+}
+
+interface NewsGridProps {
+  articles: NewsItem[];
+  featuredArticles?: NewsItem[];
+  showFeatured?: boolean;
+  maxItems?: number;
+  showCategories?: boolean;
+}
+
+const NewsGrid: React.FC<NewsGridProps> = ({
+  articles,
+  featuredArticles,
+  showFeatured = true,
+  maxItems = 6,
+  showCategories = true,
+}) => {
+  // Use provided featured articles or filter from all articles
+  const featured = featuredArticles || articles.filter(article => article.is_featured);
   
-  // Generate a skeleton loader for loading state
-  const NewsCardSkeleton = () => (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <div className="h-48 bg-gray-200 animate-pulse"></div>
-      <div className="p-4 space-y-2">
-        <div className="h-4 bg-gray-200 w-1/4 rounded animate-pulse"></div>
-        <div className="h-6 bg-gray-200 w-3/4 rounded animate-pulse"></div>
-        <div className="h-4 bg-gray-200 w-full rounded animate-pulse"></div>
-        <div className="h-4 bg-gray-200 w-full rounded animate-pulse"></div>
-        <div className="flex justify-between">
-          <div className="h-4 bg-gray-200 w-1/4 rounded animate-pulse"></div>
-          <div className="h-4 bg-gray-200 w-1/5 rounded animate-pulse"></div>
+  // Filter out featured articles from regular display if showFeatured is true
+  const regularArticles = showFeatured 
+    ? articles.filter(article => !article.is_featured)
+    : articles;
+  
+  // Limit the number of regular articles shown
+  const displayedArticles = regularArticles.slice(0, maxItems);
+  
+  // Helper to create excerpt from content if needed
+  const getExcerpt = (article: NewsItem) => {
+    if (article.excerpt) return article.excerpt;
+    if (article.content) {
+      // Strip HTML tags and limit to 150 chars
+      return article.content.replace(/<[^>]*>?/gm, '').substring(0, 150) + '...';
+    }
+    return '';
+  };
+
+  return (
+    <div className="space-y-8">
+      {/* Featured Articles Section */}
+      {showFeatured && featured.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold tracking-tight">Featured News</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {featured.slice(0, 2).map((article) => (
+              <Card key={article.id} className="overflow-hidden">
+                {article.image_url && (
+                  <div className="h-48 overflow-hidden">
+                    <img 
+                      src={article.image_url}
+                      alt={article.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                <CardHeader>
+                  {showCategories && (
+                    <CardDescription>
+                      <Badge variant="outline" className="mb-2">{article.category}</Badge>
+                    </CardDescription>
+                  )}
+                  <CardTitle>{article.title}</CardTitle>
+                  <CardDescription>
+                    {formatDate(article.publish_date)} {article.author && `by ${article.author}`}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p>{getExcerpt(article)}</p>
+                </CardContent>
+                <CardFooter>
+                  <Button variant="link" asChild className="px-0">
+                    <a href={`/news/${article.slug}`}>
+                      Read more <ChevronRight className="ml-1 h-4 w-4" />
+                    </a>
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
         </div>
+      )}
+
+      {/* Regular Articles Grid */}
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold tracking-tight">Latest News</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {displayedArticles.map((article) => (
+            <Card key={article.id}>
+              {article.image_url && (
+                <div className="h-40 overflow-hidden">
+                  <img 
+                    src={article.image_url}
+                    alt={article.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+              <CardHeader>
+                {showCategories && (
+                  <CardDescription>
+                    <Badge variant="outline" className="mb-2">{article.category}</Badge>
+                  </CardDescription>
+                )}
+                <CardTitle className="line-clamp-2">{article.title}</CardTitle>
+                <CardDescription>
+                  {formatDate(article.publish_date)}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="line-clamp-3">{getExcerpt(article)}</p>
+              </CardContent>
+              <CardFooter>
+                <Button variant="link" asChild className="px-0">
+                  <a href={`/news/${article.slug}`}>
+                    Read more <ChevronRight className="ml-1 h-4 w-4" />
+                  </a>
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      {/* View All News Button */}
+      <div className="flex justify-center mt-8">
+        <Button asChild>
+          <a href="/news">View All News</a>
+        </Button>
       </div>
     </div>
-  );
-  
-  return (
-    <section className="bg-gray-50 py-8">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Latest News</h2>
-          <Link 
-            to="/news" 
-            className="text-team-blue hover:text-team-blue/80 font-medium flex items-center"
-          >
-            View All News
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
-        </div>
-        
-        {error ? (
-          <div className="bg-red-50 p-4 rounded-lg text-center">
-            <p className="text-red-600">Failed to load news articles. Please try again later.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {isLoading ? (
-              // Show skeleton loaders while loading
-              Array(6).fill(0).map((_, index) => (
-                <NewsCardSkeleton key={index} />
-              ))
-            ) : articles.length > 0 ? (
-              // Show news articles
-              articles.map((article, index) => (
-                <motion.div
-                  key={article.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.1 }}
-                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
-                >
-                  <Link to={`/news/${article.slug}`} className="group">
-                    <div className="relative h-48 overflow-hidden">
-                      <img 
-                        src={article.image_url || '/placeholder.svg'} 
-                        alt={article.title} 
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                      <div className="absolute top-3 left-3">
-                        <Badge className="bg-[#c5e7ff] hover:bg-[#c5e7ff]/90 text-[#00105a] text-xs font-semibold">
-                          {article.category}
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="p-4">
-                      <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
-                        <div className="flex items-center">
-                          <Clock className="w-3 h-3 mr-1" />
-                          {formatDate(article.publish_date, 'MMM d, yyyy')}
-                        </div>
-                        {article.author && (
-                          <div className="flex items-center">
-                            <span className="mx-1">•</span>
-                            <span>{article.author}</span>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-team-blue transition-colors">
-                        {article.title}
-                      </h3>
-                      
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                        {article.content.replace(/<[^>]*>/g, '').substring(0, 120)}...
-                      </p>
-                      
-                      <span className="text-team-blue text-sm font-medium inline-flex items-center group-hover:underline">
-                        Read More
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                        </svg>
-                      </span>
-                    </div>
-                  </Link>
-                </motion.div>
-              ))
-            ) : (
-              // Show message when no articles are available
-              <div className="col-span-full text-center py-8">
-                <p className="text-gray-500">No news articles available at the moment</p>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </section>
   );
 };
 

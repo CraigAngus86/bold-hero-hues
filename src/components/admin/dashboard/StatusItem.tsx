@@ -1,66 +1,31 @@
 
-import React from 'react';
-import { Card } from '@/components/ui/card';
 import { SystemStatusType } from '@/types/system/status';
 
-interface StatusItemProps {
-  name: string;
+type StatusItemProps = {
   status: SystemStatusType;
-  metricValue?: string | number;
-  icon?: React.ElementType;
-  tooltip?: string;
-  lastChecked?: string;
-  color?: string;
-  viewAllLink?: string;
-  count?: any; // Added to fix type errors
-  value?: string | number; // Added to support mock data
-}
+  label: string;
+};
 
-const StatusItem: React.FC<StatusItemProps> = ({
-  name,
-  status,
-  metricValue,
-  icon: Icon,
-  tooltip,
-  color,
-  viewAllLink,
-  count, // Now we can use this property
-  value
-}) => {
-  const getStatusColor = () => {
+const StatusItem = ({ status, label }: StatusItemProps) => {
+  const getStatusColor = (status: SystemStatusType) => {
     switch (status) {
-      case 'healthy': return 'bg-green-500';
-      case 'warning': return 'bg-amber-500';
-      case 'error': return 'bg-red-500';
-      default: return 'bg-gray-500';
+      case 'healthy':
+        return 'bg-green-500';
+      case 'warning':
+        return 'bg-amber-500';
+      case 'critical':
+        return 'bg-red-500';
+      case 'unknown':
+      default:
+        return 'bg-slate-300';
     }
   };
-  
+
   return (
-    <Card className={`relative ${color || 'bg-white'} overflow-hidden hover:shadow-md transition-shadow`}>
-      <div className="p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            {Icon && <Icon className="h-5 w-5 text-gray-500" />}
-            <span className="font-medium text-sm">{name}</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <div className={`h-2 w-2 rounded-full ${getStatusColor()}`}></div>
-          </div>
-        </div>
-        <div className="mt-2">
-          <div className="text-2xl font-bold">{value || metricValue || count || '-'}</div>
-        </div>
-        {tooltip && (
-          <div className="text-xs text-gray-500 mt-1">{tooltip}</div>
-        )}
-        {viewAllLink && (
-          <div className="absolute bottom-2 right-3">
-            <a href={viewAllLink} className="text-xs text-blue-600 hover:underline">View all</a>
-          </div>
-        )}
-      </div>
-    </Card>
+    <div className="flex items-center gap-2">
+      <div className={`h-2 w-2 rounded-full ${getStatusColor(status)}`} />
+      <span className="text-sm font-medium">{label}</span>
+    </div>
   );
 };
 

@@ -1,47 +1,35 @@
 
+import { TeamMember, MemberType } from '@/types/team';
+import { supabase } from '@/lib/supabase';
 import { create } from 'zustand';
-import { supabase } from '@/integrations/supabase/client';
 
-export type MemberType = 'player' | 'staff' | 'coach' | 'official' | 'management';
-
-export interface TeamMember {
-  id: string;
-  name: string;
-  member_type: MemberType;
-  position?: string;
-  image_url?: string;
-  bio?: string;
-  is_active?: boolean;
-  created_at?: string;
-  updated_at?: string;
-  jersey_number?: number;
-  nationality?: string;
-  experience?: string;
-  stats?: {
-    goals?: number;
-    assists?: number;
-    appearances?: number;
-    [key: string]: any;
-  };
-}
-
-interface TeamState {
-  teamMembers: TeamMember[];
-  isLoading: boolean;
+export interface TeamState {
+  members: TeamMember[];
+  players: TeamMember[];
+  staff: TeamMember[];
+  loading: boolean;
   error: string | null;
-  loadTeamMembers: () => Promise<void>;
-  getPlayersByPosition: (position: string) => TeamMember[];
-  getManagementStaff: () => Promise<TeamMember[]>;
-  getStaffByType: (type: MemberType) => TeamMember[];
+  
+  fetchTeamMembers: () => Promise<void>;
+  getPlayerById: (id: string) => TeamMember | undefined;
+  getStaffById: (id: string) => TeamMember | undefined;
+  getMembersByType: (type: MemberType | string) => TeamMember[];
+  addTeamMember: (member: Omit<TeamMember, 'id'>) => Promise<{ success: boolean; data?: TeamMember; error?: string }>;
+  updateTeamMember: (id: string, updates: Partial<TeamMember>) => Promise<{ success: boolean; error?: string }>;
+  deleteTeamMember: (id: string) => Promise<{ success: boolean; error?: string }>;
 }
 
+// Create the store
 export const useTeamStore = create<TeamState>((set, get) => ({
-  teamMembers: [],
-  isLoading: false,
+  members: [],
+  players: [],
+  staff: [],
+  loading: false,
   error: null,
   
-  loadTeamMembers: async () => {
-    set({ isLoading: true, error: null });
+  fetchTeamMembers: async () => {
+    set({ loading: true, error: null });
+    
     try {
       const { data, error } = await supabase
         .from('team_members')
@@ -49,83 +37,131 @@ export const useTeamStore = create<TeamState>((set, get) => ({
         .order('name');
       
       if (error) throw error;
-      set({ teamMembers: data || [], isLoading: false });
+      
+      const allMembers = data || [];
+      
+      // Filter players and staff
+      const players = allMembers.filter(m => m.member_type === 'player');
+      const staff = allMembers.filter(m => 
+        m.member_type === 'staff' || 
+        m.member_type === 'coach' || 
+        m.member_type === 'official' || 
+        m.member_type === 'management'
+      );
+      
+      set({ 
+        members: allMembers, 
+        players: players,
+        staff: staff,
+        loading: false 
+      });
     } catch (error) {
-      console.error('Error loading team members:', error);
-      set({ error: 'Failed to load team members', isLoading: false });
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch team members';
+      console.error('Error fetching team members:', error);
+      set({ error: errorMessage, loading: false });
     }
   },
   
-  getPlayersByPosition: (position: string) => {
-    const members = get().teamMembers;
-    if (position === 'All') {
-      return members.filter(m => m.member_type === 'player');
+  getPlayerById: (id: string) => {
+    return get().members.find(m => m.id === id && m.member_type === 'player');
+  },
+  
+  getStaffById: (id: string) => {
+    return get().members.find(m => m.id === id && m.member_type !== 'player');
+  },
+  
+  getMembersByType: (type: MemberType | string) => {
+    return get().members.filter(m => m.member_type === type);
+  },
+  
+  addTeamMember: async (member: Omit<TeamMember, 'id'>) => {
+    try {
+      // Ensure the member has is_active property
+      const memberWithDefaults: Omit<TeamMember, 'id'> = {
+        ...member,
+        is_active: member.is_active !== undefined ? member.is_active : true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      const { data, error } = await supabase.from('team_members').insert(memberWithDefaults);
+      
+      if (error) throw error;
+      
+      // Refresh team members list
+      get().fetchTeamMembers();
+      
+      return { success: true, data: data as TeamMember };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to add team member';
+      console.error('Error adding team member:', error);
+      return { success: false, error: errorMessage };
     }
-    return members.filter(m => 
-      m.member_type === 'player' && m.position === position
-    );
   },
   
-  getManagementStaff: async () => {
-    const members = get().teamMembers;
-    return members.filter(m => 
-      m.member_type === 'management' || 
-      m.member_type === 'coach' || 
-      m.member_type === 'staff'
-    );
+  updateTeamMember: async (id: string, updates: Partial<TeamMember>) => {
+    try {
+      const { error } = await supabase
+        .from('team_members')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      // Refresh team members list
+      get().fetchTeamMembers();
+      
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update team member';
+      console.error('Error updating team member:', error);
+      return { success: false, error: errorMessage };
+    }
   },
   
-  getStaffByType: (type: MemberType) => {
-    const members = get().teamMembers;
-    return members.filter(m => m.member_type === type);
-  },
+  deleteTeamMember: async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('team_members')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      // Update local state by filtering out the deleted member
+      set(state => ({
+        members: state.members.filter(m => m.id !== id),
+        players: state.players.filter(p => p.id !== id),
+        staff: state.staff.filter(s => s.id !== id),
+      }));
+      
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete team member';
+      console.error('Error deleting team member:', error);
+      return { success: false, error: errorMessage };
+    }
+  }
 }));
 
-// Export the team service functions
-export const createTeamMember = async (data: Omit<TeamMember, "id">): Promise<boolean> => {
+export const getTeamMembers = async (): Promise<TeamMember[]> => {
   try {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('team_members')
-      .insert(data);
+      .select('*');
     
     if (error) throw error;
-    return true;
-  } catch (error) {
-    console.error('Error creating team member:', error);
-    return false;
-  }
-};
-
-export const updateTeamMember = async (id: string, data: Partial<TeamMember>): Promise<boolean> => {
-  try {
-    const { error } = await supabase
-      .from('team_members')
-      .update(data)
-      .eq('id', id);
     
-    if (error) throw error;
-    return true;
-  } catch (error) {
-    console.error('Error updating team member:', error);
-    return false;
-  }
-};
-
-export const getTeamMembers = async (type?: string): Promise<TeamMember[]> => {
-  try {
-    let query = supabase
-      .from('team_members')
-      .select('*')
-      .order('name');
-
-    if (type) {
-      query = query.eq('member_type', type);
-    }
-
-    const { data, error } = await query;
-
-    if (error) throw error;
-    return data || [];
+    // Make sure each member has is_active property
+    const members = (data || []).map(member => ({
+      ...member,
+      is_active: member.is_active !== undefined ? member.is_active : true
+    }));
+    
+    return members;
   } catch (error) {
     console.error('Error fetching team members:', error);
     return [];
@@ -139,26 +175,27 @@ export const getTeamMember = async (id: string): Promise<TeamMember | null> => {
       .select('*')
       .eq('id', id)
       .single();
-
+    
     if (error) throw error;
-    return data;
+    
+    return {
+      ...data,
+      is_active: data.is_active !== undefined ? data.is_active : true
+    };
   } catch (error) {
-    console.error('Error fetching team member:', error);
+    console.error(`Error fetching team member ${id}:`, error);
     return null;
   }
 };
 
-export const deleteTeamMember = async (id: string): Promise<boolean> => {
-  try {
-    const { error } = await supabase
-      .from('team_members')
-      .delete()
-      .eq('id', id);
+export const createTeamMember = async (member: Omit<TeamMember, 'id'>): Promise<{ success: boolean; data?: TeamMember; error?: string }> => {
+  return useTeamStore.getState().addTeamMember(member);
+};
 
-    if (error) throw error;
-    return true;
-  } catch (error) {
-    console.error('Error deleting team member:', error);
-    return false;
-  }
+export const updateTeamMember = async (id: string, updates: Partial<TeamMember>): Promise<{ success: boolean; error?: string }> => {
+  return useTeamStore.getState().updateTeamMember(id, updates);
+};
+
+export const deleteTeamMember = async (id: string): Promise<{ success: boolean; error?: string }> => {
+  return useTeamStore.getState().deleteTeamMember(id);
 };

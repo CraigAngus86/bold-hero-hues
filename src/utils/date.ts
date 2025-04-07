@@ -1,88 +1,96 @@
 
 /**
- * Format a date or timestamp as a relative time ago string
- * @param date Date to format
- * @returns String like "5 minutes ago" or "2 hours ago"
- */
-export function formatTimeAgo(date: Date | string): string {
-  if (!date) return 'unknown';
-  
-  const now = new Date();
-  const pastDate = typeof date === 'string' ? new Date(date) : date;
-  
-  // If date is in the future or invalid
-  if (isNaN(pastDate.getTime()) || pastDate > now) {
-    return 'just now';
-  }
-  
-  const seconds = Math.floor((now.getTime() - pastDate.getTime()) / 1000);
-  
-  // Less than a minute
-  if (seconds < 60) {
-    return 'just now';
-  }
-  
-  // Less than an hour
-  if (seconds < 3600) {
-    const minutes = Math.floor(seconds / 60);
-    return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-  }
-  
-  // Less than a day
-  if (seconds < 86400) {
-    const hours = Math.floor(seconds / 3600);
-    return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-  }
-  
-  // Less than a week
-  if (seconds < 604800) {
-    const days = Math.floor(seconds / 86400);
-    return `${days} day${days > 1 ? 's' : ''} ago`;
-  }
-  
-  // Format as regular date for older dates
-  return pastDate.toLocaleDateString();
-}
-
-/**
- * Format a date as YYYY-MM-DD
- */
-export function formatDateISO(date: Date): string {
-  return date.toISOString().split('T')[0];
-}
-
-/**
- * Parse a date string into a Date object
- */
-export function parseDate(dateString: string): Date {
-  return new Date(dateString);
-}
-
-/**
- * Format a date in a human-readable format
- * @param date Date to format
- * @param includeTime Whether to include time component
+ * Format a date string or Date object to a localized string format
+ * @param date The date to format (ISO string or Date object)
+ * @param options Optional Intl.DateTimeFormatOptions
  * @returns Formatted date string
  */
-export function formatDate(date: Date | string, includeTime: boolean = false): string {
+export const formatDate = (
+  date: string | Date | undefined,
+  options: Intl.DateTimeFormatOptions = { 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric' 
+  }
+): string => {
+  if (!date) return 'N/A';
+  
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  
+  // Check if the date is valid
+  if (isNaN(dateObj.getTime())) {
+    return 'Invalid Date';
+  }
+  
+  return dateObj.toLocaleDateString(undefined, options);
+};
+
+/**
+ * Format a date string to ISO format (YYYY-MM-DD)
+ * @param date The date to format
+ * @returns Formatted ISO date string
+ */
+export const formatDateISO = (date: Date | string): string => {
   if (!date) return '';
   
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   
+  // Check if the date is valid
   if (isNaN(dateObj.getTime())) {
     return '';
   }
   
-  const options: Intl.DateTimeFormatOptions = {
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric'
-  };
+  return dateObj.toISOString().split('T')[0];
+};
+
+/**
+ * Format a datetime string to a readable format
+ * @param datetime The datetime to format
+ * @returns Formatted datetime string
+ */
+export const formatDateTime = (
+  datetime: string | Date | undefined
+): string => {
+  if (!datetime) return 'N/A';
   
-  if (includeTime) {
-    options.hour = '2-digit';
-    options.minute = '2-digit';
+  const dateObj = typeof datetime === 'string' ? new Date(datetime) : datetime;
+  
+  // Check if the date is valid
+  if (isNaN(dateObj.getTime())) {
+    return 'Invalid Date';
   }
   
-  return dateObj.toLocaleDateString(undefined, options);
-}
+  return dateObj.toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
+/**
+ * Get a relative time string (e.g., "2 hours ago", "yesterday")
+ * @param date The date to format
+ * @returns Relative time string
+ */
+export const getRelativeTimeString = (date: Date | string): string => {
+  if (!date) return '';
+  
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  
+  // Check if the date is valid
+  if (isNaN(dateObj.getTime())) {
+    return '';
+  }
+  
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - dateObj.getTime()) / 1000);
+  
+  if (diffInSeconds < 60) return 'just now';
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+  if (diffInSeconds < 172800) return 'yesterday';
+  
+  return formatDate(dateObj);
+};

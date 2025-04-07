@@ -1,131 +1,109 @@
 
 import React from 'react';
-import { Server, Database, Wifi, HardDrive, Clock, Users, Mail, FileText } from 'lucide-react';
-import { SystemStatusType, SystemStatusItemProps } from '@/types/system/status';
+import { Card, CardContent } from '@/components/ui/card';
+import { SystemStatus, SystemStatusType } from '@/types/system/status';
+import { Cpu, HardDrive, Server, Shield, Users } from 'lucide-react';
 import StatusItemCard from './StatusItemCard';
 
-export const getServerStatus = (status: SystemStatusType, uptime: any, lastChecked: any) => {
-  return {
-    name: "Server",
-    status: status,
-    value: "Online",
-    metricValue: "99.9%",
-    icon: Server,
-    tooltip: "Application server status",
-    lastChecked: lastChecked,
-  } as SystemStatusItemProps;
-};
-
-export const getDatabaseStatus = (status: SystemStatusType, lastChecked: any) => {
-  return {
-    name: "Database",
-    status: status,
-    value: "Connected",
-    metricValue: "150ms",
-    icon: Database,
-    tooltip: "Database connection status",
-    lastChecked: lastChecked,
-  } as SystemStatusItemProps;
-};
-
-export const getApiStatus = (status: SystemStatusType, lastChecked: any) => {
-  return {
-    name: "API",
-    status: status,
-    value: status,
-    metricValue: "223ms",
-    icon: Wifi,
-    tooltip: "External API services status",
-    lastChecked: lastChecked,
-  } as SystemStatusItemProps;
-};
-
-export const getStorageStatus = (status: SystemStatusType, lastChecked: any) => {
-  return {
-    name: "Storage",
-    status: status,
-    value: "85% free",
-    metricValue: "1.2TB",
-    icon: HardDrive,
-    tooltip: "File storage system status",
-    lastChecked: lastChecked,
-  } as SystemStatusItemProps;
-};
-
-export const getSchedulerStatus = (status: SystemStatusType, lastChecked: any) => {
-  return {
-    name: "Scheduler",
-    status: status,
-    icon: Clock,
-    value: "Running",
-    metricValue: "16 jobs",
-    tooltip: "Background job scheduler status",
-    color: "#6366f1",
-    lastChecked: lastChecked,
-  } as SystemStatusItemProps;
-};
-
-export const getAuthStatus = (status: SystemStatusType, lastChecked: any) => {
-  return {
-    name: "Auth",
-    status: status,
-    icon: Users,
-    value: "Active",
-    metricValue: "23 sessions",
-    tooltip: "Authentication service status",
-    color: "#8b5cf6",
-    lastChecked: lastChecked,
-  } as SystemStatusItemProps;
-};
-
-export const getEmailStatus = (status: SystemStatusType, lastChecked: any) => {
-  return {
-    name: "Email",
-    status: status,
-    icon: Mail,
-    value: "Operational",
-    metricValue: "98.7% delivered",
-    tooltip: "Email delivery service status",
-    color: "#ec4899",
-    lastChecked: lastChecked,
-  } as SystemStatusItemProps;
-};
-
-export const getBackupStatus = (status: SystemStatusType, lastChecked: any) => {
-  return {
-    name: "Backups",
-    status: status,
-    icon: FileText,
-    metricValue: "Daily @ 1AM",
-    value: "Current",
-    tooltip: "Database backup status",
-    color: "#0ea5e9",
-    lastChecked: lastChecked,
-  } as SystemStatusItemProps;
-};
-
 interface StatusItemsProps {
-  items: SystemStatusItemProps[];
+  status: SystemStatus;
 }
 
-export const StatusItems: React.FC<StatusItemsProps> = ({ items }) => {
+const StatusItems = ({ status }: StatusItemsProps) => {
+  // Helper function to get a service by name
+  const getService = (name: string) => {
+    return status.services?.find(s => s.name.toLowerCase().includes(name.toLowerCase()));
+  };
+  
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {items.map((item, index) => (
-        <StatusItemCard 
-          key={index}
-          name={item.name}
-          status={item.status}
-          value={item.value}
-          metricValue={item.metricValue || ''}
-          tooltip={item.tooltip}
-          lastChecked={item.lastChecked}
-          icon={item.icon}
-          color={item.color}
-          viewAllLink={item.viewAllLink}
-          details={item.details}
-        />
-      ))}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <StatusItemCard
+        name="CPU Usage"
+        status={status.metrics?.performance?.[0]?.status || "unknown"}
+        value={`${status.metrics?.performance?.[0]?.value || "N/A"}%`}
+        metricValue={`${status.metrics?.performance?.[0]?.change ? (status.metrics?.performance?.[0]?.change > 0 ? "+" : "") + status.metrics?.performance?.[0]?.change + "%" : ""}`}
+        tooltip="Current CPU utilization"
+        lastChecked={status.last_updated}
+        icon={Cpu}
+        color="blue"
+      />
+      
+      <StatusItemCard
+        name="Memory Usage"
+        status={status.metrics?.performance?.[1]?.status || "unknown"}
+        value={`${status.metrics?.performance?.[1]?.value || "N/A"}%`}
+        metricValue={`${status.metrics?.performance?.[1]?.change ? (status.metrics?.performance?.[1]?.change > 0 ? "+" : "") + status.metrics?.performance?.[1]?.change + "%" : ""}`}
+        tooltip="Current RAM utilization"
+        lastChecked={status.last_updated}
+        icon={Shield}
+        color="amber"
+      />
+      
+      <StatusItemCard
+        name="Storage"
+        status={status.metrics?.storage?.[0]?.status || "unknown"}
+        value={`${status.metrics?.storage?.[0]?.value || "N/A"} ${status.metrics?.storage?.[0]?.unit || "GB"}`}
+        metricValue={status.metrics?.storage?.[0]?.change !== undefined ? `${status.metrics?.storage?.[0]?.change > 0 ? "+" : ""}${status.metrics?.storage?.[0]?.change}${status.metrics?.storage?.[0]?.unit || "GB"} change` : ""}
+        tooltip="Available storage space"
+        lastChecked={status.last_updated}
+        icon={HardDrive}
+        color="purple"
+      />
+      
+      <StatusItemCard
+        name="Database"
+        status={getService("database")?.status || status.overall_status || "unknown"}
+        value={getService("database")?.status === "healthy" ? "Online" : getService("database")?.status === "warning" ? "Degraded" : "Issue Detected"}
+        metricValue={getService("database")?.uptime ? `Uptime: ${Math.floor(getService("database")!.uptime! / 3600)}h ${Math.floor((getService("database")!.uptime! % 3600) / 60)}m` : ""}
+        tooltip={getService("database")?.message || "Database connection status"}
+        lastChecked={getService("database")?.last_checked || status.last_updated}
+        icon={Server}
+        color="green"
+      />
+
+      <StatusItemCard
+        name="API Services"
+        status={getService("api")?.status || status.overall_status}
+        value={getService("api")?.status === "healthy" ? "All Systems Operational" : getService("api")?.status === "warning" ? "Minor Issues" : "Major Outage"}
+        metricValue={getService("api")?.response_time ? `Avg Response: ${getService("api")!.response_time}ms` : ""}
+        tooltip={getService("api")?.message || "API services status"}
+        lastChecked={getService("api")?.last_checked || status.last_updated}
+        icon={Server}
+        color="green"
+      />
+
+      <StatusItemCard
+        name="User Services"
+        status={getService("users")?.status || status.overall_status}
+        value={getService("users")?.status === "healthy" ? "Operating Normally" : getService("users")?.status === "warning" ? "Degraded" : "Issues Detected"}
+        metricValue={status.metrics?.usage?.[0]?.value ? `${status.metrics?.usage?.[0]?.value} active users` : ""}
+        tooltip={getService("users")?.message || "User authentication and management services"}
+        lastChecked={getService("users")?.last_checked || status.last_updated}
+        icon={Users}
+        color="blue"
+      />
+
+      <StatusItemCard
+        name="Content Delivery"
+        status={getService("cdn")?.status || status.overall_status}
+        value={getService("cdn")?.status === "healthy" ? "Operating Normally" : getService("cdn")?.status === "warning" ? "Degraded" : "Issues Detected"}
+        metricValue={getService("cdn")?.response_time ? `Avg Response: ${getService("cdn")!.response_time}ms` : ""}
+        tooltip={getService("cdn")?.message || "Content delivery network status"}
+        lastChecked={getService("cdn")?.last_checked || status.last_updated}
+        icon={Server}
+        color="indigo"
+      />
+
+      <StatusItemCard
+        name="Overall System"
+        status={status.overall_status}
+        value={status.overall_status === "healthy" ? "All Systems Operational" : status.overall_status === "warning" ? "Partial System Outage" : "Major System Outage"}
+        metricValue={status.uptime ? `Uptime: ${Math.floor(status.uptime / (24 * 3600))}d ${Math.floor((status.uptime % (24 * 3600)) / 3600)}h` : ""}
+        tooltip={status.messages?.[0] || "Overall system status"}
+        lastChecked={status.last_updated}
+        icon={Shield}
+        color="green"
+      />
     </div>
   );
 };

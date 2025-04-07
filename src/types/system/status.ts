@@ -1,46 +1,37 @@
 
+export interface SystemMetric {
+  name: string;
+  value: number | string;
+  change?: number;
+  changeDirection?: 'up' | 'down' | 'neutral';
+  unit?: string;
+}
+
 export interface SystemStatus {
-  status: 'online' | 'offline' | 'degraded' | 'maintenance' | 'healthy' | 'warning' | 'error' | 'unknown';
+  status: 'healthy' | 'warning' | 'error' | 'unknown' | 'online' | 'offline' | 'degraded' | 'maintenance';
   lastUpdated: string;
-  message?: string;
+  uptime: number;
+  version: string;
   metrics: {
-    users: number;
-    activeUsers: number;
-    uptime: number;
-    responseTime: number;
-    cpu: number;
-    memory: number;
-    storage: number;
-    requests: number;
+    memory: SystemMetric;
+    cpu: SystemMetric;
+    storage: SystemMetric;
+    activeUsers: SystemMetric;
   };
-}
-
-export type SystemStatusType = 'healthy' | 'warning' | 'error' | 'unknown';
-
-export interface SystemStatusItemProps {
-  name: string;
-  status: SystemStatusType;
-  metricValue?: string | number;
-  icon?: React.ElementType;
-  tooltip?: string;
-  lastChecked?: string;
-  color?: string;
-  viewAllLink?: string;
-  details?: string;
-  value?: string | number;
-}
-
-export interface SystemStatusProps {
-  systems: SystemStatusItemProps[];
-  isLoading: boolean;
-  lastUpdated: string | Date;
-  onRefresh: () => void;
-}
-
-export interface StatusItemProps {
-  name: string;
-  status: SystemStatusType;
-  icon: React.ElementType;
-  color: string;
-  viewAllLink: string;
+  services: {
+    database: {
+      status: 'healthy' | 'warning' | 'error' | 'unknown';
+      latency: number;
+    };
+    api: {
+      status: 'healthy' | 'warning' | 'error' | 'unknown';
+      latency: number;
+      requestsPerMinute: number;
+    };
+    storage: {
+      status: 'healthy' | 'warning' | 'error' | 'unknown';
+      availableSpace: number;
+      totalSize: number;
+    };
+  };
 }

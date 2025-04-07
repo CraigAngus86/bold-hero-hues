@@ -1,12 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
-import { getSponsors } from '@/services/sponsorsService';
+import { getAllSponsors } from '@/services/sponsorsService';
 import SponsorsList from './SponsorsList';
 import SponsorEditor from './SponsorEditor';
 import SponsorsSettings from './SponsorsSettings';
+import TierManagement from './TierManagement';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const SponsorsManager: React.FC = () => {
@@ -16,7 +18,7 @@ const SponsorsManager: React.FC = () => {
   const { data: sponsors, isLoading, error, refetch } = useQuery({
     queryKey: ['sponsors'],
     queryFn: async () => {
-      const response = await getSponsors();
+      const response = await getAllSponsors();
       if (!response.success) {
         throw new Error(response.error || 'Failed to load sponsors');
       }
@@ -39,6 +41,12 @@ const SponsorsManager: React.FC = () => {
     setEditingSponsor(null);
     setActiveTab('sponsors');
   };
+
+  useEffect(() => {
+    if (error) {
+      toast.error('Failed to load sponsors data');
+    }
+  }, [error]);
 
   return (
     <div className="container py-6 max-w-7xl">

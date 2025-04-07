@@ -1,8 +1,9 @@
+
 import React from 'react';
 import { FeaturedArticle } from '@/types/news';
 
-// Around line 45, update the FeaturedItem to match FeaturedArticle
-const featuredArticles = [
+// Featured articles data
+const featuredArticles: FeaturedArticle[] = [
   {
     id: '1',
     title: 'Match Preview: Highland League Showdown',
@@ -21,14 +22,7 @@ const featuredArticles = [
   }
 ];
 
-const featuredItems = featuredArticles.map(article => ({
-  ...article,
-  image_url: article.image_url || '/placeholder-image.jpg',
-  category: article.category || 'News',
-  publish_date: article.publish_date || new Date().toISOString(),
-}));
-
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -36,9 +30,9 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -48,7 +42,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 
 export default function IndexPage() {
   return (
@@ -58,11 +52,11 @@ export default function IndexPage() {
       <section className="mb-8">
         <h2 className="text-2xl font-semibold mb-4">Featured News</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredItems.map((item) => (
+          {featuredArticles.map((item) => (
             <Card key={item.id}>
               <CardHeader>
                 <CardTitle>{item.title}</CardTitle>
-                <CardDescription>{item.category} - {item.publish_date}</CardDescription>
+                <CardDescription>{item.category} - {new Date(item.publish_date).toLocaleDateString()}</CardDescription>
               </CardHeader>
               <CardContent>
                 <img src={item.image_url} alt={item.title} className="w-full h-48 object-cover mb-4 rounded" />
@@ -129,5 +123,5 @@ export default function IndexPage() {
         </Table>
       </section>
     </div>
-  )
+  );
 }

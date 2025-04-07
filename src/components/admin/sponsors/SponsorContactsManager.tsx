@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Card,
@@ -23,7 +24,7 @@ import {
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import {
-  addSponsorContact,
+  createSponsorContact,
   fetchSponsorContacts,
   updateSponsorContact,
   deleteSponsorContact,
@@ -68,14 +69,14 @@ const SponsorContactsManager: React.FC<SponsorContactsManagerProps> = ({ sponsor
       const contactData = {
         sponsor_id: sponsorId,
         name: values.name,
-        role: values.role,
-        email: values.email,
-        phone: values.phone,
-        primary_contact: values.primary_contact || false, // Ensure it's never undefined
-        notes: values.notes,
+        role: values.role || '',
+        email: values.email || '',
+        phone: values.phone || '',
+        primary_contact: values.primary_contact || false,
+        notes: values.notes || '',
       };
       
-      await addSponsorContact(contactData as any);
+      await createSponsorContact(contactData);
       
       setContacts(prev => [
         ...prev,
@@ -100,11 +101,11 @@ const SponsorContactsManager: React.FC<SponsorContactsManagerProps> = ({ sponsor
       const updatedContactData = {
         ...selectedContact,
         name: values.name,
-        role: values.role,
-        email: values.email,
-        phone: values.phone,
+        role: values.role || '',
+        email: values.email || '',
+        phone: values.phone || '',
         primary_contact: values.primary_contact,
-        notes: values.notes,
+        notes: values.notes || '',
       };
 
       await updateSponsorContact(selectedContact.id, updatedContactData);
@@ -252,6 +253,11 @@ const SponsorContactsManager: React.FC<SponsorContactsManagerProps> = ({ sponsor
                   disabled={isSubmitting}
                   onClick={() => {
                     const name = (document.getElementById('name') as HTMLInputElement).value;
+                    if (!name) {
+                      toast.error('Name is required');
+                      return;
+                    }
+                    
                     const role = (document.getElementById('role') as HTMLInputElement).value;
                     const email = (document.getElementById('email') as HTMLInputElement).value;
                     const phone = (document.getElementById('phone') as HTMLInputElement).value;

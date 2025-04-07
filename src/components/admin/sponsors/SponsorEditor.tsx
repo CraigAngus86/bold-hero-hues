@@ -7,12 +7,11 @@ import {
   Calendar as CalendarIcon, 
   CalendarRange, 
   Globe, 
-  Loader2, 
   Save, 
   Users, 
   X 
 } from 'lucide-react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import {
@@ -48,12 +47,12 @@ import SponsorLogoUploader from '@/components/admin/common/SponsorLogoUploader';
 import SponsorContactsManager from './SponsorContactsManager';
 import SponsorCommunicationsLog from './SponsorCommunicationsLog';
 import SponsorDocumentsManager from './SponsorDocumentsManager';
-import { fetchSponsorById, createSponsor, updateSponsor, fetchSponsorshipTiers, getSponsorCategories } from '@/services/sponsorsService';
+import { fetchSponsorById, createSponsor, updateSponsor, fetchSponsorshipTiers } from '@/services/sponsorsService';
 import { Sponsor, SponsorshipTier } from '@/types/sponsors';
 
 const formSchema = z.object({
   name: z.string().min(2, "Sponsor name must be at least 2 characters"),
-  tier: z.string(),
+  tier: z.enum(["platinum", "gold", "silver", "bronze"]),
   description: z.string().optional(),
   website_url: z.string().url("Please enter a valid URL").or(z.literal('')),
   is_active: z.boolean().default(true),
@@ -76,6 +75,7 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({
 }) => {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('details');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const isEditMode = !!sponsorId;
   
@@ -83,7 +83,7 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
-      tier: 'bronze',
+      tier: "bronze",
       description: '',
       website_url: '',
       is_active: true,
@@ -99,7 +99,7 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({
     queryFn: async () => {
       const response = await fetchSponsorshipTiers();
       if (!response.success) {
-        throw new Error(response.error?.message || 'Failed to load tiers');
+        throw new Error(response.error || 'Failed to load tiers');
       }
       return response.data;
     },
@@ -108,7 +108,8 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({
   const { data: sponsor, isLoading: isLoadingSponsor } = useQuery({
     queryKey: ['sponsor', sponsorId],
     queryFn: async () => {
-      const response = await fetchSponsorById(sponsorId!);
+      if (!sponsorId) return null;
+      const response = await fetchSponsorById(sponsorId);
       if (!response.success) {
         throw new Error(response.error || 'Failed to load sponsor');
       }
@@ -123,7 +124,7 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({
       
       form.reset({
         name: sponsor.name,
-        tier: sponsor.tier,
+        tier: sponsor.tier as "platinum" | "gold" | "silver" | "bronze",
         description: sponsor.description || '',
         website_url: sponsor.website_url || '',
         is_active: sponsor.is_active !== false,
@@ -139,66 +140,11 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({
     setLogoUrl(url);
   };
 
-  const { data: categories = [] } = useQuery({
-    queryKey: ['sponsorCategories'],
-    queryFn: async () => {
-      const response = await getSponsorCategories();
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to load categories');
-      }
-      return response.data;
-    }
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async (data: Partial<Sponsor>) => {
-      const updatedData = {
-        ...data,
-        tier: data.tier as "gold" | "silver" | "bronze" | "platinum",
-        start_date: data.start_date instanceof Date ? 
-          data.start_date.toISOString().split('T')[0] : data.start_date,
-        end_date: data.end_date instanceof Date ? 
-          data.end_date.toISOString().split('T')[0] : data.end_date
-      };
-      
-      return updateSponsor(sponsorId!, updatedData);
-    },
-    onSuccess: () => {
-      toast.success(isEditMode ? 'Sponsor updated successfully' : 'Sponsor created successfully');
-      onSaved();
-    },
-    onError: (error) => {
-      console.error('Error saving sponsor:', error);
-      toast.error('An error occurred while saving');
-    }
-  });
-
-  const createMutation = useMutation({
-    mutationFn: async (data: Omit<Sponsor, "id">) => {
-      const sponsorData = {
-        ...data,
-        tier: data.tier as "gold" | "silver" | "bronze" | "platinum",
-        start_date: data.start_date instanceof Date ? 
-          data.start_date.toISOString().split('T')[0] : data.start_date,
-        end_date: data.end_date instanceof Date ? 
-          data.end_date.toISOString().split('T')[0] : data.end_date
-      };
-      
-      return createSponsor(sponsorData);
-    },
-    onSuccess: () => {
-      toast.success('Sponsor created successfully');
-      onSaved();
-    },
-    onError: (error) => {
-      console.error('Error saving sponsor:', error);
-      toast.error('An error occurred while saving');
-    }
-  });
-
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const sponsorData = {
+      setIsSubmitting(true);
+      
+      const sponsorData: any = {
         ...values,
         logo_url: logoUrl,
       };
@@ -206,19 +152,37 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({
       if (!sponsorData.description) delete sponsorData.description;
       if (!sponsorData.website_url) delete sponsorData.website_url;
       
-      if (isEditMode && sponsorId) {
-        updateMutation.mutate(sponsorData);
-      } else {
-        createMutation.mutate(sponsorData as any);
+      if (sponsorData.start_date && typeof sponsorData.start_date === 'object') {
+        sponsorData.start_date = sponsorData.start_date.toISOString().split('T')[0];
       }
-    } catch (error) {
+      
+      if (sponsorData.end_date && typeof sponsorData.end_date === 'object') {
+        sponsorData.end_date = sponsorData.end_date.toISOString().split('T')[0];
+      }
+      
+      let response;
+      
+      if (isEditMode && sponsorId) {
+        response = await updateSponsor(sponsorId, sponsorData);
+      } else {
+        response = await createSponsor(sponsorData);
+      }
+      
+      if (response.success) {
+        toast.success(isEditMode ? 'Sponsor updated successfully' : 'Sponsor created successfully');
+        onSaved();
+      } else {
+        toast.error(response.error || 'An error occurred while saving');
+      }
+    } catch (error: any) {
       console.error('Error saving sponsor:', error);
-      toast.error('An error occurred while saving');
+      toast.error(error.message || 'An error occurred while saving');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const isFormSubmitting = form.formState.isSubmitting;
-  const isLoading = isLoadingSponsor || isLoadingTiers || isFormSubmitting;
+  const isLoading = isLoadingSponsor || isLoadingTiers || isSubmitting;
 
   return (
     <div className="space-y-6">
@@ -232,10 +196,10 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({
           </Button>
           <Button 
             type="button" 
-            onClick={form.handleSubmit(onSubmit)}
+            onClick={form.handleSubmit(handleSubmit)}
             disabled={isLoading || !form.formState.isDirty}
           >
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isLoading && <div className="animate-spin mr-2">◌</div>}
             <Save className="mr-2 h-4 w-4" />
             Save Sponsor
           </Button>
@@ -255,7 +219,7 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({
 
       <TabsContent value="details" className={!isEditMode ? 'block' : ''}>
         <Form {...form}>
-          <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
+          <form className="space-y-6" onSubmit={form.handleSubmit(handleSubmit)}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-6">
                 <FormField
@@ -285,24 +249,10 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {isLoadingTiers ? (
-                            <div className="flex justify-center p-2">
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            </div>
-                          ) : tiers?.length ? (
-                            tiers.map((tier: SponsorshipTier) => (
-                              <SelectItem key={tier.id} value={tier.name.toLowerCase()}>
-                                {tier.name}
-                              </SelectItem>
-                            ))
-                          ) : (
-                            <>
-                              <SelectItem value="platinum">Platinum</SelectItem>
-                              <SelectItem value="gold">Gold</SelectItem>
-                              <SelectItem value="silver">Silver</SelectItem>
-                              <SelectItem value="bronze">Bronze</SelectItem>
-                            </>
-                          )}
+                          <SelectItem value="platinum">Platinum</SelectItem>
+                          <SelectItem value="gold">Gold</SelectItem>
+                          <SelectItem value="silver">Silver</SelectItem>
+                          <SelectItem value="bronze">Bronze</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormDescription>
@@ -492,14 +442,14 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({
 
               <div className="space-y-6">
                 <div>
-                  <div className="mb-2 block text-sm font-medium">
-                    Sponsor Logo
-                  </div>
+                  <h3 className="text-lg font-medium mb-2">Logo</h3>
                   <SponsorLogoUploader 
-                    initialImageUrl={logoUrl} 
-                    onUploadComplete={handleLogoUpload} 
-                    sponsorName={form.getValues().name}
+                    currentLogoUrl={logoUrl} 
+                    onUpload={handleLogoUpload} 
                   />
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Upload a square logo for best results
+                  </p>
                 </div>
 
                 <FormField
@@ -509,11 +459,10 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({
                     <FormItem>
                       <FormLabel>Description</FormLabel>
                       <FormControl>
-                        <Textarea 
-                          placeholder="About this sponsor..."
+                        <Textarea
+                          placeholder="Describe the sponsor or their partnership"
                           className="min-h-[120px]"
                           {...field}
-                          value={field.value || ''}
                         />
                       </FormControl>
                       <FormMessage />

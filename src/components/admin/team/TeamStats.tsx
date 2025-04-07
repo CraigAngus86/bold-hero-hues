@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TeamMember } from '@/types/team';
 
 export interface TeamStatsProps {
-  memberType: string;
+  memberType: 'player' | 'staff' | 'coach' | 'official' | 'management';
   members: TeamMember[];
 }
 
@@ -15,8 +15,8 @@ const TeamStats: React.FC<TeamStatsProps> = ({ memberType, members }) => {
         <CardTitle>{memberType} Statistics</CardTitle>
       </CardHeader>
       <CardContent>
-        <div>Total {memberType}s: {members.length}</div>
-        <div>Active {memberType}s: {members.filter(m => m.is_active).length}</div>
+        <p>View statistics for {memberType}s here.</p>
+        <p>You have {members.length} {memberType}s in total.</p>
       </CardContent>
     </Card>
   );

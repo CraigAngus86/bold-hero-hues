@@ -1,50 +1,57 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { SystemStatus } from '@/types/system/status';
-import { getSystemStatus } from '@/services/logs/systemLogsService';
+import { useState, useEffect } from 'react';
+import { SystemLog } from '@/types/system/status';
+import SystemLogsService from '@/services/logs/systemLogsService';
 
-export const useDashboardRefresh = (autoRefreshInterval = 60000) => {
-  const [status, setStatus] = useState<SystemStatus | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+interface DashboardRefreshState {
+  status: 'idle' | 'loading' | 'error' | 'success';
+  lastRefresh: Date;
+  error: string | null;
+  logs: SystemLog[];
+}
 
-  const fetchSystemStatus = useCallback(async () => {
-    setIsLoading(true);
+export const useDashboardRefresh = () => {
+  const [state, setState] = useState<DashboardRefreshState>({
+    status: 'idle',
+    lastRefresh: new Date(),
+    error: null,
+    logs: []
+  });
+
+  const refreshDashboard = async () => {
+    setState(prev => ({ ...prev, status: 'loading' }));
     try {
-      const result = await getSystemStatus();
-      if (result.error) {
-        setError(result.error);
-      } else {
-        setStatus(result.data);
-        setLastUpdated(new Date());
-      }
-    } catch (err) {
-      setError('Failed to fetch system status');
-      console.error('Error fetching system status:', err);
-    } finally {
-      setIsLoading(false);
+      // Fetch the latest logs
+      const logs = await SystemLogsService.getSystemLogs(10);
+      
+      setState({
+        status: 'success',
+        lastRefresh: new Date(),
+        error: null,
+        logs
+      });
+    } catch (error) {
+      setState({
+        status: 'error',
+        lastRefresh: new Date(),
+        error: 'Failed to refresh dashboard data',
+        logs: []
+      });
     }
+  };
+
+  // Initial fetch
+  useEffect(() => {
+    refreshDashboard();
+    // Refresh every 5 minutes
+    const interval = setInterval(refreshDashboard, 5 * 60 * 1000);
+    return () => clearInterval(interval);
   }, []);
 
-  const refreshStatus = useCallback(() => {
-    fetchSystemStatus();
-  }, [fetchSystemStatus]);
-
-  useEffect(() => {
-    fetchSystemStatus();
-
-    if (autoRefreshInterval > 0) {
-      const intervalId = setInterval(refreshStatus, autoRefreshInterval);
-      return () => clearInterval(intervalId);
-    }
-  }, [fetchSystemStatus, autoRefreshInterval, refreshStatus]);
-
   return {
-    status,
-    isLoading,
-    error,
-    lastUpdated,
-    refreshStatus
+    ...state,
+    refresh: refreshDashboard
   };
 };
+
+export default useDashboardRefresh;

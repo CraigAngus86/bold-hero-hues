@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PlusCircle, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { TeamMember } from '@/types/team';
+import { TeamMember } from '@/services/teamService';
 import PlayerEditor from './PlayerEditor';
 import PlayersList from './PlayersList';
 import StaffEditor from './StaffEditor';

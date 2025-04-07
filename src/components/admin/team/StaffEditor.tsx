@@ -1,14 +1,24 @@
 
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TeamMember } from '@/types/team';
-import { useForm } from 'react-hook-form';
-import { createTeamMember, updateTeamMember } from '@/services/teamService';
-import { toast } from 'sonner';
+import { createTeamMember, updateTeamMember, TeamMember, MemberType } from '@/services/teamService';
+
+const formSchema = z.object({
+  name: z.string().min(2, "Name is required"),
+  position: z.string().min(1, "Position is required"),
+  bio: z.string().optional(),
+  image_url: z.string().url().optional().or(z.literal('')),
+  experience: z.string().optional(),
+});
+
+type StaffFormValues = z.infer<typeof formSchema>;
 
 interface StaffEditorProps {
   staff?: TeamMember;
@@ -16,110 +26,149 @@ interface StaffEditorProps {
   onCancel: () => void;
 }
 
-const StaffEditor = ({ staff, onSave, onCancel }: StaffEditorProps) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [staffType, setStaffType] = useState<'staff' | 'coach' | 'official' | 'management'>(
-    (staff?.member_type as any) || 'staff'
-  );
-  const isEditing = !!staff;
-
-  const { register, handleSubmit, formState: { errors } } = useForm({
-    defaultValues: staff || {
-      name: '',
-      position: '',
-      bio: '',
-      experience: '',
-      member_type: staffType,
-      image_url: '',
-      is_active: true
+const StaffEditor: React.FC<StaffEditorProps> = ({ staff, onSave, onCancel }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const form = useForm<StaffFormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: staff?.name || '',
+      position: staff?.position || '',
+      bio: staff?.bio || '',
+      image_url: staff?.image_url || '',
+      experience: staff?.experience || '',
     }
   });
-
-  const onSubmit = async (data: any) => {
-    setIsLoading(true);
+  
+  const handleSubmit = async (values: StaffFormValues) => {
+    setIsSubmitting(true);
+    
+    const staffData = {
+      name: values.name,
+      position: values.position,
+      bio: values.bio || '',
+      member_type: staff?.member_type || 'staff' as MemberType,
+      image_url: values.image_url || '',
+      is_active: true,
+      experience: values.experience || '',
+    };
+    
     try {
-      const staffData: Omit<TeamMember, 'id'> = {
-        name: data.name,
-        position: data.position,
-        bio: data.bio,
-        experience: data.experience,
-        member_type: staffType,
-        image_url: data.image_url,
-        is_active: true
-      };
-
-      if (isEditing && staff) {
+      if (staff?.id) {
         await updateTeamMember(staff.id, staffData);
-        toast.success('Staff member updated successfully');
       } else {
         await createTeamMember(staffData);
-        toast.success('Staff member created successfully');
       }
+      
+      setIsSubmitting(false);
       onSave();
     } catch (error) {
-      console.error('Error saving staff:', error);
-      toast.error('Failed to save staff member');
-    } finally {
-      setIsLoading(false);
+      console.error('Error saving staff member:', error);
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div>
-        <Label htmlFor="name">Name</Label>
-        <Input id="name" {...register('name', { required: true })} />
-        {errors.name && <span className="text-red-500 text-sm">This field is required</span>}
-      </div>
-
-      <div>
-        <Label htmlFor="member_type">Staff Type</Label>
-        <Select
-          value={staffType}
-          onValueChange={(value: 'staff' | 'coach' | 'official' | 'management') => setStaffType(value)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select staff type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="staff">Staff</SelectItem>
-            <SelectItem value="coach">Coach</SelectItem>
-            <SelectItem value="official">Official</SelectItem>
-            <SelectItem value="management">Management</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div>
-        <Label htmlFor="position">Position</Label>
-        <Input id="position" {...register('position', { required: true })} />
-        {errors.position && <span className="text-red-500 text-sm">This field is required</span>}
-      </div>
-
-      <div>
-        <Label htmlFor="experience">Experience</Label>
-        <Textarea id="experience" {...register('experience')} />
-      </div>
-
-      <div>
-        <Label htmlFor="image_url">Image URL</Label>
-        <Input id="image_url" {...register('image_url')} />
-      </div>
-
-      <div>
-        <Label htmlFor="bio">Biography</Label>
-        <Textarea id="bio" {...register('bio')} />
-      </div>
-
-      <div className="flex justify-end space-x-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Saving...' : isEditing ? 'Update Staff' : 'Add Staff'}
-        </Button>
-      </div>
-    </form>
+    <div className="p-4 bg-white rounded-md">
+      <h2 className="text-xl font-semibold mb-4">{staff?.id ? 'Edit Staff Member' : 'Add New Staff Member'}</h2>
+      
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Staff member name" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="position"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Position</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="e.g., Head Coach" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="experience"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Experience</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="e.g., 10+ years" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="image_url"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Profile Image URL</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="https://..." />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          
+          <FormField
+            control={form.control}
+            name="bio"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Biography</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    {...field}
+                    placeholder="Enter staff member biography and career highlights"
+                    className="min-h-[120px]"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <div className="flex justify-end space-x-2">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onCancel}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Saving...' : staff?.id ? 'Update Staff Member' : 'Add Staff Member'}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
   );
 };
 

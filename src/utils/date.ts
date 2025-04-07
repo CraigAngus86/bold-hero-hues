@@ -1,74 +1,59 @@
 
-import { format, parseISO, formatDistanceToNow } from 'date-fns';
+/**
+ * Format a date or timestamp as a relative time ago string
+ * @param date Date to format
+ * @returns String like "5 minutes ago" or "2 hours ago"
+ */
+export function formatTimeAgo(date: Date | string): string {
+  if (!date) return 'unknown';
+  
+  const now = new Date();
+  const pastDate = typeof date === 'string' ? new Date(date) : date;
+  
+  // If date is in the future or invalid
+  if (isNaN(pastDate.getTime()) || pastDate > now) {
+    return 'just now';
+  }
+  
+  const seconds = Math.floor((now.getTime() - pastDate.getTime()) / 1000);
+  
+  // Less than a minute
+  if (seconds < 60) {
+    return 'just now';
+  }
+  
+  // Less than an hour
+  if (seconds < 3600) {
+    const minutes = Math.floor(seconds / 60);
+    return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+  }
+  
+  // Less than a day
+  if (seconds < 86400) {
+    const hours = Math.floor(seconds / 3600);
+    return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+  }
+  
+  // Less than a week
+  if (seconds < 604800) {
+    const days = Math.floor(seconds / 86400);
+    return `${days} day${days > 1 ? 's' : ''} ago`;
+  }
+  
+  // Format as regular date for older dates
+  return pastDate.toLocaleDateString();
+}
 
 /**
- * Formats a date string into a readable format
- * @param dateString ISO date string
- * @param formatString Optional format string (defaults to 'PPP')
- * @returns Formatted date string
+ * Format a date as YYYY-MM-DD
  */
-export const formatDate = (dateString: string, formatString: string = 'PPP') => {
-  try {
-    const date = parseISO(dateString);
-    return format(date, formatString);
-  } catch (error) {
-    console.error('Error formatting date:', error);
-    return dateString;
-  }
-};
+export function formatDateISO(date: Date): string {
+  return date.toISOString().split('T')[0];
+}
 
 /**
- * Formats a date to show how long ago it was
- * @param dateString ISO date string
- * @returns Time ago string (e.g. "3 days ago")
+ * Parse a date string into a Date object
  */
-export const timeAgo = (dateString: string) => {
-  try {
-    const date = parseISO(dateString);
-    const now = new Date();
-    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-    
-    let interval = Math.floor(seconds / 31536000);
-    if (interval >= 1) {
-      return interval === 1 ? '1 year ago' : `${interval} years ago`;
-    }
-    
-    interval = Math.floor(seconds / 2592000);
-    if (interval >= 1) {
-      return interval === 1 ? '1 month ago' : `${interval} months ago`;
-    }
-    
-    interval = Math.floor(seconds / 86400);
-    if (interval >= 1) {
-      return interval === 1 ? '1 day ago' : `${interval} days ago`;
-    }
-    
-    interval = Math.floor(seconds / 3600);
-    if (interval >= 1) {
-      return interval === 1 ? '1 hour ago' : `${interval} hours ago`;
-    }
-    
-    interval = Math.floor(seconds / 60);
-    if (interval >= 1) {
-      return interval === 1 ? '1 minute ago' : `${interval} minutes ago`;
-    }
-    
-    return seconds <= 5 ? 'just now' : `${Math.floor(seconds)} seconds ago`;
-  } catch (error) {
-    console.error('Error calculating time ago:', error);
-    return 'recently';
-  }
-};
-
-/**
- * Alternative format for time ago display
- */
-export const formatTimeAgo = (dateString: string) => {
-  try {
-    const date = parseISO(dateString);
-    return formatDistanceToNow(date, { addSuffix: true });
-  } catch (error) {
-    console.error('Error formatting time ago:', error);
-    return 'recently';
-  }
-};
+export function parseDate(dateString: string): Date {
+  return new Date(dateString);
+}

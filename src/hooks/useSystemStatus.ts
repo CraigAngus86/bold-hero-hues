@@ -1,49 +1,55 @@
 
 import { useState, useEffect } from 'react';
 import { SystemStatus } from '@/types/system/status';
-import { getSystemStatus } from '@/services/logs/systemLogsService';
+import SystemLogsService from '@/services/logs/systemLogsService';
+
+interface SystemStatusState {
+  status: SystemStatus | null;
+  isLoading: boolean;
+  error: string | null;
+  lastChecked: Date | null;
+}
 
 export const useSystemStatus = () => {
-  const [status, setStatus] = useState<SystemStatus | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [state, setState] = useState<SystemStatusState>({
+    status: null,
+    isLoading: true,
+    error: null,
+    lastChecked: null
+  });
 
-  useEffect(() => {
-    const fetchStatus = async () => {
-      try {
-        setIsLoading(true);
-        const result = await getSystemStatus();
-        if (result.error) {
-          setError(result.error);
-        } else {
-          setStatus(result.data);
-        }
-      } catch (err) {
-        setError('Failed to fetch system status');
-        console.error('Error fetching system status:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchStatus();
-  }, []);
-
-  const refresh = async () => {
-    setIsLoading(true);
+  const fetchSystemStatus = async () => {
+    setState(prev => ({ ...prev, isLoading: true, error: null }));
     try {
-      const result = await getSystemStatus();
-      if (result.error) {
-        setError(result.error);
-      } else {
-        setStatus(result.data);
-      }
-    } catch (err) {
-      setError('Failed to fetch system status');
-    } finally {
-      setIsLoading(false);
+      const { status, error } = await SystemLogsService.getSystemStatus();
+      
+      setState({
+        status,
+        isLoading: false,
+        error: error || null,
+        lastChecked: new Date()
+      });
+    } catch (error) {
+      setState({
+        status: null,
+        isLoading: false,
+        error: 'Failed to fetch system status',
+        lastChecked: new Date()
+      });
     }
   };
 
-  return { status, isLoading, error, refresh };
+  // Auto-refresh every 60 seconds
+  useEffect(() => {
+    fetchSystemStatus();
+    const interval = setInterval(fetchSystemStatus, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return {
+    ...state,
+    refresh: fetchSystemStatus
+  };
 };
+
+export default useSystemStatus;

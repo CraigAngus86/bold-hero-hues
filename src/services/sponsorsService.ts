@@ -1,230 +1,302 @@
 
-import { Sponsor, SponsorDisplaySettings, SponsorDocument, SponsorCommunication, SponsorTier } from '@/types/sponsors';
+import { create } from 'zustand';
+import { Sponsor, SponsorDisplaySettings, SponsorTier, SponsorContact, SponsorDocument, SponsorshipTier, SponsorCommunication } from '@/types/sponsors';
 import { supabase } from '@/integrations/supabase/client';
 
-// Mock sponsors data
-const mockSponsors: Sponsor[] = [
-  {
-    id: '1',
-    name: 'Example Sponsor 1',
-    logo_url: 'https://example.com/logo1.png',
-    website_url: 'https://example.com',
-    tier: 'platinum',
-    description: 'A platinum sponsor',
-    is_active: true,
-    display_order: 1
+// Define the store state
+interface SponsorsState {
+  sponsors: Sponsor[];
+  isLoading: boolean;
+  error: string | null;
+  loadSponsors: () => Promise<void>;
+  getSponsorById: (id: string) => Promise<Sponsor | null>;
+  createSponsor: (sponsor: Omit<Sponsor, 'id'>) => Promise<boolean>;
+  updateSponsor: (id: string, data: Partial<Sponsor>) => Promise<boolean>;
+  deleteSponsor: (id: string) => Promise<boolean>;
+  getSponsors: () => Sponsor[];
+}
+
+// Create the store
+export const useSponsorsStore = create<SponsorsState>((set, get) => ({
+  sponsors: [],
+  isLoading: false,
+  error: null,
+  
+  loadSponsors: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const { data, error } = await supabase
+        .from('sponsors')
+        .select('*')
+        .order('display_order');
+      
+      if (error) throw error;
+      set({ sponsors: data || [], isLoading: false });
+    } catch (error) {
+      console.error('Error loading sponsors:', error);
+      set({ error: 'Failed to load sponsors', isLoading: false });
+    }
   },
-  {
-    id: '2',
-    name: 'Example Sponsor 2',
-    logo_url: 'https://example.com/logo2.png',
-    website_url: 'https://example2.com',
-    tier: 'gold',
-    description: 'A gold sponsor',
-    is_active: true,
-    display_order: 2
-  }
-];
-
-export const getSponsors = async () => {
-  try {
-    // In a real implementation, this would fetch from Supabase
-    // For now, return mock data
-    return {
-      success: true,
-      data: mockSponsors,
-      error: null
-    };
-  } catch (error) {
-    console.error('Error fetching sponsors:', error);
-    return {
-      success: false,
-      data: [],
-      error: 'Failed to fetch sponsors'
-    };
-  }
-};
-
-export const getSponsorById = async (id: string) => {
-  try {
-    // Mock implementation
-    const sponsor = mockSponsors.find(s => s.id === id);
-    
-    if (!sponsor) {
-      return {
-        success: false,
-        error: 'Sponsor not found'
-      };
+  
+  getSponsorById: async (id: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('sponsors')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching sponsor:', error);
+      return null;
     }
-    
-    return {
-      success: true,
-      data: sponsor
-    };
-  } catch (error) {
-    console.error('Error fetching sponsor:', error);
-    return {
-      success: false,
-      error: 'Failed to fetch sponsor'
-    };
-  }
-};
-
-export const createSponsor = async (data: Omit<Sponsor, 'id'>) => {
-  try {
-    // Mock implementation
-    const newSponsor = {
-      ...data,
-      id: Math.random().toString(36).substr(2, 9),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    
-    return {
-      success: true,
-      data: newSponsor
-    };
-  } catch (error) {
-    console.error('Error creating sponsor:', error);
-    return {
-      success: false,
-      error: 'Failed to create sponsor'
-    };
-  }
-};
-
-export const updateSponsor = async (id: string, data: Partial<Sponsor>) => {
-  try {
-    // Mock implementation
-    const sponsorIndex = mockSponsors.findIndex(s => s.id === id);
-    
-    if (sponsorIndex === -1) {
-      return {
-        success: false,
-        error: 'Sponsor not found'
-      };
+  },
+  
+  createSponsor: async (sponsor: Omit<Sponsor, 'id'>) => {
+    try {
+      const { error } = await supabase
+        .from('sponsors')
+        .insert(sponsor);
+      
+      if (error) throw error;
+      await get().loadSponsors();
+      return true;
+    } catch (error) {
+      console.error('Error creating sponsor:', error);
+      return false;
     }
+  },
+  
+  updateSponsor: async (id: string, data: Partial<Sponsor>) => {
+    try {
+      const { error } = await supabase
+        .from('sponsors')
+        .update(data)
+        .eq('id', id);
+      
+      if (error) throw error;
+      await get().loadSponsors();
+      return true;
+    } catch (error) {
+      console.error('Error updating sponsor:', error);
+      return false;
+    }
+  },
+  
+  deleteSponsor: async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('sponsors')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      await get().loadSponsors();
+      return true;
+    } catch (error) {
+      console.error('Error deleting sponsor:', error);
+      return false;
+    }
+  },
+  
+  getSponsors: () => get().sponsors,
+}));
+
+// Helper functions for fetching sponsor configurations and related data
+export const fetchSponsorDisplaySettings = async (): Promise<{success: boolean, data?: SponsorDisplaySettings, error?: string}> => {
+  try {
+    const { data, error } = await supabase
+      .from('sponsor_display_settings')
+      .select('*')
+      .single();
     
-    const updatedSponsor = {
-      ...mockSponsors[sponsorIndex],
-      ...data,
-      updated_at: new Date().toISOString()
-    };
+    if (error) throw error;
     
     return {
       success: true,
-      data: updatedSponsor
+      data: data as SponsorDisplaySettings
     };
   } catch (error) {
-    console.error('Error updating sponsor:', error);
+    console.error('Error fetching sponsor display settings:', error);
     return {
       success: false,
-      error: 'Failed to update sponsor'
+      error: 'Failed to load sponsor display settings'
     };
   }
 };
 
-// Documents
-export const createSponsorDocument = async (data: Omit<SponsorDocument, 'id'>) => {
+// Export contact management functions
+export const createSponsorContact = async (contact: Omit<SponsorContact, 'id'>): Promise<boolean> => {
   try {
-    // Mock implementation
-    const newDocument = {
-      ...data,
-      id: Math.random().toString(36).substr(2, 9),
-      created_at: new Date().toISOString()
-    };
+    const { error } = await supabase
+      .from('sponsor_contacts')
+      .insert(contact);
     
-    return {
-      success: true,
-      data: newDocument
-    };
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error creating sponsor contact:', error);
+    return false;
+  }
+};
+
+export const fetchSponsorContacts = async (sponsorId: string): Promise<SponsorContact[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('sponsor_contacts')
+      .select('*')
+      .eq('sponsor_id', sponsorId);
+    
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching sponsor contacts:', error);
+    return [];
+  }
+};
+
+export const updateSponsorContact = async (id: string, data: Partial<SponsorContact>): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('sponsor_contacts')
+      .update(data)
+      .eq('id', id);
+    
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error updating sponsor contact:', error);
+    return false;
+  }
+};
+
+export const deleteSponsorContact = async (id: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('sponsor_contacts')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error deleting sponsor contact:', error);
+    return false;
+  }
+};
+
+// Document management
+export const createSponsorDocument = async (document: Omit<SponsorDocument, 'id'>): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('sponsor_documents')
+      .insert(document);
+    
+    if (error) throw error;
+    return true;
   } catch (error) {
     console.error('Error creating sponsor document:', error);
-    return {
-      success: false,
-      error: 'Failed to create sponsor document'
-    };
+    return false;
   }
 };
 
-export const fetchSponsorDocuments = async (sponsorId: string) => {
+export const deleteSponsorDocument = async (id: string): Promise<boolean> => {
   try {
-    // Mock implementation
-    return {
-      success: true,
-      data: [
-        {
-          id: '1',
-          name: 'Contract',
-          sponsor_id: sponsorId,
-          file_path: 'sponsors/documents/contract.pdf',
-          document_type: 'contract',
-          upload_date: new Date().toISOString()
-        }
-      ]
-    };
-  } catch (error) {
-    console.error('Error fetching sponsor documents:', error);
-    return {
-      success: false,
-      data: [],
-      error: 'Failed to fetch sponsor documents'
-    };
-  }
-};
-
-export const downloadSponsorDocumentUrl = (filePath: string) => {
-  // Mock implementation
-  return `https://example.com/documents/${filePath}`;
-};
-
-// Communications
-export const createSponsorCommunication = async (data: Omit<SponsorCommunication, 'id'>) => {
-  try {
-    // Mock implementation
-    const newCommunication = {
-      ...data,
-      id: Math.random().toString(36).substr(2, 9),
-      created_at: new Date().toISOString()
-    };
+    const { error } = await supabase
+      .from('sponsor_documents')
+      .delete()
+      .eq('id', id);
     
-    return {
-      success: true,
-      data: newCommunication
-    };
+    if (error) throw error;
+    return true;
   } catch (error) {
-    console.error('Error creating sponsor communication:', error);
-    return {
-      success: false,
-      error: 'Failed to create sponsor communication'
-    };
+    console.error('Error deleting sponsor document:', error);
+    return false;
   }
 };
 
-export const fetchSponsorCommunications = async (sponsorId: string) => {
+export const downloadSponsorDocumentUrl = async (filePath: string): Promise<string> => {
+  const { publicUrl } = supabase.storage.from('sponsor_documents').getPublicUrl(filePath);
+  return publicUrl;
+};
+
+// Tier management 
+export const fetchSponsorshipTiers = async (): Promise<SponsorshipTier[]> => {
   try {
-    // Mock implementation
-    return {
-      success: true,
-      data: [
-        {
-          id: '1',
-          sponsor_id: sponsorId,
-          date: new Date().toISOString(),
-          type: 'email',
-          subject: 'Sponsorship Renewal',
-          content: 'Discussion about renewing sponsorship',
-          created_by: 'Admin',
-          created_at: new Date().toISOString()
-        }
-      ]
-    };
+    const { data, error } = await supabase
+      .from('sponsorship_tiers')
+      .select('*')
+      .order('order_position');
+    
+    if (error) throw error;
+    return data || [];
   } catch (error) {
-    console.error('Error fetching sponsor communications:', error);
-    return {
-      success: false,
-      data: [],
-      error: 'Failed to fetch sponsor communications'
-    };
+    console.error('Error fetching sponsorship tiers:', error);
+    return [];
   }
+};
+
+export const createSponsorshipTier = async (tier: Omit<SponsorshipTier, 'id'>): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('sponsorship_tiers')
+      .insert(tier);
+    
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error creating sponsorship tier:', error);
+    return false;
+  }
+};
+
+export const updateSponsorshipTier = async (id: string, data: Partial<SponsorshipTier>): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('sponsorship_tiers')
+      .update(data)
+      .eq('id', id);
+    
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error updating sponsorship tier:', error);
+    return false;
+  }
+};
+
+export const deleteSponsorshipTier = async (id: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('sponsorship_tiers')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error deleting sponsorship tier:', error);
+    return false;
+  }
+};
+
+// Additional functions
+export const getSponsorCategories = async (): Promise<string[]> => {
+  try {
+    // For mockup purposes, return some categories
+    return ['Main Club Sponsor', 'Match Sponsor', 'Kit Sponsor', 'Youth Development', 'Event Sponsor'];
+  } catch (error) {
+    console.error('Error fetching sponsor categories:', error);
+    return [];
+  }
+};
+
+export const fetchSponsorById = async (id: string): Promise<Sponsor | null> => {
+  return await useSponsorsStore.getState().getSponsorById(id);
+};
+
+export const getAllSponsors = async (): Promise<Sponsor[]> => {
+  return useSponsorsStore.getState().getSponsors();
 };

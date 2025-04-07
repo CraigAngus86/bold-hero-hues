@@ -56,6 +56,7 @@ export interface AudienceGroup {
   name: string;
   description?: string;
   count?: number; // Non-DB field for UI
+  tags?: string[]; // Added missing property
 }
 
 export interface Subscriber {

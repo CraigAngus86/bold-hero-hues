@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { TeamMember } from '@/types/team';
+import { TeamMember, MemberType } from '@/types/team';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +16,7 @@ const TeamMembersManager: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
   const [name, setName] = useState('');
-  const [memberType, setMemberType] = useState<'player' | 'staff' | 'coach' | 'official'>('player');
+  const [memberType, setMemberType] = useState<MemberType>('player');
   const [position, setPosition] = useState('');
   const [jerseyNumber, setJerseyNumber] = useState<number | undefined>(undefined);
   const [imageUrl, setImageUrl] = useState('');
@@ -239,7 +240,7 @@ const TeamMembersManager: React.FC = () => {
                         <Label htmlFor="memberType">Member Type *</Label>
                         <Select
                           value={memberType}
-                          onValueChange={(value) => setMemberType(value as 'player' | 'staff' | 'coach' | 'official')}
+                          onValueChange={(value) => setMemberType(value as MemberType)}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select a member type" />
@@ -249,6 +250,7 @@ const TeamMembersManager: React.FC = () => {
                             <SelectItem value="staff">Staff</SelectItem>
                             <SelectItem value="coach">Coach</SelectItem>
                             <SelectItem value="official">Official</SelectItem>
+                            <SelectItem value="management">Management</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>

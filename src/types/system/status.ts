@@ -26,6 +26,8 @@ export interface SystemStatusItemProps {
   lastChecked?: string;
   color?: string;
   viewAllLink?: string;
+  details?: string;
+  value?: string | number;
 }
 
 export interface SystemStatusProps {

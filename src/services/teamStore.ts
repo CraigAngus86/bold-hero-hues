@@ -1,8 +1,8 @@
 
-import create from 'zustand';
+import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { TeamMember } from '@/types/team';
-import { getTeamMembers, getTeamMember, createTeamMember, updateTeamMember, deleteTeamMember } from './teamDbService';
+import { TeamMember, MemberType } from '@/types/team';
+import { getAllTeamMembers, getTeamMemberById, createTeamMember, updateTeamMember, deleteTeamMember } from './teamDbService';
 import { toast } from 'sonner';
 
 interface TeamState {
@@ -43,13 +43,14 @@ export const useTeamStore = create<TeamState>()(
       loadTeamMembers: async () => {
         set({ isLoading: true, error: null });
         try {
-          const response = await getTeamMembers();
+          const response = await getAllTeamMembers();
           
           if (response.success) {
             set({ members: response.data || [] });
             
             // Apply current filters to the newly loaded data
-            const currentFilter = get().filter;
+            const state = get();
+            const currentFilter = state.filter;
             const members = response.data || [];
             
             let filtered = [...members];
@@ -85,7 +86,7 @@ export const useTeamStore = create<TeamState>()(
       getTeamMember: async (id: string) => {
         set({ isLoading: true, error: null });
         try {
-          const response = await getTeamMember(id);
+          const response = await getTeamMemberById(id);
           
           if (response.success && response.data) {
             set({ selectedMember: response.data });
@@ -106,7 +107,8 @@ export const useTeamStore = create<TeamState>()(
           const response = await createTeamMember(member);
           
           if (response.success) {
-            await get().loadTeamMembers();
+            const state = get();
+            await state.loadTeamMembers();
             toast.success('Team member created successfully');
             return true;
           } else {
@@ -130,8 +132,9 @@ export const useTeamStore = create<TeamState>()(
           const response = await updateTeamMember(id, updates);
           
           if (response.success) {
-            await get().loadTeamMembers();
-            if (get().selectedMember?.id === id) {
+            const state = get();
+            await state.loadTeamMembers();
+            if (state.selectedMember?.id === id) {
               set(state => ({
                 selectedMember: { ...state.selectedMember!, ...updates }
               }));
@@ -159,8 +162,9 @@ export const useTeamStore = create<TeamState>()(
           const response = await deleteTeamMember(id);
           
           if (response.success) {
-            await get().loadTeamMembers();
-            if (get().selectedMember?.id === id) {
+            const state = get();
+            await state.loadTeamMembers();
+            if (state.selectedMember?.id === id) {
               set({ selectedMember: null });
             }
             toast.success('Team member deleted successfully');
@@ -181,13 +185,14 @@ export const useTeamStore = create<TeamState>()(
       },
       
       setFilter: (filter) => {
-        const newFilter = { ...get().filter, ...filter };
+        const state = get();
+        const newFilter = { ...state.filter, ...filter };
         set({ filter: newFilter });
         
-        const members = get().members;
+        const members = state.members;
         let filtered = [...members];
         
-        if (newFilter.memberType !== 'all') {
+        if (newFilter.memberType !== 'all' && newFilter.memberType !== 'management') {
           filtered = filtered.filter(member => member.member_type === newFilter.memberType);
         }
         
@@ -207,13 +212,14 @@ export const useTeamStore = create<TeamState>()(
       },
       
       clearFilters: () => {
+        const state = get();
         set({ 
           filter: {
             memberType: 'all',
             searchQuery: '',
             activeOnly: false
           },
-          filteredMembers: get().members
+          filteredMembers: state.members
         });
       },
       

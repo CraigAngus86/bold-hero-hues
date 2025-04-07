@@ -12,6 +12,8 @@ interface StatusItemProps {
   lastChecked?: string;
   color?: string;
   viewAllLink?: string;
+  count?: any; // Added to fix type errors
+  value?: string | number; // Added to support mock data
 }
 
 const StatusItem: React.FC<StatusItemProps> = ({
@@ -21,7 +23,9 @@ const StatusItem: React.FC<StatusItemProps> = ({
   icon: Icon,
   tooltip,
   color,
-  viewAllLink
+  viewAllLink,
+  count, // Now we can use this property
+  value
 }) => {
   const getStatusColor = () => {
     switch (status) {
@@ -45,7 +49,7 @@ const StatusItem: React.FC<StatusItemProps> = ({
           </div>
         </div>
         <div className="mt-2">
-          <div className="text-2xl font-bold">{metricValue || '-'}</div>
+          <div className="text-2xl font-bold">{value || metricValue || count || '-'}</div>
         </div>
         {tooltip && (
           <div className="text-xs text-gray-500 mt-1">{tooltip}</div>

@@ -1,4 +1,6 @@
-// Re-export from teamStore.ts for compatibility with existing imports
-export { useTeamStore, type TeamMember, type MemberType } from './teamStore';
 
-// Re-export any other team-related functionality if needed
+// Export TeamMember and MemberType from types directly
+import { TeamMember, MemberType } from '@/types/team';
+// Re-export from teamStore.ts 
+export { useTeamStore } from './teamStore';
+export type { TeamMember, MemberType };

@@ -92,6 +92,10 @@ export interface SocialPost {
   content: string;
   image_url?: string;
   posted_at: string;
+  post_url?: string; // Added missing property
+  status?: 'draft' | 'published' | 'scheduled' | 'failed'; // Added missing property
+  scheduled_for?: string; // Added missing property
+  created_at?: string; // Added missing property
   engagement: {
     likes: number;
     shares: number;

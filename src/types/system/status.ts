@@ -14,7 +14,7 @@ export interface SystemLog {
 /**
  * Possible system status names
  */
-export type SystemStatusName = 'healthy' | 'warning' | 'error' | 'unknown';
+export type SystemStatusName = 'healthy' | 'warning' | 'error' | 'unknown' | 'degraded' | 'critical';
 
 /**
  * Service status type

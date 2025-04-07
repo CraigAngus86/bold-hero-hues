@@ -11,26 +11,43 @@ export const unwrapPromise = async <T>(promise: Promise<{ data: T; error: any }>
     if (promise && typeof promise === 'object') {
       // For chainable objects with a then method (Supabase queries)
       if (typeof promise.then === 'function') {
-        const result = await promise;
-        return result;
+        const result = await Promise.resolve(promise);
+        return {
+          ...result,
+          count: result.count !== undefined ? result.count : (Array.isArray(result.data) ? result.data.length : 0)
+        };
       }
       
       // If it's already a data object, just return it
       if ('data' in promise) {
-        return promise;
+        return {
+          ...promise,
+          count: promise.count !== undefined ? promise.count : (Array.isArray(promise.data) ? promise.data.length : 0)
+        };
       }
     }
     
     // For standard promises
     if (promise instanceof Promise) {
       const result = await promise;
-      return result;
+      return {
+        ...result,
+        count: result.count !== undefined ? result.count : (Array.isArray(result.data) ? result.data.length : 0)
+      };
     }
     
     // Fallback case
-    return { data: null as T, error: new Error('Invalid response format') };
+    return { 
+      data: null as T, 
+      error: new Error('Invalid response format'),
+      count: 0 
+    };
   } catch (error) {
-    return { data: null as T, error };
+    return { 
+      data: null as T, 
+      error,
+      count: 0 
+    };
   }
 };
 

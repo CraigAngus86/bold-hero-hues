@@ -1,72 +1,44 @@
 
-import { useState, useEffect } from 'react';
-import { SystemLog } from '@/types/system/status';
-import systemLogsService from '@/services/logs/systemLogsService';
-
-interface DashboardRefreshState {
-  status: 'idle' | 'loading' | 'error' | 'success';
-  lastRefresh: Date;
-  error: string | null;
-  logs: SystemLog[];
-}
+import { useState, useCallback } from 'react';
+import { systemLogsService } from '@/services/logs/systemLogsService';
+import { SystemLog, SystemStatus } from '@/types/system/status';
 
 export const useDashboardRefresh = () => {
-  const [state, setState] = useState<DashboardRefreshState>({
-    status: 'idle',
-    lastRefresh: new Date(),
-    error: null,
-    logs: []
-  });
-  
-  const [refreshData, setRefreshData] = useState(false);
+  const [status, setStatus] = useState<SystemStatus | null>(null);
+  const [logs, setLogs] = useState<SystemLog[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<Error | null>(null);
 
-  const refreshDashboard = async () => {
-    setState(prev => ({ ...prev, status: 'loading' }));
+  const refresh = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
     try {
-      // Fetch the latest logs
-      const logs = await systemLogsService.getSystemLogs(10);
-      
-      setState({
-        status: 'success',
-        lastRefresh: new Date(),
-        error: null,
-        logs
-      });
-      
-      // Reset refresh flag
-      setRefreshData(false);
-    } catch (error) {
-      setState({
-        status: 'error',
-        lastRefresh: new Date(),
-        error: 'Failed to refresh dashboard data',
-        logs: []
-      });
-      setRefreshData(false);
-    }
-  };
+      // Fetch system status
+      const systemStatus = await systemLogsService.getSystemStatus();
+      setStatus(systemStatus);
 
-  // Handle refresh when refreshData changes
-  useEffect(() => {
-    if (refreshData) {
-      refreshDashboard();
+      // Fetch system logs
+      const systemLogs = await systemLogsService.getSystemLogs(20);
+      setLogs(systemLogs);
+    } catch (err) {
+      console.error('Error refreshing dashboard data:', err);
+      setError(err instanceof Error ? err : new Error('Failed to refresh dashboard data'));
+    } finally {
+      setIsLoading(false);
     }
-  }, [refreshData]);
-
-  // Initial fetch
-  useEffect(() => {
-    refreshDashboard();
-    // Refresh every 5 minutes
-    const interval = setInterval(refreshDashboard, 5 * 60 * 1000);
-    return () => clearInterval(interval);
   }, []);
 
+  // Initial data fetch
+  useState(() => {
+    refresh();
+  });
+
   return {
-    ...state,
-    refresh: refreshDashboard,
-    refreshData,
-    setRefreshData
+    status,
+    logs,
+    isLoading,
+    error,
+    refresh,
   };
 };
-
-export default useDashboardRefresh;

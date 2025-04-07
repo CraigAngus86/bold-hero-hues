@@ -73,11 +73,12 @@ export function processResponseToStringArray(response: { data: unknown; error: a
 }
 
 // Helper to standardize Supabase client method calls and ensure proper types
-export async function executeSupabaseQuery<T>(queryPromise: any): Promise<{ data: T[]; error: any; count?: number }> {
+export async function executeSupabaseQuery<T>(queryPromise: any): Promise<{ data: T[]; error: any; count: number }> {
   try {
     // Use the unwrapPromise helper to handle both Promise and chainable objects
     const result = await unwrapPromise<T[]>(queryPromise);
     
+    // Always ensure count property exists
     return {
       data: Array.isArray(result.data) ? result.data : [],
       error: result.error,
@@ -85,7 +86,7 @@ export async function executeSupabaseQuery<T>(queryPromise: any): Promise<{ data
     };
   } catch (error) {
     console.error('Supabase query execution error:', error);
-    return { data: [], error };
+    return { data: [], error, count: 0 };
   }
 }
 
@@ -101,4 +102,13 @@ export function ensureString(value: unknown): string {
 export function convertToStringArray(values: unknown[] | null | undefined): string[] {
   if (!values || !Array.isArray(values)) return [];
   return values.map(ensureString);
+}
+
+// Safely convert any database response to include count
+export function ensureResponseWithCount<T>(response: { data: T[]; error: any; count?: number }): { data: T[]; error: any; count: number } {
+  return {
+    data: Array.isArray(response.data) ? response.data : [],
+    error: response.error,
+    count: response.count !== undefined ? response.count : (Array.isArray(response.data) ? response.data.length : 0)
+  };
 }

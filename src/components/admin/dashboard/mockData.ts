@@ -1,106 +1,77 @@
 
-import { SystemStatus, SystemStatusName, SystemLog } from '@/types/system/status';
+import { SystemLog, SystemStatus, SystemStatusName } from '@/types/system/status';
 
-export const mockSystemStatus: SystemStatus = {
-  overall_status: 'healthy',
-  message: 'All systems operational',
-  uptime: 99.98,
-  metrics: {
-    performance: [
-      { name: 'CPU', value: 32, unit: '%' },
-      { name: 'Memory', value: 41, unit: '%' },
-      { name: 'Requests', value: 214, unit: 'req/min' }
-    ],
-    storage: [
-      { name: 'Total', value: 1000, unit: 'GB' },
-      { name: 'Used', value: 350, unit: 'GB' },
-      { name: 'Free', value: 650, unit: 'GB' }
-    ],
-    usage: [
-      { name: 'Requests', value: 15482, unit: 'total' },
-      { name: 'Bandwidth', value: 125, unit: 'GB' },
-      { name: 'Users', value: 324, unit: 'active' }
-    ]
-  },
-  services: [
+export const generateMockSystemStatus = (): SystemStatus => {
+  const now = new Date();
+  const oneHourAgo = new Date(now.getTime() - 3600000);
+  const twoHoursAgo = new Date(now.getTime() - 7200000);
+  
+  const mockLogs: SystemLog[] = [
     {
-      name: 'Web Server',
-      status: 'healthy',
-      lastChecked: new Date().toISOString(),
-      message: 'Normal response times',
-      uptime: 99.9
+      id: '1',
+      timestamp: now.toISOString(),
+      type: 'info',
+      message: 'System started successfully',
+      source: 'system'
     },
     {
-      name: 'Database',
-      status: 'healthy',
-      lastChecked: new Date().toISOString(),
-      message: 'Normal query execution times',
-      uptime: 99.8
+      id: '2',
+      timestamp: oneHourAgo.toISOString(),
+      type: 'warning',
+      message: 'High CPU usage detected',
+      source: 'monitoring'
     },
     {
-      name: 'Storage Service',
-      status: 'healthy',
-      lastChecked: new Date().toISOString(),
-      message: 'Normal file operations',
-      uptime: 99.7
-    },
-    {
-      name: 'Email Service',
-      status: 'warning',
-      lastChecked: new Date().toISOString(),
-      message: 'Delayed email delivery',
-      uptime: 97.5
-    },
-    {
-      name: 'Payment Gateway',
-      status: 'healthy',
-      lastChecked: new Date().toISOString(),
-      message: 'Normal transaction processing',
-      uptime: 99.95
+      id: '3',
+      timestamp: twoHoursAgo.toISOString(),
+      type: 'error',
+      message: 'Database connection failed',
+      source: 'database'
     }
-  ],
-  messages: [
-    'All systems functioning normally',
-    'Recent update completed successfully'
-  ],
-  last_updated: new Date().toISOString(),
-  version: '1.2.3'
+  ];
+  
+  return {
+    overall_status: 'healthy' as SystemStatusName,
+    message: 'All systems operational',
+    uptime: 14400, // 4 hours in seconds
+    last_updated: now.toISOString(),
+    services: [
+      {
+        name: 'Database',
+        status: 'healthy',
+        uptime: 14400,
+        message: 'Connected and responding normally',
+        lastChecked: now.toISOString(),
+      },
+      {
+        name: 'API Server',
+        status: 'healthy',
+        uptime: 14300,
+        message: 'Processing requests within normal parameters',
+        lastChecked: now.toISOString(),
+      },
+      {
+        name: 'Storage',
+        status: 'warning',
+        uptime: 14400,
+        message: 'Storage capacity at 85%',
+        lastChecked: now.toISOString(),
+      }
+    ],
+    metrics: {
+      performance: [
+        { name: 'Request Latency', value: 120, unit: 'ms' },
+        { name: 'CPU Usage', value: 45, unit: '%' }
+      ],
+      storage: [
+        { name: 'Database Size', value: 852, unit: 'MB' },
+        { name: 'File Storage', value: 4.2, unit: 'GB' }
+      ],
+      usage: [
+        { name: 'Active Users', value: 143, unit: 'users' },
+        { name: 'Requests/min', value: 86, unit: 'rpm' }
+      ]
+    },
+    logs: mockLogs
+  };
 };
-
-export const mockSystemLogs: SystemLog[] = [
-  {
-    id: '1',
-    timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-    type: 'info',
-    source: 'system',
-    message: 'System update completed successfully'
-  },
-  {
-    id: '2',
-    timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-    type: 'warning',
-    source: 'database',
-    message: 'High database load detected'
-  },
-  {
-    id: '3',
-    timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-    type: 'error',
-    source: 'storage',
-    message: 'Failed to upload file - insufficient storage'
-  },
-  {
-    id: '4',
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    type: 'info',
-    source: 'auth',
-    message: 'New admin user created'
-  },
-  {
-    id: '5',
-    timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-    type: 'info',
-    source: 'api',
-    message: 'API rate limit increased for client A'
-  }
-];

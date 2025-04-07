@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { SystemStatus } from '@/types/system/status';
-import { systemLogsService } from '@/services/systemLogsService';
+import { systemLogsService } from '@/services/logs/systemLogsService';
 
 interface UseSystemStatusResult {
   systemStatus: SystemStatus | undefined;
@@ -30,9 +30,6 @@ export function useSystemStatus(): UseSystemStatusResult {
     } finally {
       setLoading(false);
     }
-    
-    // Return a resolved promise to satisfy the Promise<void> return type
-    return Promise.resolve();
   }, []);
   
   useEffect(() => {

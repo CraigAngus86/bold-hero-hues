@@ -1,6 +1,6 @@
 
 import { supabase } from '@/lib/supabase';
-import { unwrapPromise, addCountProperty, safeStringArray } from '@/lib/supabaseHelpers';
+import { unwrapPromise, addCountProperty, safeStringArray, ensureResponseWithCount } from '@/lib/supabaseHelpers';
 
 /**
  * Get the count of fixtures
@@ -13,8 +13,11 @@ export const getFixturesCount = async (): Promise<{ count: number }> => {
         .select('*', { count: 'exact', head: true })
     );
     
+    // Ensure the response has a count property
+    const responseWithCount = ensureResponseWithCount(response);
+    
     return { 
-      count: response.count || 0
+      count: responseWithCount.count || 0
     };
   } catch (error) {
     console.error('Error getting fixtures count:', error);

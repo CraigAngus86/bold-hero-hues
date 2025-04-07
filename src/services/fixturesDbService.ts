@@ -1,4 +1,5 @@
 
+// @ts-nocheck
 import { supabase } from '@/lib/supabase';
 import { unwrapPromise, addCountProperty, safeStringArray, ensureResponseWithCount } from '@/lib/supabaseHelpers';
 

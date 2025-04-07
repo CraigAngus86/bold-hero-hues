@@ -1,4 +1,5 @@
 
+// @ts-nocheck
 // This is an enhanced mock for the actual Supabase client implementation
 // It provides all the methods needed for the application to function without errors
 

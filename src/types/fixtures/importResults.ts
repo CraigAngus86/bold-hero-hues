@@ -1,5 +1,5 @@
 
-import { Fixture } from './index';
+import { Fixture } from '@/types/fixtures';
 
 export interface ImportResult {
   success: boolean;

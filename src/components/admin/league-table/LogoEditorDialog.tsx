@@ -8,17 +8,18 @@ import {
   DialogFooter
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import ImageUploader from '@/components/common/ImageUploader';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { TeamStats } from '@/types/fixtures';
+import { toast } from 'sonner';
 import { updateTeamLogo } from '@/services/logs/systemLogsService';
-import { toast } from "sonner";
 import { BucketType } from '@/types/system';
 
 interface LogoEditorDialogProps {
-  team: TeamStats;
+  team: TeamStats; 
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: () => void;
+  onSuccess: () => Promise<void>;
 }
 
 const LogoEditorDialog: React.FC<LogoEditorDialogProps> = ({
@@ -27,81 +28,79 @@ const LogoEditorDialog: React.FC<LogoEditorDialogProps> = ({
   onOpenChange,
   onSuccess
 }) => {
-  const [isUploading, setIsUploading] = useState(false);
-  const [logoUrl, setLogoUrl] = useState<string>(team.logo || '');
-  const [isSaving, setIsSaving] = useState(false);
+  const [logoUrl, setLogoUrl] = useState(team?.logo || '');
+  const [isUpdating, setIsUpdating] = useState(false);
   
-  const handleSaveLogo = async () => {
+  const handleLogoUpdate = async () => {
     try {
-      setIsSaving(true);
+      setIsUpdating(true);
+      
+      if (!team?.id) {
+        throw new Error('Team ID is required');
+      }
+      
       const success = await updateTeamLogo(String(team.id), logoUrl);
       
       if (success) {
         toast.success(`Logo updated for ${team.team}`);
-        if (onSuccess) onSuccess();
+        await onSuccess();
         onOpenChange(false);
       } else {
-        toast.error("Failed to update team logo");
+        toast.error('Failed to update logo');
       }
     } catch (error) {
-      console.error('Error saving logo:', error);
-      toast.error("An error occurred while updating the logo");
+      console.error('Error updating logo:', error);
+      toast.error('An error occurred while updating the logo');
     } finally {
-      setIsSaving(false);
+      setIsUpdating(false);
     }
-  };
-  
-  const handleUploadComplete = (url: string) => {
-    setLogoUrl(url);
   };
   
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Edit Team Logo</DialogTitle>
         </DialogHeader>
         
         <div className="grid gap-4 py-4">
-          <div className="flex flex-col items-center gap-4">
-            {logoUrl && (
-              <div className="mb-4">
-                <p className="mb-2 text-sm text-gray-500">Current Logo:</p>
-                <div className="w-20 h-20 flex items-center justify-center border rounded-md p-2 bg-gray-50">
-                  <img
-                    src={logoUrl}
-                    alt={`${team.team} logo`}
-                    className="max-w-full max-h-full object-contain"
-                  />
-                </div>
+          <div className="text-center mb-4">
+            <div className="font-bold text-lg">{team?.team}</div>
+            <div className="text-sm text-gray-500">Position: {team?.position}</div>
+          </div>
+          
+          <div className="flex justify-center mb-4">
+            {logoUrl ? (
+              <img 
+                src={logoUrl} 
+                alt={`${team?.team} logo`} 
+                className="h-24 w-24 object-contain border rounded p-2"
+              />
+            ) : (
+              <div className="h-24 w-24 flex items-center justify-center bg-gray-100 rounded border">
+                No logo
               </div>
             )}
-            
-            <div className="w-full">
-              <p className="mb-2 text-sm font-medium">Upload New Logo:</p>
-              <ImageUploader 
-                onComplete={handleUploadComplete}
-                bucket={BucketType.TEAMS}
-                folderPath="teams"
-              />
-            </div>
+          </div>
+          
+          <div className="grid gap-2">
+            <Label htmlFor="logoUrl">Logo URL</Label>
+            <Input 
+              id="logoUrl" 
+              placeholder="https://example.com/logo.png" 
+              value={logoUrl} 
+              onChange={(e) => setLogoUrl(e.target.value)}
+            />
+            <p className="text-xs text-gray-500">
+              Enter a direct URL to the team's logo image
+            </p>
           </div>
         </div>
         
-        <DialogFooter className="sm:justify-end">
-          <Button 
-            type="button" 
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            onClick={handleSaveLogo}
-            disabled={isSaving || isUploading || !logoUrl}
-          >
-            {isSaving ? 'Saving...' : 'Save Logo'}
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button onClick={handleLogoUpdate} disabled={isUpdating}>
+            {isUpdating ? 'Updating...' : 'Update Logo'}
           </Button>
         </DialogFooter>
       </DialogContent>

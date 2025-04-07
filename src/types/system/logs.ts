@@ -19,3 +19,37 @@ export interface ClearSystemLogsResponse {
   message?: string;
   error?: string;
 }
+
+export interface SystemStatus {
+  status: 'healthy' | 'warning' | 'error' | 'unknown';
+  lastUpdated: string;
+  metrics: {
+    cpu: number;
+    memory: number;
+    storage: number;
+    requests: number;
+  };
+  message?: string;
+  components?: {
+    database?: {
+      status: string;
+      responseTime?: number;
+      lastChecked?: string;
+    };
+    storage?: {
+      status: string;
+      usedSpace?: number;
+      lastChecked?: string;
+    };
+    auth?: {
+      status: string;
+      activeUsers?: number;
+      lastChecked?: string;
+    };
+    api?: {
+      status: string;
+      responseTime?: number;
+      lastChecked?: string;
+    };
+  };
+}

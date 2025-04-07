@@ -3,15 +3,17 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTeamStore } from '@/services/teamStore';
 import type { TeamMember } from '@/types/team';
-import { MemberType } from '@/services/teamService';
 import TeamMembersManager from '@/components/admin/team/TeamMembersManager';
 import TeamStats from '@/components/admin/team/TeamStats';
 import TeamPositionsManager from '@/components/admin/team/TeamPositionsManager';
 import TeamSettings from '@/components/admin/team/TeamSettings';
 
+// Define valid member types
+type MemberType = 'player' | 'staff' | 'coach' | 'official' | 'management';
+
 const TeamManagement = () => {
   const [activeTab, setActiveTab] = useState<string>('players');
-  const [activeMemberType, setActiveMemberType] = useState<string>('player');
+  const [activeMemberType, setActiveMemberType] = useState<MemberType>('player');
 
   // Using the teamStore to get members
   const { teamMembers } = useTeamStore();

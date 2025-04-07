@@ -1,79 +1,87 @@
 
-import { ReactNode } from 'react';
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { formatTimeAgo } from '@/utils/date';
 import { SystemStatusType } from '@/types/system/status';
 
-export interface StatusItemCardProps {
+export interface StatusItemProps {
+  name: string;
   status: SystemStatusType;
-  label: ReactNode;
-  value?: number | string;
-  icon?: React.ReactNode;
-  color?: string;
-  lastChecked?: Date;
+  value: string | React.ReactNode;
+  metricValue: string | React.ReactNode;
+  tooltip?: string;
+  lastChecked: string | Date;
+  icon: React.ComponentType<any>;
+  color: string;
+  viewAllLink?: string;
 }
 
-const StatusItemCard: React.FC<StatusItemCardProps> = ({
-  status,
-  label,
-  value,
-  icon,
-  color = 'blue',
-  lastChecked
+const StatusItemCard: React.FC<StatusItemProps> = ({ 
+  name, 
+  status, 
+  value, 
+  metricValue, 
+  tooltip, 
+  lastChecked, 
+  icon: IconComponent, 
+  color,
+  viewAllLink 
 }) => {
-  const getStatusColor = (status: SystemStatusType) => {
-    switch (status) {
-      case 'healthy':
-        return 'bg-green-500';
-      case 'warning':
-        return 'bg-amber-500';
-      case 'critical':
-        return 'bg-red-500';
-      case 'unknown':
-      default:
-        return 'bg-slate-300';
-    }
+  const statusColors = {
+    healthy: 'bg-green-500',
+    warning: 'bg-amber-500',
+    critical: 'bg-red-500',
+    unknown: 'bg-gray-500'
   };
 
-  const getStatusTextColor = (status: SystemStatusType) => {
-    switch (status) {
-      case 'healthy':
-        return 'text-green-600';
-      case 'warning':
-        return 'text-amber-600';
-      case 'critical':
-        return 'text-red-600';
-      case 'unknown':
-      default:
-        return 'text-slate-500';
-    }
+  const colorVariants = {
+    blue: 'bg-blue-100 text-blue-800 border-blue-200',
+    green: 'bg-green-100 text-green-800 border-green-200',
+    red: 'bg-red-100 text-red-800 border-red-200',
+    amber: 'bg-amber-100 text-amber-800 border-amber-200',
+    purple: 'bg-purple-100 text-purple-800 border-purple-200',
+    indigo: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+    yellow: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    gray: 'bg-gray-100 text-gray-800 border-gray-200',
   };
 
+  const lastCheckedDate = typeof lastChecked === 'string' ? new Date(lastChecked) : lastChecked;
+  
   return (
-    <Card className="border-l-4" style={{ borderLeftColor: color }}>
+    <Card className="overflow-hidden border-l-4" style={{ borderLeftColor: `var(--${color}-500)` }}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {icon && <div className="text-gray-500">{icon}</div>}
+          <div className="flex items-center gap-2">
+            <div className={`p-2 rounded-full ${colorVariants[color as keyof typeof colorVariants] || colorVariants.gray}`}>
+              <IconComponent className="h-5 w-5" />
+            </div>
             <div>
-              <h3 className="font-medium text-sm text-gray-700">{label}</h3>
-              {value !== undefined && (
-                <p className="text-xl font-bold text-gray-900">{value}</p>
-              )}
+              <h3 className="font-medium text-sm">{name}</h3>
+              
+              <div className="flex items-center mt-0.5">
+                <div className={`h-2 w-2 rounded-full mr-1.5 ${statusColors[status] || 'bg-gray-500'}`} />
+                <p className="text-lg font-semibold">{value}</p>
+              </div>
             </div>
           </div>
-          <div className="flex items-center">
-            <div className={`h-2.5 w-2.5 rounded-full ${getStatusColor(status)} mr-2`}></div>
-            <span className={`text-xs font-medium ${getStatusTextColor(status)}`}>
-              {status.charAt(0).toUpperCase() + status.slice(1)}
-            </span>
-          </div>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="text-right">
+                  <div className="text-xs text-muted-foreground">{metricValue}</div>
+                  <div className="text-xs text-gray-400 mt-1">
+                    {lastCheckedDate && formatTimeAgo(lastCheckedDate)}
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>{tooltip || `Last checked ${formatTimeAgo(lastCheckedDate)}`}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
-        
-        {lastChecked && (
-          <div className="mt-2 text-xs text-gray-400">
-            Updated: {lastChecked.toLocaleString()}
-          </div>
-        )}
       </CardContent>
     </Card>
   );

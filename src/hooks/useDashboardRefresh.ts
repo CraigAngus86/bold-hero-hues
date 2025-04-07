@@ -1,56 +1,56 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { getSystemStatus } from '@/services/logs/systemLogsService';
-import { SystemStatus } from '@/types/system/status';
 
-// Hook for auto-refreshing dashboard data
-export function useDashboardRefresh(refreshInterval = 60000) {
-  const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+export const useDashboardRefresh = () => {
+  const [refreshInterval, setRefreshInterval] = useState(60000); // 1 minute default
+  const [lastRefreshed, setLastRefreshed] = useState(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [systemStatus, setSystemStatus] = useState(null);
+  const [statusLoading, setStatusLoading] = useState(true);
+  const [statusError, setStatusError] = useState<Error | null>(null);
 
-  const fetchSystemStatus = async () => {
-    setIsLoading(true);
+  const refresh = useCallback(async () => {
+    setIsRefreshing(true);
     try {
-      const { status, error } = await getSystemStatus();
-      
-      if (error) {
-        throw error;
-      }
-      
-      setSystemStatus(status);
-      setLastUpdated(new Date());
-      setError(null);
-    } catch (err) {
-      console.error('Error refreshing dashboard data:', err);
-      setError(err instanceof Error ? err : new Error('Unknown error'));
+      const status = await getSystemStatus();
+      setSystemStatus(status.systemStatus);
+      setStatusError(null);
+      setLastRefreshed(new Date());
+    } catch (error) {
+      console.error('Error refreshing dashboard:', error);
+      setStatusError(error instanceof Error ? error : new Error('Unknown error'));
     } finally {
-      setIsLoading(false);
+      setIsRefreshing(false);
+      setStatusLoading(false);
     }
-  };
-
-  // Initial fetch
-  useEffect(() => {
-    fetchSystemStatus();
   }, []);
 
-  // Set up polling interval
+  // Handle auto-refresh
   useEffect(() => {
-    if (refreshInterval <= 0) return;
+    refresh();
     
     const intervalId = setInterval(() => {
-      fetchSystemStatus();
+      refresh();
     }, refreshInterval);
     
     return () => clearInterval(intervalId);
-  }, [refreshInterval]);
+  }, [refresh, refreshInterval]);
+
+  const changeRefreshInterval = (interval: number) => {
+    setRefreshInterval(interval);
+  };
 
   return {
+    refresh,
+    isRefreshing,
+    lastRefreshed,
+    refreshInterval,
+    changeRefreshInterval,
     systemStatus,
-    isLoading,
-    error,
-    lastUpdated,
-    refresh: fetchSystemStatus
+    isLoading: statusLoading,
+    error: statusError
   };
-}
+};
+
+export default useDashboardRefresh;

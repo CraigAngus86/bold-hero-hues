@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { SystemLog } from '@/types/system/status';
-import SystemLogsService from '@/services/logs/systemLogsService';
+import systemLogsService from '@/services/logs/systemLogsService';
 
 interface DashboardRefreshState {
   status: 'idle' | 'loading' | 'error' | 'success';
@@ -17,12 +17,14 @@ export const useDashboardRefresh = () => {
     error: null,
     logs: []
   });
+  
+  const [refreshData, setRefreshData] = useState(false);
 
   const refreshDashboard = async () => {
     setState(prev => ({ ...prev, status: 'loading' }));
     try {
       // Fetch the latest logs
-      const logs = await SystemLogsService.getSystemLogs(10);
+      const logs = await systemLogsService.getSystemLogs(10);
       
       setState({
         status: 'success',
@@ -30,6 +32,9 @@ export const useDashboardRefresh = () => {
         error: null,
         logs
       });
+      
+      // Reset refresh flag
+      setRefreshData(false);
     } catch (error) {
       setState({
         status: 'error',
@@ -37,8 +42,16 @@ export const useDashboardRefresh = () => {
         error: 'Failed to refresh dashboard data',
         logs: []
       });
+      setRefreshData(false);
     }
   };
+
+  // Handle refresh when refreshData changes
+  useEffect(() => {
+    if (refreshData) {
+      refreshDashboard();
+    }
+  }, [refreshData]);
 
   // Initial fetch
   useEffect(() => {
@@ -50,7 +63,9 @@ export const useDashboardRefresh = () => {
 
   return {
     ...state,
-    refresh: refreshDashboard
+    refresh: refreshDashboard,
+    refreshData,
+    setRefreshData
   };
 };
 

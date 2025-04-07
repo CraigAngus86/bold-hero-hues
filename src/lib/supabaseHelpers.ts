@@ -24,7 +24,8 @@ export const unwrapPromise = async <T>(promise: Promise<{ data: T; error: any }>
       if (result && typeof result === 'object') {
         if (!('data' in result)) {
           // Make sure the array-like result has a length property before accessing it
-          const length = result && Array.isArray(result) ? result.length : undefined;
+          const resultArray = result as unknown[];
+          const length = Array.isArray(resultArray) ? resultArray.length : undefined;
           return { data: result as T, error: null, count: length };
         }
         return result;

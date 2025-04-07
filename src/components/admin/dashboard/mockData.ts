@@ -6,54 +6,54 @@ export const mockSystemStatus: SystemStatus = {
   message: 'All systems operational',
   uptime: 99.98,
   metrics: {
-    performance: {
-      cpu: 32,
-      memory: 41,
-      requests: 214,
-    },
-    storage: {
-      total: 1000,
-      used: 350,
-      free: 650,
-    },
-    usage: {
-      requests: 15482,
-      bandwidth: 125,
-      users: 324,
-    }
+    performance: [
+      { name: 'CPU', value: 32, unit: '%' },
+      { name: 'Memory', value: 41, unit: '%' },
+      { name: 'Requests', value: 214, unit: 'req/min' }
+    ],
+    storage: [
+      { name: 'Total', value: 1000, unit: 'GB' },
+      { name: 'Used', value: 350, unit: 'GB' },
+      { name: 'Free', value: 650, unit: 'GB' }
+    ],
+    usage: [
+      { name: 'Requests', value: 15482, unit: 'total' },
+      { name: 'Bandwidth', value: 125, unit: 'GB' },
+      { name: 'Users', value: 324, unit: 'active' }
+    ]
   },
   services: [
     {
       name: 'Web Server',
-      status: 'healthy' as SystemStatusName,
+      status: 'healthy',
       lastChecked: new Date().toISOString(),
       message: 'Normal response times',
       uptime: 99.9
     },
     {
       name: 'Database',
-      status: 'healthy' as SystemStatusName,
+      status: 'healthy',
       lastChecked: new Date().toISOString(),
       message: 'Normal query execution times',
       uptime: 99.8
     },
     {
       name: 'Storage Service',
-      status: 'healthy' as SystemStatusName,
+      status: 'healthy',
       lastChecked: new Date().toISOString(),
       message: 'Normal file operations',
       uptime: 99.7
     },
     {
       name: 'Email Service',
-      status: 'warning' as SystemStatusName,
+      status: 'warning',
       lastChecked: new Date().toISOString(),
       message: 'Delayed email delivery',
       uptime: 97.5
     },
     {
       name: 'Payment Gateway',
-      status: 'healthy' as SystemStatusName,
+      status: 'healthy',
       lastChecked: new Date().toISOString(),
       message: 'Normal transaction processing',
       uptime: 99.95

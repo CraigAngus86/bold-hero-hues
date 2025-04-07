@@ -5,23 +5,35 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Cpu, HardDrive, Activity, Server, Clock, Users } from 'lucide-react';
 import StatusItemCard from './StatusItemCard';
 import { SystemStatus, SystemStatusName, SystemMetric, Service } from '@/types/system/status';
-import { useSystemStatus } from '@/hooks/useSystemStatus';
 
-const SystemStatusPanel: React.FC = () => {
-  const { systemStatus, fetchSystemStatus, loading } = useSystemStatus();
+interface SystemStatusPanelProps {
+  status?: SystemStatus;
+  isLoading?: boolean;
+  error?: Error;
+  onRefresh?: () => void;
+}
+
+const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({ 
+  status, 
+  isLoading = false, 
+  error, 
+  onRefresh 
+}) => {
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
-    fetchSystemStatus();
-    // Set up polling every 30 seconds
-    const intervalId = setInterval(() => {
-      fetchSystemStatus();
-    }, 30000);
+    if (onRefresh) {
+      onRefresh();
+      // Set up polling every 30 seconds
+      const intervalId = setInterval(() => {
+        onRefresh();
+      }, 30000);
 
-    return () => clearInterval(intervalId);
-  }, [fetchSystemStatus]);
+      return () => clearInterval(intervalId);
+    }
+  }, [onRefresh]);
 
-  const renderService = (service: Service, icon: React.ReactNode, color: string) => {
+  const renderService = (service: Service, iconComponent: React.ComponentType<any>, color: string) => {
     return (
       <StatusItemCard
         key={service.name}
@@ -30,7 +42,7 @@ const SystemStatusPanel: React.FC = () => {
         value={service.status === 'healthy' ? 'Operational' : 'Issues Detected'}
         metricValue={`${service.uptime.toFixed(2)}% uptime`}
         lastChecked={service.lastChecked}
-        icon={icon as React.ComponentType<any>}
+        icon={iconComponent}
         color={color}
       />
     );
@@ -79,7 +91,7 @@ const SystemStatusPanel: React.FC = () => {
     );
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="p-8 text-center">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
@@ -88,7 +100,7 @@ const SystemStatusPanel: React.FC = () => {
     );
   }
 
-  if (!systemStatus) {
+  if (!status) {
     return (
       <div className="p-8 text-center">
         <p className="text-gray-500">System status data unavailable</p>
@@ -96,21 +108,21 @@ const SystemStatusPanel: React.FC = () => {
     );
   }
 
-  const { metrics, services } = systemStatus;
+  const { metrics, services } = status;
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatusItemCard
           name="System Status"
-          status={systemStatus.overall_status}
+          status={status.overall_status}
           value={
-            systemStatus.overall_status === 'healthy' ? 'All Systems Normal' :
-            systemStatus.overall_status === 'warning' ? 'Performance Degraded' :
-            systemStatus.overall_status === 'critical' ? 'Critical Issues' : 'System Status Unknown'
+            status.overall_status === 'healthy' ? 'All Systems Normal' :
+            status.overall_status === 'warning' ? 'Performance Degraded' :
+            status.overall_status === 'critical' ? 'Critical Issues' : 'System Status Unknown'
           }
-          metricValue={`${systemStatus.uptime.toFixed(2)}% uptime`}
-          lastChecked={systemStatus.last_updated}
+          metricValue={`${status.uptime.toFixed(2)}% uptime`}
+          lastChecked={status.last_updated}
           icon={Server}
           color="blue"
         />
@@ -147,22 +159,14 @@ const SystemStatusPanel: React.FC = () => {
 
         <TabsContent value="performance" className="mt-4">
           {metrics && metrics.performance ? 
-            renderMetricCards(Object.entries(metrics.performance).map(([key, value]) => ({
-              name: key.charAt(0).toUpperCase() + key.slice(1),
-              value: typeof value === 'number' ? value : 0,
-              unit: key === 'cpu' ? '%' : key === 'memory' ? 'MB' : '',
-            })), 'Performance') : 
+            renderMetricCards(metrics.performance, 'Performance') : 
             <div className="text-center p-4 text-gray-500">No performance metrics available</div>
           }
         </TabsContent>
 
         <TabsContent value="storage" className="mt-4">
           {metrics && metrics.storage ? 
-            renderMetricCards(Object.entries(metrics.storage).map(([key, value]) => ({
-              name: key.charAt(0).toUpperCase() + key.slice(1),
-              value: typeof value === 'number' ? value : 0,
-              unit: 'GB',
-            })), 'Storage') : 
+            renderMetricCards(metrics.storage, 'Storage') : 
             <div className="text-center p-4 text-gray-500">No storage metrics available</div>
           }
         </TabsContent>

@@ -29,3 +29,5 @@ export const useSystemStatus = () => {
     fetchSystemStatus
   };
 };
+
+export default useSystemStatus;

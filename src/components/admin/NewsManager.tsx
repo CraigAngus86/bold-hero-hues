@@ -1,208 +1,71 @@
-
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { PlusCircle, Edit, Trash } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { useNewsStore } from '@/hooks/useNewsStore';
+import React, { useState } from 'react';
 import { NewsItem } from '@/types/news';
 
-// Helper function to format dates
-const formatDate = (dateString: string): string => {
-  try {
-    return new Date(dateString).toLocaleDateString();
-  } catch (e) {
-    return dateString;
-  }
-};
+interface NewsManagerProps {
+  initialNews?: NewsItem[];
+}
 
-// Helper function to convert date to database format
-const getDbDateFormat = (dateString: string): string => {
-  try {
-    return new Date(dateString).toISOString().split('T')[0];
-  } catch (e) {
-    return dateString;
-  }
-};
+const NewsManager: React.FC<NewsManagerProps> = ({ initialNews = [] }) => {
+  const [news, setNews] = useState<NewsItem[]>(initialNews);
+  const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
 
-const NewsManager = () => {
-  const { toast } = useToast();
-  const { news, addNews, updateNews, deleteNews } = useNewsStore();
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [currentNews, setCurrentNews] = useState<NewsItem | null>(null);
-  
-  const openNewDialog = () => {
-    setCurrentNews({
-      id: '', // This will be set by the store
-      title: '',
-      excerpt: '',
-      image_url: '',
-      publish_date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
-      category: '',
-      is_featured: false,
-      slug: '',
-    });
-    setDialogOpen(true);
-  };
-  
-  const openEditDialog = (newsItem: NewsItem) => {
-    // Make sure we convert any display-formatted dates to YYYY-MM-DD
-    const formattedNews = {
-      ...newsItem,
-      publish_date: getDbDateFormat(newsItem.publish_date)
-    };
-    setCurrentNews(formattedNews);
-    setDialogOpen(true);
-  };
-  
-  const closeDialog = () => {
-    setDialogOpen(false);
-    setCurrentNews(null);
-  };
-  
-  const handleDelete = (id: string) => {
-    deleteNews(id);
-    toast({
-      title: "News item deleted",
-      description: "The news item has been successfully deleted."
-    });
-  };
-  
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!currentNews) return;
-    
-    if (currentNews.id) {
-      // Update existing
-      updateNews(currentNews);
-      toast({
-        title: "News updated",
-        description: "The news item has been successfully updated."
-      });
-    } else {
-      // Add new - id will be assigned in the store
-      const { id, ...newsWithoutId } = currentNews;
-      addNews(newsWithoutId);
-      toast({
-        title: "News added",
-        description: "A new news item has been successfully added."
-      });
+  const handleSelectNews = (id: string) => {
+    const selected = news.find(item => item.id === id);
+    if (selected) {
+      setSelectedNews(selected);
     }
-    
-    closeDialog();
   };
-  
+
+  const handleCreateNews = (newsItem: NewsItem) => {
+    setNews([...news, newsItem]);
+  };
+
+  const handleUpdateNews = (updatedNews: NewsItem) => {
+    setNews(news.map(item => item.id === updatedNews.id ? updatedNews : item));
+    setSelectedNews(null);
+  };
+
+  const handleDeleteNews = (id: string) => {
+    setNews(news.filter(item => item.id !== id));
+    if (selectedNews && selectedNews.id === id) {
+      setSelectedNews(null);
+    }
+  };
+
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-medium">News Items</h3>
-        <Button onClick={openNewDialog} className="flex items-center">
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Add News
-        </Button>
+      <h2>News Manager</h2>
+      {/* This is a placeholder component - implementation will be expanded later */}
+      <div>
+        <button onClick={() => setSelectedNews({
+          id: `new-${Date.now()}`,
+          title: '',
+          content: '',
+          excerpt: '',
+          image_url: '',
+          publish_date: new Date().toISOString(),
+          category: '',
+          is_featured: false,
+          slug: ''
+        })}>
+          Create New Article
+        </button>
       </div>
-      
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Title</TableHead>
-            <TableHead>Category</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead className="w-[100px]">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {news.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell className="font-medium">{item.title}</TableCell>
-              <TableCell>{item.category}</TableCell>
-              <TableCell>{formatDate(item.publish_date)}</TableCell>
-              <TableCell>
-                <div className="flex space-x-2">
-                  <Button variant="ghost" size="sm" onClick={() => openEditDialog(item)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleDelete(item.id)}>
-                    <Trash className="h-4 w-4" />
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-      
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-[550px]">
-          <DialogHeader>
-            <DialogTitle>{currentNews?.id ? 'Edit News' : 'Add News'}</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSave}>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="title" className="text-right text-sm font-medium">Title</label>
-                <Input
-                  id="title"
-                  value={currentNews?.title || ''}
-                  onChange={(e) => setCurrentNews(prev => prev ? {...prev, title: e.target.value} : null)}
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="category" className="text-right text-sm font-medium">Category</label>
-                <Input
-                  id="category"
-                  value={currentNews?.category || ''}
-                  onChange={(e) => setCurrentNews(prev => prev ? {...prev, category: e.target.value} : null)}
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="date" className="text-right text-sm font-medium">Date</label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={currentNews?.publish_date || ''}
-                  onChange={(e) => setCurrentNews(prev => prev ? {...prev, publish_date: e.target.value} : null)}
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="image" className="text-right text-sm font-medium">Image URL</label>
-                <Input
-                  id="image"
-                  value={currentNews?.image_url || ''}
-                  onChange={(e) => setCurrentNews(prev => prev ? {...prev, image_url: e.target.value} : null)}
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-start gap-4">
-                <label htmlFor="excerpt" className="text-right text-sm font-medium">Excerpt</label>
-                <Textarea
-                  id="excerpt"
-                  value={currentNews?.excerpt || ''}
-                  onChange={(e) => setCurrentNews(prev => prev ? {...prev, excerpt: e.target.value} : null)}
-                  className="col-span-3"
-                  rows={3}
-                  required
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" type="button" onClick={closeDialog}>Cancel</Button>
-              <Button type="submit">Save</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <div>
+        {news.length === 0 ? (
+          <p>No news articles available.</p>
+        ) : (
+          <ul>
+            {news.map(item => (
+              <li key={item.id}>
+                {item.title}
+                <button onClick={() => handleSelectNews(item.id)}>Edit</button>
+                <button onClick={() => handleDeleteNews(item.id)}>Delete</button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 };

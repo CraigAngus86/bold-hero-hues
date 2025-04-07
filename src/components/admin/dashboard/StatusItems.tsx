@@ -21,7 +21,8 @@ export const StatusItems: React.FC<StatusItemProps> = ({ name, status, value = '
     critical: { icon: <AlertCircle className="h-4 w-4" />, color: 'text-red-600 bg-red-50', label: 'Critical' },
     offline: { icon: <AlertCircle className="h-4 w-4" />, color: 'text-gray-500 bg-gray-50', label: 'Offline' },
     maintenance: { icon: <Clock className="h-4 w-4" />, color: 'text-blue-500 bg-blue-50', label: 'Maintenance' },
-    unknown: { icon: <AlertTriangle className="h-4 w-4" />, color: 'text-gray-500 bg-gray-50', label: 'Unknown' }
+    unknown: { icon: <AlertTriangle className="h-4 w-4" />, color: 'text-gray-500 bg-gray-50', label: 'Unknown' },
+    degraded: { icon: <AlertTriangle className="h-4 w-4" />, color: 'text-orange-500 bg-orange-50', label: 'Degraded' }
   };
 
   const config = statusConfig[status] || statusConfig.unknown;

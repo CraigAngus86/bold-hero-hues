@@ -48,6 +48,7 @@ const StatusItemCard: React.FC<StatusItemProps> = ({
   };
 
   const lastCheckedDate = typeof lastChecked === 'string' ? new Date(lastChecked) : lastChecked;
+  const formattedLastChecked = formatTimeAgo(typeof lastCheckedDate === 'string' ? lastCheckedDate : lastCheckedDate.toISOString());
   
   return (
     <Card className="overflow-hidden border-l-4" style={{ borderLeftColor: `var(--${color}-500)` }}>
@@ -73,12 +74,12 @@ const StatusItemCard: React.FC<StatusItemProps> = ({
                 <div className="text-right">
                   <div className="text-xs text-muted-foreground">{metricValue}</div>
                   <div className="text-xs text-gray-400 mt-1">
-                    {lastCheckedDate && formatTimeAgo(lastCheckedDate)}
+                    {formattedLastChecked}
                   </div>
                 </div>
               </TooltipTrigger>
               <TooltipContent side="bottom">
-                <p>{tooltip || `Last checked ${formatTimeAgo(lastCheckedDate)}`}</p>
+                <p>{tooltip || `Last checked ${formattedLastChecked}`}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

@@ -29,12 +29,34 @@ const sponsorshipInfo = {
 };
 
 const SponsorsPage: React.FC = () => {
-  const { sponsors, isLoading, loadSponsors, getSponsorsByTier } = useSponsorsStore();
+  const sponsorsStore = useSponsorsStore();
+  const { sponsors, loading: isLoading, error } = sponsorsStore;
 
   useEffect(() => {
-    loadSponsors();
-  }, [loadSponsors]);
+    // Call fetchSponsors from the store
+    sponsorsStore.fetchSponsors();
+  }, [sponsorsStore]);
 
+  // Group by tier for display
+  const getSponsorsByTier = () => {
+    const tierGroups: Record<string, Sponsor[]> = {};
+    
+    // Filter active sponsors and group by tier
+    if (sponsors) {
+      sponsors
+        .filter(s => s.is_active)
+        .forEach(sponsor => {
+          const tier = sponsor.tier || 'other';
+          if (!tierGroups[tier]) {
+            tierGroups[tier] = [];
+          }
+          tierGroups[tier].push(sponsor);
+        });
+    }
+    
+    return tierGroups;
+  };
+  
   const tierGroups = getSponsorsByTier();
   
   // Define tier order and colors for consistent display

@@ -10,31 +10,29 @@ import { ExternalLink } from 'lucide-react';
 
 const SponsorsCarousel = () => {
   const [settings, setSettings] = useState<SponsorDisplaySettings | null>(null);
-  const { sponsors, isLoading, loadSponsors } = useSponsorsStore();
+  const sponsorsStore = useSponsorsStore();
+  const { sponsors, loading: isLoading, error } = sponsorsStore;
   
   // Load display settings
-  const { data: displaySettings } = useQuery({
+  const { data: displaySettingsResponse } = useQuery({
     queryKey: ['sponsorDisplaySettings'],
     queryFn: async () => {
-      const response = await fetchSponsorDisplaySettings();
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to load display settings');
-      }
-      return response.data;
+      return await fetchSponsorDisplaySettings();
     },
   });
   
   // Set display settings when loaded
   useEffect(() => {
-    if (displaySettings) {
-      setSettings(displaySettings);
+    if (displaySettingsResponse) {
+      setSettings(displaySettingsResponse);
     }
-  }, [displaySettings]);
+  }, [displaySettingsResponse]);
   
   // Load sponsors when component mounts
   useEffect(() => {
-    loadSponsors();
-  }, [loadSponsors]);
+    // Call fetchSponsors from the store
+    sponsorsStore.fetchSponsors();
+  }, [sponsorsStore]);
   
   // Filter, limit, and possibly shuffle sponsors for display
   const getDisplaySponsors = () => {

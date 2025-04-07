@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { create } from 'zustand';
 
 // Define the store types
-interface SponsorsState {
+export interface SponsorsState {
   sponsors: Sponsor[];
   loading: boolean;
   error: string | null;
@@ -12,7 +12,7 @@ interface SponsorsState {
   // Methods
   fetchSponsors: () => Promise<void>;
   getSponsorById: (id: string) => Sponsor | undefined;
-  getSponsorsByTier: (tier: string) => Sponsor[];
+  getSponsorsByTier: () => Record<string, Sponsor[]>;
   addSponsor: (sponsor: Omit<Sponsor, 'id'>) => Promise<{ success: boolean; data?: Sponsor; error?: string }>;
   updateSponsor: (id: string, updates: Partial<Sponsor>) => Promise<{ success: boolean; data?: Sponsor; error?: string }>;
   deleteSponsor: (id: string) => Promise<{ success: boolean; error?: string }>;
@@ -47,8 +47,21 @@ export const useSponsorsStore = create<SponsorsState>((set, get) => ({
     return get().sponsors.find(sponsor => sponsor.id === id);
   },
   
-  getSponsorsByTier: (tier: string) => {
-    return get().sponsors.filter(sponsor => sponsor.tier === tier && sponsor.is_active);
+  getSponsorsByTier: () => {
+    const tierGroups: Record<string, Sponsor[]> = {};
+    
+    // Filter active sponsors and group by tier
+    get().sponsors
+      .filter(s => s.is_active)
+      .forEach(sponsor => {
+        const tier = sponsor.tier || 'other';
+        if (!tierGroups[tier]) {
+          tierGroups[tier] = [];
+        }
+        tierGroups[tier].push(sponsor);
+      });
+    
+    return tierGroups;
   },
   
   addSponsor: async (sponsor: Omit<Sponsor, 'id'>) => {
@@ -57,7 +70,7 @@ export const useSponsorsStore = create<SponsorsState>((set, get) => ({
         ...sponsor,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
-      });
+      }).select().single();
       
       if (error) throw error;
       
@@ -80,7 +93,9 @@ export const useSponsorsStore = create<SponsorsState>((set, get) => ({
           ...updates,
           updated_at: new Date().toISOString()
         })
-        .eq('id', id);
+        .eq('id', id)
+        .select()
+        .single();
       
       if (error) throw error;
       
@@ -142,8 +157,29 @@ export const getAllSponsors = async (): Promise<{ success: boolean; data: Sponso
   }
 };
 
+// Fetch a sponsor by ID
+export const fetchSponsorById = async (id: string): Promise<{ success: boolean; data?: Sponsor; error?: string }> => {
+  try {
+    const { data, error } = await supabase
+      .from('sponsors')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) throw error;
+    
+    return { success: true, data: data as Sponsor };
+  } catch (error) {
+    console.error(`Error fetching sponsor with ID ${id}:`, error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to fetch sponsor'
+    };
+  }
+};
+
 // Sponsor contacts functions
-export const fetchSponsorContacts = async (sponsorId: string): Promise<SponsorContact[]> => {
+export const fetchSponsorContacts = async (sponsorId: string): Promise<{ success: boolean; data: SponsorContact[]; error?: string }> => {
   try {
     const { data, error } = await supabase
       .from('sponsor_contacts')
@@ -153,10 +189,10 @@ export const fetchSponsorContacts = async (sponsorId: string): Promise<SponsorCo
     
     if (error) throw error;
     
-    return data as SponsorContact[];
+    return { success: true, data: data as SponsorContact[] };
   } catch (error) {
     console.error(`Error fetching contacts for sponsor ${sponsorId}:`, error);
-    return [];
+    return { success: false, data: [], error: error instanceof Error ? error.message : 'Failed to fetch contacts' };
   }
 };
 
@@ -168,7 +204,9 @@ export const createSponsorContact = async (contact: Omit<SponsorContact, 'id'>):
         ...contact,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
-      });
+      })
+      .select()
+      .single();
     
     if (error) throw error;
     
@@ -224,7 +262,7 @@ export const deleteSponsorContact = async (id: string): Promise<{ success: boole
 };
 
 // Sponsor communications
-export const fetchSponsorCommunications = async (sponsorId: string): Promise<SponsorCommunication[]> => {
+export const fetchSponsorCommunications = async (sponsorId: string): Promise<{ success: boolean; data: SponsorCommunication[]; error?: string }> => {
   try {
     const { data, error } = await supabase
       .from('sponsor_communications')
@@ -234,10 +272,10 @@ export const fetchSponsorCommunications = async (sponsorId: string): Promise<Spo
     
     if (error) throw error;
     
-    return data as SponsorCommunication[];
+    return { success: true, data: data as SponsorCommunication[] };
   } catch (error) {
     console.error(`Error fetching communications for sponsor ${sponsorId}:`, error);
-    return [];
+    return { success: false, data: [], error: error instanceof Error ? error.message : 'Failed to fetch communications' };
   }
 };
 
@@ -248,7 +286,9 @@ export const createSponsorCommunication = async (communication: Omit<SponsorComm
       .insert({
         ...communication,
         created_at: new Date().toISOString()
-      });
+      })
+      .select()
+      .single();
     
     if (error) throw error;
     
@@ -263,7 +303,7 @@ export const createSponsorCommunication = async (communication: Omit<SponsorComm
 };
 
 // Sponsor documents
-export const fetchSponsorDocuments = async (sponsorId: string): Promise<SponsorDocument[]> => {
+export const fetchSponsorDocuments = async (sponsorId: string): Promise<{ success: boolean; data: SponsorDocument[]; error?: string }> => {
   try {
     const { data, error } = await supabase
       .from('sponsor_documents')
@@ -272,10 +312,10 @@ export const fetchSponsorDocuments = async (sponsorId: string): Promise<SponsorD
     
     if (error) throw error;
     
-    return data as SponsorDocument[];
+    return { success: true, data: data as SponsorDocument[] };
   } catch (error) {
     console.error(`Error fetching documents for sponsor ${sponsorId}:`, error);
-    return [];
+    return { success: false, data: [], error: error instanceof Error ? error.message : 'Failed to fetch documents' };
   }
 };
 
@@ -286,7 +326,9 @@ export const createSponsorDocument = async (document: Omit<SponsorDocument, 'id'
       .insert({
         ...document,
         created_at: new Date().toISOString()
-      });
+      })
+      .select()
+      .single();
     
     if (error) throw error;
     
@@ -358,7 +400,7 @@ export const fetchSponsorDisplaySettings = async (): Promise<SponsorDisplaySetti
 };
 
 // Sponsorship tiers
-export const fetchSponsorshipTiers = async (): Promise<SponsorshipTier[]> => {
+export const fetchSponsorshipTiers = async (): Promise<{ success: boolean; data: SponsorshipTier[]; error?: string }> => {
   try {
     const { data, error } = await supabase
       .from('sponsorship_tiers')
@@ -367,10 +409,10 @@ export const fetchSponsorshipTiers = async (): Promise<SponsorshipTier[]> => {
     
     if (error) throw error;
     
-    return data as SponsorshipTier[];
+    return { success: true, data: data as SponsorshipTier[] };
   } catch (error) {
     console.error('Error fetching sponsorship tiers:', error);
-    return [];
+    return { success: false, data: [], error: error instanceof Error ? error.message : 'Failed to fetch tiers' };
   }
 };
 
@@ -382,7 +424,9 @@ export const createSponsorshipTier = async (tier: Omit<SponsorshipTier, 'id'>): 
         ...tier,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
-      });
+      })
+      .select()
+      .single();
     
     if (error) throw error;
     
@@ -404,7 +448,9 @@ export const updateSponsorshipTier = async (id: string, updates: Partial<Sponsor
         ...updates,
         updated_at: new Date().toISOString()
       })
-      .eq('id', id);
+      .eq('id', id)
+      .select()
+      .single();
     
     if (error) throw error;
     
@@ -438,13 +484,24 @@ export const deleteSponsorshipTier = async (id: string): Promise<{ success: bool
 };
 
 // Helper to get different sponsor categories
-export const getSponsorCategories = async (): Promise<string[]> => {
+export const getSponsorCategories = async (): Promise<{ success: boolean; data: string[]; error?: string }> => {
   try {
-    const tiers = await fetchSponsorshipTiers();
-    return tiers.map(tier => tier.name);
+    const { data, error } = await supabase
+      .from('sponsorship_tiers')
+      .select('name');
+    
+    if (error) throw error;
+    
+    const categories = data.map(tier => tier.name) as string[];
+    return { success: true, data: categories };
   } catch (error) {
     console.error('Error getting sponsor categories:', error);
-    return ['platinum', 'gold', 'silver', 'bronze']; // Fallback to defaults
+    // Fallback to defaults
+    return { 
+      success: false, 
+      data: ['platinum', 'gold', 'silver', 'bronze'],
+      error: error instanceof Error ? error.message : 'Failed to fetch categories'
+    };
   }
 };
 
@@ -464,18 +521,22 @@ export const deleteSponsor = async (id: string): Promise<{ success: boolean; err
 };
 
 // Function to get sponsors by a specific field
-export const getSponsors = async (field: string, value: any): Promise<Sponsor[]> => {
-  try {
-    const { data, error } = await supabase
-      .from('sponsors')
-      .select('*')
-      .eq(field, value);
-    
-    if (error) throw error;
-    
-    return data as Sponsor[];
-  } catch (error) {
-    console.error(`Error fetching sponsors where ${field}=${value}:`, error);
-    return [];
+export const getSponsors = async (field?: string, value?: any): Promise<{ success: boolean; data: Sponsor[]; error?: string }> => {
+  if (field && value) {
+    try {
+      const { data, error } = await supabase
+        .from('sponsors')
+        .select('*')
+        .eq(field, value);
+      
+      if (error) throw error;
+      
+      return { success: true, data: data as Sponsor[] };
+    } catch (error) {
+      console.error(`Error fetching sponsors where ${field}=${value}:`, error);
+      return { success: false, data: [], error: error instanceof Error ? error.message : 'Failed to fetch sponsors' };
+    }
+  } else {
+    return getAllSponsors();
   }
 };

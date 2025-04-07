@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTeamStore } from '@/services/teamStore';
-import { TeamMember } from '@/types/team';
+import type { TeamMember } from '@/types/team';
 import { MemberType } from '@/services/teamService';
 import TeamMembersManager from '@/components/admin/team/TeamMembersManager';
 import TeamStats from '@/components/admin/team/TeamStats';

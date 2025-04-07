@@ -5,14 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PlusCircle, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { TeamMember } from '@/services/teamService';
+import type { TeamMember } from '@/types/team'; 
+import { MemberType } from '@/services/teamService';
 import PlayerEditor from './PlayerEditor';
 import PlayersList from './PlayersList';
 import StaffEditor from './StaffEditor';
 import StaffList from './StaffList';
 
 export interface TeamMembersManagerProps {
-  memberType: 'player' | 'staff' | 'coach' | 'official' | 'management';
+  memberType: MemberType | 'player' | 'staff' | 'coach' | 'official' | 'management';
   members: TeamMember[];
 }
 

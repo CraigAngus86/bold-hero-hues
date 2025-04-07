@@ -1,7 +1,8 @@
 
 import { supabase } from '@/services/supabase/supabaseClient';
 import { handleDbOperation, DbServiceResponse } from './utils/dbService';
-import { TeamMember, MemberType } from '@/types/team';
+import type { TeamMember } from '@/types/team';
+import { MemberType } from '@/services/teamService';
 
 /**
  * Fetch all team members by type

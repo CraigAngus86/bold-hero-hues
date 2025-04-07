@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { createTeamMember, updateTeamMember, TeamMember, MemberType } from '@/services/teamService';
+import { createTeamMember, updateTeamMember, MemberType } from '@/services/teamService';
+import type { TeamMember } from '@/types/team';
 
 const formSchema = z.object({
   name: z.string().min(2, "Name is required"),

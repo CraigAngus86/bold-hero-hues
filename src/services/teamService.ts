@@ -1,29 +1,35 @@
 
-import { TeamMember } from '@/types/team';
+import { TeamMember as TeamMemberType } from '@/types/team';
 import { supabase } from '@/lib/supabase';
 import { create } from 'zustand';
 
 // Export the MemberType enum for use in other files
-export type MemberType = 'player' | 'staff' | 'coach' | 'official' | 'management';
+export enum MemberType {
+  PLAYER = 'player',
+  STAFF = 'staff',
+  COACH = 'coach',
+  OFFICIAL = 'official',
+  MANAGEMENT = 'management',
+}
 
 export interface TeamState {
-  members: TeamMember[];
-  teamMembers: TeamMember[];
-  players: TeamMember[];
-  staff: TeamMember[];
+  members: TeamMemberType[];
+  teamMembers: TeamMemberType[];
+  players: TeamMemberType[];
+  staff: TeamMemberType[];
   isLoading: boolean;
   loading: boolean;
   error: string | null;
   
   fetchTeamMembers: () => Promise<void>;
-  getPlayerById: (id: string) => TeamMember | undefined;
-  getStaffById: (id: string) => TeamMember | undefined;
-  getMembersByType: (type: MemberType | string) => TeamMember[];
-  getPlayersByPosition: (position: string) => TeamMember[];
-  getManagementStaff: () => TeamMember[];
+  getPlayerById: (id: string) => TeamMemberType | undefined;
+  getStaffById: (id: string) => TeamMemberType | undefined;
+  getMembersByType: (type: MemberType | string) => TeamMemberType[];
+  getPlayersByPosition: (position: string) => TeamMemberType[];
+  getManagementStaff: () => TeamMemberType[];
   loadTeamMembers: () => Promise<void>;
-  addTeamMember: (member: Omit<TeamMember, 'id'>) => Promise<{ success: boolean; data?: TeamMember; error?: string }>;
-  updateTeamMember: (id: string, updates: Partial<TeamMember>) => Promise<{ success: boolean; error?: string }>;
+  addTeamMember: (member: Omit<TeamMemberType, 'id'>) => Promise<{ success: boolean; data?: TeamMemberType; error?: string }>;
+  updateTeamMember: (id: string, updates: Partial<TeamMemberType>) => Promise<{ success: boolean; error?: string }>;
   deleteTeamMember: (id: string) => Promise<{ success: boolean; error?: string }>;
 }
 
@@ -101,10 +107,10 @@ export const useTeamStore = create<TeamState>((set, get) => ({
     return get().members.filter(m => m.member_type === 'management' || m.member_type === 'coach' || m.member_type === 'staff');
   },
   
-  addTeamMember: async (member: Omit<TeamMember, 'id'>) => {
+  addTeamMember: async (member: Omit<TeamMemberType, 'id'>) => {
     try {
       // Ensure the member has is_active property
-      const memberWithDefaults: Omit<TeamMember, 'id'> = {
+      const memberWithDefaults: Omit<TeamMemberType, 'id'> = {
         ...member,
         is_active: member.is_active !== undefined ? member.is_active : true,
         created_at: new Date().toISOString(),
@@ -118,7 +124,7 @@ export const useTeamStore = create<TeamState>((set, get) => ({
       // Refresh team members list
       get().fetchTeamMembers();
       
-      return { success: true, data: data as TeamMember };
+      return { success: true, data: data as TeamMemberType };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to add team member';
       console.error('Error adding team member:', error);
@@ -126,7 +132,7 @@ export const useTeamStore = create<TeamState>((set, get) => ({
     }
   },
   
-  updateTeamMember: async (id: string, updates: Partial<TeamMember>) => {
+  updateTeamMember: async (id: string, updates: Partial<TeamMemberType>) => {
     try {
       const { error } = await supabase
         .from('team_members')
@@ -175,10 +181,10 @@ export const useTeamStore = create<TeamState>((set, get) => ({
   }
 }));
 
-// Export TeamMember type from the service for convenience
-export { TeamMember } from '@/types/team';
+// Export TeamMember type properly
+export type TeamMember = TeamMemberType;
 
-export const getTeamMembers = async (): Promise<TeamMember[]> => {
+export const getTeamMembers = async (): Promise<TeamMemberType[]> => {
   try {
     const { data, error } = await supabase
       .from('team_members')
@@ -199,7 +205,7 @@ export const getTeamMembers = async (): Promise<TeamMember[]> => {
   }
 };
 
-export const getTeamMember = async (id: string): Promise<TeamMember | null> => {
+export const getTeamMember = async (id: string): Promise<TeamMemberType | null> => {
   try {
     const { data, error } = await supabase
       .from('team_members')
@@ -219,11 +225,11 @@ export const getTeamMember = async (id: string): Promise<TeamMember | null> => {
   }
 };
 
-export const createTeamMember = async (member: Omit<TeamMember, 'id'>): Promise<{ success: boolean; data?: TeamMember; error?: string }> => {
+export const createTeamMember = async (member: Omit<TeamMemberType, 'id'>): Promise<{ success: boolean; data?: TeamMemberType; error?: string }> => {
   return useTeamStore.getState().addTeamMember(member);
 };
 
-export const updateTeamMember = async (id: string, updates: Partial<TeamMember>): Promise<{ success: boolean; error?: string }> => {
+export const updateTeamMember = async (id: string, updates: Partial<TeamMemberType>): Promise<{ success: boolean; error?: string }> => {
   return useTeamStore.getState().updateTeamMember(id, updates);
 };
 

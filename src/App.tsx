@@ -1,11 +1,12 @@
-
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { AuthProvider } from './contexts/AuthContext';
 import RequireAuth from './components/admin/auth/RequireAuth';
 
-// Public pages
-import Home from './pages/Home';
+// Static Home Page
+import StaticHome from './pages/StaticHome';
+
+// Other pages that we'll keep but not use for now
 import News from './pages/News';
 import Article from './pages/Article';
 import Team from './pages/Team';
@@ -34,11 +35,13 @@ import FansManagement from './pages/admin/FansManagement';
 
 function App() {
   return (
-    <AuthProvider>
+    <>
       <Toaster position="top-right" />
       <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<Home />} />
+        {/* Use the new static home page as the main route */}
+        <Route path="/" element={<StaticHome />} />
+        
+        {/* Keep other routes but they won't be actively used for now */}
         <Route path="/news" element={<News />} />
         <Route path="/news/:slug" element={<Article />} />
         <Route path="/team" element={<Team />} />
@@ -46,28 +49,10 @@ function App() {
         <Route path="/table" element={<Table />} />
         <Route path="/contact" element={<Contact />} />
         
-        {/* Auth Routes */}
-        <Route path="/auth/login" element={<Login />} />
-        <Route path="/auth/register" element={<Register />} />
-        <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-        <Route path="/auth/reset-password" element={<ResetPassword />} />
-        
-        {/* Admin Routes - No longer protected */}
-        <Route path="/admin" element={<Dashboard />} />
-        <Route path="/admin/news" element={<NewsManagement />} />
-        <Route path="/admin/team" element={<TeamManagement />} />
-        <Route path="/admin/fixtures" element={<FixtureManagement />} />
-        <Route path="/admin/media" element={<Media />} />
-        <Route path="/admin/tickets" element={<Tickets />} />
-        <Route path="/admin/sponsors" element={<Sponsors />} />
-        <Route path="/admin/league-table-management" element={<LeagueTableManagement />} />
-        <Route path="/admin/settings" element={<Settings />} />
-        <Route path="/admin/fans" element={<FansManagement />} />
-        
         {/* Catch-all route */}
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </AuthProvider>
+    </>
   );
 }
 

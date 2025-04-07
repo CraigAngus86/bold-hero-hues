@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SystemStatusPanel from '@/components/admin/dashboard/SystemStatusPanel';
 import QuickActions from '@/components/admin/dashboard/QuickActions';
 import { useDashboardRefresh } from '@/hooks/useDashboardRefresh';
+import EnhancedSystemStatus from '@/components/admin/dashboard/EnhancedSystemStatus';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = React.useState('overview');
@@ -44,7 +45,7 @@ const Dashboard = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <SystemStatusPanel />
+          <EnhancedSystemStatus />
         </CardContent>
       </Card>
 

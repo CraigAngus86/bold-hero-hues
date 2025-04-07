@@ -12,9 +12,9 @@ import {
   Database,
   HardDrive,
   Mail,
-  CreditCard
+  CreditCard,
 } from "lucide-react";
-import { SystemStatus, Service } from "@/types/system/status";
+import { SystemStatus, Service, SystemStatusName } from "@/types/system/status";
 
 interface SystemStatusPanelProps {
   status?: SystemStatus;
@@ -29,17 +29,19 @@ const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
   onRefresh, 
   error 
 }) => {
-  const getStatusIcon = (statusType: string) => {
+  const getStatusIcon = (statusType: SystemStatusName) => {
     switch(statusType) {
       case 'healthy':
         return <CheckCircle className="h-6 w-6 text-green-500" />;
       case 'warning':
+      case 'degraded':
         return <AlertTriangle className="h-6 w-6 text-amber-500" />;
       case 'error':
       case 'critical':
         return <AlertCircle className="h-6 w-6 text-red-500" />;
+      case 'unknown':
       default:
-        return <CheckCircle className="h-6 w-6 text-green-500" />;
+        return <CheckCircle className="h-6 w-6 text-gray-500" />;
     }
   };
 
@@ -156,10 +158,10 @@ const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
       <div className="space-y-3 mb-6">
         <h4 className="font-medium mb-2">Services</h4>
         
-        {status.services.map((service) => (
+        {status.services.map((service: Service) => (
           <div key={service.name} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
             <div className="flex items-center gap-3">
-              {React.createElement(() => getServiceIcon(service.name))}
+              {getServiceIcon(service.name)}
               <div>
                 <div className="font-medium">{service.name}</div>
                 <div className="text-sm text-muted-foreground">{service.message}</div>

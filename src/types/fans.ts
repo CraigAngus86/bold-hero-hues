@@ -1,4 +1,5 @@
 
+
 // Define fan-related interfaces to fix type errors
 
 export interface FanContent {
@@ -114,7 +115,8 @@ export interface CommunityInitiative {
   location: string;
   status: string;
   impact?: string; // For UI field not in DB schema
-  participants?: number;
+  participants_count?: number; // Changed from participants to participants_count
   volunteers?: any[];
   photos?: any[];
 }
+

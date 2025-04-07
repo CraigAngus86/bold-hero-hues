@@ -1,21 +1,20 @@
 
-import { useState, useEffect } from 'react';
-import { Navbar } from '@/components/layout';
-import { Footer } from '@/components/layout';
-import LeagueTablePage from '@/components/league/LeagueTablePage';
+import { Helmet } from 'react-helmet-async';
 
-const LeagueTablePageContainer = () => {
+const LeagueTable = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <Navbar />
+    <div className="container mx-auto px-4 py-8">
+      <Helmet>
+        <title>League Table</title>
+      </Helmet>
       
-      <div className="pt-32 pb-20">
-        <LeagueTablePage />
+      <h1 className="text-3xl font-bold text-team-blue mb-6">League Table</h1>
+      
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <p className="text-gray-600">League table content coming soon...</p>
       </div>
-      
-      <Footer />
     </div>
   );
 };
 
-export default LeagueTablePageContainer;
+export default LeagueTable;

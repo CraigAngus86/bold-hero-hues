@@ -1,78 +1,49 @@
 
+import { Suspense, lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { Toaster } from 'sonner';
-import { AuthProvider } from './contexts/AuthContext';
-import RequireAuth from './components/admin/auth/RequireAuth';
+import { Helmet } from 'react-helmet-async';
+import { Toaster } from "@/components/ui/sonner";
 
-// Static Home Page
-import StaticHome from './pages/StaticHome';
+// Static components for immediate loading
+import Navbar from '@/components/Navbar';
 
-// Other pages that we'll keep but not use for now
-import News from './pages/News';
-import Article from './pages/Article';
-import Team from './pages/Team';
-import Fixtures from './pages/Fixtures';
-import Table from './pages/Table';
-import Contact from './pages/Contact';
-import NotFound from './pages/NotFound';
+// Import the StaticHome component
+import StaticHome from '@/pages/StaticHome';
 
-// Auth pages
-import Login from './pages/auth/Login';
-import Register from './pages/auth/Register';
-import ForgotPassword from './pages/auth/ForgotPassword';
-import ResetPassword from './pages/auth/ResetPassword';
+// Lazy-loaded components
+const News = lazy(() => import('@/pages/News'));
+const Team = lazy(() => import('@/pages/Team'));
+const Fixtures = lazy(() => import('@/pages/Fixtures'));
+const LeagueTable = lazy(() => import('@/pages/LeagueTable'));
+const Stadium = lazy(() => import('@/pages/Stadium'));
+const Tickets = lazy(() => import('@/pages/Tickets'));
+const NotFound = lazy(() => import('@/pages/NotFound'));
 
-// Admin pages
-import Dashboard from './pages/admin/Dashboard';
-import NewsManagement from './pages/admin/NewsManagement';
-import TeamManagement from './pages/admin/TeamManagement';
-import FixtureManagement from './pages/admin/FixtureManagement';
-import Media from './pages/admin/Media';
-import Tickets from './pages/admin/Tickets';
-import Settings from './pages/admin/Settings';
-import Sponsors from './pages/admin/Sponsors';
-import LeagueTableManagement from './pages/admin/LeagueTableManagement';
-import FansManagement from './pages/admin/FansManagement';
-
-function App() {
+const App = () => {
   return (
-    <AuthProvider>
-      <Toaster position="top-right" />
-      <Routes>
-        {/* Use the new static home page as the main route */}
-        <Route path="/" element={<StaticHome />} />
-        
-        {/* Keep other routes but they won't be actively used for now */}
-        <Route path="/news" element={<News />} />
-        <Route path="/news/:slug" element={<Article />} />
-        <Route path="/team" element={<Team />} />
-        <Route path="/fixtures" element={<Fixtures />} />
-        <Route path="/table" element={<Table />} />
-        <Route path="/contact" element={<Contact />} />
-        
-        {/* Auth routes */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        
-        {/* Admin routes */}
-        <Route path="/admin" element={<RequireAuth><Dashboard /></RequireAuth>} />
-        <Route path="/admin/news" element={<RequireAuth><NewsManagement /></RequireAuth>} />
-        <Route path="/admin/team" element={<RequireAuth><TeamManagement /></RequireAuth>} />
-        <Route path="/admin/fixtures" element={<RequireAuth><FixtureManagement /></RequireAuth>} />
-        <Route path="/admin/media" element={<RequireAuth><Media /></RequireAuth>} />
-        <Route path="/admin/tickets" element={<RequireAuth><Tickets /></RequireAuth>} />
-        <Route path="/admin/settings" element={<RequireAuth><Settings /></RequireAuth>} />
-        <Route path="/admin/sponsors" element={<RequireAuth><Sponsors /></RequireAuth>} />
-        <Route path="/admin/league-table" element={<RequireAuth><LeagueTableManagement /></RequireAuth>} />
-        <Route path="/admin/fans" element={<RequireAuth><FansManagement /></RequireAuth>} />
-        
-        {/* Catch-all route */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </AuthProvider>
+    <>
+      <Helmet defaultTitle="Banks o' Dee FC" titleTemplate="%s | Banks o' Dee FC" />
+      
+      <Navbar />
+      
+      <main className="pt-24"> {/* Add padding-top to account for the fixed navbar */}
+        <Suspense fallback={<div className="flex items-center justify-center min-h-[70vh]">Loading...</div>}>
+          <Routes>
+            <Route path="/" element={<StaticHome />} />
+            <Route path="/news" element={<News />} />
+            <Route path="/team" element={<Team />} />
+            <Route path="/fixtures" element={<Fixtures />} />
+            <Route path="/table" element={<LeagueTable />} />
+            <Route path="/stadium" element={<Stadium />} />
+            <Route path="/tickets" element={<Tickets />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </main>
+      
+      <Toaster />
+    </>
   );
-}
+};
 
 export default App;

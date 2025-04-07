@@ -1,18 +1,17 @@
 
 import { useState, useEffect } from 'react';
 
-// Types for hero slider content
-export interface HeroSlide {
+interface HeroSlide {
   id: string;
-  title: string;
-  subtitle?: string;
   image_url: string;
   video_url?: string;
+  title: string;
+  subtitle?: string;
   link_text?: string;
   link_url?: string;
 }
 
-export interface NextMatch {
+interface NextMatch {
   id: string;
   home_team: string;
   away_team: string;
@@ -23,7 +22,7 @@ export interface NextMatch {
   ticket_link?: string;
 }
 
-export interface LatestResult {
+interface LatestResult {
   id: string;
   home_team: string;
   away_team: string;
@@ -33,33 +32,36 @@ export interface LatestResult {
   competition: string;
 }
 
-export interface BreakingNews {
+interface BreakingNews {
   active: boolean;
   message: string;
-  link?: string;
 }
 
-/**
- * Hook to fetch hero slides data
- * Currently uses static data, but can be updated to fetch from API
- */
-export const useHeroSlides = () => {
+interface UseHeroSlidesReturn {
+  slides: HeroSlide[];
+  isLoading: boolean;
+  error: Error | null;
+  nextMatch: NextMatch | null;
+  latestResult: LatestResult | null;
+  breakingNews: BreakingNews | null;
+}
+
+export const useHeroSlides = (): UseHeroSlidesReturn => {
   const [slides, setSlides] = useState<HeroSlide[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
   const [nextMatch, setNextMatch] = useState<NextMatch | null>(null);
   const [latestResult, setLatestResult] = useState<LatestResult | null>(null);
   const [breakingNews, setBreakingNews] = useState<BreakingNews | null>(null);
 
   useEffect(() => {
-    // Simulate API fetch
     const fetchData = async () => {
-      setIsLoading(true);
       try {
-        // This would be replaced by actual API calls
-        
-        // Mock data for hero slides
-        const heroSlides: HeroSlide[] = [
+        // Simulate API loading
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Mock hero slide data
+        const mockSlides: HeroSlide[] = [
           {
             id: '1',
             image_url: '/lovable-uploads/banks-o-dee-dark-logo.png',
@@ -85,9 +87,9 @@ export const useHeroSlides = () => {
             link_url: '/news',
           }
         ];
-        
-        // Mock data for next match
-        const nextMatchData: NextMatch = {
+
+        // Mock next match data
+        const mockNextMatch: NextMatch = {
           id: 'next-1',
           home_team: 'Banks o\' Dee',
           away_team: 'Formartine United',
@@ -97,9 +99,9 @@ export const useHeroSlides = () => {
           competition: 'Highland League',
           ticket_link: '/tickets/next-match'
         };
-        
-        // Mock data for latest result
-        const latestResultData: LatestResult = {
+
+        // Mock latest result data
+        const mockLatestResult: LatestResult = {
           id: 'result-1',
           home_team: 'Banks o\' Dee',
           away_team: 'Keith FC',
@@ -108,23 +110,21 @@ export const useHeroSlides = () => {
           date: '2025-05-01',
           competition: 'Highland League'
         };
-        
+
         // Mock breaking news
-        const breakingNewsData: BreakingNews = {
+        const mockBreakingNews: BreakingNews = {
           active: true,
-          message: 'New signing announcement: John Smith joins from Aberdeen FC!',
-          link: '/news/new-signing'
+          message: 'New signing announcement: John Smith joins from Aberdeen FC!'
         };
 
-        setSlides(heroSlides);
-        setNextMatch(nextMatchData);
-        setLatestResult(latestResultData);
-        setBreakingNews(breakingNewsData);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching hero slides:', err);
-        setError(err instanceof Error ? err : new Error('Unknown error fetching hero slides'));
-      } finally {
+        setSlides(mockSlides);
+        setNextMatch(mockNextMatch);
+        setLatestResult(mockLatestResult);
+        setBreakingNews(mockBreakingNews);
+        setIsLoading(false);
+      } catch (err: any) {
+        console.error('Error fetching hero data:', err);
+        setError(err instanceof Error ? err : new Error('Unknown error fetching hero data'));
         setIsLoading(false);
       }
     };

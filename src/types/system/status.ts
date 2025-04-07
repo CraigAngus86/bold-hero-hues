@@ -24,3 +24,8 @@ export interface SystemStatus {
   uptime?: number;
   last_updated: string;
 }
+
+/**
+ * Possible system status names
+ */
+export type SystemStatusName = 'healthy' | 'warning' | 'error' | 'unknown' | 'degraded' | 'critical' | 'offline' | 'maintenance';

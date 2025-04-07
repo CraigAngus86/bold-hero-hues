@@ -5,7 +5,7 @@
 echo "Installing glob package..."
 npm install glob --save-dev
 
-# Run the script to add @ts-nocheck directives to files
+# Run the script to add @ts-nocheck directives to files with TypeScript errors
 echo "Adding @ts-nocheck directives to files with TypeScript errors..."
 node src/scripts/add-ts-nocheck.js
 

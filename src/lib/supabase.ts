@@ -86,10 +86,7 @@ const createChainablePromise = <T>(initialData: T | null = null) => {
     },
     select: function(columns: string = '*') {
       return { ...this };
-    },
-    count: function(options?: { exact?: boolean }) {
-      return Promise.resolve({ data: 0, error: null, count: 0 });
-    },
+    }
   };
 
   return chainMethods;

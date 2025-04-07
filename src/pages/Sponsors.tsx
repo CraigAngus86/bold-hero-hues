@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
@@ -46,7 +45,10 @@ const SponsorsPage: React.FC = () => {
       sponsors
         .filter(s => s.is_active)
         .forEach(sponsor => {
-          const tier = sponsor.tier || 'other';
+          // Handle tier being either a string or an object
+          const tierName = typeof sponsor.tier === 'string' ? sponsor.tier : sponsor.tier.name;
+          const tier = tierName || 'other';
+          
           if (!tierGroups[tier]) {
             tierGroups[tier] = [];
           }

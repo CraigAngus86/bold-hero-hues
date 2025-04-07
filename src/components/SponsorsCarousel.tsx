@@ -53,8 +53,11 @@ const SponsorsCarousel = () => {
       };
       
       // First sort by tier
-      if (a.tier && b.tier && tierOrder[a.tier] !== tierOrder[b.tier]) {
-        return tierOrder[a.tier] - tierOrder[b.tier];
+      const aTier = typeof a.tier === 'string' ? a.tier : a.tier.name;
+      const bTier = typeof b.tier === 'string' ? b.tier : b.tier.name;
+      
+      if (aTier && bTier && tierOrder[aTier] !== tierOrder[bTier]) {
+        return tierOrder[aTier] - tierOrder[bTier];
       }
       
       // Then by display_order
@@ -67,11 +70,12 @@ const SponsorsCarousel = () => {
       
       // Group sponsors by tier
       displaySponsors.forEach(sponsor => {
-        if (sponsor.tier) {
-          if (!tierGroups[sponsor.tier]) {
-            tierGroups[sponsor.tier] = [];
+        const tierName = typeof sponsor.tier === 'string' ? sponsor.tier : sponsor.tier.name;
+        if (tierName) {
+          if (!tierGroups[tierName]) {
+            tierGroups[tierName] = [];
           }
-          tierGroups[sponsor.tier].push(sponsor);
+          tierGroups[tierName].push(sponsor);
         }
       });
       
@@ -172,11 +176,12 @@ const SponsorsCarousel = () => {
       // Group sponsors by tier
       const tierGroups: Record<string, Sponsor[]> = {};
       displaySponsors.forEach(sponsor => {
-        if (sponsor.tier) {
-          if (!tierGroups[sponsor.tier]) {
-            tierGroups[sponsor.tier] = [];
+        const tierName = typeof sponsor.tier === 'string' ? sponsor.tier : sponsor.tier.name;
+        if (tierName) {
+          if (!tierGroups[tierName]) {
+            tierGroups[tierName] = [];
           }
-          tierGroups[sponsor.tier].push(sponsor);
+          tierGroups[tierName].push(sponsor);
         }
       });
       

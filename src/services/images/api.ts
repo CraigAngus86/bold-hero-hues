@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { unwrapPromise } from '@/lib/supabaseHelpers';
 import { v4 as uuidv4 } from 'uuid';
 import { 
   ImageMetadata, 
@@ -340,3 +341,20 @@ export async function createFolder(name: string, parentId: string | null = null)
     return null;
   }
 }
+
+export const getMediaCount = async (): Promise<{ count: number }> => {
+  try {
+    const response = await unwrapPromise(
+      supabase
+        .from('image_metadata')
+        .select('*', { count: 'exact', head: true })
+    );
+    
+    return { 
+      count: response.count || 0 
+    };
+  } catch (error) {
+    console.error('Error getting media count:', error);
+    return { count: 0 };
+  }
+};

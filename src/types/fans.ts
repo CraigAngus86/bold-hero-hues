@@ -21,7 +21,7 @@ export interface Poll {
   id: string;
   title: string;
   description?: string;
-  type: 'poll' | 'survey';
+  type: 'poll' | 'survey' | 'player_vote' | 'feedback' | 'preference';
   status: 'draft' | 'active' | 'scheduled' | 'ended';
   startDate?: string;
   endDate?: string;

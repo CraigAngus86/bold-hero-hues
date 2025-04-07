@@ -1,98 +1,27 @@
+
 import React, { useEffect } from 'react';
 import { Navbar, Footer } from '@/components/layout';
-import EnhancedHero from '@/components/home/EnhancedHero';
-import { FeaturedContentGrid } from '@/components/home/FeaturedContentGrid';
+import Hero from '@/components/home/Hero';
+import FeaturedContentGrid from '@/components/home/FeaturedContentGrid';
 import MatchCenter from '@/components/home/MatchCenter';
 import MediaGalleryPreview from '@/components/home/MediaGalleryPreview';
 import FanEngagement from '@/components/home/FanEngagement';
 import SponsorsSection from '@/components/home/SponsorsSection';
+import ShopPreview from '@/components/home/ShopPreview';
 import { useNewsStore } from '@/services/news';
 import { useFeaturedContent } from '@/hooks/useFeaturedContent';
 import { motion } from 'framer-motion';
 
-const Index = () => {
+const Home = () => {
   const newsStore = useNewsStore();
   const { featuredArticle, nextMatch, leaguePosition, isLoading } = useFeaturedContent();
   
-  // Get recent news
-  useEffect(() => {
-    // Use existing news from the store instead of fetching
-    // We assume news is already loaded from the store persistence
-    // If you need to fetch news, you should implement that separately
-  }, []);
-  
-  // Format featured content items
-  const getFeaturedContentItems = () => {
-    const items = [];
-    
-    // Add featured article if available
-    if (featuredArticle) {
-      items.push({
-        id: featuredArticle.id,
-        title: featuredArticle.title,
-        description: featuredArticle.content ? featuredArticle.content.substring(0, 120) + '...' : '',
-        image: featuredArticle.image_url,
-        link: `/news/${featuredArticle.id}`,
-        linkText: 'Read More',
-        type: 'news',
-        category: featuredArticle.category,
-        date: featuredArticle.publish_date
-      });
-    }
-    
-    // Add next match if available
-    if (nextMatch) {
-      items.push({
-        id: nextMatch.id,
-        title: `${nextMatch.home_team} vs ${nextMatch.away_team}`,
-        description: `${nextMatch.competition} match at ${nextMatch.venue}`,
-        image: '/lovable-uploads/9cecca5c-daf2-4f52-a6ca-06e02ca9ea44.png',
-        link: `/fixtures/${nextMatch.id}`,
-        linkText: 'Match Details',
-        type: 'fixture',
-        category: 'Upcoming Match',
-        date: nextMatch.date
-      });
-    }
-    
-    // Add league position if available
-    if (leaguePosition) {
-      items.push({
-        id: 'league-position',
-        title: 'Current League Position',
-        description: `Banks o' Dee currently sit ${leaguePosition.position}${getOrdinalSuffix(leaguePosition.position)} in the table with ${leaguePosition.points} points from ${leaguePosition.played} games.`,
-        image: '/lovable-uploads/8f2cd33f-1e08-494a-9aaa-65792ee9418a.png',
-        link: '/table',
-        linkText: 'View League Table',
-        type: 'team',
-        category: 'League Update'
-      });
-    }
-    
-    return items;
-  };
-  
-  // Helper function to get ordinal suffix
-  const getOrdinalSuffix = (i) => {
-    const j = i % 10;
-    const k = i % 100;
-    if (j === 1 && k !== 11) {
-      return "st";
-    }
-    if (j === 2 && k !== 12) {
-      return "nd";
-    }
-    if (j === 3 && k !== 13) {
-      return "rd";
-    }
-    return "th";
-  };
-
-  // Define animation variants for sections
+  // Animation variants for sections
   const sectionVariants = {
-    hidden: { opacity: 0 },
+    hidden: { opacity: 0, y: 20 },
     visible: { 
-      opacity: 1,
+      opacity: 1, 
+      y: 0,
       transition: { duration: 0.6 }
     }
   };
@@ -101,21 +30,26 @@ const Index = () => {
     <div className="min-h-screen flex flex-col bg-white">
       <Navbar />
       
-      {/* Enhanced Hero Section */}
-      <EnhancedHero />
+      {/* Hero Section with Dynamic Slider, Match Countdown and Latest Result */}
+      <Hero />
       
       <div className="flex-grow">
-        {/* Featured Content Grid - Animated */}
+        {/* Featured Content Grid - Row 1 */}
         <motion.section
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
           variants={sectionVariants}
         >
-          <FeaturedContentGrid items={getFeaturedContentItems()} isLoading={isLoading} />
+          <FeaturedContentGrid 
+            featuredArticle={featuredArticle}
+            nextMatch={nextMatch}
+            leaguePosition={leaguePosition}
+            isLoading={isLoading}
+          />
         </motion.section>
         
-        {/* Match Center - Animated */}
+        {/* Match Center - Row 4 */}
         <motion.section
           initial="hidden"
           whileInView="visible"
@@ -125,7 +59,7 @@ const Index = () => {
           <MatchCenter />
         </motion.section>
         
-        {/* Media Gallery Preview - Animated */}
+        {/* Media Gallery Preview - Row 2 partial */}
         <motion.section
           initial="hidden"
           whileInView="visible"
@@ -135,7 +69,7 @@ const Index = () => {
           <MediaGalleryPreview />
         </motion.section>
         
-        {/* Fan Engagement Section - Animated */}
+        {/* Fan Engagement Section - Row 3 */}
         <motion.section
           initial="hidden"
           whileInView="visible"
@@ -145,7 +79,17 @@ const Index = () => {
           <FanEngagement />
         </motion.section>
         
-        {/* Sponsors Section - Animated */}
+        {/* Shop Preview - Row 5 */}
+        <motion.section
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={sectionVariants}
+        >
+          <ShopPreview />
+        </motion.section>
+        
+        {/* Sponsors Section - Row 6 */}
         <motion.section
           initial="hidden"
           whileInView="visible"
@@ -161,4 +105,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default Home;

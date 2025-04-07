@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -71,7 +70,7 @@ const SponsorCommunicationsLog: React.FC<SponsorCommunicationsLogProps> = ({ spo
     queryFn: async () => {
       const response = await fetchSponsorCommunications(sponsorId);
       if (!response.success) {
-        throw new Error(response.error?.message || 'Failed to load communications');
+        throw new Error(response.error || 'Failed to load communications');
       }
       return response.data;
     },
@@ -82,7 +81,7 @@ const SponsorCommunicationsLog: React.FC<SponsorCommunicationsLogProps> = ({ spo
     queryFn: async () => {
       const response = await fetchSponsorContacts(sponsorId);
       if (!response.success) {
-        throw new Error(response.error?.message || 'Failed to load contacts');
+        throw new Error(response.error || 'Failed to load contacts');
       }
       return response.data;
     },
@@ -99,13 +98,13 @@ const SponsorCommunicationsLog: React.FC<SponsorCommunicationsLogProps> = ({ spo
     },
   });
   
-  // Form mutations
   const createMutation = useMutation({
     mutationFn: (data: z.infer<typeof communicationSchema>) => {
       return createSponsorCommunication({
         ...data,
         sponsor_id: sponsorId,
         created_by: 'Admin User', // This would normally be the current user
+        type: data.type, // Ensure type is always set
       });
     },
     onSuccess: () => {

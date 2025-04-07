@@ -1,20 +1,19 @@
 
 export interface SystemLog {
   id: string;
+  timestamp: string;
+  level: 'info' | 'warning' | 'error' | 'debug';
   message: string;
   source: string;
-  timestamp: string;
-  type: 'info' | 'warning' | 'error' | 'success' | 'debug';
+  details?: Record<string, any>;
 }
 
 export interface SystemLogResponse {
-  success: boolean;
-  data?: SystemLog[];
-  error?: string;
+  data: SystemLog[];
+  error: null | string;
 }
 
 export interface ClearSystemLogsResponse {
   success: boolean;
-  message?: string;
-  error?: string;
+  error: null | string;
 }

@@ -9,9 +9,9 @@ interface SystemLogsProps {
 
 const SystemLogs: React.FC<SystemLogsProps> = ({ maxDisplayCount = 10 }) => {
   // Make sure maxDisplayCount is a number
-  const displayCount = typeof maxDisplayCount === 'string' 
-    ? parseInt(maxDisplayCount, 10)  // Convert string to number if needed
-    : maxDisplayCount;
+  const displayCount = typeof maxDisplayCount === 'number' 
+    ? maxDisplayCount  
+    : parseInt(String(maxDisplayCount), 10) || 10; // Convert to number with fallback
 
   return (
     <Card>

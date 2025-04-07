@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -48,7 +47,7 @@ const SponsorContactsManager: React.FC<SponsorContactsManagerProps> = ({ sponsor
     queryFn: async () => {
       const response = await fetchSponsorContacts(sponsorId);
       if (!response.success) {
-        throw new Error(response.error?.message || 'Failed to load contacts');
+        throw new Error(response.error || 'Failed to load contacts');
       }
       return response.data;
     },
@@ -66,12 +65,12 @@ const SponsorContactsManager: React.FC<SponsorContactsManagerProps> = ({ sponsor
     },
   });
   
-  // Form mutations
   const createMutation = useMutation({
     mutationFn: (data: z.infer<typeof contactSchema>) => {
       return createSponsorContact({
         ...data,
         sponsor_id: sponsorId,
+        name: data.name,
       });
     },
     onSuccess: () => {

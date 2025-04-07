@@ -1,12 +1,16 @@
 
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { TeamMember, MemberType } from '@/types/team';
-import { getAllTeamMembers, getTeamMemberById, createTeamMember, updateTeamMember, deleteTeamMember } from './teamDbService';
+import { TeamMember } from '@/types/team';
+import { getAllTeamMembers, fetchTeamMemberById, createTeamMember, updateTeamMember, deleteTeamMember } from './teamDbService';
 import { toast } from 'sonner';
+
+export type MemberType = 'player' | 'staff' | 'coach' | 'official' | 'management';
 
 interface TeamState {
   members: TeamMember[];
+  teamMembers: TeamMember[]; // Added this property
+  players: TeamMember[]; // Added this property
   isLoading: boolean;
   error: string | null;
   selectedMember: TeamMember | null;
@@ -21,15 +25,20 @@ interface TeamState {
   createTeamMember: (member: Omit<TeamMember, 'id'>) => Promise<boolean>;
   updateTeamMember: (id: string, updates: Partial<TeamMember>) => Promise<boolean>;
   deleteTeamMember: (id: string) => Promise<boolean>;
+  getPlayersByPosition: (position: string) => TeamMember[]; // Added this method
+  getManagementStaff: () => TeamMember[]; // Added this method
   setFilter: (filter: Partial<TeamState['filter']>) => void;
   clearFilters: () => void;
   selectMember: (member: TeamMember | null) => void;
+  addTeamMember: (member: Omit<TeamMember, 'id'>, callback?: () => void) => Promise<boolean>; // Added this method
 }
 
 export const useTeamStore = create<TeamState>()(
   devtools(
     (set, get) => ({
       members: [],
+      teamMembers: [], // Initialize teamMembers
+      players: [], // Initialize players
       isLoading: false,
       error: null,
       selectedMember: null,
@@ -46,7 +55,12 @@ export const useTeamStore = create<TeamState>()(
           const response = await getAllTeamMembers();
           
           if (response.success) {
-            set({ members: response.data || [] });
+            const allMembers = response.data || [];
+            set({ 
+              members: allMembers,
+              teamMembers: allMembers, // Set teamMembers to all members
+              players: allMembers.filter(member => member.member_type === 'player') // Set players
+            });
             
             // Apply current filters to the newly loaded data
             const state = get();
@@ -86,7 +100,7 @@ export const useTeamStore = create<TeamState>()(
       getTeamMember: async (id: string) => {
         set({ isLoading: true, error: null });
         try {
-          const response = await getTeamMemberById(id);
+          const response = await fetchTeamMemberById(id);
           
           if (response.success && response.data) {
             set({ selectedMember: response.data });
@@ -99,6 +113,26 @@ export const useTeamStore = create<TeamState>()(
         } finally {
           set({ isLoading: false });
         }
+      },
+
+      // Add method to get players by position
+      getPlayersByPosition: (position: string) => {
+        const { members } = get();
+        if (position === "All") {
+          return members.filter(m => m.member_type === 'player');
+        }
+        return members.filter(m => m.member_type === 'player' && m.position === position);
+      },
+
+      // Add method to get management staff
+      getManagementStaff: () => {
+        const { members } = get();
+        return members.filter(m => m.member_type === 'management' || m.member_type === 'coach' || m.member_type === 'staff');
+      },
+
+      // Add addTeamMember method
+      addTeamMember: async (member: Omit<TeamMember, 'id'>, callback?: () => void) => {
+        return await get().createTeamMember(member);
       },
       
       createTeamMember: async (member) => {
@@ -116,7 +150,7 @@ export const useTeamStore = create<TeamState>()(
             toast.error(response.error || 'Failed to create team member');
             return false;
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error('Error creating team member:', error);
           set({ error: 'An unexpected error occurred' });
           toast.error('An unexpected error occurred');
@@ -146,7 +180,7 @@ export const useTeamStore = create<TeamState>()(
             toast.error(response.error || 'Failed to update team member');
             return false;
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error('Error updating team member:', error);
           set({ error: 'An unexpected error occurred' });
           toast.error('An unexpected error occurred');
@@ -174,7 +208,7 @@ export const useTeamStore = create<TeamState>()(
             toast.error(response.error || 'Failed to delete team member');
             return false;
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error('Error deleting team member:', error);
           set({ error: 'An unexpected error occurred' });
           toast.error('An unexpected error occurred');

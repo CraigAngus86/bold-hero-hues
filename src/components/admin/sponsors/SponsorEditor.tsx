@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -49,7 +48,7 @@ import SponsorLogoUploader from '@/components/admin/common/SponsorLogoUploader';
 import SponsorContactsManager from './SponsorContactsManager';
 import SponsorCommunicationsLog from './SponsorCommunicationsLog';
 import SponsorDocumentsManager from './SponsorDocumentsManager';
-import { fetchSponsorById, createSponsor, updateSponsor, fetchSponsorshipTiers } from '@/services/sponsorsService';
+import { fetchSponsorById, createSponsor, updateSponsor, fetchSponsorshipTiers, getSponsorCategories } from '@/services/sponsorsService';
 import { Sponsor, SponsorshipTier } from '@/types/sponsors';
 
 const formSchema = z.object({
@@ -108,18 +107,16 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({
   });
 
   // Fetch sponsor data if in edit mode
-  const { data: sponsor, isLoading: isLoadingSponsor } = useQuery({
+  const { data: sponsor, isLoading } = useQuery({
     queryKey: ['sponsor', sponsorId],
     queryFn: async () => {
-      if (!sponsorId) return null;
-      
-      const response = await fetchSponsorById(sponsorId);
+      const response = await getSponsorById(sponsorId!);
       if (!response.success) {
-        throw new Error(response.error?.message || 'Failed to load sponsor');
+        throw new Error(response.error || 'Failed to load sponsor');
       }
       return response.data;
     },
-    enabled: !!sponsorId,
+    enabled: !!sponsorId
   });
 
   // Update form with sponsor data when loaded
@@ -145,6 +142,59 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({
     setLogoUrl(url);
   };
 
+  const { data: categories = [] } = useQuery({
+    queryKey: ['sponsorCategories'],
+    queryFn: async () => {
+      const response = await getSponsorCategories();
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to load categories');
+      }
+      return response.data;
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (data: Partial<Sponsor>) => {
+      const updatedData = {
+        ...data,
+        tier: data.tier as "gold" | "silver" | "bronze" | "platinum",
+        start_date: data.start_date ? data.start_date.toISOString().split('T')[0] : undefined,
+        end_date: data.end_date ? data.end_date.toISOString().split('T')[0] : undefined
+      };
+      
+      return updateSponsor(sponsorId!, updatedData);
+    },
+    onSuccess: () => {
+      toast.success(isEditMode ? 'Sponsor updated successfully' : 'Sponsor created successfully');
+      onSaved();
+    },
+    onError: (error) => {
+      console.error('Error saving sponsor:', error);
+      toast.error('An error occurred while saving');
+    }
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data: Omit<Sponsor, "id">) => {
+      const sponsorData = {
+        ...data,
+        tier: data.tier as "gold" | "silver" | "bronze" | "platinum",
+        start_date: data.start_date ? (typeof data.start_date === 'string' ? data.start_date : data.start_date.toISOString().split('T')[0]) : undefined,
+        end_date: data.end_date ? (typeof data.end_date === 'string' ? data.end_date : data.end_date.toISOString().split('T')[0]) : undefined
+      };
+      
+      return createSponsor(sponsorData);
+    },
+    onSuccess: () => {
+      toast.success('Sponsor created successfully');
+      onSaved();
+    },
+    onError: (error) => {
+      console.error('Error saving sponsor:', error);
+      toast.error('An error occurred while saving');
+    }
+  });
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       const sponsorData = {
@@ -156,18 +206,10 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({
       if (!sponsorData.description) delete sponsorData.description;
       if (!sponsorData.website_url) delete sponsorData.website_url;
       
-      let response;
       if (isEditMode && sponsorId) {
-        response = await updateSponsor(sponsorId, sponsorData);
+        updateMutation.mutate(sponsorData);
       } else {
-        response = await createSponsor(sponsorData as Omit<Sponsor, 'id'>);
-      }
-
-      if (response.success) {
-        toast.success(isEditMode ? 'Sponsor updated successfully' : 'Sponsor created successfully');
-        onSaved();
-      } else {
-        toast.error(response.error?.message || 'Failed to save sponsor');
+        createMutation.mutate(sponsorData as Omit<Sponsor, 'id'>);
       }
     } catch (error) {
       console.error('Error saving sponsor:', error);
@@ -175,7 +217,7 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({
     }
   };
 
-  const isLoading = isLoadingSponsor || isLoadingTiers || form.formState.isSubmitting;
+  const isLoading = isLoading || isLoadingTiers || form.formState.isSubmitting;
 
   return (
     <div className="space-y-6">

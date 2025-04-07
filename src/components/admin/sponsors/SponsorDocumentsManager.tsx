@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -52,9 +51,7 @@ import {
 } from '@/services/sponsorsService';
 import { SponsorDocument } from '@/types/sponsors';
 
-// Mock document upload function - in a real implementation, this would use storage services
 const uploadDocument = async (file: File): Promise<string> => {
-  // Simulate API call
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve(`/documents/sponsors/${file.name}`);
@@ -83,7 +80,7 @@ const SponsorDocumentsManager: React.FC<SponsorDocumentsManagerProps> = ({ spons
     queryFn: async () => {
       const response = await fetchSponsorDocuments(sponsorId);
       if (!response.success) {
-        throw new Error(response.error?.message || 'Failed to load documents');
+        throw new Error(response.error || 'Failed to load documents');
       }
       return response.data;
     },
@@ -98,19 +95,16 @@ const SponsorDocumentsManager: React.FC<SponsorDocumentsManagerProps> = ({ spons
     },
   });
   
-  // Form mutations
   const createMutation = useMutation({
     mutationFn: async (data: z.infer<typeof documentSchema>) => {
       let filePath = '';
       
       if (selectedFile) {
-        // In a real implementation, upload the file to storage
         filePath = await uploadDocument(selectedFile);
       } else {
         throw new Error('No file selected');
       }
       
-      // Create the document record
       const docData = {
         sponsor_id: sponsorId,
         name: data.name,
@@ -174,9 +168,7 @@ const SponsorDocumentsManager: React.FC<SponsorDocumentsManagerProps> = ({ spons
       const file = e.target.files[0];
       setSelectedFile(file);
       
-      // Auto-populate the name field with the file name if empty
       if (!form.getValues('name')) {
-        // Remove extension from filename
         const fileName = file.name.replace(/\.[^/.]+$/, '');
         form.setValue('name', fileName);
       }
@@ -196,10 +188,8 @@ const SponsorDocumentsManager: React.FC<SponsorDocumentsManagerProps> = ({ spons
     }
   };
   
-  // Mock function for document download - in a real implementation, this would fetch from storage
   const handleDownload = (document: SponsorDocument) => {
     toast.info(`Downloading ${document.name}...`);
-    // In a real implementation, this would trigger a file download
   };
   
   return (

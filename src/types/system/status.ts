@@ -36,3 +36,11 @@ export interface SystemStatusProps {
   lastUpdated: string | Date;
   onRefresh: () => void;
 }
+
+export interface StatusItemProps {
+  name: string;
+  status: SystemStatusType;
+  icon: React.ElementType;
+  color: string;
+  viewAllLink: string;
+}

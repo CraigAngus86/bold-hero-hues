@@ -1,10 +1,12 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Edit, BarChart2 } from 'lucide-react';
 import { TeamMember } from '@/types/team';
-import { useTeamStore } from '@/services/teamService';
+import { useTeamStore } from '@/services/teamStore';
+import { useMutation } from '@tanstack/react-query';
+import { deleteTeamMember } from '@/services/teamDbService';
+import { toast } from 'sonner';
 
 interface PlayersListProps {
   onSelectPlayer: (player: TeamMember) => void;
@@ -17,11 +19,29 @@ const PlayersList: React.FC<PlayersListProps> = ({
   onViewPlayerStats, 
   onCreateNew 
 }) => {
-  const { teamMembers, isLoading, error } = useTeamStore(state => ({
+  const { teamMembers, isLoading, error, loadTeamMembers } = useTeamStore(state => ({
     teamMembers: state.teamMembers.filter(m => m.member_type === 'player'),
     isLoading: state.isLoading,
-    error: state.error
+    error: state.error,
+    loadTeamMembers: state.loadTeamMembers
   }));
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await deleteTeamMember(id);
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to delete player');
+      }
+      return response;
+    },
+    onSuccess: () => {
+      toast.success('Player deleted successfully');
+      loadTeamMembers();
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to delete player');
+    }
+  });
 
   if (isLoading) {
     return (
@@ -40,7 +60,7 @@ const PlayersList: React.FC<PlayersListProps> = ({
       <Card>
         <CardContent className="pt-6">
           <div className="text-center py-8 text-red-500">
-            Error loading players: {error.message}
+            Error loading players: {error}
           </div>
         </CardContent>
       </Card>

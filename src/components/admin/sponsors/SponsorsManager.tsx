@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2 } from 'lucide-react';
-import { getAllSponsors } from '@/services/sponsorsDbService';
+import { getSponsors } from '@/services/sponsorsDbService';
 import SponsorsList from './SponsorsList';
 import SponsorEditor from './SponsorEditor';
 import SponsorsSettings from './SponsorsSettings';
@@ -13,14 +12,14 @@ const SponsorsManager: React.FC = () => {
   const [activeTab, setActiveTab] = useState('sponsors');
   const [editingSponsor, setEditingSponsor] = useState<string | null>(null);
   
-  const { data: allSponsors, isLoading, refetch } = useQuery({
-    queryKey: ['allSponsors'],
+  const { data: sponsors, isLoading, error, refetch } = useQuery({
+    queryKey: ['sponsors'],
     queryFn: async () => {
-      const response = await getAllSponsors();
+      const response = await getSponsors();
       if (!response.success) {
-        throw new Error(response.error?.message || 'Failed to load sponsors');
+        throw new Error(response.error || 'Failed to load sponsors');
       }
-      return response.data || [];
+      return response.data;
     }
   });
 
@@ -63,7 +62,7 @@ const SponsorsManager: React.FC = () => {
             <>
               <TabsContent value="sponsors">
                 <SponsorsList 
-                  sponsors={allSponsors || []}
+                  sponsors={sponsors || []}
                   onEdit={handleEditSponsor}
                   onAddNew={handleAddNew}
                   onRefresh={refetch}

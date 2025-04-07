@@ -1,10 +1,11 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { TeamMember } from '@/types/team';
 
-interface TeamSettingsProps {
+export interface TeamSettingsProps {
   memberType: string;
-  members: any[];
+  members: TeamMember[];
 }
 
 const TeamSettings: React.FC<TeamSettingsProps> = ({ memberType, members }) => {

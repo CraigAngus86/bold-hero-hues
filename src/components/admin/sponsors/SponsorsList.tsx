@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -35,6 +34,7 @@ import {
 import { Sponsor } from '@/types/sponsors';
 import { deleteSponsor } from '@/services/sponsorsService';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useMutation } from 'react-query';
 
 interface SponsorsListProps {
   sponsors: Sponsor[];
@@ -56,67 +56,35 @@ const SponsorsList: React.FC<SponsorsListProps> = ({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingSponsor, setDeletingSponsor] = useState<Sponsor | null>(null);
 
-  // Apply filters and search
-  const filteredSponsors = sponsors.filter(sponsor => {
-    // Filter by tier
-    if (tierFilter !== 'all' && sponsor.tier !== tierFilter) {
-      return false;
-    }
-    
-    // Filter by status
-    if (statusFilter === 'active' && sponsor.is_active !== true) {
-      return false;
-    }
-    if (statusFilter === 'inactive' && sponsor.is_active !== false) {
-      return false;
-    }
-    
-    // Filter by renewal status
-    if (renewalFilter !== 'all') {
-      if (renewalFilter === 'expiring-soon') {
-        if (!sponsor.end_date) return false;
-        const endDate = new Date(sponsor.end_date);
-        const thirtyDaysFromNow = addDays(new Date(), 30);
-        if (!(isPast(endDate) || endDate <= thirtyDaysFromNow)) {
-          return false;
-        }
-      } else if (renewalFilter === 'active') {
-        if (sponsor.renewal_status !== 'active') return false;
-      } else if (renewalFilter === 'pending') {
-        if (sponsor.renewal_status !== 'pending') return false;
-      } else if (renewalFilter === 'expired') {
-        if (sponsor.end_date && !isPast(new Date(sponsor.end_date))) {
-          return false;
-        }
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await deleteSponsor(id);
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to delete sponsor');
       }
-    }
-    
-    // Filter by search query
-    if (searchQuery && !sponsor.name.toLowerCase().includes(searchQuery.toLowerCase())) {
-      return false;
-    }
-    
-    return true;
-  });
-
-  const handleDelete = async () => {
-    if (!deletingSponsor) return;
-    
-    try {
-      const response = await deleteSponsor(deletingSponsor.id);
+      return response;
+    },
+    onSuccess: (response) => {
       if (response.success) {
-        toast.success(`${deletingSponsor.name} has been deleted`);
+        toast.success(`${deletingSponsor?.name} has been deleted`);
         onRefresh();
       } else {
         toast.error(`Failed to delete: ${response.error?.message || 'Unknown error'}`);
       }
-    } catch (error) {
+    },
+    onError: (error) => {
       toast.error('An error occurred while deleting the sponsor');
       console.error('Delete sponsor error:', error);
-    } finally {
+    },
+    onSettled: () => {
       setDeleteDialogOpen(false);
       setDeletingSponsor(null);
     }
+  });
+
+  const handleDelete = () => {
+    if (!deletingSponsor) return;
+    deleteMutation.mutate(deletingSponsor.id);
   };
 
   const openDeleteDialog = (sponsor: Sponsor) => {
@@ -149,6 +117,44 @@ const SponsorsList: React.FC<SponsorsListProps> = ({
     
     return null;
   };
+
+  const filteredSponsors = sponsors.filter(sponsor => {
+    if (tierFilter !== 'all' && sponsor.tier !== tierFilter) {
+      return false;
+    }
+    
+    if (statusFilter === 'active' && sponsor.is_active !== true) {
+      return false;
+    }
+    if (statusFilter === 'inactive' && sponsor.is_active !== false) {
+      return false;
+    }
+    
+    if (renewalFilter !== 'all') {
+      if (renewalFilter === 'expiring-soon') {
+        if (!sponsor.end_date) return false;
+        const endDate = new Date(sponsor.end_date);
+        const thirtyDaysFromNow = addDays(new Date(), 30);
+        if (!(isPast(endDate) || endDate <= thirtyDaysFromNow)) {
+          return false;
+        }
+      } else if (renewalFilter === 'active') {
+        if (sponsor.renewal_status !== 'active') return false;
+      } else if (renewalFilter === 'pending') {
+        if (sponsor.renewal_status !== 'pending') return false;
+      } else if (renewalFilter === 'expired') {
+        if (sponsor.end_date && !isPast(new Date(sponsor.end_date))) {
+          return false;
+        }
+      }
+    }
+    
+    if (searchQuery && !sponsor.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+      return false;
+    }
+    
+    return true;
+  });
 
   return (
     <div className="space-y-6">

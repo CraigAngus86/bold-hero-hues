@@ -1,18 +1,20 @@
 
-import { SystemStatusType } from '@/types/system/status';
+import { SystemStatusName } from '@/types/system/status';
 
 type StatusItemProps = {
-  status: SystemStatusType;
+  status: SystemStatusName;
   label: string;
 };
 
 const StatusItem = ({ status, label }: StatusItemProps) => {
-  const getStatusColor = (status: SystemStatusType) => {
+  const getStatusColor = (status: SystemStatusName) => {
     switch (status) {
       case 'healthy':
         return 'bg-green-500';
       case 'warning':
         return 'bg-amber-500';
+      case 'degraded':
+        return 'bg-amber-300';
       case 'critical':
         return 'bg-red-500';
       case 'unknown':

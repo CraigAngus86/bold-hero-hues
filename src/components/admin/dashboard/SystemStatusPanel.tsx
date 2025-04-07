@@ -1,257 +1,173 @@
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import StatusItems from "./StatusItems";
-import { formatDistanceToNow } from "date-fns";
-import { ArrowUpIcon, ArrowDownIcon, RefreshCw } from "lucide-react";
-import { SystemStatus, SystemStatusName, Service, SystemMetric } from '@/types/system/status';
+import React, { useState, useEffect } from 'react';
+import { Card } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Cpu, HardDrive, Activity, Server, Clock, Users } from 'lucide-react';
+import StatusItemCard from './StatusItemCard';
+import { SystemStatus, SystemStatusName, SystemMetric, Service } from '@/types/system/status';
+import { useSystemStatus } from '@/hooks/useSystemStatus';
 
-export interface SystemStatusPanelProps {
-  status: SystemStatus;
-  isLoading?: boolean;
-  onRefresh?: () => Promise<void>;
-  error?: string | null;
-}
+const SystemStatusPanel: React.FC = () => {
+  const { systemStatus, fetchSystemStatus, loading } = useSystemStatus();
+  const [activeTab, setActiveTab] = useState('overview');
 
-const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({ 
-  status, 
-  isLoading = false,
-  onRefresh,
-  error = null
-}) => {
-  const formatLastChecked = (service: Service) => {
-    try {
-      const date = new Date(service.lastChecked);
-      return formatDistanceToNow(date, { addSuffix: true });
-    } catch (e) {
-      return 'unknown';
-    }
-  };
-  
-  const getStatusVariant = (statusName: SystemStatusName) => {
-    switch (statusName) {
-      case 'healthy':
-        return 'success';
-      case 'warning':
-        return 'default';
-      case 'critical':
-        return 'destructive';
-      case 'degraded':
-        return 'default';
-      case 'unknown':
-        return 'outline';
-      default:
-        return 'outline';
-    }
-  };
-  
-  const formatChange = (metric: SystemMetric) => {
-    const value = metric.change || 0;
-    const isPositive = (metric.changeType === 'positive');
-    
+  useEffect(() => {
+    fetchSystemStatus();
+    // Set up polling every 30 seconds
+    const intervalId = setInterval(() => {
+      fetchSystemStatus();
+    }, 30000);
+
+    return () => clearInterval(intervalId);
+  }, [fetchSystemStatus]);
+
+  const renderService = (service: Service, icon: React.ReactNode, color: string) => {
     return (
-      <span className={`flex items-center ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
-        {(metric.changeDirection === 'up' || !metric.changeDirection) ? 
-          <ArrowUpIcon className="h-3 w-3 mr-1" /> : 
-          <ArrowDownIcon className="h-3 w-3 mr-1" />
-        }
-        <span className="text-xs">{value}%</span>
-      </span>
+      <StatusItemCard
+        key={service.name}
+        name={service.name}
+        status={service.status}
+        value={service.status === 'healthy' ? 'Operational' : 'Issues Detected'}
+        metricValue={`${service.uptime.toFixed(2)}% uptime`}
+        lastChecked={service.lastChecked}
+        icon={icon as React.ComponentType<any>}
+        color={color}
+      />
     );
   };
 
-  return (
-    <Card className="shadow-md">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-lg font-medium">System Status</CardTitle>
-        <div className="flex items-center">
-          <Badge
-            className="mr-2"
-            variant={getStatusVariant(status.overall_status)}
-          >
-            {status.overall_status.charAt(0).toUpperCase() + status.overall_status.slice(1)}
-          </Badge>
-          {onRefresh && (
-            <Button 
-              variant="ghost" 
-              size="sm"
-              className="h-8 w-8 p-0" 
-              onClick={onRefresh}
-              disabled={isLoading}
-            >
-              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-            </Button>
-          )}
+  // Helper function to render metric cards
+  const renderMetricCards = (metrics: SystemMetric[], title: string) => {
+    if (!metrics || !Array.isArray(metrics) || metrics.length === 0) {
+      return (
+        <div className="text-center p-4 text-gray-500">
+          No {title.toLowerCase()} metrics available
         </div>
-      </CardHeader>
-      
-      <CardContent className="pb-3">
-        {error ? (
-          <div className="text-red-500 mb-4 text-sm">{error}</div>
-        ) : (
-          <>
-            <p className="text-sm text-gray-500 mb-4">{status.message}</p>
-            
-            <Tabs defaultValue="performance" className="space-y-4">
-              <TabsList className="grid grid-cols-3 h-9">
-                <TabsTrigger value="performance">Performance</TabsTrigger>
-                <TabsTrigger value="storage">Storage</TabsTrigger>
-                <TabsTrigger value="usage">Usage</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="performance" className="space-y-4">
-                <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
-                  {status.metrics.performance && Array.isArray(status.metrics.performance) && status.metrics.performance.length > 0 ? (
-                    status.metrics.performance.map((metric, i) => (
-                      <Card key={i}>
-                        <CardContent className="p-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
-                              {metric.icon && <span>{metric.icon}</span>}
-                              <span className="text-sm font-medium">{metric.name}</span>
-                            </div>
-                            {metric.change !== undefined && (
-                              formatChange(metric)
-                            )}
-                          </div>
-                          <div className="mt-1">
-                            <span className="text-2xl font-bold">
-                              {metric.value}
-                              {metric.unit && <span className="text-sm ml-1">{metric.unit}</span>}
-                            </span>
-                          </div>
-                          <p className="text-xs text-gray-500 mt-1">{metric.description}</p>
-                        </CardContent>
-                      </Card>
-                    ))
-                  ) : (
-                    <p className="text-sm text-gray-500">No performance metrics available</p>
-                  )}
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {metrics.map((metric) => (
+          <Card key={metric.name} className="p-4">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm text-gray-500">{metric.name}</p>
+                <div className="flex items-center mt-1">
+                  <p className="text-2xl font-bold">
+                    {metric.value}
+                    {metric.unit && <span className="text-sm ml-1">{metric.unit}</span>}
+                  </p>
                 </div>
-                
-                <div className="text-xs text-gray-500 text-right mt-2">
-                  Last updated: {status.last_updated ? new Date(status.last_updated).toLocaleTimeString() : 'unknown'}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="storage" className="space-y-4">
-                <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
-                  {status.metrics.storage && Array.isArray(status.metrics.storage) && status.metrics.storage.length > 0 ? (
-                    status.metrics.storage.map((metric, i) => (
-                      <Card key={i}>
-                        <CardContent className="p-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
-                              {metric.icon && <span>{metric.icon}</span>}
-                              <span className="text-sm font-medium">{metric.name}</span>
-                            </div>
-                            {metric.change !== undefined && (
-                              formatChange(metric)
-                            )}
-                          </div>
-                          <div className="mt-1">
-                            <span className="text-2xl font-bold">
-                              {metric.value}
-                              {metric.unit && <span className="text-sm ml-1">{metric.unit}</span>}
-                            </span>
-                          </div>
-                          <p className="text-xs text-gray-500 mt-1">{metric.description}</p>
-                        </CardContent>
-                      </Card>
-                    ))
-                  ) : (
-                    <p className="text-sm text-gray-500">No storage metrics available</p>
-                  )}
-                </div>
-                
-                <div className="text-xs text-gray-500 text-right mt-2">
-                  Last updated: {status.last_updated ? new Date(status.last_updated).toLocaleTimeString() : 'unknown'}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="usage" className="space-y-4">
-                <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
-                  {status.metrics.usage && Array.isArray(status.metrics.usage) && status.metrics.usage.length > 0 ? (
-                    status.metrics.usage.map((metric, i) => (
-                      <Card key={i}>
-                        <CardContent className="p-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
-                              {metric.icon && <span>{metric.icon}</span>}
-                              <span className="text-sm font-medium">{metric.name}</span>
-                            </div>
-                            {metric.change !== undefined && (
-                              formatChange(metric)
-                            )}
-                          </div>
-                          <div className="mt-1">
-                            <span className="text-2xl font-bold">
-                              {metric.value}
-                              {metric.unit && <span className="text-sm ml-1">{metric.unit}</span>}
-                            </span>
-                          </div>
-                          <p className="text-xs text-gray-500 mt-1">{metric.description}</p>
-                        </CardContent>
-                      </Card>
-                    ))
-                  ) : (
-                    <p className="text-sm text-gray-500">No usage metrics available</p>
-                  )}
-                </div>
-                
-                <div className="text-xs text-gray-500 text-right mt-2">
-                  Last updated: {status.last_updated ? new Date(status.last_updated).toLocaleTimeString() : 'unknown'}
-                </div>
-              </TabsContent>
-            </Tabs>
-            
-            <div className="border-t pt-3 mt-3">
-              <h4 className="text-sm font-medium mb-2">Services</h4>
-              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-                {status.services.map((service, i) => (
-                  <div key={i} className="border rounded-md p-2 bg-gray-50">
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium text-sm">{service.name}</span>
-                      <Badge 
-                        variant={getStatusVariant(service.status as SystemStatusName)} 
-                        className="text-xs"
-                      >
-                        {service.status}
-                      </Badge>
-                    </div>
-                    <div className="mt-1 text-xs text-gray-500">
-                      <div>Uptime: {service.uptime}%</div>
-                      <div>Last check: {formatLastChecked(service)}</div>
-                    </div>
-                  </div>
-                ))}
+                {metric.description && (
+                  <p className="text-xs text-gray-500 mt-1">{metric.description}</p>
+                )}
               </div>
+              {metric.change !== undefined && (
+                <div className={`px-2 py-1 rounded text-xs ${
+                  metric.changeType === 'positive' ? 'bg-green-100 text-green-800' :
+                  metric.changeType === 'negative' ? 'bg-red-100 text-red-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {metric.change > 0 ? '+' : ''}{metric.change}%
+                </div>
+              )}
             </div>
-            
-            {status.messages && status.messages.length > 0 && (
-              <div className="border-t pt-3 mt-3">
-                <h4 className="text-sm font-medium mb-2">Announcements & Alerts</h4>
-                <ul className="space-y-1 text-sm text-gray-600">
-                  {status.messages.map((message, i) => (
-                    <li key={i} className="bg-blue-50 border border-blue-100 p-2 rounded-md">
-                      {message}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </>
-        )}
+          </Card>
+        ))}
+      </div>
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="p-8 text-center">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+        <p className="text-gray-500">Loading system status...</p>
+      </div>
+    );
+  }
+
+  if (!systemStatus) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-gray-500">System status data unavailable</p>
+      </div>
+    );
+  }
+
+  const { metrics, services } = systemStatus;
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatusItemCard
+          name="System Status"
+          status={systemStatus.overall_status}
+          value={
+            systemStatus.overall_status === 'healthy' ? 'All Systems Normal' :
+            systemStatus.overall_status === 'warning' ? 'Performance Degraded' :
+            systemStatus.overall_status === 'critical' ? 'Critical Issues' : 'System Status Unknown'
+          }
+          metricValue={`${systemStatus.uptime.toFixed(2)}% uptime`}
+          lastChecked={systemStatus.last_updated}
+          icon={Server}
+          color="blue"
+        />
         
-        <div className="mt-4 flex justify-between items-center text-xs text-gray-400">
-          <div>System uptime: {status.uptime} days</div>
-          <div>Version: {status.version || 'Unknown'}</div>
-        </div>
-      </CardContent>
-    </Card>
+        {services && services.length > 0 && services[0] && 
+          renderService(services[0], Cpu, 'green')}
+        
+        {services && services.length > 1 && services[1] && 
+          renderService(services[1], HardDrive, 'amber')}
+        
+        {services && services.length > 2 && services[2] && 
+          renderService(services[2], Activity, 'purple')}
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="storage">Storage</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {services && services.map((service, index) => {
+              const icons = [Server, Cpu, HardDrive, Activity, Clock, Users];
+              const colors = ['blue', 'green', 'amber', 'purple', 'indigo', 'red'];
+              const IconComponent = icons[index % icons.length];
+              const color = colors[index % colors.length];
+              
+              return renderService(service, IconComponent, color);
+            })}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="performance" className="mt-4">
+          {metrics && metrics.performance ? 
+            renderMetricCards(Object.entries(metrics.performance).map(([key, value]) => ({
+              name: key.charAt(0).toUpperCase() + key.slice(1),
+              value: typeof value === 'number' ? value : 0,
+              unit: key === 'cpu' ? '%' : key === 'memory' ? 'MB' : '',
+            })), 'Performance') : 
+            <div className="text-center p-4 text-gray-500">No performance metrics available</div>
+          }
+        </TabsContent>
+
+        <TabsContent value="storage" className="mt-4">
+          {metrics && metrics.storage ? 
+            renderMetricCards(Object.entries(metrics.storage).map(([key, value]) => ({
+              name: key.charAt(0).toUpperCase() + key.slice(1),
+              value: typeof value === 'number' ? value : 0,
+              unit: 'GB',
+            })), 'Storage') : 
+            <div className="text-center p-4 text-gray-500">No storage metrics available</div>
+          }
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 

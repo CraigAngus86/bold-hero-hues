@@ -1,48 +1,31 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { SystemStatus } from '@/types/system/status';
 import systemLogsService from '@/services/logs/systemLogsService';
 
-export interface UseSystemStatusResult {
-  status: SystemStatus | null;
-  isLoading: boolean;
-  error: string | null;
-  refresh: () => Promise<void>;
-}
+export const useSystemStatus = () => {
+  const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<Error | null>(null);
 
-/**
- * Hook to get and manage system status
- */
-export const useSystemStatus = (): UseSystemStatusResult => {
-  const [status, setStatus] = useState<SystemStatus | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchStatus = useCallback(async () => {
+  const fetchSystemStatus = useCallback(async () => {
     try {
-      setIsLoading(true);
+      setLoading(true);
+      const status = await systemLogsService.getSystemStatus();
+      setSystemStatus(status);
       setError(null);
-      
-      const data = await systemLogsService.getSystemStatus();
-      setStatus(data);
     } catch (err) {
       console.error('Error fetching system status:', err);
-      setError('Failed to fetch system status');
+      setError(err instanceof Error ? err : new Error(String(err)));
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    fetchStatus();
-  }, [fetchStatus]);
-
   return {
-    status,
-    isLoading,
+    systemStatus,
+    loading,
     error,
-    refresh: fetchStatus
+    fetchSystemStatus
   };
 };
-
-export default useSystemStatus;

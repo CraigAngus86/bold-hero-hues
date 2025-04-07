@@ -1,76 +1,87 @@
 
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { LayoutDashboard } from "lucide-react";
-import { EnhancedSystemStatus } from "@/components/admin/dashboard/EnhancedSystemStatus";
-import SystemStatusPanel from "@/components/admin/dashboard/SystemStatusPanel";
-import { useSystemStatus } from "@/hooks/useSystemStatus";
-import { useDashboardRefresh } from "@/hooks/useDashboardRefresh";
+import React, { useEffect, useState } from 'react';
+import { AdminLayout } from '@/components/admin/AdminLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { OverviewTab } from '@/components/admin/dashboard/OverviewTab';
+import { MetricsTab } from '@/components/admin/dashboard/MetricsTab';
+import { SystemStatusPanel } from '@/components/admin/dashboard/SystemStatusPanel';
+import { ActivityLogPanel } from '@/components/admin/dashboard/ActivityLogPanel';
+import { QuickActions } from '@/components/admin/dashboard/QuickActions';
+import { StatsGrid } from '@/components/admin/dashboard/StatsGrid';
+import { RecentActivity } from '@/components/admin/dashboard/RecentActivity';
+import { useDashboardRefresh } from '@/hooks/useDashboardRefresh';
 
-export default function Dashboard() {
-  const { status, isLoading, error, refresh } = useSystemStatus();
-  const { status: dashboardStatus } = useDashboardRefresh();
-  
-  const handleRefresh = () => {
-    refresh();
+const Dashboard = () => {
+  const [activeTab, setActiveTab] = useState('overview');
+  const { refreshData, setRefreshData } = useDashboardRefresh();
+
+  // Make this function async to handle the Promise
+  const handleRefresh = async (): Promise<void> => {
+    setRefreshData(true);
+    // Return a resolved promise to satisfy the Promise<void> return type
+    return Promise.resolve();
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6 flex items-center">
-        <LayoutDashboard className="mr-2 h-6 w-6" /> Dashboard
-      </h1>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="col-span-full">
-          <CardContent className="pt-6">
-            {status && !isLoading ? (
-              <SystemStatusPanel 
-                status={status} 
-                isLoading={isLoading} 
-                onRefresh={handleRefresh}
-                error={error || undefined}
-              />
-            ) : (
-              <div className="py-6 text-center">Loading system status...</div>
-            )}
-          </CardContent>
-        </Card>
+    <AdminLayout>
+      <div className="flex flex-col gap-5 md:flex-row md:justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+          <p className="text-muted-foreground">
+            Overview of your system and recent activity
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <QuickActions onRefresh={handleRefresh} />
+        </div>
       </div>
 
-      <Tabs defaultValue="overview" className="mt-6">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mt-4">
+        <StatsGrid />
+      </div>
+
+      {/* System Status Card */}
+      <Card className="mt-4">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl">System Status</CardTitle>
+          <CardDescription>
+            Current health and performance of the platform
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <SystemStatusPanel />
+        </CardContent>
+      </Card>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="system-status">System Status</TabsTrigger>
+          <TabsTrigger value="metrics">Metrics</TabsTrigger>
+          <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
-
         <TabsContent value="overview" className="mt-4">
-          <Card>
-            <CardContent className="pt-6">
-              <h2 className="text-xl font-semibold mb-4">System Overview</h2>
-              <p>Welcome to the Banks o' Dee admin dashboard.</p>
-              <div className="mt-4">
-                <Button onClick={handleRefresh}>Refresh Data</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <OverviewTab refreshData={refreshData} setRefreshData={setRefreshData} />
         </TabsContent>
-
-        <TabsContent value="analytics" className="mt-4">
-          <Card>
-            <CardContent className="pt-6">
-              <h2 className="text-xl font-semibold mb-4">Analytics</h2>
-              <p>Analytics content will be displayed here.</p>
-            </CardContent>
-          </Card>
+        <TabsContent value="metrics" className="mt-4">
+          <MetricsTab refreshData={refreshData} setRefreshData={setRefreshData} />
         </TabsContent>
-
-        <TabsContent value="system-status" className="mt-4">
-          <EnhancedSystemStatus />
+        <TabsContent value="activity" className="mt-4">
+          <ActivityLogPanel />
         </TabsContent>
       </Tabs>
-    </div>
+
+      <Card className="mt-4">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl">Recent Activity</CardTitle>
+          <CardDescription>Latest updates and changes to the system</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <RecentActivity />
+        </CardContent>
+      </Card>
+    </AdminLayout>
   );
-}
+};
+
+export default Dashboard;

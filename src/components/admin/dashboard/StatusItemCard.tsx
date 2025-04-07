@@ -3,11 +3,11 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatTimeAgo } from '@/utils/date';
-import { SystemStatusType } from '@/types/system/status';
+import { SystemStatusName } from '@/types/system/status';
 
 export interface StatusItemProps {
   name: string;
-  status: SystemStatusType;
+  status: SystemStatusName;
   value: string | React.ReactNode;
   metricValue: string | React.ReactNode;
   tooltip?: string;
@@ -31,6 +31,7 @@ const StatusItemCard: React.FC<StatusItemProps> = ({
   const statusColors = {
     healthy: 'bg-green-500',
     warning: 'bg-amber-500',
+    degraded: 'bg-amber-300',
     critical: 'bg-red-500',
     unknown: 'bg-gray-500'
   };

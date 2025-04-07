@@ -1,15 +1,14 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Trophy, Table } from 'lucide-react';
+import { ArrowRight, ShoppingCart, Table, Ticket } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { formatDate } from '@/utils/date';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
-// Types for the props
 interface FeaturedArticle {
   id: string;
   title: string;
@@ -53,7 +52,6 @@ const FeaturedContentGrid: React.FC<FeaturedContentGridProps> = ({
     return (
       <section className="container mx-auto px-4 py-16">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-          {/* Featured News Skeleton */}
           <div className="md:col-span-6">
             <Card>
               <Skeleton className="h-64 w-full" />
@@ -71,7 +69,6 @@ const FeaturedContentGrid: React.FC<FeaturedContentGridProps> = ({
             </Card>
           </div>
           
-          {/* Next Match Skeleton */}
           <div className="md:col-span-3">
             <Card>
               <CardHeader>
@@ -92,7 +89,6 @@ const FeaturedContentGrid: React.FC<FeaturedContentGridProps> = ({
             </Card>
           </div>
           
-          {/* League Position Skeleton */}
           <div className="md:col-span-3">
             <Card>
               <CardHeader>
@@ -123,7 +119,6 @@ const FeaturedContentGrid: React.FC<FeaturedContentGridProps> = ({
   return (
     <section className="container mx-auto px-4 py-16">
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        {/* Featured News */}
         <motion.div 
           className="md:col-span-6"
           initial={{ opacity: 0, y: 20 }}
@@ -171,7 +166,6 @@ const FeaturedContentGrid: React.FC<FeaturedContentGridProps> = ({
           )}
         </motion.div>
         
-        {/* Next Match */}
         <motion.div 
           className="md:col-span-3"
           initial={{ opacity: 0, y: 20 }}
@@ -189,7 +183,6 @@ const FeaturedContentGrid: React.FC<FeaturedContentGridProps> = ({
                   <div className="text-center space-y-1">
                     <div className="w-14 h-14 bg-gray-100 rounded-full mx-auto flex items-center justify-center">
                       <span className="font-bold text-sm text-team-blue">
-                        {/* Team initials or logo would go here */}
                         {nextMatch.home_team.split(' ').map(word => word[0]).join('')}
                       </span>
                     </div>
@@ -201,7 +194,6 @@ const FeaturedContentGrid: React.FC<FeaturedContentGridProps> = ({
                   <div className="text-center space-y-1">
                     <div className="w-14 h-14 bg-gray-100 rounded-full mx-auto flex items-center justify-center">
                       <span className="font-bold text-sm text-team-blue">
-                        {/* Team initials or logo would go here */}
                         {nextMatch.away_team.split(' ').map(word => word[0]).join('')}
                       </span>
                     </div>
@@ -232,7 +224,6 @@ const FeaturedContentGrid: React.FC<FeaturedContentGridProps> = ({
           )}
         </motion.div>
         
-        {/* League Position */}
         <motion.div 
           className="md:col-span-3"
           initial={{ opacity: 0, y: 20 }}

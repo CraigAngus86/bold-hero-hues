@@ -1,5 +1,5 @@
 
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, formatDistanceToNow } from 'date-fns';
 
 /**
  * Formats a date string into a readable format
@@ -56,6 +56,19 @@ export const timeAgo = (dateString: string) => {
     return seconds <= 5 ? 'just now' : `${Math.floor(seconds)} seconds ago`;
   } catch (error) {
     console.error('Error calculating time ago:', error);
+    return 'recently';
+  }
+};
+
+/**
+ * Alternative format for time ago display
+ */
+export const formatTimeAgo = (dateString: string) => {
+  try {
+    const date = parseISO(dateString);
+    return formatDistanceToNow(date, { addSuffix: true });
+  } catch (error) {
+    console.error('Error formatting time ago:', error);
     return 'recently';
   }
 };

@@ -1,9 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { useNewsStore } from '@/services/news';
 import { supabase } from '@/lib/supabase';
 
-// Define types for the featured content
 interface FeaturedArticle {
   id: string;
   title: string;
@@ -61,11 +59,13 @@ export const useFeaturedContent = (): UseFeaturedContentResult => {
           featuredArticleData = {
             id: featured.id,
             title: featured.title,
-            content: featured.content,
-            excerpt: featured.content ? featured.content.substring(0, 150) + '...' : '',
+            content: featured.excerpt || featured.summary || 'No content available',
+            excerpt: featured.excerpt || featured.summary ? 
+              (featured.excerpt || featured.summary).substring(0, 150) + '...' : 
+              'No content available',
             image_url: featured.image_url || '/lovable-uploads/banks-o-dee-dark-logo.png',
             category: featured.category || 'News',
-            publish_date: featured.publish_date || featured.created_at
+            publish_date: featured.publish_date || featured.date || new Date().toISOString()
           };
         } else {
           // If no articles in store, fetch from Supabase

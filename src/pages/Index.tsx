@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Navbar, Footer } from '@/components/layout';
 import Hero from '@/components/home/Hero';
 import FeaturedContentGrid from '@/components/home/FeaturedContentGrid';

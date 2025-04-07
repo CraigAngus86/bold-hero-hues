@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Database, HardDrive, Lock, Server, Users, FileText, Calendar, 
@@ -18,39 +17,35 @@ const StatusItems: React.FC<StatusItemsProps> = ({ status }) => {
     {
       name: 'Database',
       status: status?.components?.database?.status || 'unknown',
-      lastChecked: status?.lastChecked && formatTimeAgo(status.lastChecked),
       metricValue: status?.components?.database?.responseTime 
         ? `${status.components.database.responseTime}ms` 
         : undefined,
-      icon: Database,
+      Icon: Database,
       tooltip: 'Database connection status and response time'
     },
     {
       name: 'Storage',
       status: status?.components?.storage?.status || 'unknown',
-      lastChecked: status?.lastChecked && formatTimeAgo(status.lastChecked),
       metricValue: status?.components?.storage?.usedSpace 
         ? `${Math.round(status.components.storage.usedSpace / 1024 / 1024)}MB` 
         : undefined,
-      icon: HardDrive,
+      Icon: HardDrive,
       tooltip: 'File storage status and used space'
     },
     {
       name: 'Auth',
       status: status?.components?.auth?.status || 'unknown',
-      lastChecked: status?.lastChecked && formatTimeAgo(status.lastChecked),
       metricValue: status?.components?.auth?.activeUsers?.toString(),
-      icon: Lock,
+      Icon: Lock,
       tooltip: 'Authentication service status'
     },
     {
       name: 'API',
       status: status?.components?.api?.status || 'unknown',
-      lastChecked: status?.lastChecked && formatTimeAgo(status.lastChecked),
       metricValue: status?.components?.api?.responseTime 
         ? `${status.components.api.responseTime}ms` 
         : undefined,
-      icon: Server,
+      Icon: Server,
       tooltip: 'API service status and response time'
     }
   ];
@@ -60,7 +55,7 @@ const StatusItems: React.FC<StatusItemsProps> = ({ status }) => {
     {
       name: 'Active Users',
       status: 'active',
-      icon: Users,
+      Icon: Users,
       metricValue: status?.metrics?.dailyActiveUsers?.toString() || '0',
       tooltip: 'Daily active users',
       color: 'bg-blue-50',
@@ -69,7 +64,7 @@ const StatusItems: React.FC<StatusItemsProps> = ({ status }) => {
     {
       name: 'Fixtures',
       status: 'info',
-      icon: Calendar,
+      Icon: Calendar,
       metricValue: status?.metrics?.fixturesCount?.toString() || '0',
       tooltip: 'Total fixtures in system',
       color: 'bg-green-50',
@@ -78,7 +73,7 @@ const StatusItems: React.FC<StatusItemsProps> = ({ status }) => {
     {
       name: 'News',
       status: 'info',
-      icon: FileText,
+      Icon: FileText,
       metricValue: status?.metrics?.newsCount?.toString() || '0',
       tooltip: 'Total news articles',
       color: 'bg-purple-50',
@@ -87,7 +82,7 @@ const StatusItems: React.FC<StatusItemsProps> = ({ status }) => {
     {
       name: 'System Uptime',
       status: 'info',
-      icon: Clock,
+      Icon: Clock,
       metricValue: status?.uptime ? `${Math.floor(status.uptime / 3600)}h` : undefined,
       tooltip: 'System uptime in hours',
       color: 'bg-amber-50'

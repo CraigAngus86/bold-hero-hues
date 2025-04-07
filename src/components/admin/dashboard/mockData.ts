@@ -1,63 +1,34 @@
 
-import { SystemStatusItemProps } from "@/types/system/status";
-import { FileText, CalendarDays, UsersRound } from "lucide-react";
+import { SystemStatusItemProps } from '@/types/system/status';
 
-// Content status items
-export const contentStatusItems: SystemStatusItemProps[] = [
+// Mock data for dashboard status items
+export const mockStatusItems: SystemStatusItemProps[] = [
   {
-    name: 'News Articles',
-    count: 24,
-    color: 'blue',
-    icon: FileText,
-    viewAllLink: '/admin/news',
-    status: 'info'
+    name: 'Users',
+    status: 'healthy',
+    value: '1,248',
+    metricValue: '+12%',
+    details: 'Active users in the last 30 days'
   },
   {
-    name: 'Fixture Updates',
-    count: 8,
-    color: 'green',
-    icon: CalendarDays,
-    viewAllLink: '/admin/fixtures',
-    status: 'info'
+    name: 'News',
+    status: 'info',
+    value: '48',
+    metricValue: '+3',
+    details: 'News articles published'
   },
   {
-    name: 'User Signups',
-    count: 12,
-    color: 'orange',
-    icon: UsersRound,
-    viewAllLink: '/admin/users',
-    status: 'info'
-  }
-];
-
-// Mock calendar events
-export const mockEvents = [
-  {
-    id: '1',
-    title: 'Board Meeting',
-    date: '2025-04-10',
-    time: '19:00',
-    type: 'meeting'
+    name: 'System',
+    status: 'info',
+    value: '99.9%',
+    metricValue: 'Uptime',
+    details: 'Server status'
   },
   {
-    id: '2',
-    title: 'Player Registration Deadline',
-    date: '2025-04-12',
-    time: '17:00',
-    type: 'deadline'
-  },
-  {
-    id: '3',
-    title: 'Community Outreach',
-    date: '2025-04-15',
-    time: '14:00',
-    type: 'event'
-  },
-  {
-    id: '4',
-    title: 'Season Tickets Sale',
-    date: '2025-04-21',
-    time: '09:00',
-    type: 'sale'
+    name: 'Storage',
+    status: 'info',
+    value: '45%',
+    metricValue: 'Used',
+    details: 'Storage usage'
   }
 ];

@@ -21,7 +21,7 @@ export interface SystemStatusProps {
 
 export interface SystemStatusItemProps {
   name: string;
-  status: 'healthy' | 'warning' | 'error' | 'unknown';
+  status: 'healthy' | 'warning' | 'error' | 'unknown' | 'active' | 'info' | 'online' | 'degraded' | 'offline';
   value?: string | number;
   Icon?: React.ComponentType<{ className?: string }>;
   details?: string;
@@ -29,6 +29,8 @@ export interface SystemStatusItemProps {
   count?: number;
   color?: string;
   viewAllLink?: string;
+  tooltip?: string;
+  lastChecked?: Date | string | null;
 }
 
 export interface SystemStatusItem {

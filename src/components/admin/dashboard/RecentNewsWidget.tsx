@@ -61,7 +61,7 @@ const RecentNewsWidget = () => {
                       <h3 className="font-medium text-sm line-clamp-2">{article.title}</h3>
                     </div>
                     <div className="flex items-center text-xs text-gray-500 mt-1">
-                      <Badge variant="outline" size="sm" className="mr-2 text-xs">
+                      <Badge variant="outline" className="mr-2 text-xs">
                         {article.category}
                       </Badge>
                       <div className="flex items-center">

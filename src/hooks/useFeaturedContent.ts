@@ -57,13 +57,18 @@ export const useFeaturedContent = (): UseFeaturedContentResult => {
         if (news && news.length > 0) {
           // Find a featured article or use the most recent one
           const featured = news.find(article => article.is_featured) || news[0];
+          
+          // Handle the content and excerpt properties
+          const articleContent = featured.excerpt || featured.summary || 'No content available';
+          const articleExcerpt = featured.excerpt || featured.summary ? 
+            (featured.excerpt || featured.summary).substring(0, 150) + '...' : 
+            'No content available';
+            
           featuredArticleData = {
             id: featured.id,
             title: featured.title,
-            content: featured.excerpt || featured.content || 'No content available',
-            excerpt: featured.excerpt || featured.content ? 
-              (featured.excerpt || featured.content).substring(0, 150) + '...' : 
-              'No content available',
+            content: articleContent,
+            excerpt: articleExcerpt,
             image_url: featured.image_url || '/lovable-uploads/banks-o-dee-dark-logo.png',
             category: featured.category || 'News',
             publish_date: featured.publish_date || featured.date || new Date().toISOString()

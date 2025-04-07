@@ -39,7 +39,7 @@ export const unwrapPromise = async <T>(promise: Promise<{ data: T; error: any }>
     // Fallback case
     return { 
       data: null as T, 
-      error,
+      error: new Error('Invalid response format'),
       count: 0 
     };
   } catch (error) {

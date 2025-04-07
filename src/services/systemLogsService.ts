@@ -1,186 +1,139 @@
 
-import { SystemLog, SystemStatus } from '@/types/system/status';
-import { SystemLogEntry, SystemLogsResponse } from '@/types/system/logs';
-import { supabase } from '@/lib/supabase';
+import { v4 as uuidv4 } from 'uuid';
+import { SystemLog, SystemLogLevel } from '@/types/system/logs';
+import { SystemStatus } from '@/types/system/status';
 
-// Mock system status for development testing
+// Sample system logs data for development
+const mockSystemLogs: SystemLog[] = [
+  {
+    id: uuidv4(),
+    timestamp: new Date().toISOString(),
+    type: 'info',
+    message: 'System started successfully',
+    source: 'system',
+  },
+  {
+    id: uuidv4(),
+    timestamp: new Date(Date.now() - 3600000).toISOString(),
+    type: 'warning',
+    message: 'High CPU usage detected',
+    source: 'monitoring',
+    details: { cpu: '87%', memory: '45%' }
+  },
+  {
+    id: uuidv4(),
+    timestamp: new Date(Date.now() - 7200000).toISOString(),
+    type: 'error',
+    message: 'Database connection failed',
+    source: 'database',
+    details: { error: 'Connection timeout' }
+  },
+  {
+    id: uuidv4(),
+    timestamp: new Date(Date.now() - 10800000).toISOString(),
+    type: 'debug',
+    message: 'Cache invalidated',
+    source: 'cache',
+  },
+  {
+    id: uuidv4(),
+    timestamp: new Date(Date.now() - 14400000).toISOString(),
+    type: 'success',
+    message: 'Backup completed successfully',
+    source: 'backup',
+  }
+];
+
+// Mock system status data
 const mockSystemStatus: SystemStatus = {
   overall_status: 'healthy',
   message: 'All systems operational',
-  uptime: 99.98,
+  uptime: 1209600, // 14 days in seconds
   last_updated: new Date().toISOString(),
   services: [
     {
-      name: 'Web Server',
-      status: 'healthy',
-      uptime: 99.9,
-      message: 'Operating normally',
-      lastChecked: new Date().toISOString()
-    },
-    {
       name: 'Database',
       status: 'healthy',
-      uptime: 99.99,
+      uptime: 1209600,
       message: 'Operating normally',
       lastChecked: new Date().toISOString()
     },
     {
-      name: 'Storage Service',
+      name: 'API',
       status: 'healthy',
-      uptime: 100,
+      uptime: 1209600,
       message: 'Operating normally',
       lastChecked: new Date().toISOString()
     },
     {
-      name: 'Email Service',
+      name: 'Storage',
       status: 'warning',
-      uptime: 98.5,
-      message: 'Slight delay in delivery',
+      uptime: 1209600,
+      message: 'High usage detected',
       lastChecked: new Date().toISOString()
     },
     {
-      name: 'Payment Gateway',
+      name: 'Authentication',
       status: 'healthy',
-      uptime: 99.95,
+      uptime: 1209600,
       message: 'Operating normally',
       lastChecked: new Date().toISOString()
     }
   ],
   metrics: {
     performance: [
-      { name: 'Response Time', value: 245, unit: 'ms' },
-      { name: 'CPU Usage', value: 32, unit: '%' },
-      { name: 'Memory Usage', value: 64, unit: '%' }
+      { name: 'CPU', value: 45, unit: '%' },
+      { name: 'Memory', value: 68, unit: '%' },
+      { name: 'Response Time', value: 120, unit: 'ms' }
     ],
     storage: [
-      { name: 'Database Size', value: 4.2, unit: 'GB' },
-      { name: 'Storage Used', value: 156, unit: 'GB' },
-      { name: 'Free Space', value: 844, unit: 'GB' }
+      { name: 'Disk Usage', value: 72, unit: '%' },
+      { name: 'Database Size', value: 1.2, unit: 'GB' },
+      { name: 'Uploads', value: 240, unit: 'MB/day' }
     ],
     usage: [
-      { name: 'Active Users', value: 243, unit: 'users' },
-      { name: 'Requests', value: '28.5K', unit: 'daily' },
-      { name: 'Errors', value: 12, unit: 'daily' }
+      { name: 'API Calls', value: 45600, unit: '/day' },
+      { name: 'Users', value: 1250, unit: 'active' },
+      { name: 'Bandwidth', value: 5.8, unit: 'GB/day' }
     ]
-  }
+  },
+  logs: mockSystemLogs.slice(0, 3)
 };
 
-// Mock system logs for development testing
-const mockSystemLogs: SystemLog[] = [
-  {
-    id: '1',
-    timestamp: new Date().toISOString(),
-    type: 'info',
-    message: 'System startup complete',
-    source: 'system'
-  },
-  {
-    id: '2',
-    timestamp: new Date(Date.now() - 15 * 60000).toISOString(),
-    type: 'warning',
-    message: 'High memory usage detected',
-    source: 'monitoring'
-  },
-  {
-    id: '3',
-    timestamp: new Date(Date.now() - 35 * 60000).toISOString(),
-    type: 'info',
-    message: 'Daily backup completed successfully',
-    source: 'backup'
-  },
-  {
-    id: '4',
-    timestamp: new Date(Date.now() - 60 * 60000).toISOString(),
-    type: 'error',
-    message: 'Failed to connect to email service',
-    source: 'email'
-  },
-  {
-    id: '5',
-    timestamp: new Date(Date.now() - 120 * 60000).toISOString(),
-    type: 'info',
-    message: 'User authentication successful',
-    source: 'auth'
-  }
-];
-
 /**
- * Service for system logs management
+ * Service for system logs operations
  */
 export const systemLogsService = {
   /**
-   * Get the current system status
+   * Get all system logs
+   */
+  getLogs: async (): Promise<SystemLog[]> => {
+    // In a real app, this would fetch from Supabase
+    return mockSystemLogs;
+  },
+
+  /**
+   * Get system status information
    */
   getSystemStatus: async (): Promise<SystemStatus> => {
-    try {
-      // For development, return the mock data
-      return mockSystemStatus;
-      
-      // In production, this would call Supabase
-      // const { data, error } = await supabase
-      //   .from('system_status')
-      //   .select('*')
-      //   .single();
-      
-      // if (error) throw error;
-      // return data as SystemStatus;
-    } catch (error) {
-      console.error('Error fetching system status:', error);
-      throw error;
-    }
+    // In a real app, this would fetch from Supabase
+    return mockSystemStatus;
   },
-  
-  /**
-   * Get system logs with optional filtering
-   */
-  getSystemLogs: async (limit: number = 20): Promise<SystemLog[]> => {
-    try {
-      // For development, return the mock data
-      return mockSystemLogs.slice(0, limit);
-      
-      // In production, this would call Supabase
-      // const { data, error } = await supabase
-      //   .from('system_logs')
-      //   .select('*')
-      //   .order('timestamp', { ascending: false })
-      //   .limit(limit);
-      
-      // if (error) throw error;
-      // return data as SystemLog[];
-    } catch (error) {
-      console.error('Error fetching system logs:', error);
-      throw error;
-    }
-  },
-  
+
   /**
    * Log a new system event
    */
-  logSystemEvent: async (type: 'error' | 'warning' | 'info', source: string, message: string): Promise<SystemLog> => {
-    try {
-      const newLog: SystemLog = {
-        id: Date.now().toString(),
-        timestamp: new Date().toISOString(),
-        type,
-        message,
-        source
-      };
-      
-      // In production, this would insert to Supabase
-      // const { data, error } = await supabase
-      //   .from('system_logs')
-      //   .insert([newLog])
-      //   .select()
-      //   .single();
-      
-      // if (error) throw error;
-      // return data as SystemLog;
-      
-      // For development, just return the mock log
-      return newLog;
-    } catch (error) {
-      console.error('Error logging system event:', error);
-      throw error;
-    }
+  logEvent: async (eventData: Omit<SystemLog, 'id' | 'timestamp'>): Promise<SystemLog> => {
+    // Generate a new log entry
+    const newLog: SystemLog = {
+      id: uuidv4(),
+      timestamp: new Date().toISOString(),
+      ...eventData
+    };
+    
+    // In a real app, this would insert into Supabase
+    mockSystemLogs.unshift(newLog);
+    
+    return newLog;
   }
 };

@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { SystemStatus } from '@/types/system/status';
-import { systemLogsService } from '@/services/logs/systemLogsService';
+import { systemLogsService } from '@/services/systemLogsService';
 
 export function useSystemStatus() {
   const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);

@@ -1,5 +1,4 @@
 
-// Add the required props to TeamMembersManager
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -7,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PlayerList from './team/PlayerList';
 import ManagementEditor from './ManagementEditor';
 import TeamMembersManager from './team/TeamMembersManager';
-import { TeamMember } from '@/services/teamService';
+import { TeamMember } from '@/types/team';
 import { deleteTeamMember } from '@/services/teamDbService';
 import { useTeamStore } from '@/services/teamService';
 
@@ -35,6 +34,12 @@ const TeamManager = () => {
     }
   };
 
+  // Make sure we're converting the TeamMember[] from teamService to the proper type
+  const typedTeamMembers = teamMembers.map(m => ({
+    ...m,
+    is_active: m.is_active === undefined ? true : m.is_active // Ensure is_active is always present
+  })) as TeamMember[];
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col">
@@ -54,7 +59,7 @@ const TeamManager = () => {
         
         <TabsContent value="players">
           <PlayerList 
-            players={teamMembers.filter(m => m.member_type === 'player')}
+            players={typedTeamMembers.filter(m => m.member_type === 'player')}
             isLoading={isLoading}
             onDeletePlayer={handleDeletePlayer}
           />
@@ -84,7 +89,7 @@ const TeamManager = () => {
         <TabsContent value="all">
           <TeamMembersManager 
             memberType="player"
-            members={teamMembers}
+            members={typedTeamMembers}
           />
         </TabsContent>
       </Tabs>

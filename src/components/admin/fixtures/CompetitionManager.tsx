@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -80,8 +79,9 @@ export const CompetitionManager: React.FC = () => {
       const competitionObjects = uniqueCompetitions.map((compName, index) => {
         // Determine competition type based on name
         let type: 'league' | 'cup' | 'friendly' = 'league';
-        if (compName.toLowerCase().includes('cup')) type = 'cup';
-        if (compName.toLowerCase().includes('friendly')) type = 'friendly';
+        const compNameStr = compName ? String(compName).toLowerCase() : '';
+        if (compNameStr.includes('cup')) type = 'cup';
+        if (compNameStr.includes('friendly')) type = 'friendly';
         
         // Assign random teams (between 6-16 teams)
         const shuffledTeams = [...uniqueTeams].sort(() => 0.5 - Math.random());
@@ -89,15 +89,15 @@ export const CompetitionManager: React.FC = () => {
         
         return {
           id: `comp-${index}`,
-          name: compName,
+          name: String(compName),
           season: '2023-2024',
           type,
-          teams: shuffledTeams.slice(0, teamCount),
+          teams: shuffledTeams.slice(0, teamCount).map(t => String(t)),
         };
       });
       
       setCompetitions(competitionObjects);
-      setAvailableTeams(uniqueTeams);
+      setAvailableTeams(uniqueTeams.map(team => String(team)));
     } catch (error) {
       console.error('Error fetching data:', error);
       toast.error('Failed to load competitions');

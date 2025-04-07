@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -96,9 +95,9 @@ const FixtureEditor: React.FC<FixtureEditorProps> = ({ fixtureId, onSave, onCanc
         
         const uniqueVenues = [...new Set(fixtureVenues.map(f => f.venue))].filter(Boolean).sort();
         
-        setCompetitions(uniqueCompetitions);
-        setTeams(uniqueTeams);
-        setVenues(uniqueVenues);
+        setCompetitions(uniqueCompetitions.map(comp => String(comp)));
+        setTeams(uniqueTeams.map(team => String(team)));
+        setVenues(uniqueVenues.map(venue => String(venue)));
       } catch (error) {
         console.error('Error fetching reference data:', error);
         toast.error('Failed to load reference data');

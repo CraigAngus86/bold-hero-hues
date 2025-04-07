@@ -57,3 +57,32 @@ export function formatDateISO(date: Date): string {
 export function parseDate(dateString: string): Date {
   return new Date(dateString);
 }
+
+/**
+ * Format a date in a human-readable format
+ * @param date Date to format
+ * @param includeTime Whether to include time component
+ * @returns Formatted date string
+ */
+export function formatDate(date: Date | string, includeTime: boolean = false): string {
+  if (!date) return '';
+  
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  
+  if (isNaN(dateObj.getTime())) {
+    return '';
+  }
+  
+  const options: Intl.DateTimeFormatOptions = {
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric'
+  };
+  
+  if (includeTime) {
+    options.hour = '2-digit';
+    options.minute = '2-digit';
+  }
+  
+  return dateObj.toLocaleDateString(undefined, options);
+}

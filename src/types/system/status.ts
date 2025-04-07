@@ -1,86 +1,85 @@
 
-export type SystemStatusType = 'healthy' | 'warning' | 'error' | 'maintenance';
+export type SystemStatusType = 'healthy' | 'warning' | 'critical' | 'unknown';
 
-export interface SystemStatusItem {
+export interface SystemService {
+  name: string;
+  status: SystemStatusType;
+  message?: string;
+  uptime?: number;
+  response_time?: number;
+  last_checked?: string;
+}
+
+export interface SystemMetric {
+  name: string;
+  value: number | string;
+  unit?: string;
+  change?: number;
+  changeDirection?: 'up' | 'down' | 'stable';
+  status?: SystemStatusType;
+  description?: string;
+}
+
+export interface SystemStatus {
+  overall_status: SystemStatusType;
+  last_updated: string;
+  uptime?: number;
+  version?: string;
+  services?: SystemService[];
+  metrics?: {
+    performance?: SystemMetric[];
+    storage?: SystemMetric[];
+    usage?: SystemMetric[];
+  };
+  messages?: string[];
+}
+
+export interface SystemStatusItemProps {
+  name: string;
+  status: SystemStatusType;
+  value: string;
+  metricValue?: string;
+  tooltip?: string;
+  lastChecked?: string;
+  icon?: React.ComponentType<any>;
+  color?: string;
+  viewAllLink?: string;
+  details?: string;
+}
+
+export interface SystemLog {
+  id: string;
+  timestamp: Date | string;
+  level: 'info' | 'warning' | 'error' | 'debug';
+  message: string;
+  source: string;
+  details?: any;
+}
+
+export interface SystemStatusProps {
+  systems: SystemStatus;
+  isLoading: boolean;
+  lastUpdated: Date;
+  onRefresh: () => void;
+  error?: string;
+}
+
+export interface StatusItemProps {
   name: string;
   status: SystemStatusType;
   value: string;
   metricValue: string;
   tooltip?: string;
-  details?: string;
-  lastChecked?: Date | string;
-  icon?: React.ComponentType;
+  lastChecked: string;
+  icon?: React.ComponentType<any>;
   color?: string;
   viewAllLink?: string;
-}
-
-export interface SystemStatusItemProps extends SystemStatusItem {
   details?: string;
-}
-
-export interface SystemMetric {
-  value: string | number;
-  trend?: 'up' | 'down' | 'stable';
-  percentage?: number;
-  name?: string;
-  unit?: string;
-  changeDirection?: 'up' | 'down' | 'neutral';
-  change?: number;
-}
-
-export interface SystemStatus {
-  status: SystemStatusType;
-  lastUpdated: string;
-  items: SystemStatusItem[];
-  metrics?: {
-    memory: SystemMetric;
-    cpu: SystemMetric;
-    storage: SystemMetric;
-    activeUsers: SystemMetric;
-    requests?: number;
-    [key: string]: SystemMetric | number | undefined;
-  };
-  message?: string;
-  uptime?: number;
-  version?: string;
-  services?: {
-    database: {
-      status: string;
-      latency: number;
-    };
-    api: {
-      status: string;
-      latency: number;
-      requestsPerMinute: number;
-    };
-    storage: {
-      status: string;
-      availableSpace: number;
-      totalSize: number;
-    };
-    [key: string]: any;
-  };
-}
-
-export interface SystemLog {
-  id: string;
-  timestamp: string;
-  type: 'info' | 'warning' | 'error' | 'debug';
-  message: string;
-  source: string;
-  created_at?: string;
 }
 
 export interface SystemStatusPanelProps {
-  status: SystemStatus | null;
+  status: SystemStatus;
   isLoading: boolean;
-  error?: string | null;
-  onRefresh?: () => void;
-}
-
-export interface SystemStatusProps {
-  systems: SystemStatusItem[];
-  isLoading: boolean;
-  lastUpdated: Date;
   onRefresh: () => void;
+  error?: string;
 }

@@ -46,6 +46,9 @@ export interface SponsorContact {
   is_primary?: boolean;
   created_at?: string;
   updated_at?: string;
+  role?: string;
+  primary_contact?: boolean;
+  notes?: string;
 }
 
 export interface SponsorDisplaySettings {
@@ -80,4 +83,14 @@ export interface SponsorCommunication {
   follow_up_date?: string;
   created_at?: string;
   updated_at?: string;
+  type?: string;
+  subject?: string;
+  content?: string;
+  created_by?: string;
+}
+
+export interface DbServiceResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
 }

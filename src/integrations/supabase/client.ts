@@ -4,66 +4,142 @@
 
 export const supabase = {
   from: (table: string) => ({
-    select: (columns: string = '*') => ({
-      eq: (column: string, value: any) => ({
-        single: () => Promise.resolve({ data: null, error: null }),
-        order: (column: string, options?: { ascending?: boolean }) => 
-          Promise.resolve({ data: [], error: null }),
-        limit: (count: number) => Promise.resolve({ data: [], error: null }),
-        range: (from: number, to: number) => Promise.resolve({ data: [], error: null }),
-        or: (filter: string) => Promise.resolve({ data: [], error: null }),
-        gte: (column: string, value: any) => Promise.resolve({ data: [], error: null }),
-        lte: (column: string, value: any) => Promise.resolve({ data: [], error: null }),
-        neq: (column: string, value: any) => Promise.resolve({ data: [], error: null }),
-        not: (column: string, value: any) => Promise.resolve({ data: [], error: null }),
-        in: (column: string, values: any[]) => Promise.resolve({ data: [], error: null }),
-        count: (options?: { exact?: boolean }) => Promise.resolve({ data: 0, error: null }),
-        maybeSingle: () => Promise.resolve({ data: null, error: null }),
+    select: (columns: string = '*') => {
+      const baseResponse = {
+        data: [],
+        error: null,
+        count: 0,
         data: null,
         error: null,
-      }),
-      order: (column: string, options?: { ascending?: boolean }) => ({
-        eq: (column: string, value: any) => Promise.resolve({ data: [], error: null }),
-        limit: (count: number) => Promise.resolve({ data: [], error: null }),
-        range: (from: number, to: number) => Promise.resolve({ data: [], error: null }),
-        or: (filter: string) => Promise.resolve({ data: [], error: null }),
-        gte: (column: string, value: any) => Promise.resolve({ data: [], error: null }),
-        lte: (column: string, value: any) => Promise.resolve({ data: [], error: null }),
-        neq: (column: string, value: any) => Promise.resolve({ data: [], error: null }),
-        not: (column: string, value: any) => Promise.resolve({ data: [], error: null }),
-        in: (column: string, values: any[]) => Promise.resolve({ data: [], error: null }),
-      }),
-      limit: (count: number) => Promise.resolve({ data: [], error: null }),
-      range: (from: number, to: number) => Promise.resolve({ data: [], error: null }),
-      or: (filter: string) => Promise.resolve({ data: [], error: null }),
-      gte: (column: string, value: any) => Promise.resolve({ data: [], error: null }),
-      lte: (column: string, value: any) => Promise.resolve({ data: [], error: null }),
-      neq: (column: string, value: any) => Promise.resolve({ data: [], error: null }),
-      not: (column: string, value: any) => Promise.resolve({ data: [], error: null }),
-      in: (column: string, values: any[]) => Promise.resolve({ data: [], error: null }),
-      count: (options?: { exact?: boolean }) => Promise.resolve({ data: 0, error: null }),
-      data: null,
-      error: null,
-    }),
-    insert: (data: any) => Promise.resolve({ data: null, error: null }),
-    upsert: (data: any, options?: any) => Promise.resolve({ data: null, error: null }),
+      };
+      
+      const chainableMethods = {
+        eq: (column: string, value: any) => ({
+          ...chainableMethods,
+          ...baseResponse,
+          data: [],
+          error: null,
+          single: () => Promise.resolve({ data: null, error: null }),
+          maybeSingle: () => Promise.resolve({ data: null, error: null }),
+          then: (callback: any) => Promise.resolve({ data: [], error: null }).then(callback)
+        }),
+        neq: (column: string, value: any) => ({
+          ...chainableMethods,
+          ...baseResponse,
+          data: [],
+          error: null,
+          then: (callback: any) => Promise.resolve({ data: [], error: null }).then(callback)
+        }),
+        gt: (column: string, value: any) => ({
+          ...chainableMethods,
+          ...baseResponse,
+          data: [],
+          error: null,
+        }),
+        gte: (column: string, value: any) => ({
+          ...chainableMethods,
+          ...baseResponse,
+          data: [],
+          error: null,
+        }),
+        lt: (column: string, value: any) => ({
+          ...chainableMethods,
+          ...baseResponse,
+          data: [],
+          error: null,
+        }),
+        lte: (column: string, value: any) => ({
+          ...chainableMethods,
+          ...baseResponse,
+          data: [],
+          error: null,
+        }),
+        in: (column: string, values: any[]) => ({
+          ...chainableMethods,
+          ...baseResponse,
+          data: [],
+          error: null,
+        }),
+        is: (column: string, value: any) => ({
+          ...chainableMethods,
+          ...baseResponse,
+          data: [],
+          error: null,
+        }),
+        not: (column: string, value: any) => ({
+          ...chainableMethods,
+          ...baseResponse,
+          data: [],
+          error: null,
+        }),
+        or: (filter: string) => ({
+          ...chainableMethods,
+          ...baseResponse,
+          data: [],
+          error: null,
+        }),
+        single: () => Promise.resolve({ data: null, error: null }),
+        maybeSingle: () => Promise.resolve({ data: null, error: null }),
+        order: (column: string, options?: { ascending?: boolean }) => ({
+          ...chainableMethods,
+          ...baseResponse,
+          data: [],
+          error: null,
+        }),
+        limit: (count: number) => ({
+          ...chainableMethods,
+          ...baseResponse,
+          data: [],
+          error: null,
+        }),
+        range: (from: number, to: number) => ({
+          ...chainableMethods,
+          ...baseResponse,
+          data: [],
+          error: null,
+        }),
+        count: (options?: { exact?: boolean }) => Promise.resolve({ data: 0, error: null }),
+        then: (callback: any) => Promise.resolve({ data: [], error: null, count: 0 }).then(callback)
+      };
+      
+      return {
+        ...chainableMethods,
+        ...baseResponse,
+        data: [],
+        error: null,
+      };
+    },
+    insert: (data: any) => {
+      return {
+        select: () => Promise.resolve({ data: null, error: null }),
+        then: (callback: any) => Promise.resolve({ data: null, error: null }).then(callback)
+      };
+    },
+    upsert: (data: any, options?: any) => {
+      return {
+        select: () => Promise.resolve({ data: null, error: null }),
+        then: (callback: any) => Promise.resolve({ data: null, error: null }).then(callback)
+      };
+    },
     update: (data: any) => ({
       eq: (column: string, value: any) => Promise.resolve({ data: null, error: null }),
+      then: (callback: any) => Promise.resolve({ data: null, error: null }).then(callback)
     }),
     delete: () => ({
       eq: (column: string, value: any) => Promise.resolve({ data: null, error: null }),
       in: (column: string, values: any[]) => Promise.resolve({ data: null, error: null }),
+      then: (callback: any) => Promise.resolve({ data: null, error: null }).then(callback)
     }),
-    limit: (count: number) => Promise.resolve({ data: [], error: null }),
-    maybeSingle: () => Promise.resolve({ data: null, error: null }),
-    data: null,
-    error: null,
+    count: (options?: { exact?: boolean }) => Promise.resolve({ data: 0, error: null }),
   }),
   storage: {
     from: (bucket: string) => ({
       upload: (path: string, file: File) => Promise.resolve({ data: { path }, error: null }),
-      getPublicUrl: (path: string) => ({ publicUrl: `https://example.com/${path}`, data: { publicUrl: `https://example.com/${path}` } }),
-      list: (path: string) => Promise.resolve({ data: [], error: null }),
+      getPublicUrl: (path: string) => ({ 
+        data: { publicUrl: `https://example.com/${path}` },
+        publicUrl: `https://example.com/${path}` 
+      }),
+      list: (path: string, options?: any) => Promise.resolve({ data: [], error: null }),
     }),
   },
   auth: {
@@ -72,9 +148,9 @@ export const supabase = {
     signIn: (credentials: { email: string, password: string }) => 
       Promise.resolve({ data: null, error: null }),
     signOut: () => Promise.resolve({ error: null }),
-    onAuthStateChange: (callback: () => void) => ({ data: { subscription: { unsubscribe: () => {} } } }),
-    resetPasswordForEmail: (email: string) => Promise.resolve({ data: null, error: null }),
+    resetPasswordForEmail: (email: string, options?: any) => Promise.resolve({ data: null, error: null }),
     updateUser: (data: any) => Promise.resolve({ data: null, error: null }),
+    onAuthStateChange: (callback: () => void) => ({ data: { subscription: { unsubscribe: () => {} } } }),
     admin: {
       listUsers: () => Promise.resolve({ data: [], error: null }),
       getUserById: (id: string) => Promise.resolve({ data: null, error: null }),

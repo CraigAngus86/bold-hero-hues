@@ -26,7 +26,12 @@ export default function Dashboard() {
         <Card className="col-span-full">
           <CardContent className="pt-6">
             {status && !isLoading ? (
-              <SystemStatusPanel status={status} isLoading={isLoading} error={error} onRefresh={handleRefresh} />
+              <SystemStatusPanel 
+                status={status} 
+                isLoading={isLoading} 
+                onRefresh={handleRefresh}
+                error={error || undefined}
+              />
             ) : (
               <div className="py-6 text-center">Loading system status...</div>
             )}

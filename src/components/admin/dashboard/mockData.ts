@@ -1,6 +1,7 @@
 
 import { ServerStatus, SystemStatusItemProps, SystemStatusName } from '@/types/system/status';
 import { Database, HardDrive, Clock, Users } from 'lucide-react';
+import React from 'react';
 
 export const mockStatusItems: SystemStatusItemProps[] = [
   {
@@ -10,7 +11,7 @@ export const mockStatusItems: SystemStatusItemProps[] = [
     metricValue: '99.9%',
     tooltip: 'API server is running normally',
     lastChecked: new Date(),
-    icon: <Database className="h-4 w-4" />,
+    icon: React.createElement(Database, { className: "h-4 w-4" }),
     color: 'green'
   },
   {
@@ -20,7 +21,7 @@ export const mockStatusItems: SystemStatusItemProps[] = [
     metricValue: '30ms',
     tooltip: 'Database response time normal',
     lastChecked: new Date(),
-    icon: <HardDrive className="h-4 w-4" />,
+    icon: React.createElement(HardDrive, { className: "h-4 w-4" }),
     color: 'green'
   },
   {
@@ -30,7 +31,7 @@ export const mockStatusItems: SystemStatusItemProps[] = [
     metricValue: '12ms',
     tooltip: 'Cache hit rate: 94%',
     lastChecked: new Date(),
-    icon: <Clock className="h-4 w-4" />,
+    icon: React.createElement(Clock, { className: "h-4 w-4" }),
     color: 'green'
   },
   {
@@ -40,7 +41,7 @@ export const mockStatusItems: SystemStatusItemProps[] = [
     metricValue: '1.2k',
     tooltip: '1,247 active users in the last 24h',
     lastChecked: new Date(),
-    icon: <Users className="h-4 w-4" />,
+    icon: React.createElement(Users, { className: "h-4 w-4" }),
     color: 'green'
   }
 ];

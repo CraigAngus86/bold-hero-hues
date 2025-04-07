@@ -1,64 +1,116 @@
 
 import { useState, useEffect } from 'react';
 import { Fixture } from '@/types/fixtures';
-import { getAllFixtures } from '@/services/fixturesService';
-import { toast } from 'sonner';
-import { fixturesToMatches } from '@/utils/fixtureUtils';
+
+// Mock data for fixtures
+const mockFixtures = [
+  {
+    id: 'next-1',
+    date: '2025-05-15',
+    time: '15:00',
+    home_team: 'Banks o\' Dee',
+    away_team: 'Formartine United',
+    competition: 'Highland League',
+    venue: 'Spain Park',
+    is_completed: false,
+    is_next_match: true,
+    ticket_link: '/tickets/next-match'
+  },
+  {
+    id: 'fixture-2',
+    date: '2025-05-22',
+    time: '19:45',
+    home_team: 'Fraserburgh',
+    away_team: 'Banks o\' Dee',
+    competition: 'Highland League Cup',
+    venue: 'Bellslea Park',
+    is_completed: false,
+    is_next_match: false
+  },
+  {
+    id: 'fixture-3',
+    date: '2025-06-05',
+    time: '15:00',
+    home_team: 'Banks o\' Dee',
+    away_team: 'Buckie Thistle',
+    competition: 'Highland League',
+    venue: 'Spain Park',
+    is_completed: false,
+    is_next_match: false
+  },
+  // Recent results
+  {
+    id: 'result-1',
+    date: '2025-05-01',
+    time: '15:00',
+    home_team: 'Banks o\' Dee',
+    away_team: 'Keith FC',
+    home_score: 3,
+    away_score: 1,
+    competition: 'Highland League',
+    venue: 'Spain Park',
+    is_completed: true,
+    is_latest_result: true
+  },
+  {
+    id: 'result-2',
+    date: '2025-04-24',
+    time: '15:00',
+    home_team: 'Rothes',
+    away_team: 'Banks o\' Dee',
+    home_score: 1,
+    away_score: 2,
+    competition: 'Highland League Cup',
+    venue: 'Mackessack Park',
+    is_completed: true
+  },
+  {
+    id: 'result-3',
+    date: '2025-04-17',
+    time: '15:00',
+    home_team: 'Banks o\' Dee',
+    away_team: 'Brora Rangers',
+    home_score: 0,
+    away_score: 2,
+    competition: 'Highland League',
+    venue: 'Spain Park',
+    is_completed: true
+  }
+];
 
 export const useFixturesData = () => {
+  const [isLoading, setIsLoading] = useState(true);
   const [upcomingFixtures, setUpcomingFixtures] = useState<Fixture[]>([]);
   const [recentResults, setRecentResults] = useState<Fixture[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [nextMatch, setNextMatch] = useState<Fixture | null>(null);
   
   useEffect(() => {
-    const fetchFixtures = async () => {
-      setIsLoading(true);
-      
+    // Simulate API request
+    const fetchData = async () => {
       try {
-        const response = await getAllFixtures();
+        await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network request
         
-        if (response.success && response.data) {
-          const today = new Date();
-          
-          // Filter for upcoming fixtures (not completed and date is in the future)
-          const upcoming = response.data
-            .filter(fixture => !fixture.is_completed && new Date(fixture.date) >= today)
-            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-            .slice(0, 4);
-          
-          // Filter for recent results (completed)
-          const recent = response.data
-            .filter(fixture => fixture.is_completed)
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-            .slice(0, 3);
-          
-          setUpcomingFixtures(upcoming);
-          setRecentResults(recent);
-        }
+        const upcoming = mockFixtures.filter(fixture => !fixture.is_completed);
+        const results = mockFixtures.filter(fixture => fixture.is_completed);
+        
+        setUpcomingFixtures(upcoming);
+        setRecentResults(results);
+        setNextMatch(upcoming.find(fixture => fixture.is_next_match) || upcoming[0] || null);
+        
       } catch (error) {
-        console.error('Failed to fetch fixtures:', error);
-        toast.error('Failed to load fixtures data');
+        console.error('Error fetching fixtures data:', error);
       } finally {
         setIsLoading(false);
       }
     };
     
-    fetchFixtures();
+    fetchData();
   }, []);
   
-  // Get next match (first upcoming fixture)
-  const nextMatch = upcomingFixtures.length > 0 ? upcomingFixtures[0] : null;
-  
-  // Convert database fixtures to UI match format
-  const upcomingMatches = upcomingFixtures.length > 0 ? fixturesToMatches(upcomingFixtures) : [];
-  const recentMatches = recentResults.length > 0 ? fixturesToMatches(recentResults) : [];
-  
   return {
-    upcomingFixtures,
-    recentResults,
-    upcomingMatches,
-    recentMatches,
     isLoading,
+    upcomingFixtures,
+    recentResults, 
     nextMatch
   };
 };

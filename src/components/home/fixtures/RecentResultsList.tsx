@@ -1,63 +1,126 @@
 
 import React from 'react';
-import { Clock } from 'lucide-react';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 import { Fixture } from '@/types/fixtures';
+import { cn } from '@/lib/utils';
 
-interface RecentResultsProps {
+interface RecentResultsListProps {
   results: Fixture[];
-  formatMatchDate: (dateStr: string) => string;
+  formatMatchDate: (date: string) => string;
   isBanksODee: (team: string) => boolean;
 }
 
-const RecentResultsList: React.FC<RecentResultsProps> = ({ 
+const RecentResultsList: React.FC<RecentResultsListProps> = ({ 
   results, 
-  formatMatchDate, 
-  isBanksODee 
+  formatMatchDate,
+  isBanksODee
 }) => {
+  if (results.length === 0) {
+    return (
+      <Card className="h-full">
+        <CardHeader>
+          <CardTitle className="text-lg font-bold">Recent Results</CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center h-48">
+          <p className="text-gray-500">No recent results available</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const getResultStyle = (
+    homeTeam: string, 
+    awayTeam: string, 
+    homeScore?: number | null, 
+    awayScore?: number | null
+  ) => {
+    if (homeScore === undefined || awayScore === undefined || homeScore === null || awayScore === null) 
+      return "";
+    
+    const isHomeWin = homeScore > awayScore;
+    const isAwayWin = awayScore > homeScore;
+    const isDraw = homeScore === awayScore;
+    
+    if (isBanksODee(homeTeam)) {
+      if (isHomeWin) return "bg-green-100 text-green-800";
+      if (isAwayWin) return "bg-red-100 text-red-800";
+      if (isDraw) return "bg-amber-100 text-amber-800";
+    } else if (isBanksODee(awayTeam)) {
+      if (isAwayWin) return "bg-green-100 text-green-800";
+      if (isHomeWin) return "bg-red-100 text-red-800";
+      if (isDraw) return "bg-amber-100 text-amber-800";
+    }
+    
+    return "bg-gray-100 text-gray-800";
+  };
+
   return (
-    <Card className="border-team-lightBlue shadow-sm hover:shadow-md transition-shadow">
-      <CardHeader className="bg-team-blue text-white p-4">
-        <h3 className="text-lg font-semibold flex items-center">
-          <Clock className="w-5 h-5 mr-2" />
+    <Card className="h-full">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg font-bold flex justify-between items-center">
           Recent Results
-        </h3>
+          <Link to="/results" className="text-sm text-blue-600 hover:underline flex items-center">
+            View All <ArrowRight className="h-3 w-3 ml-1" />
+          </Link>
+        </CardTitle>
       </CardHeader>
-      <CardContent className="p-4">
-        {results.length > 0 ? (
-          <div className="space-y-3">
-            {results.map(result => (
-              <div key={result.id} className="border-b border-gray-100 last:border-0 pb-3 last:pb-0">
-                <div className="text-xs text-gray-500 mb-2">
-                  {formatMatchDate(result.date)} • {result.competition}
+      
+      <CardContent className="p-3">
+        <div className="space-y-3">
+          {results.map((result) => (
+            <div 
+              key={result.id}
+              className="p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
+            >
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-xs font-medium text-gray-500">{formatMatchDate(result.date)}</span>
+                <span className="text-xs font-medium bg-team-blue/10 text-team-blue px-2 py-0.5 rounded-full">
+                  {result.competition}
+                </span>
+              </div>
+              
+              <div className="flex justify-between items-center">
+                <div className="text-sm text-right w-5/12">
+                  <span className={cn(
+                    "font-semibold",
+                    isBanksODee(result.home_team) ? "text-team-blue" : "text-gray-800"
+                  )}>
+                    {result.home_team}
+                  </span>
                 </div>
-                <div className="flex items-center">
-                  <div className="flex-1 text-right pr-3">
-                    <span className={`font-medium ${isBanksODee(result.home_team) ? 'text-team-blue' : ''}`}>
-                      {result.home_team}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center justify-center space-x-3 font-bold">
-                    <span className="bg-team-lightBlue text-team-blue px-2 py-1 rounded-sm min-w-[24px] text-center">{result.home_score}</span>
-                    <span className="text-xs">-</span>
-                    <span className="bg-team-lightBlue text-team-blue px-2 py-1 rounded-sm min-w-[24px] text-center">{result.away_score}</span>
-                  </div>
-                  
-                  <div className="flex-1 pl-3">
-                    <span className={`font-medium ${isBanksODee(result.away_team) ? 'text-team-blue' : ''}`}>
-                      {result.away_team}
-                    </span>
-                  </div>
+                
+                <div className="mx-2 px-3 py-1 rounded-md text-center w-2/12">
+                  <span className={cn(
+                    "font-bold",
+                    getResultStyle(result.home_team, result.away_team, result.home_score, result.away_score)
+                  )}>
+                    {result.home_score} - {result.away_score}
+                  </span>
+                </div>
+                
+                <div className="text-sm w-5/12">
+                  <span className={cn(
+                    "font-semibold",
+                    isBanksODee(result.away_team) ? "text-team-blue" : "text-gray-800"
+                  )}>
+                    {result.away_team}
+                  </span>
                 </div>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="flex items-center justify-center h-24">
-            <p className="text-gray-500">No recent results</p>
-          </div>
-        )}
+              
+              <div className="mt-2 text-right">
+                <Link 
+                  to={`/fixtures/${result.id}`} 
+                  className="text-xs text-team-blue hover:underline"
+                >
+                  Match Report
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );

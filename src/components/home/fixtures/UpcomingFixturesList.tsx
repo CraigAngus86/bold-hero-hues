@@ -1,59 +1,91 @@
 
 import React from 'react';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Fixture } from '@/types/fixtures';
+import { Calendar, Clock, MapPin, Ticket } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 
-interface UpcomingFixturesProps {
+interface UpcomingFixturesListProps {
   fixtures: Fixture[];
-  formatMatchDate: (dateStr: string) => string;
+  formatMatchDate: (date: string) => string;
   isBanksODee: (team: string) => boolean;
 }
 
-const UpcomingFixturesList: React.FC<UpcomingFixturesProps> = ({ 
+const UpcomingFixturesList: React.FC<UpcomingFixturesListProps> = ({ 
   fixtures, 
-  formatMatchDate, 
-  isBanksODee 
+  formatMatchDate,
+  isBanksODee
 }) => {
   if (fixtures.length === 0) {
     return null;
   }
-  
+
   return (
-    <Card className="border-team-lightBlue shadow-sm hover:shadow-md transition-shadow">
-      <CardHeader className="bg-team-blue text-white p-4">
-        <h3 className="text-lg font-semibold">Upcoming Fixtures</h3>
-      </CardHeader>
-      <CardContent className="p-4">
-        <div className="space-y-3">
-          {fixtures.map(fixture => (
-            <div key={fixture.id} className="border-b border-gray-100 last:border-0 pb-3 last:pb-0">
-              <div className="text-xs text-gray-500 mb-2">
-                {formatMatchDate(fixture.date)} • {fixture.time} • {fixture.competition}
+    <div className="bg-white rounded-lg shadow">
+      <div className="p-3">
+        <h3 className="text-sm font-bold mb-2">More Fixtures</h3>
+        
+        <div className="space-y-2">
+          {fixtures.map((fixture) => (
+            <div 
+              key={fixture.id}
+              className="p-2 bg-gray-50 rounded-md text-sm hover:bg-gray-100 transition-colors"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-gray-500">{formatMatchDate(fixture.date)}</span>
+                <span className="text-xs bg-team-blue/10 text-team-blue px-1.5 py-0.5 rounded-full">
+                  {fixture.competition}
+                </span>
               </div>
-              <div className="flex items-center">
-                <div className="flex-1 text-right pr-3">
-                  <span className={`font-medium ${isBanksODee(fixture.home_team) ? 'text-team-blue' : ''}`}>
-                    {fixture.home_team}
-                  </span>
+              
+              <div className="flex justify-between items-center">
+                <span className={cn(
+                  "text-xs font-medium",
+                  isBanksODee(fixture.home_team) ? "text-team-blue" : "text-gray-800"
+                )}>
+                  {fixture.home_team}
+                </span>
+                
+                <span className="mx-1 text-xs bg-gray-100 px-2 rounded">vs</span>
+                
+                <span className={cn(
+                  "text-xs font-medium",
+                  isBanksODee(fixture.away_team) ? "text-team-blue" : "text-gray-800"
+                )}>
+                  {fixture.away_team}
+                </span>
+              </div>
+              
+              <div className="mt-1 flex justify-between items-center text-xs">
+                <div className="flex items-center text-gray-500">
+                  <Clock className="h-3 w-3 mr-1" />
+                  <span>{fixture.time}</span>
                 </div>
                 
-                <div className="flex items-center justify-center px-3">
-                  <span className="bg-team-lightBlue text-team-blue text-xs font-semibold px-2 py-1 rounded-sm">
-                    VS
-                  </span>
-                </div>
-                
-                <div className="flex-1 pl-3">
-                  <span className={`font-medium ${isBanksODee(fixture.away_team) ? 'text-team-blue' : ''}`}>
-                    {fixture.away_team}
-                  </span>
-                </div>
+                {fixture.ticket_link && (
+                  <Link 
+                    to={fixture.ticket_link} 
+                    className="text-team-blue hover:underline flex items-center"
+                  >
+                    <Ticket className="h-3 w-3 mr-0.5" />
+                    Tickets
+                  </Link>
+                )}
               </div>
             </div>
           ))}
         </div>
-      </CardContent>
-    </Card>
+        
+        <div className="mt-3 text-center">
+          <Link 
+            to="/fixtures" 
+            className="text-xs text-team-blue hover:underline"
+          >
+            View All Fixtures
+          </Link>
+        </div>
+      </div>
+    </div>
   );
 };
 

@@ -1,40 +1,69 @@
 
-import { Match } from '@/components/fixtures/types';
-import { format, parseISO } from 'date-fns';
+// Helper functions for fixtures
 
-/**
- * Format a match date into a readable format
- */
-export const formatMatchDate = (dateString: string): string => {
-  try {
-    const date = parseISO(dateString);
-    return format(date, 'EEE, d MMM yyyy');
-  } catch (error) {
-    console.error('Error formatting date:', dateString, error);
-    return dateString;
+// Format the match date in a nice format (e.g. "Sat, 15 May")
+export const formatMatchDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return `${date.toLocaleDateString('en-GB', { weekday: 'short' })}, ${date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`;
+};
+
+// Check if a team is Banks o' Dee (used for styling)
+export const isBanksODee = (teamName: string) => {
+  return teamName.toLowerCase().includes('banks o\' dee');
+};
+
+// Format time (e.g. "15:00" to "3:00 PM")
+export const formatMatchTime = (timeString: string) => {
+  if (!timeString) return '';
+  const [hours, minutes] = timeString.split(':');
+  const hour = parseInt(hours);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const formattedHour = hour % 12 || 12;
+  return `${formattedHour}:${minutes} ${ampm}`;
+};
+
+// Calculate days remaining until match
+export const getDaysUntilMatch = (dateString: string) => {
+  const matchDate = new Date(dateString);
+  const today = new Date();
+  
+  // Reset time part for accurate day calculation
+  matchDate.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+  
+  const diffTime = matchDate.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  return diffDays;
+};
+
+// Get result text (Win, Loss, Draw) from a Banks o' Dee perspective
+export const getMatchResult = (homeTeam: string, awayTeam: string, homeScore?: number | null, awayScore?: number | null) => {
+  if (homeScore === undefined || awayScore === undefined) return null;
+  
+  const isBODHome = isBanksODee(homeTeam);
+  
+  if (homeScore === awayScore) return 'Draw';
+  
+  if (isBODHome) {
+    return homeScore > awayScore ? 'Win' : 'Loss';
+  } else {
+    return awayScore > homeScore ? 'Win' : 'Loss';
   }
 };
 
-/**
- * Check if a team in a match is Banks o' Dee
- */
-export const isBanksODee = (teamName: string): boolean => {
-  return teamName.toLowerCase().includes('banks o') || 
-         teamName.toLowerCase().includes("banks o'") ||
-         teamName.toLowerCase().includes('banks-o');
-};
-
-/**
- * Get the score as a string
- */
-export const getScoreDisplay = (match: Match): string => {
-  if (!match.isCompleted) {
-    return 'vs';
-  }
+// Get result color class for styling
+export const getResultColorClass = (result: string | null) => {
+  if (!result) return '';
   
-  if (match.homeScore !== undefined && match.awayScore !== undefined) {
-    return `${match.homeScore} - ${match.awayScore}`;
+  switch (result) {
+    case 'Win':
+      return 'text-green-600 bg-green-50';
+    case 'Loss':
+      return 'text-red-600 bg-red-50';
+    case 'Draw':
+      return 'text-amber-600 bg-amber-50';
+    default:
+      return '';
   }
-  
-  return 'vs';
 };

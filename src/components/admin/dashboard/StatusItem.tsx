@@ -1,16 +1,15 @@
 
 import React from 'react';
-import { CheckCircle, AlertCircle, AlertTriangle, HelpCircle } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 import { SystemStatusType } from '@/types/system/status';
 
 interface StatusItemProps {
   name: string;
   status: SystemStatusType;
-  value?: string;
-  metricValue?: string;
-  details?: string;
+  metricValue?: string | number;
   icon?: React.ElementType;
-  count?: number;
+  tooltip?: string;
+  lastChecked?: string;
   color?: string;
   viewAllLink?: string;
 }
@@ -18,60 +17,46 @@ interface StatusItemProps {
 const StatusItem: React.FC<StatusItemProps> = ({
   name,
   status,
-  value,
   metricValue,
-  details,
   icon: Icon,
-  count,
-  color = 'bg-gray-50',
+  tooltip,
+  color,
   viewAllLink
 }) => {
-  const getStatusIcon = () => {
+  const getStatusColor = () => {
     switch (status) {
-      case 'error':
-        return <AlertCircle className="h-5 w-5 text-red-500" />;
-      case 'warning':
-        return <AlertTriangle className="h-5 w-5 text-amber-500" />;
-      case 'healthy':
-        return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 'unknown':
-      default:
-        return <HelpCircle className="h-5 w-5 text-gray-400" />;
+      case 'healthy': return 'bg-green-500';
+      case 'warning': return 'bg-amber-500';
+      case 'error': return 'bg-red-500';
+      default: return 'bg-gray-500';
     }
   };
-
+  
   return (
-    <div className={`p-4 rounded-lg shadow-sm border ${color}`}>
-      <div className="flex justify-between items-start">
-        <div className="flex items-center">
-          {Icon && <Icon className="h-5 w-5 mr-2 text-gray-500" />}
-          <h3 className="font-medium">{name}</h3>
+    <Card className={`relative ${color || 'bg-white'} overflow-hidden hover:shadow-md transition-shadow`}>
+      <div className="p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            {Icon && <Icon className="h-5 w-5 text-gray-500" />}
+            <span className="font-medium text-sm">{name}</span>
+          </div>
+          <div className="flex items-center space-x-1">
+            <div className={`h-2 w-2 rounded-full ${getStatusColor()}`}></div>
+          </div>
         </div>
-        <div>{getStatusIcon()}</div>
-      </div>
-      
-      <div className="mt-2">
-        {(value || typeof count !== 'undefined') && (
-          <div className="flex items-end">
-            <span className="text-2xl font-bold">{value || count}</span>
-            {metricValue && (
-              <span className={`ml-2 text-sm ${status === 'healthy' ? 'text-green-600' : status === 'error' ? 'text-red-600' : 'text-gray-500'}`}>
-                {metricValue}
-              </span>
-            )}
+        <div className="mt-2">
+          <div className="text-2xl font-bold">{metricValue || '-'}</div>
+        </div>
+        {tooltip && (
+          <div className="text-xs text-gray-500 mt-1">{tooltip}</div>
+        )}
+        {viewAllLink && (
+          <div className="absolute bottom-2 right-3">
+            <a href={viewAllLink} className="text-xs text-blue-600 hover:underline">View all</a>
           </div>
         )}
-        {details && <p className="mt-1 text-sm text-gray-500">{details}</p>}
       </div>
-      
-      {viewAllLink && (
-        <div className="mt-4">
-          <a href={viewAllLink} className="text-sm text-blue-600 hover:underline">
-            View all
-          </a>
-        </div>
-      )}
-    </div>
+    </Card>
   );
 };
 

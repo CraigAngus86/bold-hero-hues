@@ -79,43 +79,47 @@ const SystemStatusPanel = () => {
           </div>
         ) : status ? (
           <div className="space-y-4">
-            <StatusIndicator status={status.status} />
+            <StatusIndicator status={status.status as 'healthy' | 'warning' | 'error' | 'unknown'} />
             
             <div className="text-xs text-gray-500 pb-2">
               Last updated: {formatTime(status.lastUpdated)}
             </div>
             
-            <div className="space-y-3">
-              <div>
-                <div className="flex justify-between text-xs mb-1">
-                  <span>CPU</span>
-                  <span>{status.metrics.cpu}%</span>
+            {status.metrics && (
+              <div className="space-y-3">
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span>CPU</span>
+                    <span>{status.metrics.cpu}%</span>
+                  </div>
+                  <Progress value={status.metrics.cpu} className="h-1"/>
                 </div>
-                <Progress value={status.metrics.cpu} className="h-1"/>
-              </div>
-              
-              <div>
-                <div className="flex justify-between text-xs mb-1">
-                  <span>Memory</span>
-                  <span>{status.metrics.memory}%</span>
+                
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span>Memory</span>
+                    <span>{status.metrics.memory}%</span>
+                  </div>
+                  <Progress value={status.metrics.memory} className="h-1"/>
                 </div>
-                <Progress value={status.metrics.memory} className="h-1"/>
-              </div>
-              
-              <div>
-                <div className="flex justify-between text-xs mb-1">
-                  <span>Storage</span>
-                  <span>{status.metrics.storage}%</span>
+                
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span>Storage</span>
+                    <span>{status.metrics.storage}%</span>
+                  </div>
+                  <Progress value={status.metrics.storage} className="h-1"/>
                 </div>
-                <Progress value={status.metrics.storage} className="h-1"/>
               </div>
-            </div>
+            )}
             
             <div className="mt-2 pt-2 border-t text-xs text-gray-700">
-              <div className="flex justify-between pb-1">
-                <span>Requests (24h)</span>
-                <span>{status.metrics.requests}</span>
-              </div>
+              {status.metrics && (
+                <div className="flex justify-between pb-1">
+                  <span>Requests (24h)</span>
+                  <span>{status.metrics.requests}</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span>Message</span>
                 <span>{status.message || 'No issues detected'}</span>

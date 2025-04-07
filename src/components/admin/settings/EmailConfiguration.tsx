@@ -115,6 +115,7 @@ const EmailConfiguration = () => {
   const [isEditTemplateOpen, setIsEditTemplateOpen] = useState(false);
   const [logs, setLogs] = useState<EmailLog[]>([]);
   const [isLoadingLogs, setIsLoadingLogs] = useState(true);
+  const [showNewTemplateForm, setShowNewTemplateForm] = useState(false);
 
   // Email config form
   const configForm = useForm<z.infer<typeof emailConfigSchema>>({
@@ -435,16 +436,11 @@ const EmailConfiguration = () => {
     }
   };
 
-  return (
-    <div className="space-y-6">
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="settings">SMTP Settings</TabsTrigger>
-          <TabsTrigger value="templates">Email Templates</TabsTrigger>
-          <TabsTrigger value="logs">Email Logs</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="settings" className="space-y-6 mt-6">
+  const renderEmailSettings = () => {
+    return (
+      <div className="space-y-6">
+        {/* Email server settings form */}
+        <div>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -699,9 +695,16 @@ const EmailConfiguration = () => {
               </Form>
             </CardContent>
           </Card>
-        </TabsContent>
+        </div>
+      </div>
+    );
+  };
 
-        <TabsContent value="templates" className="space-y-6 mt-6">
+  const renderTemplates = () => {
+    return (
+      <div className="space-y-6">
+        {/* Template list */}
+        <div>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
@@ -710,7 +713,7 @@ const EmailConfiguration = () => {
                   Create and manage email templates for your communications
                 </CardDescription>
               </div>
-              <Button onClick={() => setIsCreateTemplateOpen(true)}>
+              <Button onClick={() => setShowNewTemplateForm(true)}>
                 <Plus className="mr-2 h-4 w-4" />
                 Create Template
               </Button>
@@ -789,8 +792,8 @@ const EmailConfiguration = () => {
           </Card>
 
           <Dialog
-            open={isCreateTemplateOpen}
-            onOpenChange={setIsCreateTemplateOpen}
+            open={showNewTemplateForm}
+            onOpenChange={setShowNewTemplateForm}
           >
             <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
@@ -889,7 +892,7 @@ The Banks o' Dee FC Team"
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => setIsCreateTemplateOpen(false)}
+                      onClick={() => setShowNewTemplateForm(false)}
                     >
                       Cancel
                     </Button>
@@ -1002,6 +1005,26 @@ The Banks o' Dee FC Team"
               </Form>
             </DialogContent>
           </Dialog>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="settings">SMTP Settings</TabsTrigger>
+          <TabsTrigger value="templates">Email Templates</TabsTrigger>
+          <TabsTrigger value="logs">Email Logs</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="settings" className="space-y-6 mt-6">
+          {renderEmailSettings()}
+        </TabsContent>
+
+        <TabsContent value="templates" className="space-y-6 mt-6">
+          {renderTemplates()}
         </TabsContent>
 
         <TabsContent value="logs" className="space-y-6 mt-6">

@@ -5,28 +5,46 @@ import { BucketType } from '@/types/system/images';
 interface ImageUploaderContextProps {
   previewUrl: string | null;
   altText: string;
+  imageDescription: string;  // Added field
   isUploading: boolean;
   progress: number;
   bucket: BucketType;
   folderPath: string;
+  imageTags: string[];  // Added field
+  tagInput: string;  // Added field
   handleUpload: () => Promise<void>;
   setFile: (file: File | null) => void;
   setPreviewUrl: (url: string | null) => void;
   setAltText: (text: string) => void;
+  setImageDescription: (desc: string) => void;  // Added field
+  setTagInput: (input: string) => void;  // Added field
+  setImageTags: (tags: string[]) => void;  // Added field
+  handleAddTag: () => void;  // Added field
+  handleRemoveTag: (tag: string) => void;  // Added field
+  handleTagKeyDown: (e: React.KeyboardEvent) => void;  // Added field
   clearSelection: () => void;
 }
 
 const defaultContext: ImageUploaderContextProps = {
   previewUrl: null,
   altText: '',
+  imageDescription: '',  // Added field
   isUploading: false,
   progress: 0,
   bucket: BucketType.IMAGES,
   folderPath: '',
+  imageTags: [],  // Added field
+  tagInput: '',  // Added field
   handleUpload: async () => {},
   setFile: () => {},
   setPreviewUrl: () => {},
   setAltText: () => {},
+  setImageDescription: () => {},  // Added field
+  setTagInput: () => {},  // Added field
+  setImageTags: () => {},  // Added field
+  handleAddTag: () => {},  // Added field
+  handleRemoveTag: () => {},  // Added field
+  handleTagKeyDown: () => {},  // Added field
   clearSelection: () => {},
 };
 
@@ -48,13 +66,43 @@ export const ImageUploaderProvider: React.FC<ImageUploaderProviderProps> = ({
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [altText, setAltText] = useState('');
+  const [imageDescription, setImageDescription] = useState('');  // Added field
+  const [imageTags, setImageTags] = useState<string[]>([]);  // Added field
+  const [tagInput, setTagInput] = useState('');  // Added field
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
+
+  // Handle adding a tag
+  const handleAddTag = () => {
+    if (tagInput.trim() === '') return;
+    
+    const newTag = tagInput.trim().toLowerCase();
+    if (!imageTags.includes(newTag)) {
+      setImageTags([...imageTags, newTag]);
+    }
+    setTagInput('');
+  };
+  
+  // Handle removing a tag
+  const handleRemoveTag = (tag: string) => {
+    setImageTags(imageTags.filter((t) => t !== tag));
+  };
+  
+  // Handle key down event for tag input
+  const handleTagKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddTag();
+    }
+  };
 
   const clearSelection = () => {
     setFile(null);
     setPreviewUrl(null);
     setAltText('');
+    setImageDescription('');
+    setImageTags([]);
+    setTagInput('');
     setProgress(0);
   };
 
@@ -100,14 +148,23 @@ export const ImageUploaderProvider: React.FC<ImageUploaderProviderProps> = ({
   const value = {
     previewUrl,
     altText,
+    imageDescription,  // Added field
     isUploading,
     progress,
     bucket,
     folderPath,
+    imageTags,  // Added field
+    tagInput,  // Added field
     handleUpload,
     setFile,
     setPreviewUrl,
     setAltText,
+    setImageDescription,  // Added field
+    setTagInput,  // Added field
+    setImageTags,  // Added field
+    handleAddTag,  // Added field
+    handleRemoveTag,  // Added field
+    handleTagKeyDown,  // Added field
     clearSelection
   };
 

@@ -1,166 +1,85 @@
 
-import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import PlayerEditor from '@/components/admin/team/PlayerEditor';
+import React, { useState, useEffect } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card } from "@/components/ui/card";
 import PlayersList from '@/components/admin/team/PlayersList';
-import StaffList from '@/components/admin/team/StaffList';
-import StaffEditor from '@/components/admin/team/StaffEditor';
-import PlayerStatistics from '@/components/admin/team/PlayerStatistics';
-import { TeamMember } from '@/types/team';
+import TeamMembersManager from '@/components/admin/team/TeamMembersManager';
+import TeamStats from '@/components/admin/team/TeamStats';
+import TeamPositionsManager from '@/components/admin/team/TeamPositionsManager';
+import TeamSettings from '@/components/admin/team/TeamSettings';
+import { useTeamStore } from '@/services/teamStore';
 
-// Create a default player object
-const createDefaultPlayer = (): TeamMember => ({
-  id: '',
-  name: '',
-  member_type: 'player',
-  position: '',
-  image_url: '',
-  bio: '',
-  nationality: '',
-  jersey_number: 0,
-  previous_clubs: [],
-  experience: '',
-  is_active: true,
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
-  stats: {}
-});
-
-// Create a default staff member object
-const createDefaultStaff = (): TeamMember => ({
-  id: '',
-  name: '',
-  member_type: 'management',
-  position: '',
-  image_url: '',
-  bio: '',
-  nationality: '',
-  experience: '',
-  is_active: true,
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString()
-});
-
-const TeamManagement = () => {
+const TeamManagement: React.FC = () => {
   const [activeTab, setActiveTab] = useState('players');
-  const [playerView, setPlayerView] = useState<'list' | 'editor' | 'stats'>('list');
-  const [staffView, setStaffView] = useState<'list' | 'editor'>('list');
-  const [selectedPlayer, setSelectedPlayer] = useState<TeamMember | null>(null);
-  const [selectedStaff, setSelectedStaff] = useState<TeamMember | null>(null);
-
-  const handleSelectPlayer = (player: TeamMember) => {
-    setSelectedPlayer(player);
-    setPlayerView('editor');
-  };
+  const { loadTeamMembers, members } = useTeamStore();
   
-  const handleSelectStaff = (staff: TeamMember) => {
-    setSelectedStaff(staff);
-    setStaffView('editor');
-  };
-
-  const handleViewPlayerStats = (player: TeamMember) => {
-    setSelectedPlayer(player);
-    setPlayerView('stats');
-  };
-
-  const handleCreateNewPlayer = () => {
-    setSelectedPlayer(createDefaultPlayer());
-    setPlayerView('editor');
-  };
-
-  const handleCreateNewStaff = () => {
-    setSelectedStaff(createDefaultStaff());
-    setStaffView('editor');
-  };
-
-  // Go back to list view
-  const handleBackToPlayers = () => {
-    setPlayerView('list');
-    setSelectedPlayer(null);
-  };
-
-  const handleBackToStaff = () => {
-    setStaffView('list');
-    setSelectedStaff(null);
-  };
-
-  // Render the player management tab
-  const renderPlayerTab = () => {
-    if (playerView === 'list') {
-      return (
-        <PlayersList
-          onSelectPlayer={handleSelectPlayer}
-          onViewPlayerStats={handleViewPlayerStats}
-          onCreateNew={handleCreateNewPlayer}
-        />
-      );
-    } else if (playerView === 'editor' && selectedPlayer) {
-      return (
-        <PlayerEditor
-          player={selectedPlayer}
-          onBack={handleBackToPlayers}
-        />
-      );
-    } else if (playerView === 'stats' && selectedPlayer) {
-      return (
-        <PlayerStatistics
-          player={selectedPlayer}
-          onBack={handleBackToPlayers}
-        />
-      );
-    }
-    return null;
-  };
-
-  // Render the staff management tab
-  const renderStaffTab = () => {
-    if (staffView === 'list') {
-      return (
-        <StaffList
-          onSelectStaff={handleSelectStaff}
-          onCreateNew={handleCreateNewStaff}
-        />
-      );
-    } else if (staffView === 'editor' && selectedStaff) {
-      return (
-        <StaffEditor
-          staff={selectedStaff}
-          onBack={handleBackToStaff}
-        />
-      );
-    }
-    return null;
-  };
-
+  useEffect(() => {
+    loadTeamMembers();
+  }, [loadTeamMembers]);
+  
+  // Separate members by type
+  const players = members.filter(m => m.member_type === 'player');
+  const coaches = members.filter(m => m.member_type === 'coach');
+  const staff = members.filter(m => m.member_type === 'staff');
+  const officials = members.filter(m => m.member_type === 'official');
+  const management = members.filter(m => m.member_type === 'management');
+  
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Team Management</h1>
-        {activeTab === 'players' && playerView === 'list' && (
-          <Button onClick={handleCreateNewPlayer}>Add New Player</Button>
-        )}
-        {activeTab === 'staff' && staffView === 'list' && (
-          <Button onClick={handleCreateNewStaff}>Add New Staff Member</Button>
-        )}
+    <div className="space-y-6">
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Team Management</h2>
+          <p className="text-muted-foreground">
+            Manage players, coaches, staff, and team information
+          </p>
+        </div>
       </div>
-
-      <Tabs
-        defaultValue="players"
-        value={activeTab}
-        onValueChange={(value) => setActiveTab(value)}
-      >
-        <TabsList className="grid grid-cols-2">
+      
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="mb-4">
           <TabsTrigger value="players">Players</TabsTrigger>
+          <TabsTrigger value="coaches">Coaches</TabsTrigger>
           <TabsTrigger value="staff">Staff</TabsTrigger>
+          <TabsTrigger value="officials">Officials</TabsTrigger>
+          <TabsTrigger value="management">Management</TabsTrigger>
+          <TabsTrigger value="positions">Positions</TabsTrigger>
+          <TabsTrigger value="statistics">Statistics</TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
-        <TabsContent value="players" className="mt-4">
-          {renderPlayerTab()}
-        </TabsContent>
-        <TabsContent value="staff" className="mt-4">
-          {renderStaffTab()}
-        </TabsContent>
+        
+        <Card>
+          <TabsContent value="players" className="p-0 sm:p-6">
+            <TeamMembersManager memberType="player" members={players} />
+          </TabsContent>
+          
+          <TabsContent value="coaches" className="p-0 sm:p-6">
+            <TeamMembersManager memberType="coach" members={coaches} />
+          </TabsContent>
+          
+          <TabsContent value="staff" className="p-0 sm:p-6">
+            <TeamMembersManager memberType="staff" members={staff} />
+          </TabsContent>
+          
+          <TabsContent value="officials" className="p-0 sm:p-6">
+            <TeamMembersManager memberType="official" members={officials} />
+          </TabsContent>
+          
+          <TabsContent value="management" className="p-0 sm:p-6">
+            <TeamMembersManager memberType="management" members={management} />
+          </TabsContent>
+          
+          <TabsContent value="positions" className="p-0 sm:p-6">
+            <TeamPositionsManager />
+          </TabsContent>
+          
+          <TabsContent value="statistics" className="p-0 sm:p-6">
+            <TeamStats />
+          </TabsContent>
+          
+          <TabsContent value="settings" className="p-0 sm:p-6">
+            <TeamSettings />
+          </TabsContent>
+        </Card>
       </Tabs>
     </div>
   );

@@ -1,144 +1,226 @@
 
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { TeamMember, MemberType } from '@/types/team';
+import create from 'zustand';
+import { devtools } from 'zustand/middleware';
+import { TeamMember } from '@/types/team';
+import { getTeamMembers, getTeamMember, createTeamMember, updateTeamMember, deleteTeamMember } from './teamDbService';
+import { toast } from 'sonner';
 
-export interface TeamStore {
-  teamMembers: TeamMember[];
-  loading: boolean;
-  isLoading: boolean; // For compatibility with components
+interface TeamState {
+  members: TeamMember[];
+  isLoading: boolean;
   error: string | null;
-  players: TeamMember[]; // For compatibility with components
-  
-  // Required methods for components
+  selectedMember: TeamMember | null;
+  filteredMembers: TeamMember[];
+  filter: {
+    memberType: string;
+    searchQuery: string;
+    activeOnly: boolean;
+  };
   loadTeamMembers: () => Promise<void>;
-  getPlayersByPosition: (position: string) => TeamMember[];
-  getManagementStaff: () => TeamMember[];
-  getOfficials: () => TeamMember[];
-  
-  // CRUD operations
-  addTeamMember: (member: Omit<TeamMember, 'id'>) => Promise<void>;
-  updateTeamMember: (member: TeamMember) => Promise<void>;
-  deleteTeamMember: (id: string) => Promise<void>;
+  getTeamMember: (id: string) => Promise<void>;
+  createTeamMember: (member: Omit<TeamMember, 'id'>) => Promise<boolean>;
+  updateTeamMember: (id: string, updates: Partial<TeamMember>) => Promise<boolean>;
+  deleteTeamMember: (id: string) => Promise<boolean>;
+  setFilter: (filter: Partial<TeamState['filter']>) => void;
+  clearFilters: () => void;
+  selectMember: (member: TeamMember | null) => void;
 }
 
-// Generate a random ID for team members
-const generateId = () => Math.random().toString(36).substring(2, 9);
-
-export const useTeamStore = create<TeamStore>()(
-  persist(
+export const useTeamStore = create<TeamState>()(
+  devtools(
     (set, get) => ({
-      teamMembers: [],
-      loading: false,
+      members: [],
       isLoading: false,
       error: null,
-      players: [], // Initialize empty array
+      selectedMember: null,
+      filteredMembers: [],
+      filter: {
+        memberType: 'all',
+        searchQuery: '',
+        activeOnly: false
+      },
       
       loadTeamMembers: async () => {
-        set({ loading: true, isLoading: true, error: null });
+        set({ isLoading: true, error: null });
         try {
-          // This would normally fetch from API or database
-          // For now, we just use the data that's already in the store
-          const players = get().teamMembers.filter(m => m.member_type === 'player');
-          set({ 
-            loading: false, 
-            isLoading: false,
-            players
-          });
-          return Promise.resolve();
-        } catch (error) {
-          set({ error: 'Failed to load team members', loading: false, isLoading: false });
-          return Promise.reject(error);
-        }
-      },
-      
-      getPlayersByPosition: (position) => {
-        const members = get().teamMembers;
-        if (position === 'All') {
-          return members.filter(m => m.member_type === 'player');
-        }
-        return members.filter(m => m.member_type === 'player' && m.position === position);
-      },
-      
-      getManagementStaff: () => {
-        return get().teamMembers.filter(m => m.member_type === 'management');
-      },
-      
-      getOfficials: () => {
-        return get().teamMembers.filter(m => m.member_type === 'official');
-      },
-      
-      addTeamMember: async (member) => {
-        set({ loading: true, isLoading: true });
-        try {
-          const newMember = { 
-            ...member, 
-            id: generateId(),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          };
-          const updatedMembers = [...get().teamMembers, newMember];
-          const players = updatedMembers.filter(m => m.member_type === 'player');
+          const response = await getTeamMembers();
           
-          set({ 
-            teamMembers: updatedMembers,
-            players,
-            loading: false,
-            isLoading: false
-          });
-          return Promise.resolve();
+          if (response.success) {
+            set({ members: response.data || [] });
+            
+            // Apply current filters to the newly loaded data
+            const currentFilter = get().filter;
+            const members = response.data || [];
+            
+            let filtered = [...members];
+            
+            if (currentFilter.memberType !== 'all') {
+              filtered = filtered.filter(member => member.member_type === currentFilter.memberType);
+            }
+            
+            if (currentFilter.searchQuery) {
+              const query = currentFilter.searchQuery.toLowerCase();
+              filtered = filtered.filter(member => 
+                member.name.toLowerCase().includes(query) || 
+                member.position?.toLowerCase().includes(query)
+              );
+            }
+            
+            if (currentFilter.activeOnly) {
+              filtered = filtered.filter(member => member.is_active);
+            }
+            
+            set({ filteredMembers: filtered });
+          } else {
+            set({ error: response.error || 'Failed to load team members' });
+          }
         } catch (error) {
-          set({ error: 'Failed to add team member', loading: false, isLoading: false });
-          return Promise.reject(error);
+          console.error('Error loading team members:', error);
+          set({ error: 'An unexpected error occurred' });
+        } finally {
+          set({ isLoading: false });
         }
       },
       
-      updateTeamMember: async (member) => {
-        set({ loading: true, isLoading: true });
+      getTeamMember: async (id: string) => {
+        set({ isLoading: true, error: null });
         try {
-          const updatedMembers = get().teamMembers.map(m => 
-            m.id === member.id ? { ...member, updated_at: new Date().toISOString() } : m
-          );
-          const players = updatedMembers.filter(m => m.member_type === 'player');
+          const response = await getTeamMember(id);
           
-          set({ 
-            teamMembers: updatedMembers,
-            players,
-            loading: false,
-            isLoading: false
-          });
-          return Promise.resolve();
+          if (response.success && response.data) {
+            set({ selectedMember: response.data });
+          } else {
+            set({ error: response.error || 'Failed to load team member' });
+          }
         } catch (error) {
-          set({ error: 'Failed to update team member', loading: false, isLoading: false });
-          return Promise.reject(error);
+          console.error('Error loading team member:', error);
+          set({ error: 'An unexpected error occurred' });
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+      
+      createTeamMember: async (member) => {
+        set({ isLoading: true, error: null });
+        try {
+          const response = await createTeamMember(member);
+          
+          if (response.success) {
+            await get().loadTeamMembers();
+            toast.success('Team member created successfully');
+            return true;
+          } else {
+            set({ error: response.error || 'Failed to create team member' });
+            toast.error(response.error || 'Failed to create team member');
+            return false;
+          }
+        } catch (error) {
+          console.error('Error creating team member:', error);
+          set({ error: 'An unexpected error occurred' });
+          toast.error('An unexpected error occurred');
+          return false;
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+      
+      updateTeamMember: async (id, updates) => {
+        set({ isLoading: true, error: null });
+        try {
+          const response = await updateTeamMember(id, updates);
+          
+          if (response.success) {
+            await get().loadTeamMembers();
+            if (get().selectedMember?.id === id) {
+              set(state => ({
+                selectedMember: { ...state.selectedMember!, ...updates }
+              }));
+            }
+            toast.success('Team member updated successfully');
+            return true;
+          } else {
+            set({ error: response.error || 'Failed to update team member' });
+            toast.error(response.error || 'Failed to update team member');
+            return false;
+          }
+        } catch (error) {
+          console.error('Error updating team member:', error);
+          set({ error: 'An unexpected error occurred' });
+          toast.error('An unexpected error occurred');
+          return false;
+        } finally {
+          set({ isLoading: false });
         }
       },
       
       deleteTeamMember: async (id) => {
-        set({ loading: true, isLoading: true });
+        set({ isLoading: true, error: null });
         try {
-          const updatedMembers = get().teamMembers.filter(m => m.id !== id);
-          const players = updatedMembers.filter(m => m.member_type === 'player');
+          const response = await deleteTeamMember(id);
           
-          set({ 
-            teamMembers: updatedMembers,
-            players,
-            loading: false,
-            isLoading: false
-          });
-          return Promise.resolve();
+          if (response.success) {
+            await get().loadTeamMembers();
+            if (get().selectedMember?.id === id) {
+              set({ selectedMember: null });
+            }
+            toast.success('Team member deleted successfully');
+            return true;
+          } else {
+            set({ error: response.error || 'Failed to delete team member' });
+            toast.error(response.error || 'Failed to delete team member');
+            return false;
+          }
         } catch (error) {
-          set({ error: 'Failed to delete team member', loading: false, isLoading: false });
-          return Promise.reject(error);
+          console.error('Error deleting team member:', error);
+          set({ error: 'An unexpected error occurred' });
+          toast.error('An unexpected error occurred');
+          return false;
+        } finally {
+          set({ isLoading: false });
         }
+      },
+      
+      setFilter: (filter) => {
+        const newFilter = { ...get().filter, ...filter };
+        set({ filter: newFilter });
+        
+        const members = get().members;
+        let filtered = [...members];
+        
+        if (newFilter.memberType !== 'all') {
+          filtered = filtered.filter(member => member.member_type === newFilter.memberType);
+        }
+        
+        if (newFilter.searchQuery) {
+          const query = newFilter.searchQuery.toLowerCase();
+          filtered = filtered.filter(member => 
+            member.name.toLowerCase().includes(query) || 
+            member.position?.toLowerCase().includes(query)
+          );
+        }
+        
+        if (newFilter.activeOnly) {
+          filtered = filtered.filter(member => member.is_active);
+        }
+        
+        set({ filteredMembers: filtered });
+      },
+      
+      clearFilters: () => {
+        set({ 
+          filter: {
+            memberType: 'all',
+            searchQuery: '',
+            activeOnly: false
+          },
+          filteredMembers: get().members
+        });
+      },
+      
+      selectMember: (member) => {
+        set({ selectedMember: member });
       }
-    }),
-    {
-      name: 'team-storage',
-      version: 1,
-    }
+    }), 
+    { name: 'team-store' }
   )
 );
-
-// Re-export TeamMember and MemberType for compatibility
-export type { TeamMember, MemberType };

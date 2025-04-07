@@ -1,11 +1,13 @@
+
 import React, { useState, useEffect } from 'react';
 import { TeamMember } from '@/types/team';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const ClubOfficials: React.FC = () => {
   const [officials, setOfficials] = useState<TeamMember[]>([]);
   
   useEffect(() => {
+    // Create mock officials data with all required properties
     const mockOfficials: TeamMember[] = [
       {
         id: '1',

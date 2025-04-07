@@ -2,7 +2,7 @@
 export interface TeamMember {
   id: string;
   name: string;
-  member_type: 'player' | 'staff' | 'coach' | 'official';
+  member_type: 'player' | 'staff' | 'coach' | 'official' | 'management';
   position?: string;
   jersey_number?: number;
   image_url?: string;
@@ -15,6 +15,8 @@ export interface TeamMember {
   created_at?: string;
   updated_at?: string;
 }
+
+export type MemberType = 'player' | 'staff' | 'coach' | 'official' | 'management';
 
 export interface TeamMemberResponse {
   data: TeamMember[];

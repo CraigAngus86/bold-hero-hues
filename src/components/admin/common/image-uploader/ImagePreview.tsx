@@ -2,7 +2,6 @@
 import React from 'react';
 import { X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { MetadataFields } from './MetadataFields';
 import { useImageUploaderContext } from './ImageUploaderContext';
 
 interface ImagePreviewProps {
@@ -40,7 +39,12 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({
         <X className="h-4 w-4 text-white" />
       </button>
       
-      {allowMetadata && <MetadataFields />}
+      {allowMetadata && (
+        <div className="mt-4 space-y-3">
+          {/* Simplified metadata fields for now */}
+          <p className="text-xs text-gray-500">Alt text and tags would go here</p>
+        </div>
+      )}
       
       <div className="mt-4 flex justify-end space-x-2">
         <Button variant="outline" onClick={clearSelection} disabled={isUploading}>

@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { TeamStats } from '@/types/fixtures';
 import { toast } from 'sonner';
 import { updateTeamLogo } from '@/services/logs/systemLogsService';
-import { BucketType } from '@/types/system';
+import { BucketType } from '@/types/system/images';
 
 interface LogoEditorDialogProps {
   team: TeamStats; 

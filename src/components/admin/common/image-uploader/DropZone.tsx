@@ -59,6 +59,7 @@ export const DropZone: React.FC<DropZoneProps> = ({ inputId }) => {
         type="file"
         className="hidden"
         onChange={handleFileInputChange}
+        accept={acceptedTypes}
       />
       <div className="flex flex-col items-center">
         <Upload className="h-10 w-10 text-gray-400 mb-2" />

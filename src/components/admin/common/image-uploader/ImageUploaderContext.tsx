@@ -1,10 +1,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { toast } from 'sonner';
-import { useImageUpload } from '@/services/images';
-import { BucketType, ImageOptimizationOptions } from '@/services/images/types';
-import { useImageUploadState } from './hooks/useImageUploadState';
-import { useImageUploadHandlers } from './hooks/useImageUploadHandlers';
+import { BucketType } from '@/types/system/images';
 
 interface ImageUploaderContextType {
   previewUrl: string | null;
@@ -40,7 +37,12 @@ interface ImageUploaderProviderProps {
   onUploadComplete?: (imageUrl: string) => void;
   bucket: BucketType;
   folderPath?: string;
-  optimizationOptions: ImageOptimizationOptions;
+  optimizationOptions?: {
+    maxWidth?: number;
+    maxHeight?: number;
+    quality?: number;
+    format?: 'jpeg' | 'png' | 'webp';
+  };
   initialAlt?: string;
   initialDescription?: string;
   initialTags?: string[];
@@ -61,38 +63,144 @@ export const ImageUploaderProvider: React.FC<ImageUploaderProviderProps> = ({
   initialDescription = '',
   initialTags = [],
 }) => {
-  // Use our custom hooks to organize the state and handlers
-  const state = useImageUploadState({
-    initialImageUrl,
-    initialAlt,
-    initialDescription,
-    initialTags
-  });
+  const [previewUrl, setPreviewUrl] = useState<string | null>(initialImageUrl);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [altText, setAltText] = useState(initialAlt);
+  const [imageDescription, setImageDescription] = useState(initialDescription);
+  const [imageTags, setImageTags] = useState<string[]>(initialTags);
+  const [tagInput, setTagInput] = useState('');
+  const [dragActive, setDragActive] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
   
   const maxSizeBytes = maxSizeMB * 1024 * 1024;
   
-  // Update handlers with the missing parameters
-  const uploadOptions = {
-    bucket,
-    folderPath,
-    maxSize: maxSizeBytes,
-    allowedTypes: acceptedTypes.split(','),
-    onSuccess: onUploadComplete
+  const handleFileSelection = (file: File) => {
+    if (!file) return;
+    
+    // Validate file type
+    if (!acceptedTypes.split(',').includes(file.type)) {
+      toast.error(`File type not allowed. Accepted: ${acceptedTypes}`);
+      return;
+    }
+    
+    // Validate file size
+    if (file.size > maxSizeBytes) {
+      toast.error(`File too large. Maximum: ${maxSizeMB}MB`);
+      return;
+    }
+    
+    setSelectedFile(file);
+    
+    // Create preview URL
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewUrl(objectUrl);
   };
   
-  const { uploadFile } = useImageUpload(uploadOptions);
+  const clearSelection = () => {
+    if (previewUrl && previewUrl !== initialImageUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    
+    setSelectedFile(null);
+    setPreviewUrl(initialImageUrl);
+    setAltText(initialAlt);
+    setImageDescription(initialDescription);
+    setImageTags(initialTags);
+  };
   
-  const handlers = useImageUploadHandlers({
-    ...state,
-    uploadFile,
-    onUploadComplete
-  });
+  const handleAddTag = () => {
+    if (!tagInput.trim()) return;
+    
+    if (!imageTags.includes(tagInput.trim())) {
+      setImageTags([...imageTags, tagInput.trim()]);
+    }
+    
+    setTagInput('');
+  };
   
-  // Include acceptedTypes in the context value
+  const handleRemoveTag = (tag: string) => {
+    setImageTags(imageTags.filter(t => t !== tag));
+  };
+  
+  const handleTagKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddTag();
+    }
+  };
+  
+  const handleUpload = async () => {
+    if (!selectedFile) {
+      toast.error('No file selected');
+      return;
+    }
+    
+    setIsUploading(true);
+    setProgress(0);
+    
+    try {
+      // Simulate upload progress
+      const interval = setInterval(() => {
+        setProgress(prev => {
+          const next = prev + 10;
+          if (next >= 100) {
+            clearInterval(interval);
+            return 100;
+          }
+          return next;
+        });
+      }, 300);
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      clearInterval(interval);
+      setProgress(100);
+      
+      // Mock successful upload
+      const uploadedUrl = URL.createObjectURL(selectedFile);
+      
+      if (onUploadComplete) {
+        onUploadComplete(uploadedUrl);
+      }
+      
+      toast.success('Image uploaded successfully');
+      
+      // Clear selection after successful upload
+      setSelectedFile(null);
+      setIsUploading(false);
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Failed to upload image');
+      setIsUploading(false);
+    }
+  };
+  
   const value: ImageUploaderContextType = {
-    ...state,
-    ...handlers,
-    acceptedTypes
+    previewUrl,
+    setPreviewUrl,
+    selectedFile,
+    setSelectedFile,
+    altText,
+    setAltText,
+    imageDescription,
+    setImageDescription,
+    imageTags,
+    setImageTags,
+    tagInput,
+    setTagInput,
+    dragActive,
+    setDragActive,
+    isUploading,
+    progress,
+    acceptedTypes,
+    handleFileSelection,
+    clearSelection,
+    handleAddTag,
+    handleRemoveTag,
+    handleTagKeyDown,
+    handleUpload
   };
   
   return (

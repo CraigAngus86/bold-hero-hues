@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -117,6 +118,14 @@ export const EnhancedNewsArticleList: React.FC<EnhancedNewsArticleListProps> = (
     }
   };
 
+  const handleTagToggle = (tag: string) => {
+    if (selectedTags.includes(tag)) {
+      setSelectedTags(prev => prev.filter(t => t !== tag));
+    } else {
+      setSelectedTags(prev => [...prev, tag]);
+    }
+  };
+
   const articles = data?.data as NewsArticle[] || [];
 
   const filteredArticles = articles.filter(article =>
@@ -161,14 +170,6 @@ export const EnhancedNewsArticleList: React.FC<EnhancedNewsArticleListProps> = (
       cell: ({ row }) => {
         const article = row.original;
         const [open, setOpen] = React.useState(false)
-
-        const handleTagToggle = (tag: string) => {
-          if (selectedTags.includes(tag)) {
-            setSelectedTags(prev => prev.filter(t => t !== tag) as string[]);
-          } else {
-            setSelectedTags(prev => [...prev, tag] as string[]);
-          }
-        };
 
         return (
           <>
@@ -303,12 +304,19 @@ export const EnhancedNewsArticleList: React.FC<EnhancedNewsArticleListProps> = (
           <div className="rounded-md border">
             <Table>
               <TableHeader>
-                {columns.map((column) => (
-                  <TableHead key={column.id}>
-                    {column.header ? (
-                      flexRender(column.header(), table.getHeaderContext(column))
-                    ) : null}
-                  </TableHead>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead key={header.id}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    ))}
+                  </TableRow>
                 ))}
               </TableHeader>
               <TableBody>
@@ -316,7 +324,10 @@ export const EnhancedNewsArticleList: React.FC<EnhancedNewsArticleListProps> = (
                   <TableRow key={row.id}>
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
-                        {flexRender(cell.column.cell, cell.getContext( ))}
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
                       </TableCell>
                     ))}
                   </TableRow>
@@ -356,3 +367,5 @@ export const EnhancedNewsArticleList: React.FC<EnhancedNewsArticleListProps> = (
     </Card>
   );
 };
+
+export default EnhancedNewsArticleList;

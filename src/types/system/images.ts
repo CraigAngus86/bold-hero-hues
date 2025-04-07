@@ -11,7 +11,9 @@ export enum BucketType {
   SPONSORS = 'sponsors',
   PLAYERS = 'players',
   PUBLIC = 'public',
-  TEAMS = 'teams'
+  TEAMS = 'teams',
+  NEWS = 'news',
+  PROFILES = 'profiles'
 }
 
 export interface ImageOptimizationOptions {

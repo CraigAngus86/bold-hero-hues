@@ -1,8 +1,16 @@
 
-import { ImageUploader } from './image-uploader';
-import { useImageUploaderContext, ImageUploaderProvider } from './image-uploader/ImageUploaderContext';
-import { BucketType } from '@/types/system';
+import { ImageUploader as ImageUploaderComponent } from '@/components/admin/common/image-uploader';
+import { 
+  useImageUploaderContext, 
+  ImageUploaderProvider 
+} from '@/components/admin/common/image-uploader/ImageUploaderContext';
+import { BucketType } from '@/types/system/images';
 
 // Re-export everything for backward compatibility
-export { ImageUploader, useImageUploaderContext, ImageUploaderProvider, BucketType };
-export default ImageUploader;
+export { 
+  ImageUploaderComponent as ImageUploader, 
+  useImageUploaderContext, 
+  ImageUploaderProvider, 
+  BucketType 
+};
+export default ImageUploaderComponent;

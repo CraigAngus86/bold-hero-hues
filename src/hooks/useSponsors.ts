@@ -39,8 +39,14 @@ export const useSponsors = () => {
   // Group sponsors by tier
   const sponsorsByTier = sponsors.reduce<Record<string, Sponsor[]>>((acc, sponsor) => {
     // Handle tier being either a string or an object
-    const tierKey = typeof sponsor.tier === 'string' ? sponsor.tier : sponsor.tier.name;
-    const tierName = tierKey || 'other';
+    let tierName = '';
+    if (typeof sponsor.tier === 'string') {
+      tierName = sponsor.tier;
+    } else if (sponsor.tier && typeof sponsor.tier === 'object' && 'name' in sponsor.tier) {
+      tierName = String(sponsor.tier.name);
+    } else {
+      tierName = 'other';
+    }
     
     if (!acc[tierName]) {
       acc[tierName] = [];

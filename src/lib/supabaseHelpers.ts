@@ -7,7 +7,7 @@
 // This fixes the "Type of 'await' operand must either be a valid promise or must not contain a callable 'then' member" error
 export const unwrapPromise = async <T>(promise: Promise<{ data: T; error: any }> | any): Promise<{ data: T; error: any }> => {
   try {
-    // Convert the Supabase chainable object to a real promise if needed
+    // Handle promises with both then() and data/error properties by explicitly awaiting
     const result = await Promise.resolve(promise);
     return result;
   } catch (error) {
@@ -39,3 +39,16 @@ export const addCountProperty = <T>(response: { data: T[]; error: any }): { data
     count: response.data?.length || 0
   };
 };
+
+// Helper for safely processing unknown response to string[]
+export function processResponseToStringArray(response: { data: unknown; error: any }): string[] {
+  if (!response.data) return [];
+  
+  try {
+    const dataArray = Array.isArray(response.data) ? response.data : [];
+    return dataArray.map(item => typeof item === 'string' ? item : String(item));
+  } catch (error) {
+    console.error('Error processing response to string array:', error);
+    return [];
+  }
+}

@@ -1,7 +1,7 @@
 
 import { ReactNode } from 'react';
 
-export type SystemStatusName = 'healthy' | 'warning' | 'error' | 'offline' | 'maintenance';
+export type SystemStatusName = 'healthy' | 'warning' | 'error' | 'offline' | 'maintenance' | 'critical' | 'unknown';
 
 export interface SystemStatusItemProps {
   name: string;
@@ -14,40 +14,40 @@ export interface SystemStatusItemProps {
   color: string;
 }
 
+export interface Service {
+  name: string;
+  status: SystemStatusName;
+  lastChecked: string | Date;
+  message?: string;
+  uptime?: number;
+  response_time?: number;
+}
+
+export interface SystemMetric {
+  name: string;
+  status?: SystemStatusName;
+  value: number | string;
+  description?: string;
+  change?: number;
+  changeType?: 'positive' | 'negative' | 'neutral';
+  icon?: ReactNode;
+  unit?: string;
+  changeDirection?: 'up' | 'down' | 'none';
+}
+
 export interface SystemStatus {
   overall_status: SystemStatusName;
-  services: {
-    [key: string]: {
-      status: SystemStatusName;
-      lastChecked: Date | string;
-    }
-  };
+  services: Service[];
   metrics: {
     uptime: number;
     responseTime: number;
     errors24h: number;
     totalRequests24h: number;
-    performance?: {
-      cpu: number;
-      memory: number;
-      disk: number;
-    };
-    storage?: {
-      total: number;
-      used: number;
-      free: number;
-    };
-    usage?: {
-      requests: number;
-      bandwidth: number;
-      users: number;
-    };
+    performance: SystemMetric[];
+    storage: SystemMetric[];
+    usage: SystemMetric[];
   };
-  uptime: {
-    day: number;
-    week: number;
-    month: number;
-  };
+  uptime: number;
   message: string;
   messages?: string[];
   last_updated?: string | Date;
@@ -59,16 +59,6 @@ export interface SystemStatusPanelProps {
   isLoading?: boolean;
   onRefresh?: () => void | Promise<void>;
   error?: string;
-}
-
-export interface SystemMetric {
-  name: string;
-  value: string | number;
-  change?: number;
-  changeType?: 'positive' | 'negative' | 'neutral';
-  icon?: ReactNode;
-  unit?: string;
-  changeDirection?: 'up' | 'down' | 'none';
 }
 
 export interface StatusItemCardProps {
@@ -84,7 +74,7 @@ export interface StatusItemCardProps {
 
 // Adding ServerStatus type for mock data
 export interface ServerStatus {
-  status: 'active' | 'error' | 'maintenance';
+  status: SystemStatusName;
   uptime: string;
   lastChecked: Date;
 }

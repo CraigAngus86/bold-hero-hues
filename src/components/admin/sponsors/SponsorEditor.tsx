@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
@@ -81,10 +80,8 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({ sponsorId, onClose, onSav
 
       let result;
       if (isEditMode) {
-        // Update existing sponsor
         result = await updateSponsor(sponsorId!, sponsorData);
       } else {
-        // Create new sponsor
         result = await createSponsor(sponsorData);
       }
 
@@ -102,7 +99,26 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({ sponsorId, onClose, onSav
     }
   };
 
-  // Create separate contact inputs outside form control to avoid type errors
+  const tierRenderer = (field) => {
+    const tierValue = typeof field.value === 'object' && field.value !== null
+      ? field.value.name || ''
+      : field.value;
+
+    return (
+      <FormItem>
+        <FormLabel>Tier</FormLabel>
+        <FormControl>
+          <Input
+            onChange={(e) => field.onChange(e.target.value)}
+            value={String(tierValue)}
+            placeholder="Sponsor tier"
+          />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    );
+  };
+
   const renderContactFields = () => (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
       <div>
@@ -224,15 +240,7 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({ sponsorId, onClose, onSav
             <FormField
               control={form.control}
               name="tier"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tier</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Sponsor Tier" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={tierRenderer}
             />
 
             <div>

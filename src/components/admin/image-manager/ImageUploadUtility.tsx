@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Upload } from 'lucide-react';
@@ -82,11 +81,25 @@ const ImageUploadUtility = () => {
         const newFileName = `${uuidv4()}.${fileExt}`;
         const filePath = `${miscFolder.path}/${newFileName}`;
         
+        // Convert Blobs to Files with necessary properties
+        const convertBlobToFile = (blob: Blob, fileName: string): File => {
+          // Create a File from Blob by extending it with necessary properties
+          const file = new File([blob], fileName, { 
+            type: blob.type,
+            lastModified: new Date().getTime()
+          });
+          
+          return file;
+        };
+        
+        // When handling blobs, use this function to convert them to Files
+        const file = convertBlobToFile(imageBlob, newFileName);
+        
         // Upload to Supabase storage
         const { error: uploadError } = await supabase
           .storage
           .from('images')
-          .upload(filePath, imageBlob);
+          .upload(filePath, file);
         
         if (uploadError) {
           console.error('Error uploading file:', uploadError);

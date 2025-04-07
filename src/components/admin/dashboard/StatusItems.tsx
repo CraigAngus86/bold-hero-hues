@@ -5,24 +5,26 @@ import { SystemStatusName } from '@/types/system/status';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 
-interface StatusItemProps {
+export interface StatusItemProps {
   name: string;
   status: SystemStatusName;
   value?: string;
   lastChecked: Date | string;
 }
 
-export const StatusItems = ({ name, status, value = 'Unknown', lastChecked }: StatusItemProps) => {
+export const StatusItems: React.FC<StatusItemProps> = ({ name, status, value = 'Unknown', lastChecked }: StatusItemProps) => {
   // Status configuration mapping
   const statusConfig = {
     healthy: { icon: <Check className="h-4 w-4" />, color: 'text-green-500 bg-green-50', label: 'Healthy' },
     warning: { icon: <AlertTriangle className="h-4 w-4" />, color: 'text-amber-500 bg-amber-50', label: 'Warning' },
     error: { icon: <AlertCircle className="h-4 w-4" />, color: 'text-red-500 bg-red-50', label: 'Error' },
+    critical: { icon: <AlertCircle className="h-4 w-4" />, color: 'text-red-600 bg-red-50', label: 'Critical' },
     offline: { icon: <AlertCircle className="h-4 w-4" />, color: 'text-gray-500 bg-gray-50', label: 'Offline' },
-    maintenance: { icon: <Clock className="h-4 w-4" />, color: 'text-blue-500 bg-blue-50', label: 'Maintenance' }
+    maintenance: { icon: <Clock className="h-4 w-4" />, color: 'text-blue-500 bg-blue-50', label: 'Maintenance' },
+    unknown: { icon: <AlertTriangle className="h-4 w-4" />, color: 'text-gray-500 bg-gray-50', label: 'Unknown' }
   };
 
-  const config = statusConfig[status];
+  const config = statusConfig[status] || statusConfig.unknown;
 
   const formatLastChecked = () => {
     try {
@@ -51,5 +53,7 @@ export const StatusItems = ({ name, status, value = 'Unknown', lastChecked }: St
     </div>
   );
 };
+
+export const StatusItemCard: React.FC<StatusItemProps> = StatusItems;
 
 export default StatusItems;

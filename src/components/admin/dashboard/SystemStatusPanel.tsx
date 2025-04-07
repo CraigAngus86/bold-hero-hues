@@ -1,4 +1,3 @@
-
 import { ServerIcon, Cpu, HardDrive, Activity, Server } from 'lucide-react';
 import { SystemStatusPanelProps, SystemMetric } from '@/types/system/status';
 import StatusItemCard from './StatusItemCard';
@@ -58,7 +57,7 @@ const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
   };
 
   const renderPerformanceMetrics = () => {
-    if (!status.metrics?.performance || status.metrics.performance.length === 0) {
+    if (!status.metrics?.performance || !Array.isArray(status.metrics.performance) || status.metrics.performance.length === 0) {
       return <p className="text-muted-foreground text-sm">No performance metrics available</p>;
     }
 
@@ -87,7 +86,7 @@ const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
   };
 
   const renderStorageMetrics = () => {
-    if (!status.metrics?.storage || status.metrics.storage.length === 0) {
+    if (!status.metrics?.storage || !Array.isArray(status.metrics.storage) || status.metrics.storage.length === 0) {
       return <p className="text-muted-foreground text-sm">No storage metrics available</p>;
     }
 
@@ -116,7 +115,7 @@ const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
   };
 
   const renderUsageMetrics = () => {
-    if (!status.metrics?.usage || status.metrics.usage.length === 0) {
+    if (!status.metrics?.usage || !Array.isArray(status.metrics.usage) || status.metrics.usage.length === 0) {
       return <p className="text-muted-foreground text-sm">No usage metrics available</p>;
     }
 

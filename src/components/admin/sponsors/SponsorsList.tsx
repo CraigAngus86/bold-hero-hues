@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
@@ -57,7 +56,6 @@ const SponsorsList: React.FC<SponsorsListProps> = ({
         toast.success('Sponsor deleted successfully');
         onDeleteSponsor();
       } else if (result.error) {
-        // Handle error case by checking if it's a string or object
         const errorMessage = typeof result.error === 'string' ? 
           result.error : 
           'Failed to delete sponsor';
@@ -70,6 +68,16 @@ const SponsorsList: React.FC<SponsorsListProps> = ({
       setIsDeleting(false);
       setDeleteDialogOpen(false);
       setSponsorToDelete(null);
+    }
+  };
+  
+  const getTierDisplay = (tier) => {
+    if (typeof tier === 'string') {
+      return tier;
+    } else if (tier && typeof tier === 'object' && 'name' in tier) {
+      return tier.name;
+    } else {
+      return 'Unknown';
     }
   };
   
@@ -97,7 +105,7 @@ const SponsorsList: React.FC<SponsorsListProps> = ({
               <TableRow key={sponsor.id}>
                 <TableCell className="font-medium">{sponsor.name}</TableCell>
                 <TableCell>
-                  <span className="capitalize">{sponsor.tier || 'N/A'}</span>
+                  <span className="capitalize">{getTierDisplay(sponsor.tier)}</span>
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
                   {sponsor.website_url ? (

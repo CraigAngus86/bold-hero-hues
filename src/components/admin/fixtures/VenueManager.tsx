@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
-import { Plus, Edit, Trash2, MapPin, Loader2, Check } from 'lucide-react';
+import { Plus, Edit, Trash2, Loader2, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -16,17 +15,17 @@ import { supabase } from '@/integrations/supabase/client';
 interface Venue {
   id: string;
   name: string;
-  address?: string;
-  capacity?: number;
-  facilities?: string;
-  directions?: string;
+  address: string;
+  capacity: number;
+  facilities: string;
+  directions: string;
 }
 
 // Define form schema
 const venueFormSchema = z.object({
   name: z.string().min(1, 'Venue name is required'),
-  address: z.string().min(1, 'Address is required'),
-  capacity: z.number().int().positive().optional(),
+  address: z.string().optional(),
+  capacity: z.number().optional().nullable(),
   facilities: z.string().optional(),
   directions: z.string().optional(),
 });
@@ -38,47 +37,33 @@ export const VenueManager: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingVenue, setEditingVenue] = useState<Venue | null>(null);
-  
+
   // Initialize form
   const form = useForm<VenueFormValues>({
     resolver: zodResolver(venueFormSchema),
     defaultValues: {
       name: '',
       address: '',
-      capacity: undefined,
+      capacity: 0,
       facilities: '',
       directions: '',
-    }
+    },
   });
-  
+
   // Fetch all venues
-  const fetchVenues = async () => {
+  const fetchData = async () => {
     setLoading(true);
     try {
-      // In a real implementation, you would fetch from a venues table
-      // For now, let's extract unique venues from fixtures and create some mock data
-      
       const { data, error } = await supabase
-        .from('fixtures')
-        .select('venue')
-        .not('venue', 'is', null);
+        .from('venues')
+        .select('*');
       
       if (error) throw error;
       
-      // Extract unique venues
-      const uniqueVenues = [...new Set(data.map(item => item.venue).filter(Boolean))];
-      
-      // Create sample venue objects with random data
-      const venueObjects = uniqueVenues.map((venueName, index) => ({
-        id: `venue-${index}`,
-        name: venueName,
-        address: `${index + 1} Stadium Road, City, Postcode`,
-        capacity: Math.floor(Math.random() * 5000) + 1000,
-        facilities: 'Parking, Refreshments, Toilets, Covered Seating',
-        directions: 'Detailed directions would be provided here...'
-      }));
-      
-      setVenues(venueObjects);
+      // Map the data to the Venue interface
+      if (data) {
+        setVenues(mapVenuesToState(data));
+      }
     } catch (error) {
       console.error('Error fetching venues:', error);
       toast.error('Failed to load venues');
@@ -86,94 +71,125 @@ export const VenueManager: React.FC = () => {
       setLoading(false);
     }
   };
-  
+
+  // Fix the name handling to ensure string type
+  const mapVenuesToState = (data: any[]): Venue[] => {
+    return data.map(venue => ({
+      id: venue.id,
+      name: String(venue.name || ''), // Ensure name is string
+      address: venue.address || '',
+      capacity: venue.capacity || 0,
+      facilities: venue.facilities || '',
+      directions: venue.directions || ''
+    }));
+  };
+
   // Initial data fetch
   useEffect(() => {
-    fetchVenues();
+    fetchData();
   }, []);
-  
+
   // Open dialog for creating a new venue
   const handleOpenCreateDialog = () => {
     form.reset({
       name: '',
       address: '',
-      capacity: undefined,
+      capacity: 0,
       facilities: '',
       directions: '',
     });
     setEditingVenue(null);
     setDialogOpen(true);
   };
-  
+
   // Open dialog for editing a venue
   const handleOpenEditDialog = (venue: Venue) => {
     form.reset({
       name: venue.name,
       address: venue.address,
       capacity: venue.capacity,
-      facilities: venue.facilities || '',
-      directions: venue.directions || '',
+      facilities: venue.facilities,
+      directions: venue.directions,
     });
     setEditingVenue(venue);
     setDialogOpen(true);
   };
-  
+
   // Handle form submission (create or update)
-  const onSubmit = async (values: z.infer<typeof venueFormSchema>) => {
+  const onSubmit = async (values: VenueFormValues) => {
+    setLoading(true);
     try {
-      // In a real implementation, you would save to a venues table
-      // For this demo, we'll just update the local state
+      // Transform values to ensure correct types
+      const transformedValues = safetyTransform(values);
       
       if (editingVenue) {
         // Update existing venue
-        const updatedVenues = venues.map(venue => 
-          venue.id === editingVenue.id ? { 
-            ...venue, 
-            ...values,
-            name: values.name, // Ensure name is always set
-          } : venue
-        );
-        setVenues(updatedVenues);
+        const { error } = await supabase
+          .from('venues')
+          .update(transformedValues)
+          .eq('id', editingVenue.id);
+        
+        if (error) throw error;
+        
         toast.success('Venue updated successfully');
       } else {
         // Create new venue
-        const newVenue: Venue = {
-          id: `venue-${Date.now()}`,
-          name: values.name,
-          address: values.address,
-          capacity: values.capacity,
-          facilities: values.facilities,
-          directions: values.directions,
-        };
-        setVenues([...venues, newVenue]);
+        const { error } = await supabase
+          .from('venues')
+          .insert([transformedValues]);
+        
+        if (error) throw error;
+        
         toast.success('Venue created successfully');
       }
       
       setDialogOpen(false);
+      fetchData();
     } catch (error) {
       console.error('Error saving venue:', error);
       toast.error('Failed to save venue');
+    } finally {
+      setLoading(false);
     }
   };
-  
+
+  // Update the safetyTransform function 
+  const safetyTransform = (venue: any): Venue => {
+    return {
+      id: venue.id,
+      name: String(venue.name || ''), // Ensure name is string
+      address: String(venue.address || ''),
+      capacity: Number(venue.capacity || 0),
+      facilities: String(venue.facilities || ''),
+      directions: String(venue.directions || '')
+    };
+  };
+
   // Handle venue deletion
   const handleDeleteVenue = async (venueId: string) => {
+    setLoading(true);
     try {
-      // In a real implementation, you would delete from a venues table
+      const { error } = await supabase
+        .from('venues')
+        .delete()
+        .eq('id', venueId);
       
-      // Update local state
-      setVenues(venues.filter(venue => venue.id !== venueId));
+      if (error) throw error;
+      
       toast.success('Venue deleted successfully');
+      fetchData();
     } catch (error) {
       console.error('Error deleting venue:', error);
       toast.error('Failed to delete venue');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div>
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle>Venue Management</CardTitle>
           <Button onClick={handleOpenCreateDialog}>
             <Plus className="h-4 w-4 mr-2" />
@@ -182,7 +198,7 @@ export const VenueManager: React.FC = () => {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex justify-center p-8">
+            <div className="flex justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-primary mr-2" />
               <p>Loading venues...</p>
             </div>
@@ -193,14 +209,13 @@ export const VenueManager: React.FC = () => {
                   <TableHead>Name</TableHead>
                   <TableHead>Address</TableHead>
                   <TableHead>Capacity</TableHead>
-                  <TableHead>Facilities</TableHead>
                   <TableHead className="w-[100px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {venues.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-4 text-gray-500">
+                    <TableCell colSpan={4} className="text-center py-4 text-gray-500">
                       No venues found
                     </TableCell>
                   </TableRow>
@@ -209,8 +224,7 @@ export const VenueManager: React.FC = () => {
                     <TableRow key={venue.id}>
                       <TableCell className="font-medium">{venue.name}</TableCell>
                       <TableCell>{venue.address}</TableCell>
-                      <TableCell>{venue.capacity || 'N/A'}</TableCell>
-                      <TableCell>{venue.facilities || 'N/A'}</TableCell>
+                      <TableCell>{venue.capacity}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
                           <Button variant="ghost" size="sm" onClick={() => handleOpenEditDialog(venue)}>
@@ -275,11 +289,7 @@ export const VenueManager: React.FC = () => {
                   <FormItem>
                     <FormLabel>Capacity</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        placeholder="Enter capacity"
-                      />
+                      <Input type="number" {...field} placeholder="Enter capacity" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -293,11 +303,7 @@ export const VenueManager: React.FC = () => {
                   <FormItem>
                     <FormLabel>Facilities</FormLabel>
                     <FormControl>
-                      <Textarea
-                        placeholder="Enter facilities"
-                        className="min-h-[80px]"
-                        {...field}
-                      />
+                      <Input {...field} placeholder="Enter facilities" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -311,11 +317,7 @@ export const VenueManager: React.FC = () => {
                   <FormItem>
                     <FormLabel>Directions</FormLabel>
                     <FormControl>
-                      <Textarea
-                        placeholder="Enter directions"
-                        className="min-h-[80px]"
-                        {...field}
-                      />
+                      <Input {...field} placeholder="Enter directions" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -323,12 +325,21 @@ export const VenueManager: React.FC = () => {
               />
 
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} disabled={loading}>
                   Cancel
                 </Button>
-                <Button type="submit">
-                  <Check className="h-4 w-4 mr-2" />
-                  {editingVenue ? 'Update Venue' : 'Create Venue'}
+                <Button type="submit" disabled={loading}>
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="mr-2 h-4 w-4" />
+                      {editingVenue ? 'Update Venue' : 'Create Venue'}
+                    </>
+                  )}
                 </Button>
               </DialogFooter>
             </form>

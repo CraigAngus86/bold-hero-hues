@@ -1,5 +1,5 @@
 
-export type SystemStatusName = 'healthy' | 'warning' | 'critical' | 'unknown';
+export type SystemStatusName = 'healthy' | 'warning' | 'critical' | 'unknown' | 'degraded' | 'error';
 
 export interface SystemMetric {
   name: string;
@@ -18,9 +18,10 @@ export interface SystemService {
 export interface SystemLog {
   id: string;
   timestamp: string;
-  type: 'info' | 'warning' | 'error';
+  type: 'info' | 'warning' | 'error' | 'success' | 'debug';
   message: string;
   source: string;
+  details?: any;
 }
 
 export interface SystemStatus {

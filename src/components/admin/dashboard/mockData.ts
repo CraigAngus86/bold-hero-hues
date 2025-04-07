@@ -12,21 +12,21 @@ export const mockStatusItems: SystemStatusItemProps[] = [
   },
   {
     name: 'News',
-    status: 'info',
+    status: 'info' as const,
     value: '48',
     metricValue: '+3',
     details: 'News articles published'
   },
   {
     name: 'System',
-    status: 'info',
+    status: 'info' as const,
     value: '99.9%',
     metricValue: 'Uptime',
     details: 'Server status'
   },
   {
     name: 'Storage',
-    status: 'info',
+    status: 'info' as const,
     value: '45%',
     metricValue: 'Used',
     details: 'Storage usage'

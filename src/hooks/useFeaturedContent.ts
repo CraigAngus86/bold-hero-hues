@@ -1,135 +1,114 @@
 
-import { useState, useEffect } from 'react';
-import { useNewsStore } from '@/services/news';
-import { supabase } from '@/lib/supabase';
+import { useState, useEffect, useCallback } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 
-interface FeaturedArticle {
+// Mock data for featured content
+const mockFeaturedItems = [
+  {
+    id: uuidv4(),
+    title: 'Banks O\' Dee Secure Highland League Title',
+    content: 'In a thrilling match, Banks O\' Dee secured the Highland League title with a 3-1 victory.',
+    image: '/lovable-uploads/banks-o-dee-logo.png',
+    date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    type: 'news',
+    slug: 'banks-o-dee-secure-highland-league-title'
+  },
+  {
+    id: uuidv4(),
+    title: 'New Stadium Development Update',
+    content: 'Progress on the new stadium development continues with the completion of the main stand foundations.',
+    image: '/lovable-uploads/e2efc1b0-1c8a-4e98-9826-3030a5f5d247.png',
+    date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    type: 'news',
+    slug: 'new-stadium-development-update'
+  },
+  {
+    id: uuidv4(),
+    title: 'Club Announces New Sponsor',
+    content: 'Banks O\' Dee FC is proud to announce a new sponsorship deal with a leading local business.',
+    image: '/lovable-uploads/cb95b9fb-0f2d-42ef-9788-10509a80ed6e.png',
+    date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    type: 'news',
+    slug: 'club-announces-new-sponsor'
+  },
+  {
+    id: uuidv4(),
+    title: 'Youth Team Wins Regional Cup',
+    content: 'Our U18 team has won the regional youth cup after a penalty shootout victory.',
+    image: '/lovable-uploads/587f8bd1-4140-4179-89f8-dc2ac1b2e072.png',
+    date: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
+    type: 'news',
+    slug: 'youth-team-wins-regional-cup'
+  }
+];
+
+// Type for featured content items
+export interface FeaturedItem {
   id: string;
   title: string;
   content: string;
-  excerpt?: string;
-  image_url: string;
-  category: string;
-  publish_date: string;
-}
-
-interface NextMatch {
-  id: string;
-  home_team: string;
-  away_team: string;
+  image: string;
   date: string;
-  time: string;
-  venue: string;
-  competition: string;
-  is_next_match: boolean;
-  ticket_link?: string;
+  type: string;
+  slug: string;
+  summary?: string;
 }
 
-interface LeaguePosition {
-  position: number;
-  played: number;
-  points: number;
-  form: ('W' | 'D' | 'L')[];
+export interface NewsItem {
+  id: string;
+  title: string;
+  content: string;
+  image: string;
+  date: string;
+  slug: string;
+  summary?: string;
 }
 
-interface UseFeaturedContentResult {
-  featuredArticle: FeaturedArticle | null;
-  nextMatch: NextMatch | null;
-  leaguePosition: LeaguePosition | null;
+export interface UseContentResult {
+  featured: FeaturedItem[];
   isLoading: boolean;
-  error: Error | null;
+  error: string | null;
+  refresh: () => Promise<void>;
 }
 
-export const useFeaturedContent = (): UseFeaturedContentResult => {
-  const [featuredArticle, setFeaturedArticle] = useState<FeaturedArticle | null>(null);
-  const [nextMatch, setNextMatch] = useState<NextMatch | null>(null);
-  const [leaguePosition, setLeaguePosition] = useState<LeaguePosition | null>(null);
+export function useFeaturedContent(): UseContentResult {
+  const [featured, setFeatured] = useState<FeaturedItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<Error | null>(null);
-  
-  const { news } = useNewsStore();
-  
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchFeaturedContent = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Process the mock data
+      const processedItems = mockFeaturedItems.map(item => ({
+        ...item,
+        summary: item.content?.substring(0, 120) + (item.content?.length > 120 ? '...' : ''),
+      }));
+      
+      setFeatured(processedItems);
+    } catch (err) {
+      console.error('Error fetching featured content:', err);
+      setError('Failed to load featured content');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // 1. Get featured article from news store or fetch it
-        let featuredArticleData = null;
-        if (news && news.length > 0) {
-          // Find a featured article or use the most recent one
-          const featured = news.find(article => article.is_featured) || news[0];
-          
-          // Handle the content and excerpt properties
-          const articleContent = featured.excerpt || featured.summary || 'No content available';
-          const articleExcerpt = featured.excerpt || featured.summary ? 
-            (featured.excerpt || featured.summary).substring(0, 150) + '...' : 
-            'No content available';
-            
-          featuredArticleData = {
-            id: featured.id,
-            title: featured.title,
-            content: articleContent,
-            excerpt: articleExcerpt,
-            image_url: featured.image_url || '/lovable-uploads/banks-o-dee-dark-logo.png',
-            category: featured.category || 'News',
-            publish_date: featured.publish_date || featured.date || new Date().toISOString()
-          };
-        } else {
-          // If no articles in store, fetch from Supabase
-          const { data: articleData } = await supabase
-            .from('news_articles')
-            .select('*')
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .single();
-            
-          if (articleData) {
-            featuredArticleData = {
-              id: articleData.id,
-              title: articleData.title,
-              content: articleData.content,
-              excerpt: articleData.content.substring(0, 150) + '...',
-              image_url: articleData.image_url || '/lovable-uploads/banks-o-dee-dark-logo.png',
-              category: articleData.category,
-              publish_date: articleData.publish_date
-            };
-          }
-        }
-        
-        // 2. Get next match data
-        const { data: matchData } = await supabase
-          .from('fixtures')
-          .select('*')
-          .eq('is_next_match', true)
-          .limit(1)
-          .single();
-          
-        // 3. Get league position data (mock data as we don't have a league table yet)
-        const mockLeaguePosition: LeaguePosition = {
-          position: 3,
-          played: 10,
-          points: 21,
-          form: ['W', 'W', 'D', 'L', 'W']
-        };
-        
-        setFeaturedArticle(featuredArticleData);
-        setNextMatch(matchData);
-        setLeaguePosition(mockLeaguePosition);
-      } catch (err) {
-        console.error('Error fetching featured content:', err);
-        setError(err instanceof Error ? err : new Error('Unknown error occurred'));
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchData();
-  }, [news]);
-  
+    fetchFeaturedContent();
+  }, [fetchFeaturedContent]);
+
   return {
-    featuredArticle,
-    nextMatch,
-    leaguePosition,
+    featured,
     isLoading,
-    error
+    error,
+    refresh: fetchFeaturedContent
   };
-};
+}
+
+export default useFeaturedContent;

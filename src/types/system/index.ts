@@ -3,7 +3,7 @@
 export * from './status';
 export * from './logs';
 
-// Define BucketType enum to fix missing references
+// Define BucketType enum
 export enum BucketType {
   IMAGES = 'images',
   VIDEOS = 'videos',
@@ -26,7 +26,7 @@ export interface SystemLog {
   type: 'info' | 'warning' | 'error' | 'success' | 'debug';
   message: string;
   source: string;
-  level?: string; // Added to match expected type
+  level?: string;
 }
 
 export interface SystemLogResponse {

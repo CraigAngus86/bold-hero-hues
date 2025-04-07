@@ -1,8 +1,9 @@
 
 // Re-export types from the system directory
 export * from './status';
+export * from './logs';
 
-// Define BucketType enum here to resolve import issues
+// Define BucketType enum to fix missing references
 export enum BucketType {
   IMAGES = 'images',
   VIDEOS = 'videos',
@@ -18,7 +19,7 @@ export enum BucketType {
   TEAMS = 'teams'
 }
 
-// SystemLog type definition
+// Ensure SystemLog type is available for components
 export interface SystemLog {
   id: string;
   timestamp: string;

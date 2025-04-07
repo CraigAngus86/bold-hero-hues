@@ -30,5 +30,10 @@ export function useSystemStatus() {
     refreshStatus();
   }, [refreshStatus]);
 
-  return { status, isLoading, error, refreshStatus };
+  return {
+    status,
+    isLoading,
+    error,
+    refreshStatus
+  };
 }

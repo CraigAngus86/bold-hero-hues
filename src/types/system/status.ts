@@ -15,22 +15,29 @@ export interface SystemStatusProps {
   data: SystemStatus;
   isLoading: boolean;
   onRefresh: () => Promise<void>;
+  systems?: SystemStatusItem[];
+  lastUpdated?: Date;
 }
 
 export interface SystemStatusItemProps {
   name: string;
   status: 'healthy' | 'warning' | 'error' | 'unknown';
-  value: string | number;
-  Icon: React.ComponentType<{ className?: string }>;
+  value?: string | number;
+  Icon?: React.ComponentType<{ className?: string }>;
   details?: string;
+  metricValue?: string | number;
+  count?: number;
+  color?: string;
+  viewAllLink?: string;
 }
 
-export interface SystemLog {
-  id: string;
-  timestamp: string;
-  message: string;
-  source: string;
-  level: 'info' | 'warning' | 'error' | 'debug';
+export interface SystemStatusItem {
+  name: string;
+  status: 'healthy' | 'warning' | 'error' | 'unknown' | 'active' | 'info' | 'online' | 'degraded' | 'offline';
+  lastChecked: Date | string | null;
+  metricValue?: string | number;
+  tooltip?: string;
+  icon?: React.ReactNode;
 }
 
 export interface ComponentStatus {
@@ -58,5 +65,3 @@ export interface SystemAlert {
   timestamp: string;
   resolved: boolean;
 }
-
-export type BucketType = 'team' | 'news' | 'events' | 'sponsors' | 'general' | 'uploads' | 'products';

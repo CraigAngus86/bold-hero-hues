@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNewsStore } from '@/services/news';
 import { supabase } from '@/lib/supabase';
@@ -59,9 +60,9 @@ export const useFeaturedContent = (): UseFeaturedContentResult => {
           featuredArticleData = {
             id: featured.id,
             title: featured.title,
-            content: featured.excerpt || featured.summary || 'No content available',
-            excerpt: featured.excerpt || featured.summary ? 
-              (featured.excerpt || featured.summary).substring(0, 150) + '...' : 
+            content: featured.excerpt || featured.content || 'No content available',
+            excerpt: featured.excerpt || featured.content ? 
+              (featured.excerpt || featured.content).substring(0, 150) + '...' : 
               'No content available',
             image_url: featured.image_url || '/lovable-uploads/banks-o-dee-dark-logo.png',
             category: featured.category || 'News',

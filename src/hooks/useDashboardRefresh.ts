@@ -3,54 +3,40 @@ import { useState, useEffect } from 'react';
 import { getSystemStatus } from '@/services/logs/systemLogsService';
 import { SystemStatus } from '@/types/system/status';
 
-export function useDashboardRefresh(interval = 60000) {
+export function useDashboardRefresh(interval: number = 60000) {
   const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
-  const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const refreshDashboard = async () => {
+  const fetchData = async () => {
     setIsLoading(true);
-    setError(null);
-    
     try {
-      // Fetch system status
-      const status = await getSystemStatus();
-      setSystemStatus(status);
-      setLastRefreshed(new Date());
+      const statusResponse = await getSystemStatus();
+      if (statusResponse.success && statusResponse.data) {
+        setSystemStatus(statusResponse.data as SystemStatus);
+      }
     } catch (err) {
-      console.error('Error refreshing dashboard:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred while refreshing');
+      console.error('Error fetching dashboard data:', err);
+      setError(err instanceof Error ? err.message : 'Unknown error refreshing dashboard data');
     } finally {
       setIsLoading(false);
     }
   };
-  
-  // Initial fetch
+
   useEffect(() => {
-    refreshDashboard();
-  }, []);
-  
-  // Set up interval for auto-refresh
-  useEffect(() => {
-    if (interval <= 0) return;
+    fetchData();
     
-    const timerId = setInterval(() => {
-      refreshDashboard();
-    }, interval);
-    
-    return () => {
-      clearInterval(timerId);
-    };
+    // Set up interval refresh if interval is > 0
+    if (interval > 0) {
+      const intervalId = setInterval(fetchData, interval);
+      return () => clearInterval(intervalId);
+    }
   }, [interval]);
-  
+
   return {
     systemStatus,
-    lastRefreshed,
     isLoading,
     error,
-    refreshDashboard
+    refreshData: fetchData
   };
 }
-
-export default useDashboardRefresh;

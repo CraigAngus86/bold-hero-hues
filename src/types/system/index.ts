@@ -1,22 +1,41 @@
 
+// Re-export types from the system directory
 export * from './status';
-export * from './log';
 
-export interface UserActivityLog {
-  id: string;
-  user_id: string;
-  action: string;
-  entity: string;
-  entity_id?: string;
-  details?: string;
-  created_at: string;
+// Define BucketType enum here to resolve import issues
+export enum BucketType {
+  IMAGES = 'images',
+  VIDEOS = 'videos',
+  DOCUMENTS = 'documents',
+  AVATARS = 'avatars',
+  POSTS = 'posts',
+  PRODUCTS = 'products',
+  GENERAL = 'general',
+  MEDIA = 'media',
+  SPONSORS = 'sponsors',
+  PLAYERS = 'players',
+  PUBLIC = 'public',
+  TEAMS = 'teams'
 }
 
-export interface SystemMetric {
-  name: string;
-  value: number;
-  previousValue?: number;
-  change?: number;
-  unit: string;
-  status: 'up' | 'down' | 'same';
+// SystemLog type definition
+export interface SystemLog {
+  id: string;
+  timestamp: string;
+  type: 'info' | 'warning' | 'error' | 'success' | 'debug';
+  message: string;
+  source: string;
+  level?: string; // Added to match expected type
+}
+
+export interface SystemLogResponse {
+  success: boolean;
+  data?: SystemLog[];
+  error?: string;
+}
+
+export interface ClearSystemLogsResponse {
+  success: boolean;
+  message?: string;
+  error?: string;
 }

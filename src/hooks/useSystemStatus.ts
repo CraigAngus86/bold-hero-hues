@@ -4,18 +4,24 @@ import { getSystemStatus } from '@/services/logs/systemLogsService';
 import { SystemStatus } from '@/types/system/status';
 
 export function useSystemStatus() {
-  const [data, setData] = useState<SystemStatus | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [status, setStatus] = useState<SystemStatus | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchStatus = async () => {
     setIsLoading(true);
     setError(null);
+    
     try {
-      const status = await getSystemStatus();
-      setData(status);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to fetch system status'));
+      const response = await getSystemStatus();
+      if (response.success && response.data) {
+        setStatus(response.data as SystemStatus);
+      } else {
+        throw new Error(response.error || 'Failed to fetch system status');
+      }
+    } catch (error) {
+      console.error('Error in useSystemStatus:', error);
+      setError(error instanceof Error ? error.message : 'Unknown error fetching system status');
     } finally {
       setIsLoading(false);
     }
@@ -26,9 +32,9 @@ export function useSystemStatus() {
   }, []);
 
   return {
-    data,
+    status,
     isLoading,
     error,
-    refresh: fetchStatus
+    refreshStatus: fetchStatus
   };
 }

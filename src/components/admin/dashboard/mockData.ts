@@ -1,5 +1,6 @@
 
-import { SystemLog, SystemStatus, SystemStatusName } from '@/types/system/status';
+import { SystemLog } from '@/types/system/logs';
+import { SystemStatus, SystemStatusName } from '@/types/system/status';
 
 export const generateMockSystemStatus = (): SystemStatus => {
   const now = new Date();
@@ -31,7 +32,7 @@ export const generateMockSystemStatus = (): SystemStatus => {
   ];
   
   return {
-    overall_status: 'healthy' as SystemStatusName,
+    overall_status: 'healthy',
     message: 'All systems operational',
     uptime: 14400, // 4 hours in seconds
     last_updated: now.toISOString(),

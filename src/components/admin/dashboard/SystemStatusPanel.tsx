@@ -54,7 +54,7 @@ const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
       </div>
       
       <div className="grid gap-4 md:grid-cols-2">
-        {status.services.map((service) => (
+        {status.services?.map((service) => (
           <StatusItem 
             key={service.name}
             status={service.status}
@@ -68,7 +68,7 @@ const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
       <div className="mt-6">
         <h4 className="text-sm font-medium text-gray-500 mb-2">System Performance</h4>
         <div className="grid grid-cols-3 gap-4">
-          {status.metrics.performance.map((metric) => (
+          {status.metrics?.performance?.map((metric) => (
             <Card key={metric.name}>
               <CardContent className="p-4 text-center">
                 <p className="text-sm text-gray-500">{metric.name}</p>

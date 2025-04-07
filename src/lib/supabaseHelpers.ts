@@ -7,34 +7,24 @@
 // This fixes the "Type of 'await' operand must either be a valid promise or must not contain a callable 'then' member" error
 export const unwrapPromise = async <T>(promise: Promise<{ data: T; error: any }> | any): Promise<{ data: T; error: any; count?: number }> => {
   try {
-    // First check if it's a standard promise and handle it directly
-    if (promise instanceof Promise) {
-      const result = await promise;
-      return result;
-    }
-    
-    // Handle chainable objects with their own then method
-    if (promise && typeof promise === 'object' && typeof promise.then === 'function') {
-      // Convert the chainable object to a proper Promise
-      const result = await new Promise<{ data: T; error: any; count?: number }>((resolve) => {
-        promise.then((res: any) => resolve(res));
-      });
-      
-      // If the result is not in the expected format, wrap it
-      if (result && typeof result === 'object') {
-        if (!('data' in result)) {
-          // Make sure the array-like result has a length property before accessing it
-          const resultArray = result as unknown[];
-          const length = Array.isArray(resultArray) ? resultArray.length : undefined;
-          return { data: result as T, error: null, count: length };
-        }
+    // Handle both Promise objects and Supabase chainable query builders
+    if (promise && typeof promise === 'object') {
+      // For chainable objects with a then method (Supabase queries)
+      if (typeof promise.then === 'function') {
+        const result = await promise;
         return result;
+      }
+      
+      // If it's already a data object, just return it
+      if ('data' in promise) {
+        return promise;
       }
     }
     
-    // If it's already a data object, just wrap it
-    if (promise && typeof promise === 'object' && 'data' in promise) {
-      return promise;
+    // For standard promises
+    if (promise instanceof Promise) {
+      const result = await promise;
+      return result;
     }
     
     // Fallback case
@@ -86,7 +76,7 @@ export function processResponseToStringArray(response: { data: unknown; error: a
 export async function executeSupabaseQuery<T>(queryPromise: any): Promise<{ data: T[]; error: any; count?: number }> {
   try {
     // Use the unwrapPromise helper to handle both Promise and chainable objects
-    const result = await unwrapPromise(queryPromise);
+    const result = await unwrapPromise<T[]>(queryPromise);
     
     return {
       data: Array.isArray(result.data) ? result.data : [],

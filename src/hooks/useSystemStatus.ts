@@ -1,33 +1,48 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { SystemStatus } from '@/types/system/status';
-import systemLogsService from '@/services/logs/systemLogsService';
+import { systemLogsService } from '@/services/systemLogsService';
 
-export const useSystemStatus = () => {
-  const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
+interface UseSystemStatusResult {
+  systemStatus: SystemStatus | undefined;
+  loading: boolean;
+  error: Error | null;
+  fetchSystemStatus: () => Promise<void>;
+}
+
+/**
+ * Hook to fetch and manage system status
+ */
+export function useSystemStatus(): UseSystemStatusResult {
+  const [systemStatus, setSystemStatus] = useState<SystemStatus | undefined>(undefined);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
-
-  const fetchSystemStatus = useCallback(async () => {
+  
+  const fetchSystemStatus = useCallback(async (): Promise<void> => {
+    setLoading(true);
     try {
-      setLoading(true);
       const status = await systemLogsService.getSystemStatus();
       setSystemStatus(status);
       setError(null);
     } catch (err) {
       console.error('Error fetching system status:', err);
-      setError(err instanceof Error ? err : new Error(String(err)));
+      setError(err instanceof Error ? err : new Error('Failed to fetch system status'));
     } finally {
       setLoading(false);
     }
+    
+    // Return a resolved promise to satisfy the Promise<void> return type
+    return Promise.resolve();
   }, []);
-
+  
+  useEffect(() => {
+    fetchSystemStatus();
+  }, [fetchSystemStatus]);
+  
   return {
     systemStatus,
     loading,
     error,
     fetchSystemStatus
   };
-};
-
-export default useSystemStatus;
+}

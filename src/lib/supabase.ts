@@ -8,88 +8,93 @@ interface QueryResponse<T> {
   count?: number;
 }
 
+// Create more accurate type definitions for the chainable query methods
+type ChainableQueryMethods<T> = {
+  // Query filter methods
+  eq: (column: string, value: any) => ChainableQueryMethods<T>;
+  neq: (column: string, value: any) => ChainableQueryMethods<T>;
+  gt: (column: string, value: any) => ChainableQueryMethods<T>;
+  gte: (column: string, value: any) => ChainableQueryMethods<T>;
+  lt: (column: string, value: any) => ChainableQueryMethods<T>;
+  lte: (column: string, value: any) => ChainableQueryMethods<T>;
+  like: (column: string, value: any) => ChainableQueryMethods<T>;
+  ilike: (column: string, value: any) => ChainableQueryMethods<T>;
+  is: (column: string, value: any) => ChainableQueryMethods<T>;
+  in: (column: string, values: any[]) => ChainableQueryMethods<T>;
+  contains: (column: string, value: any) => ChainableQueryMethods<T>;
+  containedBy: (column: string, value: any) => ChainableQueryMethods<T>;
+  not: (column: string, operator: string, value: any) => ChainableQueryMethods<T>;
+  or: (filters: string) => ChainableQueryMethods<T>;
+  filter: (column: string, operator: string, value: any) => ChainableQueryMethods<T>;
+  
+  // Result methods
+  limit: (count: number) => ChainableQueryMethods<T>;
+  range: (from: number, to: number) => ChainableQueryMethods<T>;
+  single: () => Promise<QueryResponse<T[0]>>;
+  maybeSingle: () => Promise<QueryResponse<T[0] | null>>;
+  order: (column: string, options?: { ascending?: boolean }) => ChainableQueryMethods<T>;
+  select: (columns?: string) => ChainableQueryMethods<T>;
+  
+  // Promise-like behavior to make it awaitable
+  then: <TResult1 = QueryResponse<T>, TResult2 = never>(
+    onfulfilled?: ((value: QueryResponse<T>) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+    onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null
+  ) => Promise<TResult1 | TResult2>;
+};
+
 // Helper to create a chainable promise-like object
-const createChainablePromise = <T>(initialData: T | null = null) => {
-  const chainMethods = {
+const createChainablePromise = <T>(initialData: T | null = null): ChainableQueryMethods<T> => {
+  // Create a base result that will be returned through the chain
+  const result: QueryResponse<T> = {
     data: initialData,
     error: null,
-    count: 0,
-    
-    // Basic promise methods
-    then: function(callback: any) {
-      return Promise.resolve({ data: this.data, error: this.error, count: this.count }).then(callback);
+    count: Array.isArray(initialData) ? initialData.length : 0,
+  };
+  
+  // Create the chainable object with methods that return a new chainable object
+  const chainable: ChainableQueryMethods<T> = {
+    // Basic promise then method for awaiting
+    then: function(onfulfilled, onrejected) {
+      return Promise.resolve(result).then(onfulfilled, onrejected);
     },
     
-    // Query methods
-    eq: function(column: string, value: any) {
-      // Return a new chainable with the same methods
-      return { ...this };
-    },
-    neq: function(column: string, value: any) {
-      return { ...this };
-    },
-    gt: function(column: string, value: any) {
-      return { ...this };
-    },
-    gte: function(column: string, value: any) {
-      return { ...this };
-    },
-    lt: function(column: string, value: any) {
-      return { ...this };
-    },
-    lte: function(column: string, value: any) {
-      return { ...this };
-    },
-    like: function(column: string, value: any) {
-      return { ...this };
-    },
-    ilike: function(column: string, value: any) {
-      return { ...this };
-    },
-    is: function(column: string, value: any) {
-      return { ...this };
-    },
-    in: function(column: string, values: any[]) {
-      return { ...this };
-    },
-    contains: function(column: string, value: any) {
-      return { ...this };
-    },
-    containedBy: function(column: string, value: any) {
-      return { ...this };
-    },
-    not: function(column: string, operator: string, value: any) {
-      return { ...this };
-    },
-    or: function(filters: string) {
-      return { ...this };
-    },
-    filter: function(column: string, operator: string, value: any) {
-      return { ...this };
-    },
+    // Query methods that return a new chainable
+    eq: function() { return { ...chainable }; },
+    neq: function() { return { ...chainable }; },
+    gt: function() { return { ...chainable }; },
+    gte: function() { return { ...chainable }; },
+    lt: function() { return { ...chainable }; },
+    lte: function() { return { ...chainable }; },
+    like: function() { return { ...chainable }; },
+    ilike: function() { return { ...chainable }; },
+    is: function() { return { ...chainable }; },
+    in: function() { return { ...chainable }; },
+    contains: function() { return { ...chainable }; },
+    containedBy: function() { return { ...chainable }; },
+    not: function() { return { ...chainable }; },
+    or: function() { return { ...chainable }; },
+    filter: function() { return { ...chainable }; },
     
     // Result methods
-    limit: function(count: number) {
-      return { ...this };
+    limit: function() { return { ...chainable }; },
+    range: function() { return { ...chainable }; },
+    single: function() { 
+      return Promise.resolve({
+        data: Array.isArray(result.data) && result.data.length > 0 ? result.data[0] : null,
+        error: result.error
+      }); 
     },
-    range: function(from: number, to: number) {
-      return { ...this };
+    maybeSingle: function() { 
+      return Promise.resolve({
+        data: Array.isArray(result.data) && result.data.length > 0 ? result.data[0] : null,
+        error: result.error
+      });
     },
-    single: function() {
-      return Promise.resolve({ data: this.data ? this.data[0] : null, error: this.error });
-    },
-    maybeSingle: function() {
-      return Promise.resolve({ data: this.data ? this.data[0] : null, error: this.error });
-    },
-    order: function(column: string, options?: { ascending?: boolean }) {
-      return { ...this };
-    },
-    select: function(columns: string = '*') {
-      return { ...this };
-    }
+    order: function() { return { ...chainable }; },
+    select: function() { return { ...chainable }; },
   };
-
-  return chainMethods;
+  
+  return chainable;
 };
 
 // Create the mock supabase client
@@ -99,16 +104,16 @@ export const supabase = {
       return createChainablePromise([]);
     },
     insert: (data: any) => {
-      return Promise.resolve({ data, error: null });
+      return createChainablePromise(data);
     },
     update: (data: any) => {
-      return Promise.resolve({ data, error: null });
+      return createChainablePromise(data);
     },
     upsert: (data: any, options?: any) => {
-      return Promise.resolve({ data, error: null });
+      return createChainablePromise(data);
     },
     delete: () => {
-      return Promise.resolve({ data: null, error: null });
+      return createChainablePromise(null);
     },
   }),
   storage: {
@@ -120,6 +125,7 @@ export const supabase = {
         });
       },
       getPublicUrl: (path: string) => ({
+        data: { publicURL: `https://example.com/storage/${bucket}/${path}` },
         publicUrl: `https://example.com/storage/${bucket}/${path}`
       }),
       list: (prefix: string) => {
@@ -133,7 +139,13 @@ export const supabase = {
       },
       remove: (paths: string[]) => {
         return Promise.resolve({
-          data: { path: paths },
+          data: { paths },
+          error: null
+        });
+      },
+      download: (path: string) => {
+        return Promise.resolve({
+          data: new Blob(['mock file content']),
           error: null
         });
       }

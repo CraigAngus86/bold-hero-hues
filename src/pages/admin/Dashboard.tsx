@@ -2,7 +2,6 @@
 import React, { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import SystemStatusPanel from '@/components/admin/dashboard/SystemStatusPanel';
 import QuickActions from '@/components/admin/dashboard/QuickActions';
 import { useDashboardRefresh } from '@/hooks/useDashboardRefresh';
 import EnhancedSystemStatus from '@/components/admin/dashboard/EnhancedSystemStatus';

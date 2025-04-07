@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
@@ -8,18 +9,20 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Calendar } from 'lucide-react';
 import { toast } from 'sonner';
-import { useMutation } from '@tanstack/react-query';
-import { createSponsor, updateSponsor, getSponsor } from '@/services/sponsorsService';
+import { createSponsor, updateSponsor, fetchSponsorById } from '@/services/sponsorsService';
 import { Sponsor } from '@/types/sponsors';
 import SponsorLogoUploader from './SponsorLogoUploader';
 
 interface SponsorEditorProps {
   sponsorId?: string;
   onClose: () => void;
+  onSaved?: () => void;
+  onCancel?: () => void;
 }
 
-const SponsorEditor: React.FC<SponsorEditorProps> = ({ sponsorId, onClose }) => {
+const SponsorEditor: React.FC<SponsorEditorProps> = ({ sponsorId, onClose, onSaved = onClose, onCancel = onClose }) => {
   const [logoUrl, setLogoUrl] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const isEditMode = !!sponsorId;
 
   const form = useForm<Sponsor>({
@@ -34,88 +37,110 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({ sponsorId, onClose }) => 
       start_date: new Date().toISOString().split('T')[0],
       end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
       tier: 'gold',
-      notes: ''
+      notes: '',
+      is_active: true
     }
   });
 
   useEffect(() => {
     if (sponsorId) {
       const fetchSponsor = async () => {
+        setIsLoading(true);
         try {
-          const sponsor = await getSponsor(sponsorId);
-          if (sponsor) {
+          const response = await fetchSponsorById(sponsorId);
+          if (response.success && response.data) {
+            const sponsor = response.data;
             form.reset(sponsor);
             setLogoUrl(sponsor.logo_url || '');
           } else {
-            toast.error('Sponsor not found');
-            onClose();
+            throw new Error(response.error || 'Failed to load sponsor');
           }
         } catch (error) {
           console.error('Error fetching sponsor:', error);
-          toast.error('Failed to load sponsor');
+          toast.error(error instanceof Error ? error.message : 'Failed to load sponsor');
           onClose();
+        } finally {
+          setIsLoading(false);
         }
       };
       fetchSponsor();
     }
   }, [sponsorId, form, onClose]);
 
-  const updateMutation = useMutation({
-    mutationFn: async (sponsorData: Partial<Sponsor>) => {
-      if (sponsorData.start_date && typeof sponsorData.start_date !== 'string') {
-        sponsorData.start_date = (sponsorData.start_date as Date).toISOString();
-      }
-      if (sponsorData.end_date && typeof sponsorData.end_date !== 'string') {
-        sponsorData.end_date = (sponsorData.end_date as Date).toISOString();
-      }
-      return await updateSponsor(sponsorId!, sponsorData);
-    },
-    onSuccess: () => {
-      toast.success('Sponsor updated successfully');
-      onClose();
-    },
-    onError: (error: any) => {
-      toast.error(error?.message || 'Failed to update sponsor');
-    }
-  });
-
-  const createMutation = useMutation({
-    mutationFn: async (sponsorData: Omit<Sponsor, 'id'>) => {
-      if (sponsorData.start_date && typeof sponsorData.start_date !== 'string') {
-        sponsorData.start_date = (sponsorData.start_date as Date).toISOString();
-      }
-      if (sponsorData.end_date && typeof sponsorData.end_date !== 'string') {
-        sponsorData.end_date = (sponsorData.end_date as Date).toISOString();
-      }
-      return await createSponsor(sponsorData);
-    },
-    onSuccess: () => {
-      toast.success('Sponsor created successfully');
-      onClose();
-    },
-    onError: (error: any) => {
-      toast.error(error?.message || 'Failed to create sponsor');
-    }
-  });
+  const handleImageUpload = (url: string) => {
+    setLogoUrl(url);
+  };
 
   const handleSubmit = async (data: Sponsor) => {
-    const sponsorData = {
-      ...data,
-      logo_url: logoUrl
-    };
+    setIsLoading(true);
+    try {
+      const sponsorData = {
+        ...data,
+        logo_url: logoUrl
+      };
 
-    if (isEditMode) {
-      updateMutation.mutate(sponsorData);
-    } else {
-      createMutation.mutate(sponsorData);
+      let result;
+      if (isEditMode) {
+        // Update existing sponsor
+        result = await updateSponsor(sponsorId!, sponsorData);
+      } else {
+        // Create new sponsor
+        result = await createSponsor(sponsorData);
+      }
+
+      if (result.success) {
+        toast.success(`Sponsor ${isEditMode ? 'updated' : 'created'} successfully`);
+        onSaved();
+      } else {
+        throw new Error(result.error || 'Failed to save sponsor');
+      }
+    } catch (error) {
+      console.error(`Error ${isEditMode ? 'updating' : 'creating'} sponsor:`, error);
+      toast.error(error instanceof Error ? error.message : 'Failed to save sponsor');
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  // Create separate contact inputs outside form control to avoid type errors
+  const renderContactFields = () => (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <div>
+        <Label htmlFor="contact_name">Contact Name</Label>
+        <Input 
+          id="contact_name" 
+          placeholder="Contact Name"
+          value={form.watch('contact_name') || ''}
+          onChange={(e) => form.setValue('contact_name', e.target.value)}
+        />
+      </div>
+      <div>
+        <Label htmlFor="contact_email">Contact Email</Label>
+        <Input 
+          id="contact_email"
+          type="email" 
+          placeholder="Contact Email"
+          value={form.watch('contact_email') || ''}
+          onChange={(e) => form.setValue('contact_email', e.target.value)}
+        />
+      </div>
+      <div>
+        <Label htmlFor="contact_phone">Contact Phone</Label>
+        <Input 
+          id="contact_phone" 
+          placeholder="Contact Phone"
+          value={form.watch('contact_phone') || ''}
+          onChange={(e) => form.setValue('contact_phone', e.target.value)}
+        />
+      </div>
+    </div>
+  );
 
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>{isEditMode ? 'Edit Sponsor' : 'Create New Sponsor'}</CardTitle>
-        <Button variant="ghost" size="sm" onClick={onClose}>
+        <Button variant="ghost" size="sm" onClick={onCancel}>
           Cancel
         </Button>
       </CardHeader>
@@ -165,47 +190,7 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({ sponsorId, onClose }) => 
               )}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="contact_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Contact Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Contact Name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="contact_email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Contact Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="Contact Email" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="contact_phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Contact Phone</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Contact Phone" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            {renderContactFields()}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
@@ -250,36 +235,32 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({ sponsorId, onClose }) => 
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Notes</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Additional Notes" className="resize-none" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div>
+              <Label>Notes</Label>
+              <Textarea
+                placeholder="Additional Notes"
+                className="resize-none"
+                value={form.watch('notes') || ''}
+                onChange={(e) => form.setValue('notes', e.target.value)}
+              />
+            </div>
 
             <FormItem>
               <FormLabel>Logo</FormLabel>
               <SponsorLogoUploader 
                 logoUrl={logoUrl} 
-                onUpload={setLogoUrl} 
+                onUpload={handleImageUpload} 
               />
             </FormItem>
 
             <CardFooter className="flex justify-between">
-              <Button variant="ghost" onClick={onClose}>
+              <Button variant="ghost" onClick={onCancel}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={updateMutation.isLoading || createMutation.isLoading}>
+              <Button type="submit" disabled={isLoading}>
                 {isEditMode
-                  ? updateMutation.isLoading ? 'Updating...' : 'Update Sponsor'
-                  : createMutation.isLoading ? 'Creating...' : 'Create Sponsor'}
+                  ? isLoading ? 'Updating...' : 'Update Sponsor'
+                  : isLoading ? 'Creating...' : 'Create Sponsor'}
               </Button>
             </CardFooter>
           </form>

@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { useTeamStore } from '@/services/teamStore';
+import { MemberType } from '@/types/team';
 
 interface StaffEditorProps {
   staffId?: string;
@@ -35,7 +36,7 @@ const StaffEditor: React.FC<StaffEditorProps> = ({ staffId, memberType, onSaved,
         position,
         bio,
         experience,
-        member_type: memberType,
+        member_type: memberType as MemberType,
         image_url: image ? URL.createObjectURL(image) : undefined,
         is_active: true, // Add required field 
         nationality: '' // Add other required fields with defaults

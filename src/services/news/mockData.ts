@@ -3,36 +3,33 @@ import { NewsItem } from '@/types/news';
 
 export const initialNews: NewsItem[] = [
   {
-    id: "1",
-    title: 'Banks o\' Dee wins Highland League Cup',
-    excerpt: 'Banks o\' Dee has won the Highland League Cup for the first time in club history with a 2-1 victory over Buckie Thistle.',
-    image_url: '/images/news/trophy.jpg',
-    publish_date: '2023-05-15T12:00:00Z',
-    category: 'Match Report',
+    id: '1',
+    title: 'Highland League Cup Final Preview',
+    excerpt: 'Banks o\' Dee prepare for the biggest match of the season against our local rivals.',
+    category: 'Match Preview',
+    publish_date: '2024-05-10',
+    image_url: '/images/cup-final-preview.jpg',
     author: 'John Smith',
-    is_featured: true,
-    slug: 'banks-o-dee-wins-highland-league-cup',
+    is_featured: true
   },
   {
-    id: "2",
-    title: 'New signing joins Banks o\' Dee',
-    excerpt: 'Banks o\' Dee is delighted to announce the signing of striker Mark Johnson from Fraserburgh FC.',
-    image_url: '/images/news/signing.jpg',
-    publish_date: '2023-05-10T14:30:00Z',
+    id: '2',
+    title: 'New Signing Announcement',
+    excerpt: 'Banks o\' Dee are delighted to announce the signing of promising young striker James Wilson.',
     category: 'Club News',
-    author: 'Sarah Wilson',
-    is_featured: false,
-    slug: 'new-signing-joins-banks-o-dee',
+    publish_date: '2024-04-28',
+    image_url: '/images/new-signing.jpg',
+    author: 'Sarah Johnson',
+    is_featured: false
   },
   {
-    id: "3",
-    title: 'Upcoming Fixture: Banks o\' Dee vs Formartine United',
-    excerpt: 'This weekend, Banks o\' Dee will face Formartine United in a crucial Highland League match.',
-    image_url: '/images/news/match-preview.jpg',
-    publish_date: '2023-05-05T09:15:00Z',
-    category: 'Fixture',
-    author: 'Michael Brown',
-    is_featured: false,
-    slug: 'upcoming-fixture-banks-o-dee-vs-formartine-united',
+    id: '3',
+    title: 'Match Report: Banks o\' Dee 3-1 Huntly',
+    excerpt: 'A comprehensive victory keeps our title hopes alive as we enter the final stretch of the season.',
+    category: 'Match Report',
+    publish_date: '2024-04-21',
+    image_url: '/images/match-report.jpg',
+    author: 'Michael Thompson',
+    is_featured: false
   }
 ];

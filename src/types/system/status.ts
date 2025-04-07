@@ -51,6 +51,7 @@ export interface SystemStatusItemProps {
   viewAllLink?: string;
   count?: any;
   value?: string | number;
+  details?: string; // Adding details property
 }
 
 export interface SystemStatusProps {

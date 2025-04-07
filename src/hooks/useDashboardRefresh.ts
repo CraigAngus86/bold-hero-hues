@@ -1,51 +1,50 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { getSystemStatus } from '@/services/logs/systemLogsService';
 import { SystemStatus } from '@/types/system/status';
+import { getSystemStatus } from '@/services/logs/systemLogsService';
 
-export function useDashboardRefresh(refreshInterval = 30000) {
-    const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
+export const useDashboardRefresh = (autoRefreshInterval = 60000) => {
+  const [status, setStatus] = useState<SystemStatus | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
-    const refreshData = useCallback(async () => {
-        setIsLoading(true);
-        try {
-            // Fetch system status
-            const statusResponse = await getSystemStatus();
-            if (statusResponse.data) {
-                setSystemStatus(statusResponse.data);
-            }
-            
-            // Update last refreshed time
-            setLastRefreshed(new Date());
-        } catch (error) {
-            console.error('Error refreshing dashboard data:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    }, []);
+  const fetchSystemStatus = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const result = await getSystemStatus();
+      if (result.error) {
+        setError(result.error);
+      } else {
+        setStatus(result.data);
+        setLastUpdated(new Date());
+      }
+    } catch (err) {
+      setError('Failed to fetch system status');
+      console.error('Error fetching system status:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-    // Initial load
-    useEffect(() => {
-        refreshData();
-    }, [refreshData]);
+  const refreshStatus = useCallback(() => {
+    fetchSystemStatus();
+  }, [fetchSystemStatus]);
 
-    // Set up interval for auto-refresh
-    useEffect(() => {
-        if (refreshInterval <= 0) return;
-        
-        const intervalId = setInterval(() => {
-            refreshData();
-        }, refreshInterval);
-        
-        return () => clearInterval(intervalId);
-    }, [refreshData, refreshInterval]);
+  useEffect(() => {
+    fetchSystemStatus();
 
-    return {
-        systemStatus,
-        isLoading,
-        lastRefreshed,
-        refreshData
-    };
-}
+    if (autoRefreshInterval > 0) {
+      const intervalId = setInterval(refreshStatus, autoRefreshInterval);
+      return () => clearInterval(intervalId);
+    }
+  }, [fetchSystemStatus, autoRefreshInterval, refreshStatus]);
+
+  return {
+    status,
+    isLoading,
+    error,
+    lastUpdated,
+    refreshStatus
+  };
+};

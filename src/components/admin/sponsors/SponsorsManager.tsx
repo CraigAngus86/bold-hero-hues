@@ -1,101 +1,124 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Loader2, Plus, Settings, Users } from 'lucide-react';
 import { toast } from 'sonner';
-import { useQuery } from '@tanstack/react-query';
-import { getAllSponsors } from '@/services/sponsorsService';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SponsorsList from './SponsorsList';
 import SponsorEditor from './SponsorEditor';
-import SponsorsSettings from './SponsorsSettings';
-import TierManagement from './TierManagement';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import SponsorTierManagement from './SponsorTierManagement';
+import { getSponsors } from '@/services/sponsorsService';
+import { Sponsor } from '@/types/sponsors';
+import { Loader2Icon } from 'lucide-react';
 
 const SponsorsManager: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('sponsors');
-  const [editingSponsor, setEditingSponsor] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('all');
+  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showEditor, setShowEditor] = useState(false);
+  const [selectedSponsorId, setSelectedSponsorId] = useState<string | undefined>(undefined);
   
-  const { data: sponsors, isLoading, error, refetch } = useQuery({
-    queryKey: ['sponsors'],
-    queryFn: async () => {
-      const response = await getAllSponsors();
-      if (!response.success) {
+  const loadSponsors = async () => {
+    setIsLoading(true);
+    try {
+      const response = await getSponsors();
+      if (response.success) {
+        setSponsors(response.data || []);
+      } else {
         throw new Error(response.error || 'Failed to load sponsors');
       }
-      return response.data;
+    } catch (error) {
+      console.error('Error loading sponsors:', error);
+      toast.error('Failed to load sponsors');
+    } finally {
+      setIsLoading(false);
     }
-  });
-
-  const handleEditSponsor = (sponsorId: string) => {
-    setEditingSponsor(sponsorId);
-    setActiveTab('add-edit');
   };
   
-  const handleAddNew = () => {
-    setEditingSponsor(null);
-    setActiveTab('add-edit');
-  };
-  
-  const handleSaved = () => {
-    refetch();
-    setEditingSponsor(null);
-    setActiveTab('sponsors');
-  };
-
   useEffect(() => {
-    if (error) {
-      toast.error('Failed to load sponsors data');
-    }
-  }, [error]);
-
+    loadSponsors();
+  }, []);
+  
+  const handleNewSponsor = () => {
+    setSelectedSponsorId(undefined);
+    setShowEditor(true);
+  };
+  
+  const handleEditSponsor = (id: string) => {
+    setSelectedSponsorId(id);
+    setShowEditor(true);
+  };
+  
+  const handleCloseEditor = () => {
+    setShowEditor(false);
+    setSelectedSponsorId(undefined);
+  };
+  
+  const handleSponsorSaved = () => {
+    loadSponsors();
+    handleCloseEditor();
+  };
+  
+  if (isLoading && sponsors.length === 0) {
+    return (
+      <div className="flex justify-center items-center h-48">
+        <Loader2Icon className="animate-spin h-8 w-8 text-primary" />
+      </div>
+    );
+  }
+  
   return (
-    <div className="container py-6 max-w-7xl">
-      <h1 className="text-3xl font-bold mb-6">Sponsor Management</h1>
-      
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full sm:w-auto">
-          <TabsTrigger value="sponsors">Sponsors List</TabsTrigger>
-          <TabsTrigger value="add-edit">
-            {editingSponsor ? 'Edit Sponsor' : 'Add Sponsor'}
-          </TabsTrigger>
-          <TabsTrigger value="tiers">Tiers</TabsTrigger>
-          <TabsTrigger value="settings">Display Settings</TabsTrigger>
-        </TabsList>
-        
-        <div className="mt-6">
-          {isLoading && activeTab === 'sponsors' ? (
-            <div className="flex justify-center items-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : (
-            <>
-              <TabsContent value="sponsors">
-                <SponsorsList 
-                  sponsors={sponsors || []}
-                  onEdit={handleEditSponsor}
-                  onAddNew={handleAddNew}
-                  onRefresh={refetch}
-                />
-              </TabsContent>
-              
-              <TabsContent value="add-edit">
-                <SponsorEditor 
-                  sponsorId={editingSponsor}
-                  onSaved={handleSaved}
-                  onCancel={() => setActiveTab('sponsors')}
-                />
-              </TabsContent>
-              
-              <TabsContent value="tiers">
-                <TierManagement />
-              </TabsContent>
-              
-              <TabsContent value="settings">
-                <SponsorsSettings />
-              </TabsContent>
-            </>
-          )}
-        </div>
-      </Tabs>
+    <div className="space-y-6">
+      {showEditor ? (
+        <SponsorEditor 
+          sponsorId={selectedSponsorId} 
+          onClose={handleCloseEditor}
+          onSaved={handleSponsorSaved}
+          onCancel={handleCloseEditor}
+        />
+      ) : (
+        <>
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold">Sponsors Management</h2>
+            <Button onClick={handleNewSponsor}>Add New Sponsor</Button>
+          </div>
+          
+          <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
+            <TabsList>
+              <TabsTrigger value="all">All Sponsors</TabsTrigger>
+              <TabsTrigger value="active">Active Sponsors</TabsTrigger>
+              <TabsTrigger value="tiers">Tier Management</TabsTrigger>
+              <TabsTrigger value="settings">Settings</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="all">
+              <SponsorsList 
+                sponsors={sponsors} 
+                onEditSponsor={handleEditSponsor}
+                onDeleteSponsor={() => loadSponsors()}
+              />
+            </TabsContent>
+            
+            <TabsContent value="active">
+              <SponsorsList 
+                sponsors={sponsors.filter(s => s.is_active)} 
+                onEditSponsor={handleEditSponsor}
+                onDeleteSponsor={() => loadSponsors()}
+              />
+            </TabsContent>
+            
+            <TabsContent value="tiers">
+              <SponsorTierManagement />
+            </TabsContent>
+            
+            <TabsContent value="settings">
+              <div className="p-6 bg-white rounded-lg shadow-sm">
+                <h3 className="text-lg font-semibold mb-4">Sponsor Display Settings</h3>
+                <p className="text-gray-500">Sponsor display settings is coming soon...</p>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </>
+      )}
     </div>
   );
 };

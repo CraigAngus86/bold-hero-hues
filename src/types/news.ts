@@ -6,11 +6,11 @@ export interface FeaturedArticle {
   category: string;
   publish_date: string;
   excerpt: string;
+  author?: string;
 }
 
 export interface NewsArticle extends FeaturedArticle {
   content: string;
-  author?: string;
   slug: string;
   updated_at: string;
   created_at: string;
@@ -28,6 +28,8 @@ export type NewsItem = {
   image?: string; // Some components use image instead of image_url
   date?: string; // Some components use date instead of publish_date
   is_featured?: boolean;
+  author?: string; // Adding author to NewsItem
+  slug?: string; // Adding slug to NewsItem
 };
 
 export interface NewsQueryOptions {

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -5,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { useTeamStore } from '@/services/teamStore';
+import { MemberType } from '@/types/team';
 
 interface PlayerEditorProps {
   playerId?: string;
@@ -33,7 +35,7 @@ const PlayerEditor: React.FC<PlayerEditorProps> = ({ playerId, onSaved, onCancel
         position,
         jersey_number: parseInt(jerseyNumber),
         bio,
-        member_type: 'player',
+        member_type: 'player' as MemberType,
         image_url: image ? URL.createObjectURL(image) : undefined,
         is_active: true, // Add the required field
         nationality: '', // Add other required fields with defaults

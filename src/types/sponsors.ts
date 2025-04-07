@@ -4,71 +4,70 @@ export interface Sponsor {
   name: string;
   logo_url?: string;
   website_url?: string;
-  tier: 'platinum' | 'gold' | 'silver' | 'bronze';
+  tier?: 'platinum' | 'gold' | 'silver' | 'bronze';
   description?: string;
-  is_active?: boolean;
-  created_at?: string;
-  updated_at?: string;
+  is_active: boolean;
   start_date?: string;
   end_date?: string;
-  renewal_status?: 'active' | 'pending' | 'renewed' | 'expired';
-  display_order?: number;
-}
-
-export interface SponsorshipTier {
-  id: string;
-  name: string;
-  description: string;
-  benefits?: string;
-  order_position: number;
-  color?: string;
+  renewal_status?: string;
   created_at?: string;
   updated_at?: string;
+  display_order?: number;
+  // Add contact fields to the Sponsor type
+  contact_name?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  notes?: string;
+}
+
+export interface SponsorDocument {
+  id: string;
+  name: string;
+  sponsor_id: string;
+  file_path: string;
+  document_type: string;
+  upload_date: string;
+  created_at?: string;
+}
+
+export interface SponsorCommunication {
+  id: string;
+  sponsor_id: string;
+  date: string;
+  type: 'email' | 'call' | 'meeting' | 'other';
+  subject: string;
+  content?: string;
+  created_by: string;
+  contact_id?: string;
+  created_at?: string;
 }
 
 export interface SponsorContact {
   id: string;
   sponsor_id: string;
   name: string;
-  role?: string;
   email?: string;
   phone?: string;
+  role?: string;
   primary_contact: boolean;
   notes?: string;
   created_at?: string;
   updated_at?: string;
 }
 
-export interface SponsorCommunication {
+export interface SponsorTier {
   id: string;
-  sponsor_id: string;
-  contact_id?: string;
-  date: string;
-  type: 'email' | 'call' | 'meeting' | 'other';
-  subject: string;
-  content?: string;
-  created_by?: string;
-  created_at?: string;
-}
-
-export interface SponsorDocument {
-  id: string;
-  sponsor_id: string;
   name: string;
-  file_path: string;
-  document_type: 'contract' | 'invoice' | 'receipt' | 'other';
-  upload_date: string;
+  description?: string;
+  benefits?: string;
+  color?: string;
+  order_position: number;
   created_at?: string;
+  updated_at?: string;
 }
 
-export interface SponsorDisplaySettings {
-  id: string;
-  show_on_homepage: boolean;
-  display_mode: 'grid' | 'carousel' | 'list';
-  sponsors_per_row: number;
-  carousel_speed: number;
-  show_tier_headings: boolean;
-  randomize_order: boolean;
-  max_logos_homepage: number;
-  updated_at?: string;
+export interface DbServiceResponse<T> {
+  data?: T;
+  success: boolean;
+  error?: string;
 }

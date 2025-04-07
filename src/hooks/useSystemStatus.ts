@@ -1,39 +1,49 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { getSystemStatus } from '@/services/logs/systemLogsService';
+import { useState, useEffect } from 'react';
 import { SystemStatus } from '@/types/system/status';
+import { getSystemStatus } from '@/services/logs/systemLogsService';
 
-export function useSystemStatus() {
-    const [status, setStatus] = useState<SystemStatus | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+export const useSystemStatus = () => {
+  const [status, setStatus] = useState<SystemStatus | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-    const refreshStatus = useCallback(async () => {
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
         setIsLoading(true);
-        setError(null);
-        try {
-            const response = await getSystemStatus();
-            if (response.data) {
-                setStatus(response.data);
-            } else {
-                throw new Error(response.error || 'Failed to fetch system status');
-            }
-        } catch (err) {
-            console.error('Error fetching system status:', err);
-            setError(err instanceof Error ? err.message : 'Unknown error occurred');
-        } finally {
-            setIsLoading(false);
+        const result = await getSystemStatus();
+        if (result.error) {
+          setError(result.error);
+        } else {
+          setStatus(result.data);
         }
-    }, []);
-
-    useEffect(() => {
-        refreshStatus();
-    }, [refreshStatus]);
-
-    return {
-        status,
-        isLoading,
-        error,
-        refreshStatus
+      } catch (err) {
+        setError('Failed to fetch system status');
+        console.error('Error fetching system status:', err);
+      } finally {
+        setIsLoading(false);
+      }
     };
-}
+
+    fetchStatus();
+  }, []);
+
+  const refresh = async () => {
+    setIsLoading(true);
+    try {
+      const result = await getSystemStatus();
+      if (result.error) {
+        setError(result.error);
+      } else {
+        setStatus(result.data);
+      }
+    } catch (err) {
+      setError('Failed to fetch system status');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return { status, isLoading, error, refresh };
+};

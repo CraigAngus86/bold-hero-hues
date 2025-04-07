@@ -29,6 +29,7 @@ const NewsArticleEditor: React.FC<NewsArticleEditorProps> = ({ article, onBack, 
   // Form state
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [excerpt, setExcerpt] = useState('');  // Added excerpt
   const [imageUrl, setImageUrl] = useState<string | undefined>('');
   const [publishDate, setPublishDate] = useState('');
   const [category, setCategory] = useState<string>('');
@@ -42,6 +43,7 @@ const NewsArticleEditor: React.FC<NewsArticleEditorProps> = ({ article, onBack, 
     if (article) {
       setTitle(article.title || '');
       setContent(article.content || '');
+      setExcerpt(article.excerpt || '');  // Set excerpt from article
       setImageUrl(article.image_url || '');
       setPublishDate(article.publish_date ? new Date(article.publish_date).toISOString().slice(0, 16) : '');
       setCategory(article.category || '');
@@ -80,10 +82,11 @@ const NewsArticleEditor: React.FC<NewsArticleEditorProps> = ({ article, onBack, 
       const articleData = {
         title,
         content,
+        excerpt,  // Include excerpt in articleData
         slug,
         image_url: imageUrl,
         publish_date: publishDate,
-        category, // This is now required
+        category,
         author,
         is_featured: isFeatured
       };
@@ -131,7 +134,7 @@ const NewsArticleEditor: React.FC<NewsArticleEditorProps> = ({ article, onBack, 
                   <Input 
                     id="title" 
                     value={title} 
-                    onChange={handleTitleChange}
+                    onChange={(e) => setTitle(e.target.value)}
                     required
                     placeholder="Article Title"
                   />
@@ -169,6 +172,17 @@ const NewsArticleEditor: React.FC<NewsArticleEditorProps> = ({ article, onBack, 
                       <SelectItem value="Club News">Club News</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="excerpt">Excerpt</Label>
+                  <Textarea 
+                    id="excerpt" 
+                    value={excerpt} 
+                    onChange={(e) => setExcerpt(e.target.value)}
+                    required
+                    placeholder="Brief summary of the article..."
+                  />
                 </div>
 
                 <div className="space-y-2">

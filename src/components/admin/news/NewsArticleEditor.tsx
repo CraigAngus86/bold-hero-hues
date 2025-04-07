@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,6 +26,7 @@ const NewsArticleEditor: React.FC<NewsArticleEditorProps> = ({
 }) => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [excerpt, setExcerpt] = useState('');
   const [category, setCategory] = useState('');
   const [author, setAuthor] = useState('');
   const [imageUrl, setImageUrl] = useState('');
@@ -41,13 +41,13 @@ const NewsArticleEditor: React.FC<NewsArticleEditorProps> = ({
     if (article) {
       setTitle(article.title || '');
       setContent(article.content || '');
+      setExcerpt(article.excerpt || '');
       setCategory(article.category || '');
       setAuthor(article.author || '');
       setImageUrl(article.image_url || '');
       setIsFeatured(article.is_featured || false);
       setSlug(article.slug || '');
       
-      // Format the date for input[type="date"]
       if (article.publish_date) {
         const date = new Date(article.publish_date);
         setPublishDate(date.toISOString().split('T')[0]);
@@ -55,7 +55,6 @@ const NewsArticleEditor: React.FC<NewsArticleEditorProps> = ({
     }
   }, [article]);
 
-  // Generate a slug from the title whenever title changes
   useEffect(() => {
     if (!article?.slug && title) {
       const generatedSlug = title
@@ -80,12 +79,12 @@ const NewsArticleEditor: React.FC<NewsArticleEditorProps> = ({
     setIsSubmitting(true);
 
     try {
-      // Format date with time for database
       const formattedDate = `${publishDate}T12:00:00`;
       
       const articleData = {
         title,
         content,
+        excerpt,
         category,
         author,
         image_url: imageUrl,
@@ -97,10 +96,8 @@ const NewsArticleEditor: React.FC<NewsArticleEditorProps> = ({
       let result;
       
       if (article?.id) {
-        // Update existing article
         result = await updateNewsArticle(article.id, articleData);
       } else {
-        // Create new article
         result = await createNewsArticle(articleData);
       }
       
@@ -190,6 +187,18 @@ const NewsArticleEditor: React.FC<NewsArticleEditorProps> = ({
               required
             />
             <p className="text-xs text-gray-500">This will be used in the article's URL</p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="excerpt">Excerpt *</Label>
+            <Textarea
+              id="excerpt"
+              value={excerpt}
+              onChange={(e) => setExcerpt(e.target.value)}
+              placeholder="Brief summary of the article..."
+              required
+              rows={2}
+            />
           </div>
 
           <div className="space-y-2">

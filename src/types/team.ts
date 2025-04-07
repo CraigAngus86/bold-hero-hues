@@ -1,8 +1,10 @@
 
+export type MemberType = 'player' | 'staff' | 'coach' | 'official' | 'management';
+
 export interface TeamMember {
   id: string;
   name: string;
-  member_type: 'player' | 'staff' | 'coach' | 'official' | 'management';
+  member_type: MemberType;
   position?: string;
   image_url?: string;
   bio?: string;
@@ -16,4 +18,34 @@ export interface TeamMember {
   updated_at?: string;
 }
 
-export type MemberType = 'player' | 'staff' | 'coach' | 'official' | 'management';
+export interface TeamMembersManagerProps {
+  memberType: string;
+  members: TeamMember[];
+}
+
+export interface PlayersListProps {
+  players: TeamMember[];
+  isLoading?: boolean;
+  onDeletePlayer?: (id: string) => void;
+}
+
+export interface StaffListProps {
+  staff: TeamMember[];
+  isLoading?: boolean;
+  onDeleteStaff?: (id: string) => void;
+}
+
+export interface TeamPositionsManagerProps {
+  memberType: string;
+  members: TeamMember[];
+}
+
+export interface TeamStatsProps {
+  memberType: string;
+  members: TeamMember[];
+}
+
+export interface TeamSettingsProps {
+  memberType: string;
+  members: TeamMember[];
+}

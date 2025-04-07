@@ -1,129 +1,117 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Card } from '@/components/ui/card';
-import { useTeamStore } from '@/services/teamStore';
-import { MemberType } from '@/types/team';
+import { Textarea } from '@/components/ui/textarea';
+import { TeamMember } from '@/types/team';
+import { useForm } from 'react-hook-form';
+import { createTeamMember, updateTeamMember } from '@/services/teamService';
+import { toast } from 'sonner';
 
 interface PlayerEditorProps {
-  playerId?: string;
-  onSaved: () => void;
+  player?: TeamMember;
+  onSave: () => void;
   onCancel: () => void;
 }
 
-const PlayerEditor: React.FC<PlayerEditorProps> = ({ playerId, onSaved, onCancel }) => {
-  const [name, setName] = useState('');
-  const [position, setPosition] = useState('');
-  const [jerseyNumber, setJerseyNumber] = useState('');
-  const [bio, setBio] = useState('');
-  const [image, setImage] = useState<File | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const { addTeamMember } = useTeamStore();
+const PlayerEditor = ({ player, onSave, onCancel }: PlayerEditorProps) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const isEditing = !!player;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    defaultValues: player || {
+      name: '',
+      position: '',
+      jersey_number: undefined,
+      bio: '',
+      member_type: 'player',
+      image_url: '',
+      nationality: '',
+      experience: '',
+      is_active: true
+    }
+  });
+
+  const onSubmit = async (data: any) => {
+    setIsLoading(true);
     try {
-      // Create a new player with required is_active field
-      const playerData = {
-        name,
-        position,
-        jersey_number: parseInt(jerseyNumber),
-        bio,
-        member_type: 'player' as MemberType,
-        image_url: image ? URL.createObjectURL(image) : undefined,
-        is_active: true, // Add the required field
-        nationality: '', // Add other required fields with defaults
-        experience: ''
+      const playerData: Omit<TeamMember, 'id'> = {
+        name: data.name,
+        position: data.position,
+        jersey_number: parseInt(data.jersey_number),
+        bio: data.bio,
+        member_type: 'player' as const,
+        image_url: data.image_url,
+        is_active: true,
+        nationality: data.nationality,
+        experience: data.experience
       };
-      
-      // Using the updated method signature that requires memberType
-      addTeamMember(playerData, 'player');
-      
-      setIsSubmitting(false);
-      onSaved();
+
+      if (isEditing && player) {
+        await updateTeamMember(player.id, playerData);
+        toast.success('Player updated successfully');
+      } else {
+        await createTeamMember(playerData);
+        toast.success('Player created successfully');
+      }
+      onSave();
     } catch (error) {
-      console.error("Error saving player:", error);
-      setIsSubmitting(false);
+      console.error('Error saving player:', error);
+      toast.error('Failed to save player');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <Card className="p-6">
-      <h2 className="text-2xl font-bold mb-6">Add New Player</h2>
-      <form onSubmit={handleSubmit}>
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="position">Position</Label>
-              <Input
-                id="position"
-                value={position}
-                onChange={(e) => setPosition(e.target.value)}
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="jerseyNumber">Jersey Number</Label>
-              <Input
-                id="jerseyNumber"
-                type="number"
-                value={jerseyNumber}
-                onChange={(e) => setJerseyNumber(e.target.value)}
-              />
-            </div>
-          </div>
-          
-          <div>
-            <Label htmlFor="bio">Bio/Description</Label>
-            <Textarea
-              id="bio"
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              rows={4}
-            />
-          </div>
-          
-          <div>
-            <Label htmlFor="image">Player Image</Label>
-            <Input
-              id="image"
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                if (e.target.files && e.target.files[0]) {
-                  setImage(e.target.files[0]);
-                }
-              }}
-            />
-          </div>
-        </div>
-        
-        <div className="flex justify-end mt-6 space-x-2">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Saving...' : 'Save Player'}
-          </Button>
-        </div>
-      </form>
-    </Card>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div>
+        <Label htmlFor="name">Name</Label>
+        <Input id="name" {...register('name', { required: true })} />
+        {errors.name && <span className="text-red-500 text-sm">This field is required</span>}
+      </div>
+
+      <div>
+        <Label htmlFor="position">Position</Label>
+        <Input id="position" {...register('position', { required: true })} />
+        {errors.position && <span className="text-red-500 text-sm">This field is required</span>}
+      </div>
+
+      <div>
+        <Label htmlFor="jersey_number">Jersey Number</Label>
+        <Input id="jersey_number" type="number" {...register('jersey_number')} />
+      </div>
+
+      <div>
+        <Label htmlFor="nationality">Nationality</Label>
+        <Input id="nationality" {...register('nationality')} />
+      </div>
+
+      <div>
+        <Label htmlFor="experience">Experience</Label>
+        <Input id="experience" {...register('experience')} />
+      </div>
+
+      <div>
+        <Label htmlFor="image_url">Image URL</Label>
+        <Input id="image_url" {...register('image_url')} />
+      </div>
+
+      <div>
+        <Label htmlFor="bio">Biography</Label>
+        <Textarea id="bio" {...register('bio')} />
+      </div>
+
+      <div className="flex justify-end space-x-2">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'Saving...' : isEditing ? 'Update Player' : 'Add Player'}
+        </Button>
+      </div>
+    </form>
   );
 };
 

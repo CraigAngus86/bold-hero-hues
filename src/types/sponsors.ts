@@ -13,7 +13,7 @@ export interface Sponsor {
   created_at?: string;
   updated_at?: string;
   display_order?: number;
-  // Add contact fields to the Sponsor type
+  // Additional contact fields
   contact_name?: string;
   contact_email?: string;
   contact_phone?: string;
@@ -63,6 +63,21 @@ export interface SponsorTier {
   color?: string;
   order_position: number;
   created_at?: string;
+  updated_at?: string;
+}
+
+// Renamed from SponsorshipTier to SponsorTier for consistency
+export type SponsorshipTier = SponsorTier;
+
+export interface SponsorDisplaySettings {
+  id: string;
+  show_on_homepage?: boolean;
+  show_tier_headings?: boolean;
+  carousel_speed?: number;
+  sponsors_per_row?: number;
+  max_logos_homepage?: number;
+  display_mode?: string;
+  randomize_order?: boolean;
   updated_at?: string;
 }
 

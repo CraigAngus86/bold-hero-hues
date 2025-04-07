@@ -1,70 +1,51 @@
 
-export interface SystemMetric {
+export type SystemStatusType = 'healthy' | 'warning' | 'error' | 'maintenance';
+
+export interface SystemStatusItem {
   name: string;
-  value: number | string;
-  change?: number;
-  changeDirection?: 'up' | 'down' | 'neutral';
-  unit?: string;
+  status: SystemStatusType;
+  value: string;
+  metricValue: string;
+  tooltip?: string;
+  details?: string;
 }
 
-export type SystemStatusType = 'healthy' | 'warning' | 'error' | 'unknown' | 'online' | 'offline' | 'degraded' | 'maintenance';
+export interface SystemStatusItemProps extends SystemStatusItem {
+  details?: string;
+}
+
+export interface SystemMetric {
+  value: string | number;
+  trend?: 'up' | 'down' | 'stable';
+  percentage?: number;
+}
 
 export interface SystemStatus {
   status: SystemStatusType;
   lastUpdated: string;
-  uptime: number;
-  version: string;
-  message?: string;
-  metrics: {
+  items: SystemStatusItem[];
+  metrics?: {
     memory: SystemMetric;
     cpu: SystemMetric;
     storage: SystemMetric;
     activeUsers: SystemMetric;
-    requests?: number;
+    [key: string]: SystemMetric;
   };
-  services: {
-    database: {
-      status: 'healthy' | 'warning' | 'error' | 'unknown';
-      latency: number;
-    };
-    api: {
-      status: 'healthy' | 'warning' | 'error' | 'unknown';
-      latency: number;
-      requestsPerMinute: number;
-    };
-    storage: {
-      status: 'healthy' | 'warning' | 'error' | 'unknown';
-      availableSpace: number;
-      totalSize: number;
-    };
-  };
-}
-
-export interface SystemStatusItemProps {
-  name: string;
-  status: SystemStatusType;
-  metricValue?: string | number;
-  icon?: React.ElementType;
-  tooltip?: string;
-  lastChecked?: string;
-  color?: string;
-  viewAllLink?: string;
-  count?: any;
-  value?: string | number;
-  details?: string; // Adding details property
-}
-
-export interface SystemStatusProps {
-  systems: SystemStatusItemProps[];
-  isLoading: boolean;
-  lastUpdated: Date;
-  onRefresh: () => void;
+  message?: string;
 }
 
 export interface SystemLog {
   id: string;
   timestamp: string;
-  source: string;
+  type: 'info' | 'warning' | 'error' | 'debug';
   message: string;
-  type: string;
+  source: string;
+  created_at?: string;
+}
+
+export interface SystemStatusPanelProps {
+  status: SystemStatus | null;
+  isLoading: boolean;
+  error?: string | null;
+  onRefresh?: () => void;
 }

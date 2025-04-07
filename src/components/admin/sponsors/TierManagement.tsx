@@ -2,355 +2,286 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-import { PlusCircle, Pencil, Trash2, MoveUp, MoveDown } from 'lucide-react';
+import { ArrowUp, ArrowDown, Edit, Trash } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { fetchSponsorshipTiers, createSponsorshipTier, updateSponsorshipTier, deleteSponsorshipTier } from '@/services/sponsorsService';
-import { SponsorshipTier } from '@/types/sponsors';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-
-const tierFormSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  description: z.string().optional(),
-  benefits: z.string().optional(),
-  color: z.string().optional(),
-  order_position: z.number().int().min(0).default(0),
-});
+import { SponsorTier } from '@/types/sponsors';
+import { fetchSponsorshipTiers, updateSponsorshipTier, createSponsorshipTier, deleteSponsorshipTier } from '@/services/sponsorsService';
 
 const TierManagement: React.FC = () => {
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingTier, setEditingTier] = useState<SponsorshipTier | null>(null);
-  const queryClient = useQueryClient();
-  
-  const { data: tiers = [], isLoading, refetch } = useQuery({
-    queryKey: ['sponsorshipTiers'],
-    queryFn: async () => {
-      const response = await fetchSponsorshipTiers();
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to fetch tiers');
-      }
-      return response.data || [];
-    }
-  });
-
-  const form = useForm<z.infer<typeof tierFormSchema>>({
-    resolver: zodResolver(tierFormSchema),
-    defaultValues: {
-      name: '',
-      description: '',
-      benefits: '',
-      color: '#888888',
-      order_position: 0,
-    },
-  });
+  const [tiers, setTiers] = useState<SponsorTier[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [currentTier, setCurrentTier] = useState<Partial<SponsorTier> | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (editingTier) {
-      form.reset({
-        name: editingTier.name,
-        description: editingTier.description || '',
-        benefits: editingTier.benefits || '',
-        color: editingTier.color || '#888888',
-        order_position: editingTier.order_position,
-      });
-    } else {
-      form.reset({
-        name: '',
-        description: '',
-        benefits: '',
-        color: '#888888',
-        order_position: tiers.length > 0 ? Math.max(...tiers.map(tier => tier.order_position)) + 10 : 10,
-      });
-    }
-  }, [editingTier, tiers, form]);
+    loadTiers();
+  }, []);
 
-  const createTierMutation = useMutation({
-    mutationFn: createSponsorshipTier,
-    onSuccess: () => {
-      toast.success('Tier created successfully');
-      queryClient.invalidateQueries({ queryKey: ['sponsorshipTiers'] });
-      handleCloseDialog();
-    },
-    onError: (error) => {
-      toast.error('Failed to create tier');
-      console.error('Error creating tier:', error);
+  const loadTiers = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetchSponsorshipTiers();
+      if (response.success) {
+        setTiers(response.data || []);
+      } else {
+        toast.error('Failed to load tiers: ' + response.error);
+      }
+    } catch (error) {
+      console.error('Error loading tiers:', error);
+      toast.error('An error occurred while loading tiers');
+    } finally {
+      setIsLoading(false);
     }
-  });
+  };
 
-  const updateTierMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string, data: Partial<SponsorshipTier> }) => updateSponsorshipTier(id, data),
-    onSuccess: () => {
-      toast.success('Tier updated successfully');
-      queryClient.invalidateQueries({ queryKey: ['sponsorshipTiers'] });
-      handleCloseDialog();
-    },
-    onError: (error) => {
-      toast.error('Failed to update tier');
-      console.error('Error updating tier:', error);
-    }
-  });
+  const openNewDialog = () => {
+    setCurrentTier({
+      name: '',
+      description: '',
+      color: '#999999',
+      order_position: tiers.length + 1
+    });
+    setDialogOpen(true);
+  };
 
-  const deleteTierMutation = useMutation({
-    mutationFn: deleteSponsorshipTier,
-    onSuccess: () => {
-      toast.success('Tier deleted successfully');
-      queryClient.invalidateQueries({ queryKey: ['sponsorshipTiers'] });
-    },
-    onError: (error) => {
-      toast.error('Failed to delete tier');
-      console.error('Error deleting tier:', error);
-    }
-  });
+  const openEditDialog = (tier: SponsorTier) => {
+    setCurrentTier({ ...tier });
+    setDialogOpen(true);
+  };
 
-  const onSubmit = async (values: z.infer<typeof tierFormSchema>) => {
-    if (editingTier) {
-      updateTierMutation.mutate({
-        id: editingTier.id,
-        data: values
-      });
-    } else {
-      createTierMutation.mutate(values as any);
+  const closeDialog = () => {
+    setDialogOpen(false);
+    setCurrentTier(null);
+  };
+
+  const handleSaveTier = async () => {
+    if (!currentTier?.name) return;
+
+    try {
+      if (currentTier.id) {
+        // Update existing tier
+        const response = await updateSponsorshipTier(currentTier.id, currentTier);
+        if (response.success) {
+          setTiers(tiers.map(t => t.id === currentTier.id ? response.data : t));
+          toast.success('Tier updated successfully');
+        } else {
+          toast.error('Failed to update tier: ' + response.error);
+        }
+      } else {
+        // Add new tier
+        const response = await createSponsorshipTier(currentTier as Omit<SponsorTier, 'id'>);
+        if (response.success) {
+          setTiers([...tiers, response.data]);
+          toast.success('Tier added successfully');
+        } else {
+          toast.error('Failed to add tier: ' + response.error);
+        }
+      }
+
+      closeDialog();
+    } catch (error) {
+      console.error('Error saving tier:', error);
+      toast.error('An error occurred while saving the tier');
     }
   };
 
   const handleDeleteTier = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this tier?')) {
-      deleteTierMutation.mutate(id);
+    if (!confirm('Are you sure you want to delete this tier?')) return;
+
+    try {
+      const response = await deleteSponsorshipTier(id);
+      if (response.success) {
+        setTiers(tiers.filter(t => t.id !== id));
+        toast.success('Tier deleted successfully');
+      } else {
+        toast.error('Failed to delete tier: ' + response.error);
+      }
+    } catch (error) {
+      console.error('Error deleting tier:', error);
+      toast.error('An error occurred while deleting the tier');
     }
   };
 
-  const handleCloseDialog = () => {
-    setIsAddDialogOpen(false);
-    setEditingTier(null);
-    form.reset();
+  const moveUp = async (tier: SponsorTier, index: number) => {
+    if (index <= 0) return;
+    
+    try {
+      const newPosition = tier.order_position - 1;
+      const updatedTier = { ...tier, order_position: newPosition };
+      const response = await updateSponsorshipTier(tier.id, updatedTier);
+      
+      if (response.success) {
+        // Also need to update the tier that was in this position
+        const tierToMoveDown = tiers.find(t => t.order_position === newPosition && t.id !== tier.id);
+        if (tierToMoveDown) {
+          await updateSponsorshipTier(tierToMoveDown.id, { 
+            ...tierToMoveDown, 
+            order_position: tier.order_position 
+          });
+        }
+        
+        await loadTiers(); // Reload all tiers to ensure order is correct
+      } else {
+        toast.error('Failed to move tier: ' + response.error);
+      }
+    } catch (error) {
+      console.error('Error moving tier:', error);
+      toast.error('An error occurred while moving the tier');
+    }
   };
 
-  const handleMoveUp = async (tier: SponsorshipTier, index: number) => {
-    if (index === 0) return;
+  const moveDown = async (tier: SponsorTier, index: number) => {
+    if (index >= tiers.length - 1) return;
     
-    const prevTier = tiers[index - 1];
-    const newPosition = prevTier.order_position - 5;
-    
-    updateTierMutation.mutate({
-      id: tier.id,
-      data: { order_position: newPosition }
-    });
-  };
-
-  const handleMoveDown = async (tier: SponsorshipTier, index: number) => {
-    if (index === tiers.length - 1) return;
-    
-    const nextTier = tiers[index + 1];
-    const newPosition = nextTier.order_position + 5;
-    
-    updateTierMutation.mutate({
-      id: tier.id,
-      data: { order_position: newPosition }
-    });
+    try {
+      const newPosition = tier.order_position + 1;
+      const updatedTier = { ...tier, order_position: newPosition };
+      const response = await updateSponsorshipTier(tier.id, updatedTier);
+      
+      if (response.success) {
+        // Also need to update the tier that was in this position
+        const tierToMoveUp = tiers.find(t => t.order_position === newPosition && t.id !== tier.id);
+        if (tierToMoveUp) {
+          await updateSponsorshipTier(tierToMoveUp.id, { 
+            ...tierToMoveUp, 
+            order_position: tier.order_position 
+          });
+        }
+        
+        await loadTiers(); // Reload all tiers to ensure order is correct
+      } else {
+        toast.error('Failed to move tier: ' + response.error);
+      }
+    } catch (error) {
+      console.error('Error moving tier:', error);
+      toast.error('An error occurred while moving the tier');
+    }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Sponsorship Tiers</h2>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => {
-              setEditingTier(null);
-              setIsAddDialogOpen(true);
-            }}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add New Tier
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>Sponsorship Tiers</CardTitle>
+        <Button onClick={openNewDialog}>Add New Tier</Button>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="text-center py-4">Loading tiers...</div>
+        ) : tiers.length === 0 ? (
+          <div className="text-center py-4">No tiers found. Add your first tier!</div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Order</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Color</TableHead>
+                <TableHead className="w-[100px]">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {tiers.sort((a, b) => a.order_position - b.order_position).map((tier, index) => (
+                <TableRow key={tier.id}>
+                  <TableCell className="flex gap-1">
+                    <div className="flex flex-col">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => moveUp(tier, index)}
+                        disabled={index === 0}
+                      >
+                        <ArrowUp className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => moveDown(tier, index)}
+                        disabled={index === tiers.length - 1}
+                      >
+                        <ArrowDown className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <span className="ml-2">{tier.order_position}</span>
+                  </TableCell>
+                  <TableCell className="font-medium">{tier.name}</TableCell>
+                  <TableCell>{tier.description}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-6 h-6 rounded-full" 
+                        style={{ backgroundColor: tier.color }}
+                      />
+                      {tier.color}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button variant="ghost" size="sm" onClick={() => openEditDialog(tier)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDeleteTier(tier.id)}>
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent>
             <DialogHeader>
-              <DialogTitle>{editingTier ? 'Edit Tier' : 'Add New Tier'}</DialogTitle>
+              <DialogTitle>{currentTier?.id ? 'Edit Tier' : 'Add New Tier'}</DialogTitle>
             </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Name*</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="e.g. Gold, Silver, Bronze" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  value={currentTier?.name || ''}
+                  onChange={(e) => setCurrentTier(prev => ({...prev, name: e.target.value}))}
                 />
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea {...field} placeholder="Brief description of this tier" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="description">Description</Label>
+                <Input
+                  id="description"
+                  value={currentTier?.description || ''}
+                  onChange={(e) => setCurrentTier(prev => ({...prev, description: e.target.value}))}
                 />
-                <FormField
-                  control={form.control}
-                  name="benefits"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Benefits</FormLabel>
-                      <FormControl>
-                        <Textarea {...field} placeholder="List benefits for this tier" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="color"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Color</FormLabel>
-                      <FormControl>
-                        <div className="flex gap-2">
-                          <Input type="color" {...field} className="w-12 h-10" />
-                          <Input type="text" {...field} className="flex-1" />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="order_position"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Display Order</FormLabel>
-                      <FormControl>
-                        <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value))} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" type="button" onClick={handleCloseDialog}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={form.formState.isSubmitting}>
-                    {editingTier ? 'Update Tier' : 'Create Tier'}
-                  </Button>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="color">Color</Label>
+                <div className="flex gap-2">
+                  <input
+                    type="color"
+                    id="color"
+                    value={currentTier?.color || '#999999'}
+                    onChange={(e) => setCurrentTier(prev => ({...prev, color: e.target.value}))}
+                    className="w-12 h-8"
+                  />
+                  <Input
+                    value={currentTier?.color || '#999999'}
+                    onChange={(e) => setCurrentTier(prev => ({...prev, color: e.target.value}))}
+                  />
                 </div>
-              </form>
-            </Form>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={closeDialog}>Cancel</Button>
+              <Button onClick={handleSaveTier}>Save</Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Sponsorship Tiers</CardTitle>
-          <CardDescription>
-            Configure the different sponsorship tiers available for your sponsors.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center py-8">Loading tiers...</div>
-          ) : tiers.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">No tiers have been created yet.</p>
-              <Button 
-                variant="outline" 
-                onClick={() => setIsAddDialogOpen(true)} 
-                className="mt-4"
-              >
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Create your first tier
-              </Button>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Order</TableHead>
-                  <TableHead>Color</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tiers.map((tier, index) => (
-                  <TableRow key={tier.id}>
-                    <TableCell className="font-medium">{tier.name}</TableCell>
-                    <TableCell className="max-w-[200px] truncate">{tier.description}</TableCell>
-                    <TableCell>{tier.order_position}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center">
-                        <div 
-                          className="w-4 h-4 rounded-full mr-2" 
-                          style={{ backgroundColor: tier.color || '#888888' }}
-                        />
-                        {tier.color || '-'}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          onClick={() => handleMoveUp(tier, index)}
-                          disabled={index === 0}
-                        >
-                          <MoveUp className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          onClick={() => handleMoveDown(tier, index)}
-                          disabled={index === tiers.length - 1}
-                        >
-                          <MoveDown className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          onClick={() => {
-                            setEditingTier(tier);
-                            setIsAddDialogOpen(true);
-                          }}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          onClick={() => handleDeleteTier(tier.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

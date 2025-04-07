@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sponsor, SponsorDisplaySettings } from '@/types/sponsors';
+import { Sponsor, SponsorTier, SponsorDisplaySettings } from '@/types/sponsors';
 import { useSponsorsStore } from '@/services/sponsorsService';
 import { useQuery } from '@tanstack/react-query';
 import { fetchSponsorDisplaySettings } from '@/services/sponsorsService';
@@ -54,7 +55,7 @@ const SponsorsCarousel = () => {
       };
       
       // First sort by tier
-      if (tierOrder[a.tier] !== tierOrder[b.tier]) {
+      if (a.tier && b.tier && tierOrder[a.tier] !== tierOrder[b.tier]) {
         return tierOrder[a.tier] - tierOrder[b.tier];
       }
       
@@ -68,10 +69,12 @@ const SponsorsCarousel = () => {
       
       // Group sponsors by tier
       displaySponsors.forEach(sponsor => {
-        if (!tierGroups[sponsor.tier]) {
-          tierGroups[sponsor.tier] = [];
+        if (sponsor.tier) {
+          if (!tierGroups[sponsor.tier]) {
+            tierGroups[sponsor.tier] = [];
+          }
+          tierGroups[sponsor.tier].push(sponsor);
         }
-        tierGroups[sponsor.tier].push(sponsor);
       });
       
       // Shuffle each tier group
@@ -171,10 +174,12 @@ const SponsorsCarousel = () => {
       // Group sponsors by tier
       const tierGroups: Record<string, Sponsor[]> = {};
       displaySponsors.forEach(sponsor => {
-        if (!tierGroups[sponsor.tier]) {
-          tierGroups[sponsor.tier] = [];
+        if (sponsor.tier) {
+          if (!tierGroups[sponsor.tier]) {
+            tierGroups[sponsor.tier] = [];
+          }
+          tierGroups[sponsor.tier].push(sponsor);
         }
-        tierGroups[sponsor.tier].push(sponsor);
       });
       
       return (

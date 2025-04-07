@@ -1,4 +1,4 @@
-// Fix imports and type definitions
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -7,10 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Calendar, Plus, FileText, Mail, Phone } from 'lucide-react';
+import { Calendar, Plus, FileText, Mail, Phone, Users } from 'lucide-react';
 import { formatDistance } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
 import { createSponsorCommunication, fetchSponsorCommunications } from '@/services/sponsorsService';
+import { SponsorCommunication } from '@/types/sponsors';
 import { toast } from 'sonner';
 
 interface SponsorCommunicationsLogProps {
@@ -19,20 +20,24 @@ interface SponsorCommunicationsLogProps {
 
 const SponsorCommunicationsLog: React.FC<SponsorCommunicationsLogProps> = ({ sponsorId }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [communications, setCommunications] = useState([]);
+  const [communications, setCommunications] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [communicationType, setCommunicationType] = useState<string | null>(null);
   const [content, setContent] = useState('');
   const [date, setDate] = useState<Date | null>(null);
   const [subject, setSubject] = useState('');
   const [contactId, setContactId] = useState<string | null>(null);
-  const { auth } = useAuth();
+  const { user } = useAuth();
 
   const loadCommunications = async () => {
     setIsLoading(true);
     try {
-      const data = await fetchSponsorCommunications(sponsorId);
-      setCommunications(data);
+      const response = await fetchSponsorCommunications(sponsorId);
+      if (response.success) {
+        setCommunications(response.data || []);
+      } else {
+        toast.error("Failed to load communication logs");
+      }
     } catch (error) {
       console.error("Error loading communications:", error);
       toast.error("Failed to load communication logs");
@@ -55,7 +60,6 @@ const SponsorCommunicationsLog: React.FC<SponsorCommunicationsLogProps> = ({ spo
     setContactId(null);
   };
 
-  // Fix the form submission function to use the correct method name and auth access
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -65,16 +69,16 @@ const SponsorCommunicationsLog: React.FC<SponsorCommunicationsLogProps> = ({ spo
     }
     
     try {
-      const userId = auth.user?.id || "unknown";
-      const username = auth.user?.email || "System";
+      const userId = user?.id || "unknown";
+      const username = user?.email || "System";
       
       await createSponsorCommunication({
         sponsor_id: sponsorId,
         created_by: username,
         type: communicationType as "email" | "call" | "meeting" | "other",
         content: content || undefined,
-        date: date ? new Date(date).toISOString() : undefined,
-        subject: subject || undefined,
+        date: date ? new Date(date).toISOString() : new Date().toISOString(),
+        subject: subject || "No subject",
         contact_id: contactId || undefined
       });
       
@@ -119,7 +123,7 @@ const SponsorCommunicationsLog: React.FC<SponsorCommunicationsLogProps> = ({ spo
               <TableCell colSpan={6} className="text-center">No communications recorded.</TableCell>
             </TableRow>
           ) : (
-            communications.map((communication: any) => (
+            communications.map((communication: SponsorCommunication) => (
               <TableRow key={communication.id}>
                 <TableCell>{communication.date ? formatDistance(new Date(communication.date), new Date(), { addSuffix: true }) : 'N/A'}</TableCell>
                 <TableCell>{communication.type}</TableCell>
@@ -152,15 +156,15 @@ const SponsorCommunicationsLog: React.FC<SponsorCommunicationsLogProps> = ({ spo
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="email">
-                      <Mail className="mr-2 h-4 w-4" />
+                      <Mail className="mr-2 h-4 w-4 inline" />
                       Email
                     </SelectItem>
                     <SelectItem value="call">
-                      <Phone className="mr-2 h-4 w-4" />
+                      <Phone className="mr-2 h-4 w-4 inline" />
                       Call
                     </SelectItem>
                     <SelectItem value="meeting">
-                      <Users className="mr-2 h-4 w-4" />
+                      <Users className="mr-2 h-4 w-4 inline" />
                       Meeting
                     </SelectItem>
                     <SelectItem value="other">Other</SelectItem>

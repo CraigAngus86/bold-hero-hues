@@ -20,6 +20,7 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogClose,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
@@ -42,7 +43,17 @@ const SponsorContactsManager: React.FC<SponsorContactsManagerProps> = ({ sponsor
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedContact, setSelectedContact] = useState<SponsorContact | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const { auth } = useAuth();
+  const { user } = useAuth();
+  
+  // Form state
+  const [formData, setFormData] = useState({
+    name: '',
+    role: '',
+    email: '',
+    phone: '',
+    primary_contact: false,
+    notes: ''
+  });
 
   useEffect(() => {
     loadContacts();
@@ -62,246 +73,277 @@ const SponsorContactsManager: React.FC<SponsorContactsManagerProps> = ({ sponsor
     }
   };
 
-  const handleAddContact = async (values: any) => {
-    try {
-      setIsSubmitting(true);
-      
-      const contactData = {
-        sponsor_id: sponsorId,
-        name: values.name,
-        role: values.role || '',
-        email: values.email || '',
-        phone: values.phone || '',
-        primary_contact: values.primary_contact || false,
-        notes: values.notes || '',
-      };
-      
-      await createSponsorContact(contactData);
-      
-      setContacts(prev => [
-        ...prev,
-        { ...contactData, id: Date.now().toString() }
-      ]);
-      
-      toast.success('Contact added successfully');
-      onClose();
-    } catch (error: any) {
-      toast.error(error.error || 'Failed to add contact');
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleOpenAddDialog = () => {
+    setFormData({
+      name: '',
+      role: '',
+      email: '',
+      phone: '',
+      primary_contact: false,
+      notes: ''
+    });
+    setIsEditing(false);
+    setIsAddingContact(true);
   };
 
-  const handleEditContact = async (values: any) => {
-    if (!selectedContact) return;
+  const handleOpenEditDialog = (contact: SponsorContact) => {
+    setSelectedContact(contact);
+    setFormData({
+      name: contact.name,
+      role: contact.role || '',
+      email: contact.email || '',
+      phone: contact.phone || '',
+      primary_contact: contact.primary_contact || false,
+      notes: contact.notes || ''
+    });
+    setIsEditing(true);
+    setIsAddingContact(true);
+  };
 
+  const handleCloseDialog = () => {
+    setIsAddingContact(false);
+    setSelectedContact(null);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleCheckboxChange = (checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      primary_contact: checked
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.name.trim()) {
+      toast.error('Contact name is required');
+      return;
+    }
+    
     try {
       setIsSubmitting(true);
-
-      const updatedContactData = {
-        ...selectedContact,
-        name: values.name,
-        role: values.role || '',
-        email: values.email || '',
-        phone: values.phone || '',
-        primary_contact: values.primary_contact,
-        notes: values.notes || '',
-      };
-
-      await updateSponsorContact(selectedContact.id, updatedContactData);
-
-      setContacts(prev =>
-        prev.map(contact =>
-          contact.id === selectedContact.id ? updatedContactData : contact
-        )
-      );
-
-      toast.success('Contact updated successfully');
-      onClose();
-    } catch (error: any) {
-      toast.error(error.error || 'Failed to update contact');
+      
+      if (isEditing && selectedContact) {
+        // Update existing contact
+        await updateSponsorContact(selectedContact.id, {
+          ...selectedContact,
+          name: formData.name,
+          role: formData.role,
+          email: formData.email,
+          phone: formData.phone,
+          primary_contact: formData.primary_contact,
+          notes: formData.notes
+        });
+        toast.success('Contact updated successfully');
+      } else {
+        // Add new contact
+        await createSponsorContact({
+          sponsor_id: sponsorId,
+          name: formData.name,
+          role: formData.role,
+          email: formData.email,
+          phone: formData.phone,
+          primary_contact: formData.primary_contact,
+          notes: formData.notes
+        });
+        toast.success('Contact added successfully');
+      }
+      
+      await loadContacts();
+      handleCloseDialog();
+    } catch (error) {
+      console.error('Error saving contact:', error);
+      toast.error('Failed to save contact');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDeleteContact = async (contactId: string) => {
+    if (!confirm('Are you sure you want to delete this contact?')) {
+      return;
+    }
+    
     try {
-      setIsSubmitting(true);
       await deleteSponsorContact(contactId);
-      setContacts(prev => prev.filter(contact => contact.id !== contactId));
+      await loadContacts();
       toast.success('Contact deleted successfully');
-    } catch (error: any) {
-      toast.error(error.error || 'Failed to delete contact');
-    } finally {
-      setIsSubmitting(false);
+    } catch (error) {
+      console.error('Error deleting contact:', error);
+      toast.error('Failed to delete contact');
     }
-  };
-
-  const onOpenChange = (open: boolean) => {
-    setIsAddingContact(open);
-    if (!open) {
-      setSelectedContact(null);
-      setIsEditing(false);
-    }
-  };
-
-  const onClose = () => {
-    setIsAddingContact(false);
-    setSelectedContact(null);
-    setIsEditing(false);
-  };
-
-  const handleOpenEditDialog = (contact: SponsorContact) => {
-    setSelectedContact(contact);
-    setIsEditing(true);
-    setIsAddingContact(true);
   };
 
   return (
     <div>
-      <CardHeader>
-        <CardTitle>Sponsor Contacts</CardTitle>
-        <CardDescription>
-          Manage contacts associated with this sponsor.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="mb-4">
-          <Dialog open={isAddingContact} onOpenChange={onOpenChange}>
-            <DialogTrigger asChild>
-              <Button onClick={() => setIsAddingContact(true)}>Add Contact</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>{isEditing ? 'Edit Contact' : 'Add New Contact'}</DialogTitle>
-                <DialogDescription>
-                  {isEditing ? 'Update contact details.' : 'Enter details for the new contact.'}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="name" className="text-right">
-                    Name
-                  </Label>
-                  <Input
-                    id="name"
-                    defaultValue={selectedContact?.name || ''}
-                    className="col-span-3"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="role" className="text-right">
-                    Role
-                  </Label>
-                  <Input
-                    id="role"
-                    defaultValue={selectedContact?.role || ''}
-                    className="col-span-3"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="email" className="text-right">
-                    Email
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    defaultValue={selectedContact?.email || ''}
-                    className="col-span-3"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="phone" className="text-right">
-                    Phone
-                  </Label>
-                  <Input
-                    id="phone"
-                    defaultValue={selectedContact?.phone || ''}
-                    className="col-span-3"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-start gap-4">
-                  <Label htmlFor="notes" className="text-right mt-2">
-                    Notes
-                  </Label>
-                  <Textarea
-                    id="notes"
-                    defaultValue={selectedContact?.notes || ''}
-                    className="col-span-3"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="primary_contact" className="text-right">
-                    Primary Contact
-                  </Label>
-                  <Checkbox
-                    id="primary_contact"
-                    defaultChecked={selectedContact?.primary_contact || false}
-                    className="col-span-3"
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end">
-                <DialogClose asChild>
-                  <Button type="button" variant="secondary" onClick={onClose}>
-                    Cancel
-                  </Button>
-                </DialogClose>
-                <Button
-                  type="button"
-                  disabled={isSubmitting}
-                  onClick={() => {
-                    const name = (document.getElementById('name') as HTMLInputElement).value;
-                    if (!name) {
-                      toast.error('Name is required');
-                      return;
-                    }
-                    
-                    const role = (document.getElementById('role') as HTMLInputElement).value;
-                    const email = (document.getElementById('email') as HTMLInputElement).value;
-                    const phone = (document.getElementById('phone') as HTMLInputElement).value;
-                    const notes = (document.getElementById('notes') as HTMLTextAreaElement).value;
-                    const primary_contact = (document.getElementById('primary_contact') as HTMLInputElement).checked;
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-medium">Contacts</h3>
+        <Button onClick={handleOpenAddDialog} size="sm">
+          Add Contact
+        </Button>
+      </div>
 
-                    const values = { name, role, email, phone, notes, primary_contact };
-
-                    if (isEditing && selectedContact) {
-                      handleEditContact(values);
-                    } else {
-                      handleAddContact(values);
-                    }
-                  }}
-                >
-                  {isSubmitting ? 'Submitting...' : isEditing ? 'Update Contact' : 'Add Contact'}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+      {contacts.length === 0 ? (
+        <div className="text-center p-4 border border-dashed rounded-md">
+          <p className="text-gray-500">No contacts added yet.</p>
         </div>
-
-        <div className="divide-y divide-gray-200">
+      ) : (
+        <div className="space-y-3">
           {contacts.map((contact) => (
-            <div key={contact.id} className="py-4 flex items-center justify-between">
-              <div>
-                <p className="font-medium">{contact.name}</p>
-                <p className="text-sm text-gray-500">{contact.role}</p>
-                <div className="text-xs text-gray-500">
-                  Last updated {formatDistanceToNow(new Date(contact.updated_at || contact.created_at), { addSuffix: true })}
+            <div
+              key={contact.id}
+              className="p-3 border rounded-md bg-white hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="font-medium flex items-center gap-2">
+                    {contact.name}
+                    {contact.primary_contact && (
+                      <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded">
+                        Primary
+                      </span>
+                    )}
+                  </div>
+                  {contact.role && (
+                    <p className="text-sm text-gray-600">{contact.role}</p>
+                  )}
+                  {(contact.email || contact.phone) && (
+                    <div className="text-sm mt-1">
+                      {contact.email && (
+                        <p className="text-gray-600">
+                          <span className="font-medium">Email:</span> {contact.email}
+                        </p>
+                      )}
+                      {contact.phone && (
+                        <p className="text-gray-600">
+                          <span className="font-medium">Phone:</span> {contact.phone}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="flex space-x-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleOpenEditDialog(contact)}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-600 hover:text-red-800"
+                    onClick={() => handleDeleteContact(contact.id)}
+                  >
+                    Delete
+                  </Button>
                 </div>
               </div>
-              <div className="space-x-2">
-                <Button variant="outline" size="sm" onClick={() => handleOpenEditDialog(contact)}>
-                  Edit
-                </Button>
-                <Button variant="outline" size="sm" className="text-red-600 hover:text-red-800" onClick={() => handleDeleteContact(contact.id)}>
-                  Delete
-                </Button>
-              </div>
+              {contact.notes && (
+                <div className="mt-2 pt-2 border-t text-sm text-gray-600">
+                  <p className="whitespace-pre-wrap">{contact.notes}</p>
+                </div>
+              )}
             </div>
           ))}
         </div>
-      </CardContent>
+      )}
+
+      <Dialog open={isAddingContact} onOpenChange={setIsAddingContact}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{isEditing ? 'Edit Contact' : 'Add New Contact'}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-4 py-4">
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <Label htmlFor="name">Name *</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="role">Role / Position</Label>
+                  <Input
+                    id="role"
+                    name="role"
+                    value={formData.role}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input
+                      id="phone"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="primary_contact"
+                    checked={formData.primary_contact}
+                    onCheckedChange={handleCheckboxChange}
+                  />
+                  <Label htmlFor="primary_contact" className="cursor-pointer">
+                    Primary contact for this sponsor
+                  </Label>
+                </div>
+                <div>
+                  <Label htmlFor="notes">Notes</Label>
+                  <Textarea
+                    id="notes"
+                    name="notes"
+                    value={formData.notes}
+                    onChange={handleInputChange}
+                    className="resize-none h-20"
+                  />
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCloseDialog}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Saving...' : isEditing ? 'Save Changes' : 'Add Contact'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -32,31 +32,41 @@ const TeamManagement = () => {
           <TabsList>
             <TabsTrigger 
               value="players" 
-              onClick={() => setActiveMemberType('player')}
+              onClick={() => {
+                setActiveMemberType('player');
+              }}
             >
               Players
             </TabsTrigger>
             <TabsTrigger 
               value="coaches" 
-              onClick={() => setActiveMemberType('coach')}
+              onClick={() => {
+                setActiveMemberType('coach');
+              }}
             >
               Coaches
             </TabsTrigger>
             <TabsTrigger 
               value="staff" 
-              onClick={() => setActiveMemberType('staff')}
+              onClick={() => {
+                setActiveMemberType('staff');
+              }}
             >
               Staff
             </TabsTrigger>
             <TabsTrigger 
               value="officials" 
-              onClick={() => setActiveMemberType('official')}
+              onClick={() => {
+                setActiveMemberType('official');
+              }}
             >
               Officials
             </TabsTrigger>
             <TabsTrigger 
               value="management" 
-              onClick={() => setActiveMemberType('management')}
+              onClick={() => {
+                setActiveMemberType('management');
+              }}
             >
               Management
             </TabsTrigger>

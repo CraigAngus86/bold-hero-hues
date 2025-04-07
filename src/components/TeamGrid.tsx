@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import PlayerList from './team/PlayerList';
 import PositionFilter from './team/PositionFilter';
-import { useTeamStore } from '@/services/teamService';
+import { useTeamStore } from '@/services/teamStore';
 
 // Adapter to convert TeamMember to the Player format expected by PlayerList
 const adaptTeamMemberToPlayer = (member) => {

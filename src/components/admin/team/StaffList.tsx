@@ -1,10 +1,9 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Edit, Trash2 } from 'lucide-react';
+import { useTeamStore } from '@/services/teamStore';
 import { TeamMember } from '@/types/team';
-import { useTeamStore } from '@/services/teamService';
 
 interface StaffListProps {
   onSelectStaff: (staff: TeamMember) => void;

@@ -8,7 +8,7 @@ import TeamStats from '@/components/team/TeamStats';
 import ManagementTeam from '@/components/team/ManagementTeam';
 import ClubOfficials from '@/components/team/ClubOfficials';
 import ClubHonors from '@/components/team/ClubHonors';
-import { useTeamStore } from '@/services/teamService';
+import { useTeamStore } from '@/services/teamStore';
 
 const Team = () => {
   const { loadTeamMembers, isLoading } = useTeamStore();

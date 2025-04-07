@@ -8,7 +8,7 @@ import ManagementEditor from './ManagementEditor';
 import TeamMembersManager from './team/TeamMembersManager';
 import { TeamMember } from '@/types/team';
 import { deleteTeamMember } from '@/services/teamDbService';
-import { useTeamStore } from '@/services/teamService';
+import { useTeamStore } from '@/services/teamStore';
 
 const TeamManager = () => {
   const [activeTab, setActiveTab] = useState('players');

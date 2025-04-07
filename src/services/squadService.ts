@@ -1,10 +1,11 @@
-
 import { create } from 'zustand';
 import { supabase } from '@/services/supabase/supabaseClient';
 import { toast } from 'sonner';
 import { Squad, PlayerSquad, FormationTemplate, PlayerStatistics } from '@/types/squad';
 import { TeamMember } from '@/types/team';
 import { useTeamStore } from './teamService';
+import { MemberType } from '@/types/team';
+import { getAllTeamMembers } from '@/services/teamDbService';
 
 interface SquadState {
   squads: Squad[];
@@ -39,8 +40,6 @@ interface SquadState {
   bulkUpdateStatistics: (stats: Partial<PlayerStatistics>[]) => Promise<void>;
 }
 
-// For demo purposes, we'll implement this with mock data for now
-// In a real implementation, this would use actual Supabase calls
 export const useSquadStore = create<SquadState>((set, get) => ({
   squads: [
     { id: '1', name: 'First Team', description: 'Main squad' },

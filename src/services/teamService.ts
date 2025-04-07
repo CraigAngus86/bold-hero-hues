@@ -173,12 +173,5 @@ export const getTeamMembersByType = async (memberType: MemberType): Promise<Team
   }
 };
 
-// Define the team store state interface
-export interface TeamState {
-  teamMembers: TeamMemberType[];
-  isLoading: boolean;
-  error: string | null;
-  getPlayersByPosition: (position: string) => TeamMemberType[];
-  getManagementStaff: () => TeamMemberType[];
-  loadTeamMembers: () => Promise<void>;
-}
+// Re-export useTeamStore from teamStore to maintain backwards compatibility
+export { useTeamStore } from './teamStore';

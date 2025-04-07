@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import StaffMemberCard from './StaffMemberCard';
 import { TeamMember } from '@/types/team';
-import { useTeamStore } from '@/services/teamService';
+import { useTeamStore } from '@/services/teamStore';
 
 export default function ManagementTeam() {
   const [staff, setStaff] = useState<TeamMember[]>([]);
@@ -16,7 +16,7 @@ export default function ManagementTeam() {
         await loadTeamMembers();
         
         // Get management staff from store
-        const managementStaff = await getManagementStaff();
+        const managementStaff = getManagementStaff();
         setStaff(managementStaff);
       } catch (error) {
         console.error("Error fetching management team:", error);

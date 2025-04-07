@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertTriangle, CheckCircle, Info, RefreshCw, XCircle, Trash2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { getSystemLogs, clearSystemLogs } from '@/services/logs/systemLogsService';
-import { SystemLog } from '@/types/system';
+import { SystemLog } from '@/types/system/logs';
 
 const SystemLogs = () => {
   const [logs, setLogs] = useState<SystemLog[]>([]);

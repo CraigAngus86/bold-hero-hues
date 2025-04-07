@@ -4,7 +4,7 @@ import {
   Activity, Award, MessageSquare, Image, Clock 
 } from 'lucide-react';
 import StatusItem from './StatusItem';
-import { SystemStatusItemProps } from '@/types/system/status';
+import { SystemStatusItemProps, SystemStatusType } from '@/types/system/status';
 import { formatTimeAgo } from '@/utils/date';
 
 interface StatusItemsProps {
@@ -20,8 +20,9 @@ const StatusItems: React.FC<StatusItemsProps> = ({ status }) => {
       metricValue: status?.components?.database?.responseTime 
         ? `${status.components.database.responseTime}ms` 
         : undefined,
-      Icon: Database,
-      tooltip: 'Database connection status and response time'
+      icon: Database,
+      tooltip: 'Database connection status and response time',
+      lastChecked: status?.components?.database?.lastChecked
     },
     {
       name: 'Storage',
@@ -29,15 +30,17 @@ const StatusItems: React.FC<StatusItemsProps> = ({ status }) => {
       metricValue: status?.components?.storage?.usedSpace 
         ? `${Math.round(status.components.storage.usedSpace / 1024 / 1024)}MB` 
         : undefined,
-      Icon: HardDrive,
-      tooltip: 'File storage status and used space'
+      icon: HardDrive,
+      tooltip: 'File storage status and used space',
+      lastChecked: status?.components?.storage?.lastChecked
     },
     {
       name: 'Auth',
       status: status?.components?.auth?.status || 'unknown',
       metricValue: status?.components?.auth?.activeUsers?.toString(),
-      Icon: Lock,
-      tooltip: 'Authentication service status'
+      icon: Lock,
+      tooltip: 'Authentication service status',
+      lastChecked: status?.components?.auth?.lastChecked
     },
     {
       name: 'API',
@@ -45,8 +48,9 @@ const StatusItems: React.FC<StatusItemsProps> = ({ status }) => {
       metricValue: status?.components?.api?.responseTime 
         ? `${status.components.api.responseTime}ms` 
         : undefined,
-      Icon: Server,
-      tooltip: 'API service status and response time'
+      icon: Server,
+      tooltip: 'API service status and response time',
+      lastChecked: status?.components?.api?.lastChecked
     }
   ];
 
@@ -54,38 +58,42 @@ const StatusItems: React.FC<StatusItemsProps> = ({ status }) => {
   const metricItems: SystemStatusItemProps[] = [
     {
       name: 'Active Users',
-      status: 'active',
-      Icon: Users,
+      status: 'healthy' as SystemStatusType,
+      icon: Users,
       metricValue: status?.metrics?.dailyActiveUsers?.toString() || '0',
       tooltip: 'Daily active users',
       color: 'bg-blue-50',
-      viewAllLink: '/admin/users'
+      viewAllLink: '/admin/users',
+      lastChecked: status?.lastUpdated
     },
     {
       name: 'Fixtures',
-      status: 'info',
-      Icon: Calendar,
+      status: 'healthy' as SystemStatusType,
+      icon: Calendar,
       metricValue: status?.metrics?.fixturesCount?.toString() || '0',
       tooltip: 'Total fixtures in system',
       color: 'bg-green-50',
-      viewAllLink: '/admin/fixtures'
+      viewAllLink: '/admin/fixtures',
+      lastChecked: status?.lastUpdated
     },
     {
       name: 'News',
-      status: 'info',
-      Icon: FileText,
+      status: 'healthy' as SystemStatusType,
+      icon: FileText,
       metricValue: status?.metrics?.newsCount?.toString() || '0',
       tooltip: 'Total news articles',
       color: 'bg-purple-50',
-      viewAllLink: '/admin/news'
+      viewAllLink: '/admin/news',
+      lastChecked: status?.lastUpdated
     },
     {
       name: 'System Uptime',
-      status: 'info',
-      Icon: Clock,
+      status: 'healthy' as SystemStatusType,
+      icon: Clock,
       metricValue: status?.uptime ? `${Math.floor(status.uptime / 3600)}h` : undefined,
       tooltip: 'System uptime in hours',
-      color: 'bg-amber-50'
+      color: 'bg-amber-50',
+      lastChecked: status?.lastUpdated
     }
   ];
 

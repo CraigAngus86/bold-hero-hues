@@ -12,4 +12,24 @@ export interface SystemStatusItemProps {
   count?: number;
   color?: string;
   viewAllLink?: string;
+  tooltip?: string;
+}
+
+export interface SystemStatus {
+  status: SystemStatusType;
+  lastUpdated: string;
+  metrics: {
+    cpu: number;
+    memory: number;
+    storage: number;
+    requests: number;
+  };
+  message?: string;
+}
+
+export interface SystemStatusProps {
+  systems: SystemStatusItemProps[];
+  isLoading: boolean;
+  lastUpdated: string | Date;
+  onRefresh: () => void;
 }

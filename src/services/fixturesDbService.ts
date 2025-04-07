@@ -25,3 +25,22 @@ export const getFixturesCount = async (): Promise<{ count: number }> => {
     return { count: 0 };
   }
 };
+
+/**
+ * Get all fixtures
+ */
+export const getAllFixtures = async () => {
+  try {
+    const response = await unwrapPromise(
+      supabase
+        .from('fixtures')
+        .select('*')
+        .order('date', { ascending: true })
+    );
+    
+    return ensureResponseWithCount(response);
+  } catch (error) {
+    console.error('Error fetching all fixtures:', error);
+    return { data: [], error, count: 0 };
+  }
+};

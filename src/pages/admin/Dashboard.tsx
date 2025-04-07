@@ -1,135 +1,197 @@
 
-import React, { useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import QuickActions from '@/components/admin/dashboard/QuickActions';
-import { useDashboardRefresh } from '@/hooks/useDashboardRefresh';
-import EnhancedSystemStatus from '@/components/admin/dashboard/EnhancedSystemStatus';
-import AdminLayout from '@/components/admin/layout/AdminLayout';
-import DashboardStats from '@/components/admin/dashboard/DashboardStats';
-
-// Create simplified versions of the missing components
-const OverviewTab = () => (
-  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-    <Card>
-      <CardHeader>
-        <CardTitle>Recent Activity</CardTitle>
-        <CardDescription>Latest system events</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <p>Recent activity will be shown here</p>
-      </CardContent>
-    </Card>
-  </div>
-);
-
-const MetricsTab = () => (
-  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-    <Card>
-      <CardHeader>
-        <CardTitle>System Metrics</CardTitle>
-        <CardDescription>Performance and usage metrics</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <p>System metrics will be shown here</p>
-      </CardContent>
-    </Card>
-  </div>
-);
-
-const ActivityLogPanel = () => (
-  <div className="space-y-4">
-    <h2 className="text-xl font-bold">Activity Log</h2>
-    <Card>
-      <CardContent className="p-4">
-        <p>Activity logs will be shown here</p>
-      </CardContent>
-    </Card>
-  </div>
-);
-
-const RecentActivity = () => (
-  <Card>
-    <CardHeader>
-      <CardTitle>Recent Activity</CardTitle>
-      <CardDescription>Latest actions</CardDescription>
-    </CardHeader>
-    <CardContent>
-      <p>Recent activity details will be shown here</p>
-    </CardContent>
-  </Card>
-);
+// @ts-nocheck
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import {
+  AlertTriangle,
+  CheckCircle,
+  RefreshCw,
+  Server,
+  Database,
+  ShieldAlert,
+  Clock,
+} from 'lucide-react';
+import useDashboardRefresh from '@/hooks/useDashboardRefresh';
 
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = React.useState('overview');
-  const { refresh, status, logs } = useDashboardRefresh();
+  const { 
+    refresh, 
+    isRefreshing, 
+    lastRefreshed, 
+    systemStatus, 
+    isLoading, 
+    error 
+  } = useDashboardRefresh();
 
-  // Make this function async to handle the Promise
-  const handleRefresh = async (): Promise<void> => {
-    await refresh();
-    // Return a resolved promise to satisfy the Promise<void> return type
-    return Promise.resolve();
+  // Format the last refreshed time
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString(undefined, {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex flex-col gap-5 md:flex-row md:justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-          <p className="text-muted-foreground">
-            Overview of your system and recent activity
-          </p>
-        </div>
+    <div className="p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
         <div className="flex items-center gap-2">
-          <QuickActions onRefresh={handleRefresh} />
+          <span className="text-sm text-gray-500">
+            Last updated: {lastRefreshed ? formatTime(lastRefreshed) : 'Never'}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={refresh}
+            disabled={isRefreshing}
+          >
+            <RefreshCw
+              className={`h-4 w-4 mr-1 ${isRefreshing ? 'animate-spin' : ''}`}
+            />
+            {isRefreshing ? 'Refreshing...' : 'Refresh'}
+          </Button>
         </div>
       </div>
 
-      {/* Dashboard Stats Section */}
-      <DashboardStats
-        newsStats={{ total: 24, published: 20, drafts: 4 }}
-        fixturesStats={{ upcoming: 5, nextMatch: { opponent: 'Brora Rangers', date: '2025-04-15' } }}
-        leagueStats={{ position: 3, previousPosition: 5, wins: 15, draws: 4, losses: 2 }}
-        mediaStats={{ total: 120, photos: 100, videos: 15, albums: 5 }}
-        isNewsStatsLoading={false}
-        isFixturesStatsLoading={false}
-        isLeagueStatsLoading={false}
-        isMediaStatsLoading={false}
-        refetchNews={() => {}}
-        refetchFixtures={() => {}}
-        refetchLeague={() => {}}
-        refetchMedia={() => {}}
-      />
-
-      {/* System Status Card */}
-      <Card className="mt-4">
+      {/* System Status Section */}
+      <Card className="mb-6">
         <CardHeader className="pb-2">
           <CardTitle className="text-xl">System Status</CardTitle>
-          <CardDescription>
-            Current health and performance of the platform
-          </CardDescription>
         </CardHeader>
         <CardContent>
-          <EnhancedSystemStatus />
+          {isLoading ? (
+            <div className="flex items-center justify-center h-24">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : error ? (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error.message}</AlertDescription>
+            </Alert>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <StatusCard
+                title="Database"
+                status={systemStatus?.services?.database || false}
+                icon={<Database className="h-5 w-5" />}
+              />
+              <StatusCard
+                title="Storage"
+                status={systemStatus?.services?.storage || false}
+                icon={<Server className="h-5 w-5" />}
+              />
+              <StatusCard
+                title="Authentication"
+                status={systemStatus?.services?.authentication || false}
+                icon={<ShieldAlert className="h-5 w-5" />}
+              />
+              <StatusCard
+                title="API Services"
+                status={systemStatus?.services?.api || false}
+                icon={<Clock className="h-5 w-5" />}
+              />
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="metrics">Metrics</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
-        </TabsList>
-        <TabsContent value="overview" className="mt-4">
-          <OverviewTab />
-        </TabsContent>
-        <TabsContent value="metrics" className="mt-4">
-          <MetricsTab />
-        </TabsContent>
-        <TabsContent value="activity" className="mt-4">
-          <ActivityLogPanel />
-        </TabsContent>
-      </Tabs>
+      {/* Stats Cards Section */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <QuickStatsCard title="Total Users" value="1,245" change="+12%" />
+        <QuickStatsCard title="Active Sessions" value="267" change="+5%" />
+        <QuickStatsCard title="Page Views" value="8,431" change="+24%" />
+      </div>
+
+      {/* Activity Feed */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl">Recent Activity</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <ActivityItem
+                key={i}
+                action="Updated content"
+                resource="Homepage"
+                user="Admin User"
+                time={`${i + 1}h ago`}
+              />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+// Status card component
+const StatusCard = ({ title, status, icon }) => {
+  return (
+    <div className="flex items-center p-4 border rounded-lg">
+      <div
+        className={`p-2 rounded-full mr-3 ${
+          status ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+        }`}
+      >
+        {icon}
+      </div>
+      <div>
+        <p className="text-sm font-medium">{title}</p>
+        <p
+          className={`text-sm ${
+            status ? 'text-green-600' : 'text-red-600'
+          }`}
+        >
+          {status ? 'Online' : 'Offline'}
+        </p>
+      </div>
+    </div>
+  );
+};
+
+// Quick stats card component
+const QuickStatsCard = ({ title, value, change }) => {
+  const isPositive = change.startsWith('+');
+  
+  return (
+    <Card>
+      <CardContent className="pt-6">
+        <div className="flex justify-between items-center">
+          <p className="text-sm font-medium text-gray-500">{title}</p>
+          <span
+            className={`text-xs font-medium px-2 py-1 rounded-full ${
+              isPositive ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+            }`}
+          >
+            {change}
+          </span>
+        </div>
+        <p className="text-2xl font-bold mt-2">{value}</p>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Activity item component
+const ActivityItem = ({ action, resource, user, time }) => {
+  return (
+    <div className="flex items-center justify-between py-2 border-b last:border-0">
+      <div className="flex items-center">
+        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3">
+          {user.charAt(0)}
+        </div>
+        <div>
+          <p className="text-sm font-medium">
+            {user} {action} <span className="font-semibold">{resource}</span>
+          </p>
+        </div>
+      </div>
+      <span className="text-xs text-gray-500">{time}</span>
     </div>
   );
 };

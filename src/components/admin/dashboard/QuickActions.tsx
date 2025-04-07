@@ -1,115 +1,87 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { 
-  Calendar, FileText, Users, Settings, Trophy, 
-  MessageSquare, Image, Mail, Tag
-} from 'lucide-react';
-import { Link } from 'react-router-dom';
-import StatusItem from './StatusItem';
+import { RefreshCcw, Users, Newspaper, Calendar, Image } from 'lucide-react';
+import { getFansCount } from '@/services/fansDbService';
+import { getNewsArticlesCount } from '@/services/newsDbService';
+import { getFixturesCount } from '@/services/fixturesDbService';
+import { getMediaCount } from '@/services/images/api';
+import { StatusItemCard } from './StatusItems';
 
-interface QuickActionsProps {
-  metrics?: any;
-}
+export default function QuickActions() {
+  const [counts, setCounts] = useState({
+    users: 0,
+    articles: 0, 
+    fixtures: 0,
+    uploads: 0
+  });
 
-const QuickActions: React.FC<QuickActionsProps> = ({ metrics }) => {
-  const actions = [
-    { 
-      name: 'Fixtures', 
-      icon: Calendar, 
-      path: '/admin/fixtures',
-      count: metrics?.fixturesCount || 0,
-      color: 'bg-green-50',
-      viewAllLink: '/admin/fixtures',
-      status: 'healthy' as const
-    },
-    { 
-      name: 'News', 
-      icon: FileText, 
-      path: '/admin/news',
-      count: metrics?.newsCount || 0,
-      color: 'bg-blue-50',
-      viewAllLink: '/admin/news',
-      status: 'healthy' as const
-    },
-    { 
-      name: 'Users', 
-      icon: Users, 
-      path: '/admin/users',
-      count: metrics?.usersCount || 0,
-      color: 'bg-purple-50',
-      viewAllLink: '/admin/users',
-      status: 'healthy' as const
-    },
-    { 
-      name: 'Team', 
-      icon: Trophy, 
-      path: '/admin/team',
-      color: 'bg-amber-50',
-      viewAllLink: '/admin/team',
-      status: 'healthy' as const
-    },
-    { 
-      name: 'Media', 
-      icon: Image, 
-      path: '/admin/media',
-      color: 'bg-emerald-50',
-      viewAllLink: '/admin/media',
-      status: 'healthy' as const
-    },
-    { 
-      name: 'Messages', 
-      icon: Mail, 
-      path: '/admin/messages',
-      count: metrics?.messagesCount || 0,
-      color: 'bg-pink-50',
-      viewAllLink: '/admin/messages',
-      status: 'healthy' as const
-    },
-    { 
-      name: 'Fan Engagement', 
-      icon: MessageSquare, 
-      path: '/admin/fans',
-      color: 'bg-indigo-50',
-      viewAllLink: '/admin/fans',
-      status: 'healthy' as const
-    },
-    { 
-      name: 'Sponsors', 
-      icon: Tag, 
-      path: '/admin/sponsors',
-      count: metrics?.sponsorsCount || 0,
-      color: 'bg-orange-50',
-      viewAllLink: '/admin/sponsors',
-      status: 'healthy' as const
-    },
-    { 
-      name: 'Settings', 
-      icon: Settings, 
-      path: '/admin/settings',
-      color: 'bg-gray-50',
-      viewAllLink: '/admin/settings',
-      status: 'healthy' as const
+  const loadData = async () => {
+    try {
+      const users = await getFansCount();
+      const articles = await getNewsArticlesCount();
+      const fixtures = await getFixturesCount();
+      const uploads = await getMediaCount();
+
+      setCounts({
+        users: users.count || 0,
+        articles: articles.count || 0,
+        fixtures: fixtures.count || 0,
+        uploads: uploads.count || 0
+      });
+    } catch (error) {
+      console.error("Error loading quick action counts:", error);
     }
-  ];
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-      {actions.map((action) => (
-        <Link to={action.path} key={action.name}>
-          <StatusItem
-            name={action.name}
-            status={action.status}
-            icon={action.icon}
-            count={action.count}
-            color={action.color}
-            viewAllLink={action.viewAllLink}
-          />
-        </Link>
-      ))}
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-medium">Quick Actions</h3>
+        <Button variant="outline" size="sm" onClick={loadData}>
+          <RefreshCcw className="h-4 w-4 mr-2" />
+          Refresh
+        </Button>
+      </div>
+      
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatusItemCard
+          title="Users"
+          value={counts.users}
+          icon={<Users className="h-4 w-4 text-blue-500" />} 
+          color="blue"
+          lastUpdated="Now"
+        />
+        
+        <StatusItemCard
+          title="News Articles"
+          value={counts.articles}
+          icon={<Newspaper className="h-4 w-4 text-emerald-500" />}
+          color="emerald"
+          lastUpdated="Now"
+        />
+        
+        <StatusItemCard
+          title="Fixtures"
+          value={counts.fixtures}
+          icon={<Calendar className="h-4 w-4 text-violet-500" />}
+          color="violet"
+          lastUpdated="Now" 
+        />
+        
+        <StatusItemCard
+          title="Media Uploads"
+          value={counts.uploads}
+          icon={<Image className="h-4 w-4 text-amber-500" />}
+          color="amber"
+          lastUpdated="Now"
+        />
+      </div>
+      
     </div>
   );
-};
-
-export default QuickActions;
+}

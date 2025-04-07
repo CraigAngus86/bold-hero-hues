@@ -1,80 +1,61 @@
 
 import { ReactNode } from 'react';
 
-export type SystemStatusType = 'healthy' | 'warning' | 'critical' | 'unknown';
+export type SystemStatusName = 'healthy' | 'warning' | 'error' | 'offline' | 'maintenance';
 
-export interface SystemMetric {
+export interface SystemStatusItemProps {
   name: string;
-  value: number | string;
-  status: SystemStatusType;
-  description?: string;
-  change?: number;
-  unit?: string;
-  changeDirection?: 'up' | 'down' | 'neutral';
-}
-
-export interface ServiceStatus {
-  name: string;
-  status: SystemStatusType;
-  uptime?: number;
-  response_time?: number;
-  last_checked?: string;
-  message?: string;
+  status: SystemStatusName;
+  value?: string;
+  metricValue?: string;
+  tooltip?: string;
+  lastChecked: Date | string;
+  icon: ReactNode;
+  color: string;
 }
 
 export interface SystemStatus {
-  id?: string;
-  component: string;
-  status: SystemStatusType;
-  overall_status: SystemStatusType;
-  last_updated: string;
-  message?: string;
-  uptime?: number;
-  version?: string;
-  details?: Record<string, any>;
-  services?: ServiceStatus[];
-  messages?: string[];
-  metrics?: {
-    performance?: SystemMetric[];
-    storage?: SystemMetric[];
-    usage?: SystemMetric[];
+  overall_status: SystemStatusName;
+  services: {
+    [key: string]: {
+      status: SystemStatusName;
+      lastChecked: Date | string;
+    }
   };
+  metrics: {
+    uptime: number;
+    responseTime: number;
+    errors24h: number;
+    totalRequests24h: number;
+  };
+  uptime: {
+    day: number;
+    week: number;
+    month: number;
+  };
+  message: string;
+  messages?: string[];
 }
 
 export interface SystemStatusPanelProps {
   status: SystemStatus;
-  isLoading?: boolean;
-  onRefresh?: () => void;
-  error?: string;
 }
 
-export interface SystemLog {
-  id: string;
-  timestamp: string;
-  level: 'info' | 'warning' | 'error' | 'debug';
-  message: string;
-  source: string;
-  details?: Record<string, any>;
-}
-
-export interface StatusItemProps {
-  status: SystemStatusType;
-  value: string | ReactNode;
-  metricValue: string | ReactNode;
-  tooltip?: string;
-  lastChecked: string | Date;
-  icon: ReactNode;
-  color: string;
-}
-
-export interface SystemStatusItemProps {
+export interface SystemMetric {
   name: string;
-  status: SystemStatusType;
-  value: string | ReactNode;
-  metricValue: string | ReactNode;
-  tooltip?: string;
-  lastChecked: string | Date;
-  icon: ReactNode;
-  color: string;
-  viewAllLink?: string;
+  value: string | number;
+  change?: number;
+  changeType?: 'positive' | 'negative' | 'neutral';
+  icon?: ReactNode;
+}
+
+export interface StatusItemCardProps {
+  title: string;
+  value: string | number;
+  status?: SystemStatusName;
+  icon?: ReactNode;
+  color?: string;
+  change?: number;
+  changeType?: 'positive' | 'negative' | 'neutral';
+  lastUpdated?: Date | string;
 }

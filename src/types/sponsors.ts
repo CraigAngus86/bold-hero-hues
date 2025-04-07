@@ -1,39 +1,26 @@
 
-// Sponsor types 
-export type SponsorTier = 'platinum' | 'gold' | 'silver' | 'bronze';
+export interface SponsorTier {
+  id: string;
+  name: string;
+  description?: string;
+  color?: string;
+  order_position: number;
+  benefits?: string[];
+}
+
+export type SponsorshipTier = SponsorTier;
 
 export interface Sponsor {
   id: string;
   name: string;
-  is_active: boolean;
-  created_at?: string;
-  updated_at?: string;
+  tier: string | SponsorTier;
   logo_url?: string;
   website_url?: string;
-  tier?: SponsorTier;
-  description?: string;
+  is_active: boolean;
   start_date?: string;
   end_date?: string;
-  renewal_status?: 'pending' | 'active' | 'renewed' | 'expired';
-  display_order?: number;
-  
-  // For contact information
-  contact_name?: string;
-  contact_email?: string;
-  contact_phone?: string;
-  notes?: string;
-}
-
-export interface SponsorshipTier {
-  id: string;
-  name: string;
   description?: string;
-  benefits?: string;
-  price?: number;
-  order_position?: number;
-  color?: string;
-  created_at?: string;
-  updated_at?: string;
+  display_order?: number;
 }
 
 export interface SponsorContact {
@@ -42,51 +29,7 @@ export interface SponsorContact {
   name: string;
   email?: string;
   phone?: string;
-  position?: string;
-  is_primary?: boolean;
-  created_at?: string;
-  updated_at?: string;
   role?: string;
-  primary_contact?: boolean;
+  primary_contact: boolean;
   notes?: string;
-}
-
-export interface SponsorDisplaySettings {
-  show_on_homepage: boolean;
-  display_mode: 'grid' | 'carousel' | 'list';
-  sponsors_per_row?: number;
-  randomize_order?: boolean;
-  show_tier_headings?: boolean;
-  max_logos_homepage?: number;
-}
-
-export interface SponsorDocument {
-  id: string;
-  name: string;
-  sponsor_id: string;
-  file_path: string;
-  document_type: string;
-  upload_date: string;
-  description?: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface SponsorCommunication {
-  id: string;
-  sponsor_id: string;
-  date: string;
-  type: 'email' | 'call' | 'meeting' | 'other';
-  subject: string;
-  content?: string;
-  created_by?: string;
-  created_at?: string;
-  updated_at?: string;
-  contact_id?: string;
-}
-
-export interface DbServiceResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
 }

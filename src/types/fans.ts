@@ -59,6 +59,7 @@ export interface AudienceGroup {
   name: string;
   description?: string;
   count?: number; // Number of subscribers in this group
+  tags?: string[];
   created_at?: string;
   updated_at?: string;
 }
@@ -110,6 +111,7 @@ export interface CommunityInitiative {
   participants_count?: number;
   impact?: string; // Additional property for impact
   impact_summary?: string;
+  volunteers?: string[];
   created_at?: string;
   updated_at?: string;
 }
@@ -117,7 +119,7 @@ export interface CommunityInitiative {
 // Additional interface for social media integration
 export interface SocialPost {
   id: string;
-  platform: 'twitter' | 'facebook' | 'instagram';
+  platform: 'twitter' | 'facebook' | 'instagram' | 'youtube';
   content: string;
   image_url?: string;
   post_url?: string;

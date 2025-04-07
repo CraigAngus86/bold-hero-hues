@@ -195,7 +195,7 @@ const FanZoneContent: React.FC = () => {
                               </Badge>
                             </td>
                             <td className="p-4">{item.submitted_by}</td>
-                            <td className="p-4">{new Date(item.submitted_on).toLocaleDateString()}</td>
+                            <td className="p-4">{new Date(item.submitted_on || '').toLocaleDateString()}</td>
                             <td className="p-4">
                               <Badge className={statusStyles[item.status as keyof typeof statusStyles]}>
                                 {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
@@ -300,7 +300,7 @@ const FanZoneContent: React.FC = () => {
                   {selectedContent?.status.charAt(0).toUpperCase() + selectedContent?.status.slice(1)}
                 </Badge>
                 <span className="ml-2 text-sm text-gray-500">
-                  Submitted by {selectedContent?.submitted_by} on {selectedContent && new Date(selectedContent.submitted_on).toLocaleDateString()}
+                  Submitted by {selectedContent?.submitted_by} on {selectedContent && new Date(selectedContent.submitted_on || '').toLocaleDateString()}
                 </span>
               </div>
               

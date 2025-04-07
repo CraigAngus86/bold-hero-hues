@@ -51,10 +51,17 @@ export const MediaSelector: React.FC<MediaSelectorProps> = ({
       );
       
       if (response.error) throw response.error;
-      setMediaItems(response.data || []);
+      
+      // Ensure we're setting an array
+      if (response.data && Array.isArray(response.data)) {
+        setMediaItems(response.data);
+      } else {
+        setMediaItems([]);
+      }
     } catch (error) {
       console.error('Error loading media:', error);
       toast.error('Failed to load media items');
+      setMediaItems([]);
     } finally {
       setIsLoading(false);
     }
@@ -77,7 +84,7 @@ export const MediaSelector: React.FC<MediaSelectorProps> = ({
   const filteredMedia = searchTerm
     ? mediaItems.filter(item => 
         item.file_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (item.tags && item.tags.some((tag: string) => 
+        (item.tags && Array.isArray(item.tags) && item.tags.some((tag: string) => 
           tag.toLowerCase().includes(searchTerm.toLowerCase()))))
     : mediaItems;
 

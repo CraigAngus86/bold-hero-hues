@@ -1,229 +1,189 @@
 
-import { Poll, PollQuestion, FanContent, AudienceGroup, CommunityInitiative } from '@/types/fans';
+import { FanContent, Poll, AudienceGroup, CommunityInitiative } from '@/types/fans';
 
-// Generate mock data for demos
-export const getMockFanContent = (): FanContent[] => {
-  return [
-    {
-      id: '1',
-      title: 'Match Day Experience',
-      type: 'photo',
-      submittedBy: 'John Smith',
-      submittedOn: new Date(2023, 4, 12).toISOString(),
-      status: 'pending',
-      featured: false,
-      imageUrl: 'https://placehold.co/600x400/png'
-    },
-    {
-      id: '2',
-      title: 'My 30 Years Supporting Banks o\' Dee',
-      type: 'story',
-      submittedBy: 'Margaret Wilson',
-      submittedOn: new Date(2023, 4, 10).toISOString(),
-      status: 'approved',
-      featured: true,
-      content: 'It all started in 1990 when my father took me to Spain Park for my first match. Little did I know that would be the beginning of a lifelong passion...'
-    },
-    {
-      id: '3',
-      title: 'Youth Team Champions',
-      type: 'photo',
-      submittedBy: 'David Brown',
-      submittedOn: new Date(2023, 4, 9).toISOString(),
-      status: 'approved',
-      featured: false,
-      imageUrl: 'https://placehold.co/600x400/png'
-    },
-    {
-      id: '4',
-      title: 'Away Day Adventures',
-      type: 'story',
-      submittedBy: 'Robert Johnson',
-      submittedOn: new Date(2023, 4, 8).toISOString(),
-      status: 'rejected',
-      featured: false,
-      content: 'Following the team to away matches has led to some incredible adventures...'
-    }
-  ];
-};
-
-export const getMockPolls = (): Poll[] => {
-  const playerOfMonthPoll: Poll = {
+// Mock data for Fan Content
+export const mockFanContent: FanContent[] = [
+  {
     id: '1',
-    title: 'Player of the Month - April',
-    description: 'Vote for your Banks o\' Dee player of the month for April',
-    type: 'poll',
-    createdAt: new Date(2023, 3, 28).toISOString(),
-    startDate: new Date(2023, 3, 1).toISOString(),
-    endDate: new Date(2023, 3, 30).toISOString(),
-    status: 'ended',
-    responses: 253,
-    questions: [
-      {
-        id: '1',
-        text: 'Who was the standout player for April?',
-        type: 'single_choice',
-        required: true,
-        options: [
-          { id: '1', text: 'John Smith', votes: 85 },
-          { id: '2', text: 'Michael Johnson', votes: 67 },
-          { id: '3', text: 'David Williams', votes: 101 },
-        ]
-      }
-    ]
-  };
-
-  const matchDayExperienceSurvey: Poll = {
+    title: 'Match Day Experience',
+    type: 'photo',
+    submitted_by: 'John Smith',
+    submitted_on: '2023-05-12T10:30:00',
+    status: 'pending',
+    featured: false,
+    image_url: 'https://placehold.co/600x400/png',
+  },
+  {
     id: '2',
-    title: 'Match Day Experience Survey',
-    description: 'Help us improve your experience at Spain Park',
-    type: 'survey',
-    createdAt: new Date(2023, 4, 1).toISOString(),
-    startDate: new Date(2023, 4, 1).toISOString(),
-    endDate: new Date(2023, 4, 31).toISOString(),
-    status: 'active',
-    responses: 78,
-    questions: [
-      {
-        id: '1',
-        text: 'How would you rate your overall match day experience?',
-        type: 'rating',
-        required: true,
-        options: []
-      },
-      {
-        id: '2',
-        text: 'Which aspects of the match day experience could be improved?',
-        type: 'multiple_choice',
-        required: false,
-        options: [
-          { id: '1', text: 'Food and beverages', votes: 45 },
-          { id: '2', text: 'Seating comfort', votes: 32 },
-          { id: '3', text: 'Access and parking', votes: 51 },
-          { id: '4', text: 'Pre-match entertainment', votes: 22 },
-        ]
-      },
-      {
-        id: '3',
-        text: 'Any additional comments or suggestions?',
-        type: 'text',
-        required: false,
-      }
-    ]
-  };
-
-  const kitDesignPoll: Poll = {
+    title: 'My 30 Years Supporting Banks o\' Dee',
+    type: 'story',
+    submitted_by: 'Margaret Wilson',
+    submitted_on: '2023-05-10T14:15:00',
+    status: 'approved',
+    featured: true,
+    content: 'It all started in 1990 when my father took me to Spain Park for my first match...',
+  },
+  {
     id: '3',
-    title: 'Kit Design Vote 2023/24',
-    description: 'Choose your favorite design for next season\'s kit',
-    type: 'poll',
-    createdAt: new Date(2023, 4, 5).toISOString(), 
-    startDate: new Date(2023, 5, 1).toISOString(),
-    endDate: new Date(2023, 5, 15).toISOString(),
+    title: 'Youth Team Champions',
+    type: 'photo',
+    submitted_by: 'David Brown',
+    submitted_on: '2023-05-09T09:45:00',
+    status: 'approved',
+    featured: false,
+    image_url: 'https://placehold.co/600x400/png',
+  },
+  {
+    id: '4',
+    title: 'Away Day Adventures',
+    type: 'story',
+    submitted_by: 'Robert Johnson',
+    submitted_on: '2023-05-08T16:20:00',
+    status: 'rejected',
+    featured: false,
+    content: 'Following the team to away matches has led to some incredible adventures...',
+  },
+];
+
+// Mock data for Polls
+export const mockPolls: Poll[] = [
+  {
+    id: '1',
+    title: 'Player of the Month',
+    description: 'Vote for your player of the month for May 2023',
+    type: 'player_vote',
+    status: 'ended',
+    created_at: '2023-05-01T10:00:00',
+    created_by: 'admin',
+    published_at: '2023-05-01T12:00:00',
+    start_date: '2023-05-01T12:00:00',
+    end_date: '2023-05-31T23:59:59',
+    is_featured: true,
+  },
+  {
+    id: '2',
+    title: 'Match Day Experience Feedback',
+    description: 'Help us improve your match day experience',
+    type: 'feedback',
+    status: 'active',
+    created_at: '2023-06-01T10:00:00',
+    created_by: 'admin',
+    published_at: '2023-06-01T12:00:00',
+    start_date: '2023-06-01T12:00:00',
+    end_date: '2023-06-30T23:59:59',
+    is_featured: false,
+  },
+  {
+    id: '3',
+    title: 'New Kit Design Preference',
+    description: 'Vote for your favorite design for next season\'s kit',
+    type: 'preference',
     status: 'scheduled',
-    responses: 0,
-    questions: [
-      {
-        id: '1',
-        text: 'Which home kit design do you prefer?',
-        type: 'single_choice',
-        required: true,
-        options: [
-          { id: '1', text: 'Design A - Traditional stripes', votes: 0 },
-          { id: '2', text: 'Design B - Modern pattern', votes: 0 },
-          { id: '3', text: 'Design C - Classic solid', votes: 0 },
-        ]
-      }
-    ]
-  };
+    created_at: '2023-06-10T10:00:00',
+    created_by: 'admin',
+    start_date: '2023-06-15T12:00:00',
+    end_date: '2023-06-30T23:59:59',
+    is_featured: true,
+  },
+];
 
-  return [playerOfMonthPoll, matchDayExperienceSurvey, kitDesignPoll];
-};
+// Mock data for Audience Groups
+export const mockAudienceGroups: AudienceGroup[] = [
+  {
+    id: '1',
+    name: 'Season Ticket Holders',
+    description: 'All current season ticket holders',
+    count: 587,
+    tags: ['season-ticket', 'members'],
+    created_at: '2023-01-15T10:00:00',
+    updated_at: '2023-05-10T15:30:00',
+  },
+  {
+    id: '2',
+    name: 'Newsletter Subscribers',
+    description: 'Fans subscribed to our weekly newsletter',
+    count: 1243,
+    tags: ['digital', 'newsletter'],
+    created_at: '2023-01-20T11:30:00',
+    updated_at: '2023-05-12T09:15:00',
+  },
+  {
+    id: '3',
+    name: 'Youth Supporters',
+    description: 'Supporters under 18 years old',
+    count: 342,
+    tags: ['youth', 'members'],
+    created_at: '2023-02-05T14:45:00',
+    updated_at: '2023-05-05T16:20:00',
+  },
+  {
+    id: '4',
+    name: 'Away Game Travelers',
+    description: 'Fans who regularly attend away games',
+    count: 156,
+    tags: ['away-games', 'dedicated'],
+    created_at: '2023-02-10T09:20:00',
+    updated_at: '2023-05-08T11:10:00',
+  },
+];
 
-export const getMockAudienceGroups = (): AudienceGroup[] => {
-  return [
-    {
-      id: '1',
-      name: 'Season Ticket Holders',
-      count: 457,
-      tags: ['season-ticket', 'supporters'],
-      description: 'All current season ticket holders'
-    },
-    {
-      id: '2',
-      name: 'Newsletter Subscribers',
-      count: 1248,
-      tags: ['newsletter', 'email'],
-      description: 'Fans who have subscribed to the weekly newsletter'
-    },
-    {
-      id: '3',
-      name: 'Youth Team Parents',
-      count: 126,
-      tags: ['youth', 'parents', 'academy'],
-      description: 'Parents of players in the youth academy'
-    },
-    {
-      id: '4',
-      name: 'Club Members',
-      count: 315,
-      tags: ['members', 'supporters'],
-      description: 'Official club members with paid membership'
-    }
-  ];
-};
-
-export const getMockCommunityInitiatives = (): CommunityInitiative[] => {
-  return [
-    {
-      id: '1',
-      title: 'Youth Football Camp',
-      description: 'A week-long football camp for young players aged 7-14, focusing on skills development and team building.',
-      impact: 'Provides high-quality football coaching to local youth and promotes community engagement with the club.',
-      type: 'youth',
-      date: new Date(2023, 6, 15).toISOString(),
-      end_date: new Date(2023, 6, 22).toISOString(),
-      location: 'Spain Park Training Fields',
-      status: 'upcoming',
-      volunteers: 12,
-      participants: 45
-    },
-    {
-      id: '2',
-      title: 'Food Bank Collection',
-      description: 'Match day food collection for the local food bank. Fans are encouraged to bring non-perishable food items.',
-      impact: 'Supporting families in need within our local community and raising awareness of food poverty issues.',
-      type: 'charity',
-      date: new Date(2023, 4, 20).toISOString(),
-      location: 'Spain Park Stadium',
-      status: 'upcoming',
-      volunteers: 5,
-      participants: 0
-    },
-    {
-      id: '3',
-      title: 'School Visits Program',
-      description: 'Players and staff visiting local schools to promote physical activity and healthy lifestyles.',
-      impact: 'Engaged with over 450 children across 5 local schools, promoting both education and physical activity.',
-      type: 'education',
-      date: new Date(2023, 3, 10).toISOString(),
-      end_date: new Date(2023, 3, 14).toISOString(),
-      location: 'Various Aberdeen Schools',
-      status: 'completed',
-      volunteers: 8,
-      participants: 450
-    },
-    {
-      id: '4',
-      title: 'Community Clean-up Day',
-      description: 'Staff, players, and volunteers coming together to clean up the local area around Spain Park.',
-      impact: 'Improving the local environment and showing the club\'s commitment to the community.',
-      type: 'community',
-      date: new Date(2023, 5, 5).toISOString(),
-      location: 'Spain Park and surrounding areas',
-      status: 'completed',
-      volunteers: 24,
-      participants: 35
-    }
-  ];
-};
+// Mock data for Community Initiatives
+export const mockCommunityInitiatives: CommunityInitiative[] = [
+  {
+    id: '1',
+    title: 'Local School Visit Program',
+    description: 'Players visit local schools to promote physical activity and healthy lifestyles',
+    date: '2023-06-15T10:00:00',
+    location: 'Various Local Schools',
+    type: 'outreach',
+    status: 'upcoming',
+    participants_count: 120,
+    impact_summary: 'Will reach approximately 500 students across 5 local schools',
+    volunteers: ['Player Group A', 'Community Team'],
+    created_at: '2023-05-01T09:30:00',
+    updated_at: '2023-05-01T09:30:00',
+  },
+  {
+    id: '2',
+    title: 'Stadium Clean-Up Day',
+    description: 'Community volunteers help clean up the stadium and surrounding areas',
+    date: '2023-05-20T09:00:00',
+    location: 'Stadium and Grounds',
+    type: 'environmental',
+    status: 'completed',
+    participants_count: 45,
+    impact_summary: 'Collected over 200kg of waste and improved stadium appearance',
+    volunteers: ['Staff', 'Fan Volunteers'],
+    created_at: '2023-04-10T14:15:00',
+    updated_at: '2023-05-21T16:45:00',
+  },
+  {
+    id: '3',
+    title: 'Charity Football Tournament',
+    description: 'Annual 5-a-side tournament raising funds for local charities',
+    date: '2023-07-08T10:00:00',
+    end_date: '2023-07-08T18:00:00',
+    location: 'Training Ground',
+    type: 'fundraising',
+    status: 'upcoming',
+    participants_count: 80,
+    impact_summary: 'Expected to raise £5,000 for local children\'s hospital',
+    volunteers: ['Events Team', 'Coaching Staff'],
+    created_at: '2023-05-15T11:20:00',
+    updated_at: '2023-05-15T11:20:00',
+  },
+  {
+    id: '4',
+    title: 'Football Coaching for Disabled Children',
+    description: 'Weekly coaching sessions designed for children with disabilities',
+    date: '2023-06-07T16:00:00',
+    location: 'Community Sports Center',
+    type: 'inclusive',
+    status: 'ongoing',
+    participants_count: 18,
+    impact_summary: 'Providing accessible sports opportunities for disabled youth',
+    volunteers: ['Youth Coaches', 'Physio Team'],
+    created_at: '2023-03-22T13:45:00',
+    updated_at: '2023-05-24T09:30:00',
+  },
+];

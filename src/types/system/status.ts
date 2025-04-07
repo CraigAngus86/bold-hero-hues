@@ -1,92 +1,49 @@
 
 import { ReactNode } from 'react';
 
-export type SystemStatusName = 'healthy' | 'warning' | 'error' | 'offline' | 'maintenance' | 'critical' | 'unknown';
+export type SystemStatusName = 'healthy' | 'warning' | 'degraded' | 'critical' | 'unknown';
 
-export interface SystemStatusItemProps {
+export interface SystemMetric {
   name: string;
-  status: SystemStatusName;
-  value?: string;
-  metricValue?: string;
-  tooltip?: string;
-  lastChecked: Date | string;
-  icon: ReactNode;
-  color: string;
+  value: number;
+  unit?: string;
+  change?: number;
+  changeType?: 'positive' | 'negative' | 'neutral';
+  changeDirection?: 'up' | 'down';
+  icon?: ReactNode;
+  description?: string;
+}
+
+export interface SystemMetricsGroups {
+  performance: SystemMetric[];
+  storage: SystemMetric[];
+  usage: SystemMetric[];
+  [key: string]: SystemMetric[] | any;
 }
 
 export interface Service {
   name: string;
   status: SystemStatusName;
-  lastChecked: string | Date;
+  lastChecked: Date | string;
   message?: string;
-  uptime?: number;
-  response_time?: number;
-}
-
-export interface SystemMetric {
-  name: string;
-  status?: SystemStatusName;
-  value: number | string;
-  description?: string;
-  change?: number;
-  changeType?: 'positive' | 'negative' | 'neutral';
-  icon?: ReactNode;
-  unit?: string;
-  changeDirection?: 'up' | 'down' | 'none';
+  uptime: number;
 }
 
 export interface SystemStatus {
   overall_status: SystemStatusName;
-  services: Service[];
-  metrics: {
-    uptime: number;
-    responseTime: number;
-    errors24h: number;
-    totalRequests24h: number;
-    performance: SystemMetric[];
-    storage: SystemMetric[];
-    usage: SystemMetric[];
-  };
-  uptime: number;
   message: string;
+  uptime: number;
+  metrics: SystemMetricsGroups;
+  services: Service[];
   messages?: string[];
-  last_updated?: string | Date;
+  last_updated: Date | string;
   version?: string;
 }
 
-export interface SystemStatusPanelProps {
-  status: SystemStatus;
-  isLoading?: boolean;
-  onRefresh?: () => void | Promise<void>;
-  error?: string;
-}
-
-export interface StatusItemCardProps {
-  title: string;
-  value: string | number;
-  status?: SystemStatusName;
-  icon?: ReactNode;
-  color?: string;
-  change?: number;
-  changeType?: 'positive' | 'negative' | 'neutral';
-  lastUpdated?: Date | string;
-}
-
-// Adding ServerStatus type for mock data
-export interface ServerStatus {
-  status: SystemStatusName;
-  uptime: string;
-  lastChecked: Date;
-}
-
-// Adding SystemLog for dashboard refresh
 export interface SystemLog {
   id: string;
-  timestamp: Date;
+  timestamp: Date | string;
   type: 'info' | 'warning' | 'error';
   source: string;
   message: string;
 }
-
-// Alias for backward compatibility
-export type SystemStatusType = SystemStatusName;

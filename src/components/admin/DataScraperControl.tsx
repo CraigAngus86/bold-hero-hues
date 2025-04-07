@@ -84,6 +84,7 @@ const DataScraperControl = () => {
         // Fix: Remove the boolean parameter as it seems to be causing the issue
         const result = await triggerLeagueDataScrape();
         
+        // Safely check result structure
         if (result && Array.isArray(result) && result.length > 0) {
           toast.success(`Successfully refreshed data for ${result.length} teams`);
         } else {
@@ -130,7 +131,7 @@ const DataScraperControl = () => {
       
       const data = response.data;
       
-      if (!data || data.length === 0) {
+      if (!data || !Array.isArray(data) || data.length === 0) {
         toast.warning("No data available to download");
         return;
       }

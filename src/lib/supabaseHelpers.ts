@@ -7,16 +7,31 @@
 // This fixes the "Type of 'await' operand must either be a valid promise or must not contain a callable 'then' member" error
 export const unwrapPromise = async <T>(promise: Promise<{ data: T; error: any }> | any): Promise<{ data: T; error: any; count?: number }> => {
   try {
-    // Convert the promise-like object to a proper Promise first
-    const promiseResult = Promise.resolve(promise);
-    const result = await promiseResult;
-    
-    // If the result is not in the expected format, wrap it
-    if (result && typeof result === 'object') {
-      if (!('data' in result)) {
-        return { data: result as T, error: null };
-      }
+    // First check if it's a standard promise and handle it directly
+    if (promise instanceof Promise) {
+      const result = await promise;
       return result;
+    }
+    
+    // Handle chainable objects with their own then method
+    if (promise && typeof promise === 'object' && typeof promise.then === 'function') {
+      // Convert the chainable object to a proper Promise
+      const result = await new Promise<{ data: T; error: any; count?: number }>((resolve) => {
+        promise.then((res: any) => resolve(res));
+      });
+      
+      // If the result is not in the expected format, wrap it
+      if (result && typeof result === 'object') {
+        if (!('data' in result)) {
+          return { data: result as T, error: null, count: Array.isArray(result) ? result.length : undefined };
+        }
+        return result;
+      }
+    }
+    
+    // If it's already a data object, just wrap it
+    if (promise && typeof promise === 'object' && 'data' in promise) {
+      return promise;
     }
     
     // Fallback case
@@ -47,7 +62,7 @@ export const safeStringArray = (values: unknown[] | null): string[] => {
 export const addCountProperty = <T>(response: { data: T[]; error: any }): { data: T[]; error: any; count: number } => {
   return {
     ...response,
-    count: response.data?.length || 0
+    count: Array.isArray(response.data) ? response.data.length : 0
   };
 };
 
@@ -67,8 +82,9 @@ export function processResponseToStringArray(response: { data: unknown; error: a
 // Helper to standardize Supabase client method calls and ensure proper types
 export async function executeSupabaseQuery<T>(queryPromise: any): Promise<{ data: T[]; error: any; count?: number }> {
   try {
-    // Ensure we're working with a proper promise
-    const result = await Promise.resolve(queryPromise);
+    // Use the unwrapPromise helper to handle both Promise and chainable objects
+    const result = await unwrapPromise(queryPromise);
+    
     return {
       data: Array.isArray(result.data) ? result.data : [],
       error: result.error,

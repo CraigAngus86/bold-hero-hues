@@ -1,198 +1,143 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
-import { toast } from 'sonner';
 
+// Types for hero slider content
 export interface HeroSlide {
   id: string;
-  image_url: string;
-  video_url?: string;
   title: string;
   subtitle?: string;
+  image_url: string;
+  video_url?: string;
   link_text?: string;
   link_url?: string;
-  display_order: number;
-  is_active: boolean;
+}
+
+export interface NextMatch {
+  id: string;
+  home_team: string;
+  away_team: string;
+  date: string;
+  time: string;
+  venue: string;
+  competition: string;
+  ticket_link?: string;
+}
+
+export interface LatestResult {
+  id: string;
+  home_team: string;
+  away_team: string;
+  home_score: number;
+  away_score: number;
+  date: string;
+  competition: string;
 }
 
 export interface BreakingNews {
   active: boolean;
   message: string;
+  link?: string;
 }
 
-export interface UseHeroSlidesResult {
-  slides: HeroSlide[];
-  currentIndex: number;
-  currentSlide: HeroSlide;
-  isLoading: boolean;
-  error: Error | null;
-  goToSlide: (index: number) => void;
-  goToNextSlide: () => void;
-  goToPrevSlide: () => void;
-  nextMatch: any;
-  latestResult: any;
-  recentResults: any[];
-  breakingNews?: BreakingNews;
-}
-
-export const useHeroSlides = (): UseHeroSlidesResult => {
+/**
+ * Hook to fetch hero slides data
+ * Currently uses static data, but can be updated to fetch from API
+ */
+export const useHeroSlides = () => {
   const [slides, setSlides] = useState<HeroSlide[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [nextMatch, setNextMatch] = useState<any>(null);
-  const [latestResult, setLatestResult] = useState<any>(null);
-  const [recentResults, setRecentResults] = useState<any[]>([]);
-  const [breakingNews, setBreakingNews] = useState<BreakingNews | undefined>(undefined);
+  const [nextMatch, setNextMatch] = useState<NextMatch | null>(null);
+  const [latestResult, setLatestResult] = useState<LatestResult | null>(null);
+  const [breakingNews, setBreakingNews] = useState<BreakingNews | null>(null);
 
-  // Function to fetch hero slides
   useEffect(() => {
-    const fetchSlides = async () => {
+    // Simulate API fetch
+    const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Fetch hero slides
-        const { data: slideData, error: slideError } = await supabase
-          .from('hero_slides')
-          .select('*')
-          .eq('is_active', true)
-          .order('display_order', { ascending: true });
-
-        if (slideError) throw slideError;
+        // This would be replaced by actual API calls
         
-        // If no slides, create demo slides
-        if (!slideData || slideData.length === 0) {
-          // Fallback to news articles for demo slides
-          const { data: newsData } = await supabase
-            .from('news_articles')
-            .select('*')
-            .order('publish_date', { ascending: false })
-            .limit(3);
-            
-          if (newsData && newsData.length > 0) {
-            const demoSlides = newsData.map((item, index) => ({
-              id: item.id.toString(),
-              image_url: item.image_url || '/lovable-uploads/banks-o-dee-dark-logo.png',
-              title: item.title,
-              subtitle: `Latest news from Banks o' Dee FC - ${new Date(item.publish_date).toLocaleDateString()}`,
-              link_text: 'Read More',
-              link_url: `/news/${item.id}`,
-              display_order: index,
-              is_active: true
-            }));
-            setSlides(demoSlides);
-          } else {
-            // If even news isn't available, create a default slide
-            setSlides([{
-              id: '1',
-              image_url: '/lovable-uploads/banks-o-dee-dark-logo.png',
-              title: 'Welcome to Banks o\' Dee FC',
-              subtitle: 'Home of Spain Park, Aberdeen',
-              link_text: 'Explore',
-              link_url: '/about',
-              display_order: 0,
-              is_active: true
-            }]);
+        // Mock data for hero slides
+        const heroSlides: HeroSlide[] = [
+          {
+            id: '1',
+            image_url: '/lovable-uploads/banks-o-dee-dark-logo.png',
+            title: 'Welcome to Banks o\' Dee FC',
+            subtitle: 'Home of Spain Park, Aberdeen',
+            link_text: 'Learn More',
+            link_url: '/about',
+          },
+          {
+            id: '2',
+            image_url: '/lovable-uploads/4651b18c-bc2e-4e02-96ab-8993f8dfc145.png',
+            title: 'Join us at Spain Park',
+            subtitle: 'Support the team in our upcoming fixtures',
+            link_text: 'View Fixtures',
+            link_url: '/fixtures',
+          },
+          {
+            id: '3',
+            image_url: '/lovable-uploads/0c8edeaf-c67c-403f-90f0-61b390e5e89a.png',
+            title: 'Latest Club News',
+            subtitle: 'Stay up to date with all things Banks o\' Dee',
+            link_text: 'Read More',
+            link_url: '/news',
           }
-        } else {
-          setSlides(slideData);
-        }
+        ];
+        
+        // Mock data for next match
+        const nextMatchData: NextMatch = {
+          id: 'next-1',
+          home_team: 'Banks o\' Dee',
+          away_team: 'Formartine United',
+          date: '2025-05-15',
+          time: '15:00',
+          venue: 'Spain Park',
+          competition: 'Highland League',
+          ticket_link: '/tickets/next-match'
+        };
+        
+        // Mock data for latest result
+        const latestResultData: LatestResult = {
+          id: 'result-1',
+          home_team: 'Banks o\' Dee',
+          away_team: 'Keith FC',
+          home_score: 3,
+          away_score: 1,
+          date: '2025-05-01',
+          competition: 'Highland League'
+        };
+        
+        // Mock breaking news
+        const breakingNewsData: BreakingNews = {
+          active: true,
+          message: 'New signing announcement: John Smith joins from Aberdeen FC!',
+          link: '/news/new-signing'
+        };
 
-        // Fetch next match
-        const { data: nextMatchData } = await supabase
-          .from('fixtures')
-          .select('*')
-          .eq('is_next_match', true)
-          .limit(1)
-          .single();
-          
-        setNextMatch(nextMatchData || null);
-        
-        // Fetch latest result
-        const { data: latestResultData } = await supabase
-          .from('fixtures')
-          .select('*')
-          .eq('is_latest_result', true)
-          .limit(1)
-          .single();
-          
-        setLatestResult(latestResultData || null);
-        
-        // Fetch recent results
-        const { data: recentResultsData } = await supabase
-          .from('fixtures')
-          .select('*')
-          .eq('is_completed', true)
-          .order('date', { ascending: false })
-          .limit(5);
-          
-        setRecentResults(recentResultsData || []);
-        
-        // Fetch breaking news
-        const { data: breakingNewsData } = await supabase
-          .from('site_settings')
-          .select('*')
-          .eq('key', 'breaking_news')
-          .single();
-          
-        if (breakingNewsData && breakingNewsData.value) {
-          try {
-            const newsData = JSON.parse(breakingNewsData.value);
-            setBreakingNews({
-              active: newsData.active || false,
-              message: newsData.message || ''
-            });
-          } catch (err) {
-            console.error('Error parsing breaking news:', err);
-          }
-        }
-        
+        setSlides(heroSlides);
+        setNextMatch(nextMatchData);
+        setLatestResult(latestResultData);
+        setBreakingNews(breakingNewsData);
+        setError(null);
       } catch (err) {
-        console.error('Error fetching hero data:', err);
-        setError(err instanceof Error ? err : new Error('Failed to fetch hero data'));
-        toast.error('Failed to load hero content');
+        console.error('Error fetching hero slides:', err);
+        setError(err instanceof Error ? err : new Error('Unknown error fetching hero slides'));
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchSlides();
+    fetchData();
   }, []);
-
-  const goToSlide = (index: number) => {
-    setCurrentIndex(index);
-  };
-
-  const goToNextSlide = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % slides.length);
-  };
-
-  const goToPrevSlide = () => {
-    setCurrentIndex((prevIndex) => (prevIndex - 1 + slides.length) % slides.length);
-  };
-
-  // Determine the current slide
-  const currentSlide = slides[currentIndex] || {
-    id: '0',
-    image_url: '',
-    title: '',
-    display_order: 0,
-    is_active: true
-  };
 
   return {
     slides,
-    currentIndex,
-    currentSlide,
     isLoading,
     error,
-    goToSlide,
-    goToNextSlide,
-    goToPrevSlide,
     nextMatch,
     latestResult,
-    recentResults,
     breakingNews
   };
 };
-
-export default useHeroSlides;

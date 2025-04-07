@@ -46,3 +46,19 @@ export const safeStringArray = (arr: unknown[]): string[] => {
   if (!arr) return [];
   return arr.map(item => String(item));
 };
+
+/**
+ * Ensures a value is a string
+ */
+export const ensureString = (value: unknown): string => {
+  if (value === null || value === undefined) return '';
+  return String(value);
+};
+
+/**
+ * Converts array of unknown to array of strings
+ */
+export const convertToStringArray = (arr: unknown[]): string[] => {
+  if (!arr) return [];
+  return arr.map(item => ensureString(item));
+};

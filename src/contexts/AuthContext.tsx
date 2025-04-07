@@ -1,57 +1,96 @@
 
-import React, { createContext, useContext } from 'react';
-import { User } from '@supabase/supabase-js';
-import { useSimulatedAuth, SimulatedUser, SimulatedProfile } from '@/hooks/useSimulatedAuth';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 
-// Define UserRole type
-export type UserRole = 'admin' | 'editor' | 'user';
-
-// User profile types
-export interface UserProfile {
+// Define types for our context
+type User = {
   id: string;
   email: string;
-  full_name?: string | null;
-  avatar_url?: string | null;
-  created_at?: string | null;
-  updated_at?: string | null;
-  roles?: UserRole[];
-}
-
-// Auth context types
-export interface AuthContextType {
-  user: User | SimulatedUser | null;
-  profile: UserProfile | SimulatedProfile | null;
-  isLoading: boolean;
-  signIn: (email?: string, password?: string) => Promise<{ error?: any }>;
-  signUp: (email?: string, password?: string, metadata?: any) => Promise<{ error?: any }>;
-  signOut: () => Promise<void>;
-  hasRole: (role: UserRole) => boolean;
-}
-
-// Initialize with default values
-const defaultAuthContext: AuthContextType = {
-  user: null,
-  profile: null,
-  isLoading: true,
-  signIn: async () => ({}),
-  signUp: async () => ({}),
-  signOut: async () => {},
-  hasRole: () => false,
+  username?: string;
 };
 
-export const AuthContext = createContext<AuthContextType>(defaultAuthContext);
+type AuthContextType = {
+  user: User | null;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  isAuthenticated: boolean;
+};
 
-export const useAuth = () => useContext(AuthContext);
+// Create context with default values
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  loading: true,
+  login: async () => {},
+  logout: async () => {},
+  isAuthenticated: false,
+});
 
+// Auth provider component
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Using our simulated auth for testing purposes
-  const auth = useSimulatedAuth();
-  
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Check for existing session on mount
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        // For now, we'll just simulate checking a session
+        // In a real implementation, this would query Supabase auth
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        }
+      } catch (error) {
+        console.error('Session check error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkSession();
+  }, []);
+
+  // Login function
+  const login = async (email: string, password: string) => {
+    try {
+      // Mock login - in a real implementation this would use Supabase auth
+      const mockUser = { id: '1', email };
+      setUser(mockUser);
+      localStorage.setItem('user', JSON.stringify(mockUser));
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
+  };
+
+  // Logout function
+  const logout = async () => {
+    try {
+      // Mock logout - in a real implementation this would use Supabase auth
+      setUser(null);
+      localStorage.removeItem('user');
+    } catch (error) {
+      console.error('Logout error:', error);
+      throw error;
+    }
+  };
+
+  const value = {
+    user,
+    loading,
+    login,
+    logout,
+    isAuthenticated: !!user,
+  };
+
   return (
-    <AuthContext.Provider value={auth as AuthContextType}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export default AuthProvider;
+// Custom hook to use auth context
+export const useAuth = () => useContext(AuthContext);
+
+export default AuthContext;

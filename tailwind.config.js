@@ -8,6 +8,7 @@ module.exports = {
     './app/**/*.{ts,tsx}',
     './src/**/*.{ts,tsx}',
   ],
+  prefix: "",
   theme: {
     container: {
       center: true,
@@ -52,13 +53,10 @@ module.exports = {
           foreground: "hsl(var(--card-foreground))",
         },
         // Team colors
-        team: {
-          blue: "#00105a",
-          lightBlue: "#C5E7FF",
-          gold: "#FFD700",
-          gray: "#f7f7f7",
-          navy: "#001133"
-        },
+        "team-blue": "#00105A",
+        "team-light": "#C5E7FF",
+        "team-accent": "#FFD700",
+        "team-gray": "#f7f7f7",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -67,12 +65,12 @@ module.exports = {
       },
       keyframes: {
         "accordion-down": {
-          from: { height: 0 },
+          from: { height: "0" },
           to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
           from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: 0 },
+          to: { height: "0" },
         },
       },
       animation: {

@@ -1,3 +1,4 @@
+
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { AuthProvider } from './contexts/AuthContext';
@@ -35,7 +36,7 @@ import FansManagement from './pages/admin/FansManagement';
 
 function App() {
   return (
-    <>
+    <AuthProvider>
       <Toaster position="top-right" />
       <Routes>
         {/* Use the new static home page as the main route */}
@@ -49,10 +50,28 @@ function App() {
         <Route path="/table" element={<Table />} />
         <Route path="/contact" element={<Contact />} />
         
+        {/* Auth routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        
+        {/* Admin routes */}
+        <Route path="/admin" element={<RequireAuth><Dashboard /></RequireAuth>} />
+        <Route path="/admin/news" element={<RequireAuth><NewsManagement /></RequireAuth>} />
+        <Route path="/admin/team" element={<RequireAuth><TeamManagement /></RequireAuth>} />
+        <Route path="/admin/fixtures" element={<RequireAuth><FixtureManagement /></RequireAuth>} />
+        <Route path="/admin/media" element={<RequireAuth><Media /></RequireAuth>} />
+        <Route path="/admin/tickets" element={<RequireAuth><Tickets /></RequireAuth>} />
+        <Route path="/admin/settings" element={<RequireAuth><Settings /></RequireAuth>} />
+        <Route path="/admin/sponsors" element={<RequireAuth><Sponsors /></RequireAuth>} />
+        <Route path="/admin/league-table" element={<RequireAuth><LeagueTableManagement /></RequireAuth>} />
+        <Route path="/admin/fans" element={<RequireAuth><FansManagement /></RequireAuth>} />
+        
         {/* Catch-all route */}
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </>
+    </AuthProvider>
   );
 }
 

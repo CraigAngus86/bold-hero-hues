@@ -1,13 +1,13 @@
 
-// @ts-nocheck
 import { useState, useCallback, useEffect } from 'react';
 import { getSystemStatus } from '@/services/logs/systemLogsService';
+import { SystemStatus } from '@/types/system/status';
 
 export const useDashboardRefresh = () => {
   const [refreshInterval, setRefreshInterval] = useState(60000); // 1 minute default
   const [lastRefreshed, setLastRefreshed] = useState(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [systemStatus, setSystemStatus] = useState(null);
+  const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
   const [statusLoading, setStatusLoading] = useState(true);
   const [statusError, setStatusError] = useState<Error | null>(null);
 

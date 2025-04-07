@@ -1,39 +1,30 @@
 
-export type SystemStatusName = 'healthy' | 'warning' | 'critical' | 'unknown' | 'degraded' | 'error';
-
-export interface SystemMetric {
+export interface ServiceStatus {
   name: string;
-  value: number;
-  unit: string;
-}
-
-export interface SystemService {
-  name: string;
-  status: SystemStatusName;
+  status: 'healthy' | 'warning' | 'error' | 'offline';
   uptime: number;
   message: string;
   lastChecked: string;
 }
 
-export interface SystemLog {
-  id: string;
-  timestamp: string;
-  type: 'info' | 'warning' | 'error' | 'success' | 'debug';
-  message: string;
-  source: string;
-  details?: any;
+export interface MetricItem {
+  name: string;
+  value: number;
+  unit: string;
+}
+
+export interface SystemMetrics {
+  performance: MetricItem[];
+  storage: MetricItem[];
+  usage: MetricItem[];
 }
 
 export interface SystemStatus {
-  overall_status: SystemStatusName;
+  overall_status: 'healthy' | 'degraded' | 'offline';
   message: string;
   uptime: number;
   last_updated: string;
-  services?: SystemService[];
-  metrics?: {
-    performance?: SystemMetric[];
-    storage?: SystemMetric[];
-    usage?: SystemMetric[];
-  };
-  logs?: SystemLog[];
+  services: ServiceStatus[];
+  metrics: SystemMetrics;
+  logs?: any[]; // Optional logs field
 }

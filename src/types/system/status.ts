@@ -22,4 +22,18 @@ export type SystemStatusName =
   | 'fixtures' 
   | 'news' 
   | 'users' 
-  | 'tickets';
+  | 'tickets'
+  | 'healthy'
+  | 'warning'
+  | 'degraded'
+  | 'critical'
+  | 'error';
+
+export interface SystemStatusWithServices extends SystemStatus {
+  database?: boolean;
+  storage?: boolean;
+  auth?: boolean;
+  authentication?: boolean;
+  api?: boolean;
+  lastUpdated?: Date;
+}

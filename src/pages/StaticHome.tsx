@@ -4,6 +4,10 @@ import { Helmet } from 'react-helmet-async';
 // Components
 import EnhancedHero from '@/components/home/EnhancedHero';
 import FeaturedContentGrid from '@/components/home/FeaturedContentGrid';
+import FanEngagement from '@/components/home/FanEngagement';
+import MatchCenter from '@/components/home/MatchCenter';
+import ClubCommercial from '@/components/home/ClubCommercial';
+import SponsorsSection from '@/components/home/SponsorsSection';
 import MediaGallery from '@/components/home/MediaGallery';
 
 // Define our theme colors for easier reference throughout the component
@@ -96,124 +100,20 @@ const StaticHome = () => {
           isLoading={false}
         />
         
-        {/* Latest News Section - Row 2 */}
-        <section className="container mx-auto px-4 py-12">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-[#00105a]">Latest News</h2>
-            <a href="/news" className="bg-[#00105a] hover:bg-[#001a8e] text-white font-medium py-2 px-4 rounded transition-colors">
-              View All News
-            </a>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {/* News Card 1 */}
-            <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
-              <div className="relative h-48">
-                <img 
-                  src="/lovable-uploads/0c8edeaf-c67c-403f-90f0-61b390e5e89a.png" 
-                  alt="News Article" 
-                  className="w-full h-full object-cover"
-                />
-                <span className="absolute top-3 left-3 bg-[#ffd700] text-[#00105a] text-xs font-semibold px-2 py-1 rounded">
-                  Club News
-                </span>
-              </div>
-              <div className="p-4">
-                <h3 className="font-bold text-lg mb-2 text-[#00105a] line-clamp-2">
-                  New Home Kit Unveiled for the 2025/26 Season
-                </h3>
-                <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                  We are excited to reveal our new home kit for the upcoming season, featuring a classic design with modern elements...
-                </p>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-500">April 5, 2025</span>
-                  <a href="/news/1" className="text-[#00105a] text-sm font-medium hover:underline">Read More</a>
-                </div>
-              </div>
-            </div>
-            
-            {/* News Card 2 */}
-            <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
-              <div className="relative h-48">
-                <img 
-                  src="/lovable-uploads/cb95b9fb-0f2d-42ef-9788-10509a80ed6e.png" 
-                  alt="News Article" 
-                  className="w-full h-full object-cover"
-                />
-                <span className="absolute top-3 left-3 bg-[#ffd700] text-[#00105a] text-xs font-semibold px-2 py-1 rounded">
-                  Youth
-                </span>
-              </div>
-              <div className="p-4">
-                <h3 className="font-bold text-lg mb-2 text-[#00105a] line-clamp-2">
-                  Youth Academy Expands with New Age Groups
-                </h3>
-                <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                  Banks o' Dee FC is proud to announce the expansion of our youth academy program to include two new age groups...
-                </p>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-500">April 3, 2025</span>
-                  <a href="/news/2" className="text-[#00105a] text-sm font-medium hover:underline">Read More</a>
-                </div>
-              </div>
-            </div>
-            
-            {/* News Card 3 */}
-            <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
-              <div className="relative h-48">
-                <img 
-                  src="/lovable-uploads/7f997ef4-9019-4660-9e9e-4e230d7b1eb3.png" 
-                  alt="News Article" 
-                  className="w-full h-full object-cover"
-                />
-                <span className="absolute top-3 left-3 bg-[#ffd700] text-[#00105a] text-xs font-semibold px-2 py-1 rounded">
-                  Interview
-                </span>
-              </div>
-              <div className="p-4">
-                <h3 className="font-bold text-lg mb-2 text-[#00105a] line-clamp-2">
-                  Manager Interview: Season Preview
-                </h3>
-                <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                  We sat down with our manager to discuss preparations for the upcoming season, new signings, and expectations...
-                </p>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-500">March 28, 2025</span>
-                  <a href="/news/3" className="text-[#00105a] text-sm font-medium hover:underline">Read More</a>
-                </div>
-              </div>
-            </div>
-            
-            {/* News Card 4 - Only visible on larger screens */}
-            <div className="hidden xl:block bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
-              <div className="relative h-48">
-                <img 
-                  src="/lovable-uploads/ba4e2b09-12ed-48ad-a4ba-1162ab87ad70.png" 
-                  alt="News Article" 
-                  className="w-full h-full object-cover"
-                />
-                <span className="absolute top-3 left-3 bg-[#ffd700] text-[#00105a] text-xs font-semibold px-2 py-1 rounded">
-                  Community
-                </span>
-              </div>
-              <div className="p-4">
-                <h3 className="font-bold text-lg mb-2 text-[#00105a] line-clamp-2">
-                  Community Outreach Program Launches
-                </h3>
-                <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                  Banks o' Dee FC is proud to announce the launch of our new community outreach program aimed at engaging with local schools...
-                </p>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-500">March 22, 2025</span>
-                  <a href="/news/4" className="text-[#00105a] text-sm font-medium hover:underline">Read More</a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-        
-        {/* Media Gallery - Horizontal Scrolling */}
+        {/* Media Gallery - Row 2 */}
         <MediaGallery />
+        
+        {/* Fan Engagement Section - Row 3 */}
+        <FanEngagement />
+        
+        {/* Match Center - Row 4 */}
+        <MatchCenter />
+        
+        {/* Club Commercial - Row 5 */}
+        <ClubCommercial />
+        
+        {/* Sponsors Section */}
+        <SponsorsSection />
       </main>
 
       {/* Footer */}

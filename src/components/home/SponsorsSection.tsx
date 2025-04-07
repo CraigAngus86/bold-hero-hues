@@ -1,216 +1,197 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
+import React, { useRef, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { supabase } from '@/lib/supabase';
-import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-interface Sponsor {
-  id: string;
-  name: string;
-  logo_url: string;
-  website_url?: string;
-  tier: 'platinum' | 'gold' | 'silver' | 'bronze';
-}
+// Mock sponsors data
+const mainSponsor = {
+  id: 'sponsor-1',
+  name: 'AberDenim',
+  logo: '/lovable-uploads/8f2cd33f-1e08-494a-9aaa-65792ee9418a.png',
+  url: 'https://www.aberdenim.com'
+};
+
+const secondarySponsors = [
+  {
+    id: 'sponsor-2',
+    name: 'Aberdeen Drilling',
+    logo: '/lovable-uploads/02654c64-77bc-4a05-ae93-7c8173d0dc3c.png',
+    url: 'https://www.aberdeendrilling.com'
+  },
+  {
+    id: 'sponsor-3',
+    name: 'Northern Lights Energy',
+    logo: '/lovable-uploads/c5b46adc-8c4c-4b59-9a27-4ec841222d92.png',
+    url: 'https://www.northernlightsenergy.com'
+  },
+  {
+    id: 'sponsor-4',
+    name: 'Aberdeen Shipping',
+    logo: '/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png',
+    url: 'https://www.aberdeenshipping.com'
+  },
+  {
+    id: 'sponsor-5',
+    name: 'Celtic Builders',
+    logo: '/lovable-uploads/122628af-86b4-4d7f-bfe3-01d4bf03d053.png',
+    url: 'https://www.celticbuilders.com'
+  },
+  {
+    id: 'sponsor-6',
+    name: 'Scottish Breweries',
+    logo: '/lovable-uploads/940ac3a1-b89d-40c9-957e-217a64371120.png',
+    url: 'https://www.scottishbreweries.com'
+  }
+];
 
 const SponsorsSection: React.FC = () => {
-  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  
-  // Group sponsors by tier
-  const sponsorsByTier = sponsors.reduce((acc, sponsor) => {
-    if (!acc[sponsor.tier]) {
-      acc[sponsor.tier] = [];
+  const sponsorsRef = useRef<HTMLDivElement>(null);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(true);
+
+  // Check if scroll arrows should be visible
+  const checkScrollPosition = () => {
+    if (sponsorsRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = sponsorsRef.current;
+      setShowLeftArrow(scrollLeft > 0);
+      setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
     }
-    acc[sponsor.tier].push(sponsor);
-    return acc;
-  }, {} as Record<string, Sponsor[]>);
-  
-  // Order the tiers
-  const tierOrder = ['platinum', 'gold', 'silver', 'bronze'];
-  
+  };
+
   useEffect(() => {
-    const fetchSponsors = async () => {
-      setIsLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('sponsors')
-          .select('*')
-          .eq('is_active', true)
-          .order('display_order', { ascending: true });
-          
-        if (error) {
-          throw error;
-        }
-        
-        if (data) {
-          setSponsors(data);
-        }
-      } catch (error) {
-        console.error('Error fetching sponsors:', error);
-        // Fallback to mock data if there's an error
-        setSponsors([
-          {
-            id: '1',
-            name: 'Main Sponsor',
-            logo_url: '/lovable-uploads/banks-o-dee-dark-logo.png',
-            website_url: 'https://example.com',
-            tier: 'platinum'
-          },
-          {
-            id: '2',
-            name: 'Gold Sponsor 1',
-            logo_url: '/lovable-uploads/banks-o-dee-dark-logo.png',
-            website_url: 'https://example.com',
-            tier: 'gold'
-          },
-          {
-            id: '3',
-            name: 'Gold Sponsor 2',
-            logo_url: '/lovable-uploads/banks-o-dee-dark-logo.png',
-            website_url: 'https://example.com',
-            tier: 'gold'
-          },
-          {
-            id: '4',
-            name: 'Silver Sponsor 1',
-            logo_url: '/lovable-uploads/banks-o-dee-dark-logo.png',
-            website_url: 'https://example.com',
-            tier: 'silver'
-          },
-          {
-            id: '5',
-            name: 'Silver Sponsor 2',
-            logo_url: '/lovable-uploads/banks-o-dee-dark-logo.png',
-            website_url: 'https://example.com',
-            tier: 'silver'
-          },
-          {
-            id: '6',
-            name: 'Silver Sponsor 3',
-            logo_url: '/lovable-uploads/banks-o-dee-dark-logo.png',
-            website_url: 'https://example.com',
-            tier: 'silver'
-          },
-          {
-            id: '7',
-            name: 'Bronze Sponsor 1',
-            logo_url: '/lovable-uploads/banks-o-dee-dark-logo.png',
-            website_url: 'https://example.com',
-            tier: 'bronze'
-          },
-          {
-            id: '8',
-            name: 'Bronze Sponsor 2',
-            logo_url: '/lovable-uploads/banks-o-dee-dark-logo.png',
-            website_url: 'https://example.com',
-            tier: 'bronze'
-          }
-        ]);
-      } finally {
-        setIsLoading(false);
+    const currentRef = sponsorsRef.current;
+    if (currentRef) {
+      currentRef.addEventListener('scroll', checkScrollPosition);
+      // Initial check
+      checkScrollPosition();
+    }
+    
+    return () => {
+      if (currentRef) {
+        currentRef.removeEventListener('scroll', checkScrollPosition);
       }
     };
-    
-    fetchSponsors();
   }, []);
-  
-  if (isLoading) {
-    return (
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <h2 className="text-2xl font-bold text-team-blue text-center mb-12">Our Sponsors</h2>
-          <div className="flex justify-center">
-            <div className="w-16 h-16 border-4 border-team-blue border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        </div>
-      </section>
-    );
-  }
-  
-  if (sponsors.length === 0) {
-    return null;
-  }
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (sponsorsRef.current) {
+      const { current } = sponsorsRef;
+      const scrollAmount = 300;
+      
+      if (direction === 'left') {
+        current.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+      } else {
+        current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      }
+    }
+  };
 
   return (
     <section className="py-16 bg-white">
       <div className="container mx-auto px-4">
-        <h2 className="text-2xl font-bold text-team-blue text-center mb-12">Our Sponsors</h2>
+        <h2 className="text-2xl md:text-3xl font-bold text-center text-team-blue mb-12">Our Sponsors</h2>
         
-        {/* Display sponsors by tier */}
-        <div className="space-y-10">
-          {tierOrder.map(tier => {
-            const tierSponsors = sponsorsByTier[tier];
-            if (!tierSponsors || tierSponsors.length === 0) return null;
-            
-            return (
-              <div key={tier} className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-700 capitalize text-center">
-                  {tier} {tier !== 'platinum' ? 'Sponsors' : 'Sponsor'}
-                </h3>
-                
-                <div className={cn(
-                  "grid gap-6 place-items-center",
-                  tier === 'platinum' ? "grid-cols-1" :
-                  tier === 'gold' ? "grid-cols-2 md:grid-cols-3" :
-                  "grid-cols-2 md:grid-cols-4 lg:grid-cols-6"
-                )}>
-                  {tierSponsors.map((sponsor, index) => (
-                    <motion.div
-                      key={sponsor.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: index * 0.1, duration: 0.5 }}
-                    >
-                      <SponsorLogo sponsor={sponsor} tier={tier} />
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+        {/* Main Sponsor */}
+        <div className="mb-12">
+          <h3 className="text-lg font-semibold text-center text-gray-600 mb-4">Principal Partner</h3>
+          <motion.div 
+            className="bg-white shadow-sm rounded-xl p-8 flex items-center justify-center max-w-2xl mx-auto border border-gray-200"
+            whileHover={{ y: -5 }}
+            transition={{ type: "spring", stiffness: 300 }}
+          >
+            <a 
+              href={mainSponsor.url} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="transition-transform hover:scale-105 focus:outline-none"
+              aria-label={mainSponsor.name}
+            >
+              <img 
+                src={mainSponsor.logo} 
+                alt={mainSponsor.name} 
+                className="max-h-32 max-w-full object-contain mix-blend-multiply" 
+              />
+            </a>
+          </motion.div>
         </div>
         
-        <div className="text-center mt-12">
-          <p className="text-gray-600">
-            Interested in sponsoring Banks o' Dee FC? <a href="/sponsorship" className="text-team-blue hover:underline">Find out more</a>
-          </p>
+        {/* Secondary Sponsors */}
+        <div>
+          <h3 className="text-lg font-semibold text-center text-gray-600 mb-4">Official Partners</h3>
+          
+          <div className="relative">
+            {/* Left Arrow */}
+            {showLeftArrow && (
+              <Button
+                onClick={() => scroll('left')}
+                variant="secondary"
+                size="icon"
+                className="absolute left-0 top-1/2 -translate-y-1/2 -ml-4 z-10 bg-white shadow-md hover:bg-gray-100"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+            )}
+            
+            {/* Right Arrow */}
+            {showRightArrow && (
+              <Button
+                onClick={() => scroll('right')}
+                variant="secondary"
+                size="icon"
+                className="absolute right-0 top-1/2 -translate-y-1/2 -mr-4 z-10 bg-white shadow-md hover:bg-gray-100"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            )}
+            
+            {/* Sponsors Scrollable Container */}
+            <div 
+              ref={sponsorsRef}
+              className="flex overflow-x-auto gap-6 py-4 px-2 scrollbar-hide"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {secondarySponsors.map((sponsor) => (
+                <motion.div 
+                  key={sponsor.id} 
+                  className="flex-shrink-0 w-[200px]"
+                  whileHover={{ y: -5 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <div className="bg-white shadow-sm rounded-lg p-6 h-32 flex items-center justify-center border border-gray-200 relative group">
+                    <a 
+                      href={sponsor.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="transition-transform hover:scale-105 focus:outline-none"
+                      aria-label={sponsor.name}
+                    >
+                      <img 
+                        src={sponsor.logo} 
+                        alt={sponsor.name} 
+                        className="max-h-20 max-w-full object-contain mix-blend-multiply" 
+                      />
+                    </a>
+                    
+                    {/* Hover tooltip */}
+                    <div className="absolute bottom-0 left-0 right-0 bg-team-blue text-white text-xs py-1 text-center opacity-0 group-hover:opacity-100 group-hover:bottom-[-20px] transition-all duration-200">
+                      {sponsor.name}
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+          
+          <div className="text-center mt-8">
+            <p className="text-gray-600 mb-4">Interested in sponsoring Banks o' Dee FC?</p>
+            <a href="/sponsorship" className="inline-block text-team-blue hover:underline font-medium">
+              View Sponsorship Opportunities →
+            </a>
+          </div>
         </div>
       </div>
     </section>
-  );
-};
-
-interface SponsorLogoProps {
-  sponsor: Sponsor;
-  tier: string;
-}
-
-const SponsorLogo: React.FC<SponsorLogoProps> = ({ sponsor, tier }) => {
-  const LogoWrapper = sponsor.website_url ? 'a' : 'div';
-  
-  return (
-    <LogoWrapper
-      href={sponsor.website_url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={cn(
-        "block p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300",
-        tier === 'platinum' ? "w-64 h-40" :
-        tier === 'gold' ? "w-48 h-32" :
-        tier === 'silver' ? "w-40 h-28" : "w-32 h-24"
-      )}
-      title={sponsor.name}
-    >
-      <div className="w-full h-full flex items-center justify-center">
-        <img
-          src={sponsor.logo_url}
-          alt={sponsor.name}
-          className="max-w-full max-h-full object-contain"
-        />
-      </div>
-    </LogoWrapper>
   );
 };
 

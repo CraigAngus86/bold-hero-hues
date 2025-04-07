@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { createTeamMember, updateTeamMember, MemberType } from '@/services/teamService';
+import { createTeamMember, updateTeamMember } from '@/services/teamService';
+import { MemberType } from '@/services/teamService';
 import type { TeamMember } from '@/types/team';
 
 const formSchema = z.object({
@@ -48,7 +49,7 @@ const StaffEditor: React.FC<StaffEditorProps> = ({ staff, onSave, onCancel }) =>
       name: values.name,
       position: values.position,
       bio: values.bio || '',
-      member_type: staff?.member_type || 'staff' as MemberType,
+      member_type: staff?.member_type || 'staff' as const,
       image_url: values.image_url || '',
       is_active: true,
       experience: values.experience || '',

@@ -181,8 +181,8 @@ export const useTeamStore = create<TeamState>((set, get) => ({
   }
 }));
 
-// Export TeamMember type properly
-export type TeamMember = TeamMemberType;
+// Explicitly export the TeamMember type from types/team
+export { TeamMemberType as TeamMember };
 
 export const getTeamMembers = async (): Promise<TeamMemberType[]> => {
   try {

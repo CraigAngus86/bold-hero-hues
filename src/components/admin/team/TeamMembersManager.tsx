@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,14 +5,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PlusCircle, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import type { TeamMember } from '@/types/team'; 
-import { MemberType } from '@/services/teamService';
 import PlayerEditor from './PlayerEditor';
 import PlayersList from './PlayersList';
 import StaffEditor from './StaffEditor';
 import StaffList from './StaffList';
 
 export interface TeamMembersManagerProps {
-  memberType: MemberType | 'player' | 'staff' | 'coach' | 'official' | 'management';
+  memberType: 'player' | 'staff' | 'coach' | 'official' | 'management';
   members: TeamMember[];
 }
 
@@ -47,7 +45,6 @@ const TeamMembersManager: React.FC<TeamMembersManagerProps> = ({ memberType, mem
     }
   };
 
-  // Update the component to pass the correct props to PlayersList and StaffList
   const renderList = () => {
     switch (memberType) {
       case 'player':

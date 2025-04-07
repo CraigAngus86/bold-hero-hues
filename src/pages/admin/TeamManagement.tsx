@@ -11,7 +11,7 @@ import TeamSettings from '@/components/admin/team/TeamSettings';
 
 const TeamManagement = () => {
   const [activeTab, setActiveTab] = useState<string>('players');
-  const [activeMemberType, setActiveMemberType] = useState<MemberType>('player');
+  const [activeMemberType, setActiveMemberType] = useState<string>('player');
 
   // Using the teamStore to get members
   const { teamMembers } = useTeamStore();

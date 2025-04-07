@@ -22,7 +22,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({ metrics }) => {
       count: metrics?.fixturesCount || 0,
       color: 'bg-green-50',
       viewAllLink: '/admin/fixtures',
-      status: 'info' as const
+      status: 'healthy' as const
     },
     { 
       name: 'News', 
@@ -31,7 +31,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({ metrics }) => {
       count: metrics?.newsCount || 0,
       color: 'bg-blue-50',
       viewAllLink: '/admin/news',
-      status: 'info' as const
+      status: 'healthy' as const
     },
     { 
       name: 'Users', 
@@ -40,7 +40,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({ metrics }) => {
       count: metrics?.usersCount || 0,
       color: 'bg-purple-50',
       viewAllLink: '/admin/users',
-      status: 'info' as const
+      status: 'healthy' as const
     },
     { 
       name: 'Team', 
@@ -48,7 +48,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({ metrics }) => {
       path: '/admin/team',
       color: 'bg-amber-50',
       viewAllLink: '/admin/team',
-      status: 'info' as const
+      status: 'healthy' as const
     },
     { 
       name: 'Media', 
@@ -56,7 +56,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({ metrics }) => {
       path: '/admin/media',
       color: 'bg-emerald-50',
       viewAllLink: '/admin/media',
-      status: 'info' as const
+      status: 'healthy' as const
     },
     { 
       name: 'Messages', 
@@ -65,7 +65,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({ metrics }) => {
       count: metrics?.messagesCount || 0,
       color: 'bg-pink-50',
       viewAllLink: '/admin/messages',
-      status: 'info' as const
+      status: 'healthy' as const
     },
     { 
       name: 'Fan Engagement', 
@@ -73,7 +73,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({ metrics }) => {
       path: '/admin/fans',
       color: 'bg-indigo-50',
       viewAllLink: '/admin/fans',
-      status: 'info' as const
+      status: 'healthy' as const
     },
     { 
       name: 'Sponsors', 
@@ -82,7 +82,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({ metrics }) => {
       count: metrics?.sponsorsCount || 0,
       color: 'bg-orange-50',
       viewAllLink: '/admin/sponsors',
-      status: 'info' as const
+      status: 'healthy' as const
     },
     { 
       name: 'Settings', 
@@ -90,7 +90,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({ metrics }) => {
       path: '/admin/settings',
       color: 'bg-gray-50',
       viewAllLink: '/admin/settings',
-      status: 'info' as const
+      status: 'healthy' as const
     }
   ];
 

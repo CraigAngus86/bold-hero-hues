@@ -7,11 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertTriangle, CheckCircle, Info, RefreshCw, XCircle, Trash2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { getSystemLogs, clearSystemLogs } from '@/services/logs/systemLogsService';
-import { SystemLog } from '@/types/system/logs';  // Import from logs directly to avoid conflicts
+import { SystemLog } from '@/types/system';
 
 const SystemLogs = () => {
   const [logs, setLogs] = useState<SystemLog[]>([]);
-  const [filter, setFilter] = useState<string>('all');
+  const [filter, setFilter] = useState<'all' | 'info' | 'warning' | 'error' | 'success' | 'debug'>('all');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,7 +19,7 @@ const SystemLogs = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const logType = filter !== 'all' ? filter as 'info' | 'warning' | 'error' | 'success' | 'debug' : undefined;
+      const logType = filter !== 'all' ? filter : undefined;
       const response = await getSystemLogs(100, logType);
       if (response.success) {
         setLogs(response.data || []);
@@ -86,7 +86,7 @@ const SystemLogs = () => {
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>System Logs</CardTitle>
         <div className="flex space-x-2">
-          <Select value={filter} onValueChange={setFilter}>
+          <Select value={filter} onValueChange={(value: any) => setFilter(value)}>
             <SelectTrigger className="w-32">
               <SelectValue placeholder="Filter" />
             </SelectTrigger>

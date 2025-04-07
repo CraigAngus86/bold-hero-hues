@@ -1,99 +1,48 @@
 
-import { supabase } from '@/lib/supabase';
-import { convertToMatches, DBFixture } from '@/types/fixtures';
-import { Match } from '@/components/fixtures/types';
+import { supabase } from '@/services/supabase/supabaseClient';
+import { Fixture } from '@/types/fixtures'; 
 
 /**
- * Fetch fixtures (upcoming matches) from Supabase
+ * Fetch all fixtures with optional filters
  */
-export const fetchFixturesFromSupabase = async (): Promise<DBFixture[]> => {
-  try {
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-    const { data, error } = await supabase
-      .from('fixtures')
-      .select('*')
-      .gte('date', today)
-      .eq('is_completed', false)
-      .order('date', { ascending: true });
-    
-    if (error) {
-      console.error('Error fetching fixtures from Supabase:', error);
-      return [];
-    }
-    
-    return data || [];
-  } catch (error) {
-    console.error('Exception when fetching fixtures:', error);
-    return [];
-  }
-};
-
-/**
- * Fetch results (completed matches) from Supabase
- */
-export const fetchResultsFromSupabase = async (): Promise<DBFixture[]> => {
-  try {
-    const { data, error } = await supabase
-      .from('fixtures')
-      .select('*')
-      .eq('is_completed', true)
-      .order('date', { ascending: false });
-    
-    if (error) {
-      console.error('Error fetching results from Supabase:', error);
-      return [];
-    }
-    
-    return data || [];
-  } catch (error) {
-    console.error('Exception when fetching results:', error);
-    return [];
-  }
-};
-
-/**
- * Fetch all matches from Supabase with optional filters
- */
-export const fetchMatchesFromSupabase = async (options?: {
-  upcoming?: boolean;
-  competition?: string;
+export async function fetchFixtures(options?: {
+  upcomingOnly?: boolean;
+  pastOnly?: boolean;
   team?: string;
+  competition?: string;
   season?: string;
   limit?: number;
-}): Promise<Match[]> => {
+  orderBy?: 'asc' | 'desc';
+}) {
   try {
     let query = supabase.from('fixtures').select('*');
     
     // Apply filters if provided
-    if (options?.upcoming !== undefined) {
-      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-      
-      if (options.upcoming) {
-        query = query
-          .gte('date', today)
-          .eq('is_completed', false)
-          .order('date', { ascending: true });
-      } else {
-        query = query
-          .eq('is_completed', true)
-          .order('date', { ascending: false });
-      }
-    } else {
-      query = query.order('date', { ascending: true });
+    if (options?.upcomingOnly) {
+      query = query.filter('date', 'gte', new Date().toISOString().split('T')[0]);
     }
     
-    if (options?.competition) {
-      query = query.eq('competition', options.competition);
+    if (options?.pastOnly) {
+      query = query.filter('date', 'lt', new Date().toISOString().split('T')[0]);
     }
     
     if (options?.team) {
       query = query.or(`home_team.eq.${options.team},away_team.eq.${options.team}`);
     }
     
+    if (options?.competition) {
+      query = query.eq('competition', options.competition);
+    }
+    
     if (options?.season) {
       query = query.eq('season', options.season);
     }
     
+    // Apply ordering
+    query = query.order('date', { ascending: options?.orderBy !== 'desc' });
+    query = query.order('time');
+    
+    // Apply limit if provided
     if (options?.limit) {
       query = query.limit(options.limit);
     }
@@ -101,14 +50,109 @@ export const fetchMatchesFromSupabase = async (options?: {
     const { data, error } = await query;
     
     if (error) {
-      console.error('Error fetching matches from Supabase:', error);
-      return [];
+      console.error('Error fetching fixtures:', error);
+      return { success: false, error: error.message };
     }
     
-    // Convert to Match format
-    return convertToMatches(data || []);
+    return { success: true, data: data as Fixture[] };
   } catch (error) {
-    console.error('Exception when fetching matches:', error);
-    return [];
+    console.error('Error in fetchFixtures:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    };
   }
-};
+}
+
+/**
+ * Fetch a single fixture by ID
+ */
+export async function fetchFixtureById(id: string) {
+  try {
+    const { data, error } = await supabase
+      .from('fixtures')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) {
+      console.error('Error fetching fixture:', error);
+      return { success: false, error: error.message };
+    }
+    
+    return { success: true, data: data as Fixture };
+  } catch (error) {
+    console.error('Error in fetchFixtureById:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    };
+  }
+}
+
+/**
+ * Fetch the next upcoming fixture
+ */
+export async function fetchNextFixture() {
+  try {
+    const { data, error } = await supabase
+      .from('fixtures')
+      .select('*')
+      .filter('date', 'gte', new Date().toISOString().split('T')[0])
+      .order('date')
+      .order('time')
+      .limit(1)
+      .single();
+    
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No results found
+        return { success: true, data: null };
+      }
+      console.error('Error fetching next fixture:', error);
+      return { success: false, error: error.message };
+    }
+    
+    return { success: true, data: data as Fixture };
+  } catch (error) {
+    console.error('Error in fetchNextFixture:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    };
+  }
+}
+
+/**
+ * Fetch the most recent completed fixture
+ */
+export async function fetchLatestResult() {
+  try {
+    const { data, error } = await supabase
+      .from('fixtures')
+      .select('*')
+      .filter('date', 'lt', new Date().toISOString().split('T')[0])
+      .is('is_completed', true)
+      .order('date', { ascending: false })
+      .order('time', { ascending: false })
+      .limit(1)
+      .single();
+    
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No results found
+        return { success: true, data: null };
+      }
+      console.error('Error fetching latest result:', error);
+      return { success: false, error: error.message };
+    }
+    
+    return { success: true, data: data as Fixture };
+  } catch (error) {
+    console.error('Error in fetchLatestResult:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    };
+  }
+}

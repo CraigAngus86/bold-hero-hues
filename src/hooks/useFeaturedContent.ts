@@ -66,6 +66,9 @@ export interface NewsItem {
 
 export interface UseContentResult {
   featured: FeaturedItem[];
+  featuredArticle?: FeaturedItem;
+  nextMatch?: any;
+  leaguePosition?: any;
   isLoading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
@@ -105,6 +108,9 @@ export function useFeaturedContent(): UseContentResult {
 
   return {
     featured,
+    featuredArticle: featured.length > 0 ? featured[0] : undefined,
+    nextMatch: { opponent: "Fraserburgh FC", date: "2023-12-16", time: "15:00", location: "Home" },
+    leaguePosition: { position: 3, points: 42, gamesPlayed: 18 },
     isLoading,
     error,
     refresh: fetchFeaturedContent

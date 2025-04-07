@@ -1,69 +1,15 @@
 
-export interface SystemStatus {
-  status: 'healthy' | 'warning' | 'error' | 'unknown';
-  message?: string;
-  lastUpdated: string;
-  metrics: {
-    cpu: number;
-    memory: number;
-    storage: number;
-    requests: number;
-  };
-}
-
-export interface SystemStatusProps {
-  data: SystemStatus;
-  isLoading: boolean;
-  onRefresh: () => Promise<void>;
-  systems?: SystemStatusItem[];
-  lastUpdated?: Date;
-}
+export type SystemStatusType = 'error' | 'warning' | 'healthy' | 'unknown';
 
 export interface SystemStatusItemProps {
   name: string;
-  status: 'healthy' | 'warning' | 'error' | 'unknown' | 'active' | 'info' | 'online' | 'degraded' | 'offline';
-  value?: string | number;
-  Icon?: React.ComponentType<{ className?: string }>;
+  status: SystemStatusType;
+  value?: string;
+  metricValue?: string;
   details?: string;
-  metricValue?: string | number;
+  lastChecked?: string;
+  icon?: React.ElementType;
   count?: number;
   color?: string;
   viewAllLink?: string;
-  tooltip?: string;
-  lastChecked?: Date | string | null;
-}
-
-export interface SystemStatusItem {
-  name: string;
-  status: 'healthy' | 'warning' | 'error' | 'unknown' | 'active' | 'info' | 'online' | 'degraded' | 'offline';
-  lastChecked: Date | string | null;
-  metricValue?: string | number;
-  tooltip?: string;
-  icon?: React.ReactNode;
-}
-
-export interface ComponentStatus {
-  name: string;
-  status: 'healthy' | 'warning' | 'error' | 'unknown';
-  message?: string;
-  lastUpdated: string;
-  metrics?: Record<string, number>;
-}
-
-export interface SystemUsage {
-  cpu: number;
-  memory: number;
-  storage: number;
-  network: {
-    in: number;
-    out: number;
-  };
-}
-
-export interface SystemAlert {
-  id: string;
-  type: 'warning' | 'error' | 'info' | 'success';
-  message: string;
-  timestamp: string;
-  resolved: boolean;
 }

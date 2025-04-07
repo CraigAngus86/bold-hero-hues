@@ -1,76 +1,77 @@
 
 import React from 'react';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import { SystemStatusItemProps } from '@/types/system/status';
+import { CheckCircle, AlertCircle, AlertTriangle, HelpCircle } from 'lucide-react';
+import { SystemStatusType } from '@/types/system/status';
 
-interface StatusItemProps extends Omit<SystemStatusItemProps, 'icon'> {
+interface StatusItemProps {
+  name: string;
+  status: SystemStatusType;
+  value?: string;
+  metricValue?: string;
+  details?: string;
   icon?: React.ElementType;
+  count?: number;
+  color?: string;
+  viewAllLink?: string;
 }
 
 const StatusItem: React.FC<StatusItemProps> = ({
   name,
   status,
+  value,
   metricValue,
-  count,
+  details,
   icon: Icon,
-  color,
+  count,
+  color = 'bg-gray-50',
   viewAllLink
 }) => {
-  const getStatusColor = () => {
+  const getStatusIcon = () => {
     switch (status) {
-      case 'healthy':
-      case 'active':
-      case 'online':
-        return 'bg-green-500';
-      case 'warning':
-      case 'degraded':
-        return 'bg-yellow-400';
       case 'error':
-      case 'offline':
-        return 'bg-red-500';
-      case 'info':
-        return 'bg-blue-400';
+        return <AlertCircle className="h-5 w-5 text-red-500" />;
+      case 'warning':
+        return <AlertTriangle className="h-5 w-5 text-amber-500" />;
+      case 'healthy':
+        return <CheckCircle className="h-5 w-5 text-green-500" />;
+      case 'unknown':
       default:
-        return 'bg-gray-300';
+        return <HelpCircle className="h-5 w-5 text-gray-400" />;
     }
   };
 
   return (
-    <Card className={cn(
-      "p-4 transition-all border hover:border-gray-300",
-      color ? color : "bg-white"
-    )}>
+    <div className={`p-4 rounded-lg shadow-sm border ${color}`}>
       <div className="flex justify-between items-start">
-        <div>
-          <h3 className="font-medium text-sm text-gray-900 mb-1">{name}</h3>
-          {count !== undefined && (
-            <div className="font-semibold text-lg">{count}</div>
-          )}
-          {metricValue && (
-            <div className="font-semibold text-lg">{metricValue}</div>
-          )}
+        <div className="flex items-center">
+          {Icon && <Icon className="h-5 w-5 mr-2 text-gray-500" />}
+          <h3 className="font-medium">{name}</h3>
         </div>
-        {Icon && <Icon className="h-5 w-5 text-gray-500" />}
+        <div>{getStatusIcon()}</div>
       </div>
       
-      <div className="flex items-center justify-between mt-3">
-        {status && (
-          <Badge variant="outline" className={cn(
-            "text-xs font-normal capitalize border-none", 
-            status === "info" ? "text-blue-600" : ""
-          )}>
-            <div className={`w-1.5 h-1.5 rounded-full mr-1.5 ${getStatusColor()}`}></div>
-            {status}
-          </Badge>
+      <div className="mt-2">
+        {(value || typeof count !== 'undefined') && (
+          <div className="flex items-end">
+            <span className="text-2xl font-bold">{value || count}</span>
+            {metricValue && (
+              <span className={`ml-2 text-sm ${status === 'healthy' ? 'text-green-600' : status === 'error' ? 'text-red-600' : 'text-gray-500'}`}>
+                {metricValue}
+              </span>
+            )}
+          </div>
         )}
-        
-        {viewAllLink && (
-          <span className="text-xs text-blue-600">View all</span>
-        )}
+        {details && <p className="mt-1 text-sm text-gray-500">{details}</p>}
       </div>
-    </Card>
+      
+      {viewAllLink && (
+        <div className="mt-4">
+          <a href={viewAllLink} className="text-sm text-blue-600 hover:underline">
+            View all
+          </a>
+        </div>
+      )}
+    </div>
   );
 };
 

@@ -8,7 +8,7 @@ import {
   DialogFooter
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ImageUploader } from '@/components/common/ImageUploader';
+import ImageUploader from '@/components/common/ImageUploader';
 import { TeamStats } from '@/types/fixtures';
 import { updateTeamLogo } from '@/services/logs/systemLogsService';
 import { toast } from "sonner";
@@ -80,10 +80,8 @@ const LogoEditorDialog: React.FC<LogoEditorDialogProps> = ({
             <div className="w-full">
               <p className="mb-2 text-sm font-medium">Upload New Logo:</p>
               <ImageUploader 
-                onUploadComplete={handleUploadComplete}
-                isUploading={isUploading}
-                setIsUploading={setIsUploading}
-                bucketName={BucketType.TEAMS}
+                onComplete={handleUploadComplete}
+                bucket={BucketType.TEAMS}
                 folderPath="teams"
               />
             </div>

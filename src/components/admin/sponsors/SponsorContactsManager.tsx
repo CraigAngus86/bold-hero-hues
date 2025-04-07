@@ -1,383 +1,301 @@
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Mail, Phone, Plus, Loader2, Save, X, User, Star, StarOff } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from 'react';
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { toast } from 'sonner';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { fetchSponsorContacts, createSponsorContact, updateSponsorContact, deleteSponsorContact } from '@/services/sponsorsService';
+import { formatDistanceToNow } from 'date-fns';
+import {
+  addSponsorContact,
+  fetchSponsorContacts,
+  updateSponsorContact,
+  deleteSponsorContact,
+} from '@/services/sponsorsService';
 import { SponsorContact } from '@/types/sponsors';
-
-const contactSchema = z.object({
-  name: z.string().min(2, "Contact name is required"),
-  role: z.string().optional(),
-  email: z.string().email("Please enter a valid email").or(z.literal('')),
-  phone: z.string().optional(),
-  primary_contact: z.boolean().default(false),
-  notes: z.string().optional(),
-});
+import { useAuth } from '@/hooks/useAuth';
 
 interface SponsorContactsManagerProps {
   sponsorId: string;
 }
 
 const SponsorContactsManager: React.FC<SponsorContactsManagerProps> = ({ sponsorId }) => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingContact, setEditingContact] = useState<SponsorContact | null>(null);
-  const queryClient = useQueryClient();
-  
-  const { data: contacts = [], isLoading } = useQuery({
-    queryKey: ['sponsorContacts', sponsorId],
-    queryFn: async () => {
+  const [contacts, setContacts] = useState<SponsorContact[]>([]);
+  const [isAddingContact, setIsAddingContact] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedContact, setSelectedContact] = useState<SponsorContact | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const { auth } = useAuth();
+
+  useEffect(() => {
+    loadContacts();
+  }, [sponsorId]);
+
+  const loadContacts = async () => {
+    try {
       const response = await fetchSponsorContacts(sponsorId);
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to load contacts');
+      if (response.success && response.data) {
+        setContacts(response.data);
+      } else {
+        toast.error(response.error || 'Failed to load contacts');
       }
-      return response.data;
-    },
-  });
-  
-  const form = useForm<z.infer<typeof contactSchema>>({
-    resolver: zodResolver(contactSchema),
-    defaultValues: {
-      name: '',
-      role: '',
-      email: '',
-      phone: '',
-      primary_contact: false,
-      notes: '',
-    },
-  });
-  
-  const createMutation = useMutation({
-    mutationFn: (data: z.infer<typeof contactSchema>) => {
-      return createSponsorContact({
-        ...data,
-        sponsor_id: sponsorId,
-        name: data.name,
-      });
-    },
-    onSuccess: () => {
-      toast.success('Contact added successfully');
-      queryClient.invalidateQueries({ queryKey: ['sponsorContacts', sponsorId] });
-      resetAndCloseDialog();
-    },
-    onError: (error) => {
-      toast.error(`Failed to add contact: ${error.message}`);
-    },
-  });
-  
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: z.infer<typeof contactSchema> }) => {
-      return updateSponsorContact(id, data);
-    },
-    onSuccess: () => {
-      toast.success('Contact updated successfully');
-      queryClient.invalidateQueries({ queryKey: ['sponsorContacts', sponsorId] });
-      resetAndCloseDialog();
-    },
-    onError: (error) => {
-      toast.error(`Failed to update contact: ${error.message}`);
-    },
-  });
-  
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => {
-      return deleteSponsorContact(id);
-    },
-    onSuccess: () => {
-      toast.success('Contact deleted');
-      queryClient.invalidateQueries({ queryKey: ['sponsorContacts', sponsorId] });
-    },
-    onError: (error) => {
-      toast.error(`Failed to delete contact: ${error.message}`);
-    },
-  });
-  
-  const resetAndCloseDialog = () => {
-    form.reset();
-    setEditingContact(null);
-    setIsDialogOpen(false);
-  };
-  
-  const onSubmit = async (data: z.infer<typeof contactSchema>) => {
-    if (editingContact) {
-      updateMutation.mutate({ id: editingContact.id, data });
-    } else {
-      createMutation.mutate(data);
+    } catch (error) {
+      console.error('Error loading contacts:', error);
+      toast.error('Failed to load contacts');
     }
   };
-  
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this contact?')) {
-      deleteMutation.mutate(id);
-    }
-  };
-  
-  const openAddDialog = () => {
-    form.reset({
-      name: '',
-      role: '',
-      email: '',
-      phone: '',
-      primary_contact: false,
-      notes: '',
-    });
-    setEditingContact(null);
-    setIsDialogOpen(true);
-  };
-  
-  const openEditDialog = (contact: SponsorContact) => {
-    form.reset({
-      name: contact.name,
-      role: contact.role || '',
-      email: contact.email || '',
-      phone: contact.phone || '',
-      primary_contact: contact.primary_contact,
-      notes: contact.notes || '',
-    });
-    setEditingContact(contact);
-    setIsDialogOpen(true);
-  };
-  
-  return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">Contacts</h3>
-        <Button onClick={openAddDialog} size="sm">
-          <Plus className="mr-2 h-4 w-4" /> Add Contact
-        </Button>
-      </div>
+
+  const handleAddContact = async (values: any) => {
+    try {
+      setIsSubmitting(true);
       
-      {isLoading ? (
-        <div className="flex justify-center p-8">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      ) : contacts.length === 0 ? (
-        <div className="text-center p-8 border rounded-md bg-muted/10">
-          <User className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
-          <h3 className="text-lg font-medium">No Contacts Yet</h3>
-          <p className="text-muted-foreground mb-4">
-            Add contact information for this sponsor
-          </p>
-          <Button variant="outline" onClick={openAddDialog}>
-            <Plus className="mr-2 h-4 w-4" /> Add First Contact
-          </Button>
-        </div>
-      ) : (
-        <div className="border rounded-md">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Contact Info</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {contacts.map((contact) => (
-                <TableRow key={contact.id}>
-                  <TableCell>
-                    <div className="flex items-center">
-                      {contact.primary_contact && (
-                        <Star className="h-4 w-4 mr-2 text-amber-500" />
-                      )}
-                      <span className="font-medium">{contact.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{contact.role || '—'}</TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      {contact.email && (
-                        <div className="flex items-center text-sm">
-                          <Mail className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
-                          <a href={`mailto:${contact.email}`} className="hover:underline">
-                            {contact.email}
-                          </a>
-                        </div>
-                      )}
-                      {contact.phone && (
-                        <div className="flex items-center text-sm">
-                          <Phone className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
-                          <a href={`tel:${contact.phone}`} className="hover:underline">
-                            {contact.phone}
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openEditDialog(contact)}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(contact.id)}
-                        className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+      const contactData = {
+        sponsor_id: sponsorId,
+        name: values.name,
+        role: values.role,
+        email: values.email,
+        phone: values.phone,
+        primary_contact: values.primary_contact || false, // Ensure it's never undefined
+        notes: values.notes,
+      };
+      
+      await addSponsorContact(contactData as any);
+      
+      setContacts(prev => [
+        ...prev,
+        { ...contactData, id: Date.now().toString() }
+      ]);
+      
+      toast.success('Contact added successfully');
+      onClose();
+    } catch (error: any) {
+      toast.error(error.error || 'Failed to add contact');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {editingContact ? 'Edit Contact' : 'Add New Contact'}
-            </DialogTitle>
-          </DialogHeader>
+  const handleEditContact = async (values: any) => {
+    if (!selectedContact) return;
 
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name*</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Full Name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Role</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. Marketing Manager" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input type="email" placeholder="email@example.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Phone</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Phone number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+    try {
+      setIsSubmitting(true);
+
+      const updatedContactData = {
+        ...selectedContact,
+        name: values.name,
+        role: values.role,
+        email: values.email,
+        phone: values.phone,
+        primary_contact: values.primary_contact,
+        notes: values.notes,
+      };
+
+      await updateSponsorContact(selectedContact.id, updatedContactData);
+
+      setContacts(prev =>
+        prev.map(contact =>
+          contact.id === selectedContact.id ? updatedContactData : contact
+        )
+      );
+
+      toast.success('Contact updated successfully');
+      onClose();
+    } catch (error: any) {
+      toast.error(error.error || 'Failed to update contact');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteContact = async (contactId: string) => {
+    try {
+      setIsSubmitting(true);
+      await deleteSponsorContact(contactId);
+      setContacts(prev => prev.filter(contact => contact.id !== contactId));
+      toast.success('Contact deleted successfully');
+    } catch (error: any) {
+      toast.error(error.error || 'Failed to delete contact');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const onOpenChange = (open: boolean) => {
+    setIsAddingContact(open);
+    if (!open) {
+      setSelectedContact(null);
+      setIsEditing(false);
+    }
+  };
+
+  const onClose = () => {
+    setIsAddingContact(false);
+    setSelectedContact(null);
+    setIsEditing(false);
+  };
+
+  const handleOpenEditDialog = (contact: SponsorContact) => {
+    setSelectedContact(contact);
+    setIsEditing(true);
+    setIsAddingContact(true);
+  };
+
+  return (
+    <div>
+      <CardHeader>
+        <CardTitle>Sponsor Contacts</CardTitle>
+        <CardDescription>
+          Manage contacts associated with this sponsor.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="mb-4">
+          <Dialog open={isAddingContact} onOpenChange={onOpenChange}>
+            <DialogTrigger asChild>
+              <Button onClick={() => setIsAddingContact(true)}>Add Contact</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>{isEditing ? 'Edit Contact' : 'Add New Contact'}</DialogTitle>
+                <DialogDescription>
+                  {isEditing ? 'Update contact details.' : 'Enter details for the new contact.'}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="name" className="text-right">
+                    Name
+                  </Label>
+                  <Input
+                    id="name"
+                    defaultValue={selectedContact?.name || ''}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="role" className="text-right">
+                    Role
+                  </Label>
+                  <Input
+                    id="role"
+                    defaultValue={selectedContact?.role || ''}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="email" className="text-right">
+                    Email
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    defaultValue={selectedContact?.email || ''}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="phone" className="text-right">
+                    Phone
+                  </Label>
+                  <Input
+                    id="phone"
+                    defaultValue={selectedContact?.phone || ''}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-start gap-4">
+                  <Label htmlFor="notes" className="text-right mt-2">
+                    Notes
+                  </Label>
+                  <Textarea
+                    id="notes"
+                    defaultValue={selectedContact?.notes || ''}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="primary_contact" className="text-right">
+                    Primary Contact
+                  </Label>
+                  <Checkbox
+                    id="primary_contact"
+                    defaultChecked={selectedContact?.primary_contact || false}
+                    className="col-span-3"
+                  />
+                </div>
               </div>
-              
-              <FormField
-                control={form.control}
-                name="primary_contact"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-4">
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>Primary Contact</FormLabel>
-                      <FormDescription>
-                        Main point of contact for this sponsor
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Notes</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Any additional notes..."
-                        {...field}
-                        value={field.value || ''}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <DialogFooter>
+              <div className="flex justify-end">
+                <DialogClose asChild>
+                  <Button type="button" variant="secondary" onClick={onClose}>
+                    Cancel
+                  </Button>
+                </DialogClose>
                 <Button
                   type="button"
-                  variant="outline"
-                  onClick={resetAndCloseDialog}
+                  disabled={isSubmitting}
+                  onClick={() => {
+                    const name = (document.getElementById('name') as HTMLInputElement).value;
+                    const role = (document.getElementById('role') as HTMLInputElement).value;
+                    const email = (document.getElementById('email') as HTMLInputElement).value;
+                    const phone = (document.getElementById('phone') as HTMLInputElement).value;
+                    const notes = (document.getElementById('notes') as HTMLTextAreaElement).value;
+                    const primary_contact = (document.getElementById('primary_contact') as HTMLInputElement).checked;
+
+                    const values = { name, role, email, phone, notes, primary_contact };
+
+                    if (isEditing && selectedContact) {
+                      handleEditContact(values);
+                    } else {
+                      handleAddContact(values);
+                    }
+                  }}
                 >
-                  Cancel
+                  {isSubmitting ? 'Submitting...' : isEditing ? 'Update Contact' : 'Add Contact'}
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={createMutation.isPending || updateMutation.isPending}
-                >
-                  {(createMutation.isPending || updateMutation.isPending) && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  {editingContact ? 'Update Contact' : 'Add Contact'}
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        <div className="divide-y divide-gray-200">
+          {contacts.map((contact) => (
+            <div key={contact.id} className="py-4 flex items-center justify-between">
+              <div>
+                <p className="font-medium">{contact.name}</p>
+                <p className="text-sm text-gray-500">{contact.role}</p>
+                <div className="text-xs text-gray-500">
+                  Last updated {formatDistanceToNow(new Date(contact.updated_at || contact.created_at), { addSuffix: true })}
+                </div>
+              </div>
+              <div className="space-x-2">
+                <Button variant="outline" size="sm" onClick={() => handleOpenEditDialog(contact)}>
+                  Edit
                 </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
+                <Button variant="outline" size="sm" className="text-red-600 hover:text-red-800" onClick={() => handleDeleteContact(contact.id)}>
+                  Delete
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
     </div>
   );
 };

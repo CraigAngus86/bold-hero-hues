@@ -1,390 +1,280 @@
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { format } from 'date-fns';
-import { 
-  MessageSquare, 
-  Phone, 
-  Mail, 
-  Plus, 
-  Loader2, 
-  CalendarIcon, 
-  Users 
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import React, { useState, useEffect } from 'react';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { PlusCircle, Download, Trash2, FileContract, Receipt, FileSignature, FileText } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
-
-import { 
-  fetchSponsorCommunications, 
-  createSponsorCommunication, 
-  deleteSponsorCommunication,
-  fetchSponsorContacts
-} from '@/services/sponsorsService';
+import { useAuth } from '@/hooks/useAuth';
+import { addSponsorCommunication, fetchSponsorCommunications, deleteSponsorCommunication } from '@/services/sponsorsService';
 import { SponsorCommunication } from '@/types/sponsors';
-
-const communicationSchema = z.object({
-  type: z.enum(['email', 'call', 'meeting', 'other']),
-  subject: z.string().min(2, "Subject is required"),
-  content: z.string().optional(),
-  date: z.date(),
-  contact_id: z.string().optional(),
-});
+import { fetchSponsorContacts } from '@/services/sponsorsService';
+import { SponsorContact } from '@/types/sponsors';
 
 interface SponsorCommunicationsLogProps {
   sponsorId: string;
 }
 
 const SponsorCommunicationsLog: React.FC<SponsorCommunicationsLogProps> = ({ sponsorId }) => {
+  const [communications, setCommunications] = useState<SponsorCommunication[]>([]);
+  const [sortedCommunications, setSortedCommunications] = useState<SponsorCommunication[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const queryClient = useQueryClient();
-  
-  const { data: communications = [], isLoading } = useQuery({
-    queryKey: ['sponsorCommunications', sponsorId],
-    queryFn: async () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [contacts, setContacts] = useState<SponsorContact[]>([]);
+  const auth = useAuth();
+
+  useEffect(() => {
+    loadCommunications();
+    loadContacts();
+  }, [sponsorId]);
+
+  const loadCommunications = async () => {
+    try {
       const response = await fetchSponsorCommunications(sponsorId);
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to load communications');
+      if (response.success && response.data) {
+        setCommunications(response.data);
+        setSortedCommunications([...response.data].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+      } else {
+        toast.error(response.error || 'Failed to load communications');
       }
-      return response.data;
-    },
-  });
-  
-  const { data: contacts = [] } = useQuery({
-    queryKey: ['sponsorContacts', sponsorId],
-    queryFn: async () => {
+    } catch (error) {
+      console.error('Error loading communications:', error);
+      toast.error('Failed to load communications');
+    }
+  };
+
+  const loadContacts = async () => {
+    try {
       const response = await fetchSponsorContacts(sponsorId);
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to load contacts');
+      if (response.success && response.data) {
+        setContacts(response.data);
+      } else {
+        toast.error(response.error || 'Failed to load contacts');
       }
-      return response.data;
-    },
-  });
-  
-  const form = useForm<z.infer<typeof communicationSchema>>({
-    resolver: zodResolver(communicationSchema),
-    defaultValues: {
-      type: 'email',
-      subject: '',
-      content: '',
-      date: new Date(),
-      contact_id: undefined,
-    },
-  });
-  
-  const createMutation = useMutation({
-    mutationFn: (data: z.infer<typeof communicationSchema>) => {
-      return createSponsorCommunication({
-        ...data,
-        sponsor_id: sponsorId,
-        created_by: 'Admin User', // This would normally be the current user
-        type: data.type, // Ensure type is always set
-      });
-    },
-    onSuccess: () => {
-      toast.success('Communication logged successfully');
-      queryClient.invalidateQueries({ queryKey: ['sponsorCommunications', sponsorId] });
-      resetAndCloseDialog();
-    },
-    onError: (error) => {
-      toast.error(`Failed to log communication: ${error.message}`);
-    },
-  });
-  
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => {
-      return deleteSponsorCommunication(id);
-    },
-    onSuccess: () => {
-      toast.success('Communication deleted');
-      queryClient.invalidateQueries({ queryKey: ['sponsorCommunications', sponsorId] });
-    },
-    onError: (error) => {
-      toast.error(`Failed to delete communication: ${error.message}`);
-    },
-  });
-  
-  const resetAndCloseDialog = () => {
-    form.reset({
-      type: 'email',
-      subject: '',
-      content: '',
-      date: new Date(),
-      contact_id: undefined,
-    });
+    } catch (error) {
+      console.error('Error loading contacts:', error);
+      toast.error('Failed to load contacts');
+    }
+  };
+
+  const handleOpenDialog = () => {
+    setIsDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
     setIsDialogOpen(false);
   };
-  
-  const onSubmit = async (data: z.infer<typeof communicationSchema>) => {
-    createMutation.mutate(data);
-  };
-  
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this communication log?')) {
-      deleteMutation.mutate(id);
-    }
-  };
-  
-  const renderTypeIcon = (type: string) => {
-    switch (type) {
-      case 'email':
-        return <Mail className="h-5 w-5 text-blue-600" />;
-      case 'call':
-        return <Phone className="h-5 w-5 text-green-600" />;
-      case 'meeting':
-        return <Users className="h-5 w-5 text-purple-600" />;
-      default:
-        return <MessageSquare className="h-5 w-5 text-gray-600" />;
-    }
-  };
-  
-  return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">Communication History</h3>
-        <Button onClick={() => setIsDialogOpen(true)} size="sm">
-          <Plus className="mr-2 h-4 w-4" /> Log Communication
-        </Button>
-      </div>
+
+  const handleAddCommunication = async (values: any) => {
+    try {
+      setIsSubmitting(true);
       
-      {isLoading ? (
-        <div className="flex justify-center p-8">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      const communicationData = {
+        sponsor_id: sponsorId,
+        created_by: auth.user?.id || 'system',
+        type: values.type,
+        content: values.content,
+        date: values.date instanceof Date ? values.date.toISOString() : values.date, // Convert Date to string
+        subject: values.subject,
+        contact_id: values.contact_id,
+      };
+      
+      await addSponsorCommunication(communicationData as any);
+      
+      setSortedCommunications(prev => [
+        ...prev,
+        { ...communicationData, id: Date.now().toString() }
+      ]);
+      
+      toast.success('Communication logged successfully');
+      handleCloseDialog();
+    } catch (error: any) {
+      toast.error(error.error || 'Failed to log communication');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteCommunication = async (id: string) => {
+    try {
+      await deleteSponsorCommunication(id);
+      setSortedCommunications(prev => prev.filter(c => c.id !== id));
+      toast.success('Communication deleted successfully');
+    } catch (error: any) {
+      toast.error(error.error || 'Failed to delete communication');
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Communications Log</CardTitle>
+        <CardDescription>Log of all communications with this sponsor</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="mb-4">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Communication
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Add Communication</DialogTitle>
+                <DialogDescription>
+                  Log a new communication with the sponsor.
+                </DialogDescription>
+              </DialogHeader>
+              <AddCommunicationForm
+                contacts={contacts}
+                onSubmit={handleAddCommunication}
+                onClose={handleCloseDialog}
+                isSubmitting={isSubmitting}
+              />
+            </DialogContent>
+          </Dialog>
         </div>
-      ) : communications.length === 0 ? (
-        <div className="text-center p-8 border rounded-md bg-muted/10">
-          <MessageSquare className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
-          <h3 className="text-lg font-medium">No Communications Yet</h3>
-          <p className="text-muted-foreground mb-4">
-            Keep track of all interactions with this sponsor
-          </p>
-          <Button variant="outline" onClick={() => setIsDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" /> Log First Communication
-          </Button>
-        </div>
-      ) : (
-        <div className="border rounded-md p-4 space-y-4 max-h-[500px] overflow-y-auto">
-          {communications.map((comm) => (
-            <div key={comm.id} className="flex gap-4 p-3 border-b last:border-0 hover:bg-gray-50 rounded-md">
-              <div className="flex-shrink-0 p-2 rounded-full bg-gray-100">
-                {renderTypeIcon(comm.type)}
-              </div>
-              
-              <div className="flex-grow">
-                <div className="flex justify-between">
-                  <div>
-                    <h4 className="font-medium">{comm.subject}</h4>
-                    <p className="text-sm text-gray-600">
-                      {format(new Date(comm.date), 'PPP')} - {comm.type.charAt(0).toUpperCase() + comm.type.slice(1)}
-                    </p>
+
+        {sortedCommunications.length === 0 ? (
+          <div className="text-center py-4">No communications logged yet.</div>
+        ) : (
+          <div className="space-y-3">
+            {sortedCommunications.map((communication) => (
+              <div key={communication.id} className="p-4 border rounded-md bg-white">
+                <div className="flex justify-between items-center">
+                  <div className="font-medium">{communication.subject}</div>
+                  <div className="text-xs text-gray-500">
+                    {formatDistanceToNow(new Date(communication.date), { addSuffix: true })}
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className="text-red-500 hover:bg-red-50"
-                    onClick={() => handleDelete(comm.id)}
-                  >
+                </div>
+                <div className="text-sm text-gray-700 mt-1">{communication.content}</div>
+                <div className="flex justify-end mt-2">
+                  <Button variant="ghost" size="sm" onClick={() => handleDeleteCommunication(communication.id)}>
+                    <Trash2 className="h-4 w-4 mr-2" />
                     Delete
                   </Button>
                 </div>
-                {comm.content && (
-                  <div className="mt-2 text-sm whitespace-pre-wrap">{comm.content}</div>
-                )}
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Log Communication</DialogTitle>
-          </DialogHeader>
+interface AddCommunicationFormProps {
+  contacts: SponsorContact[];
+  onSubmit: (values: any) => Promise<void>;
+  onClose: () => void;
+  isSubmitting: boolean;
+}
 
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Communication Type</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="email">Email</SelectItem>
-                        <SelectItem value="call">Phone Call</SelectItem>
-                        <SelectItem value="meeting">Meeting</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="subject"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Subject*</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. Sponsorship Renewal Discussion" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="date"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Date*</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="contact_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Contact</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select contact" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {contacts.length === 0 ? (
-                            <SelectItem value="" disabled>
-                              No contacts available
-                            </SelectItem>
-                          ) : (
-                            <>
-                              <SelectItem value="">No specific contact</SelectItem>
-                              {contacts.map((contact) => (
-                                <SelectItem key={contact.id} value={contact.id}>
-                                  {contact.name} {contact.role ? `(${contact.role})` : ''}
-                                </SelectItem>
-                              ))}
-                            </>
-                          )}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              <FormField
-                control={form.control}
-                name="content"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Details</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Summary of the communication..."
-                        className="min-h-[120px]"
-                        {...field}
-                        value={field.value || ''}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+const AddCommunicationForm: React.FC<AddCommunicationFormProps> = ({ contacts, onSubmit, onClose, isSubmitting }) => {
+  const [type, setType] = useState('email');
+  const [subject, setSubject] = useState('');
+  const [content, setContent] = useState('');
+  const [date, setDate] = useState<Date | null>(new Date());
+  const [contactId, setContactId] = useState('');
 
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={resetAndCloseDialog}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={createMutation.isPending}
-                >
-                  {createMutation.isPending && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  Save Communication
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-    </div>
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!type || !subject || !content || !date) {
+      toast.error('Please fill in all fields.');
+      return;
+    }
+
+    await onSubmit({
+      type,
+      subject,
+      content,
+      date,
+      contact_id: contactId,
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="grid gap-4">
+      <div className="grid gap-2">
+        <Label htmlFor="type">Type</Label>
+        <Select value={type} onValueChange={setType}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select a type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="email">Email</SelectItem>
+            <SelectItem value="call">Call</SelectItem>
+            <SelectItem value="meeting">Meeting</SelectItem>
+            <SelectItem value="other">Other</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="contact">Contact</Label>
+        <Select value={contactId} onValueChange={setContactId}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select a contact" />
+          </SelectTrigger>
+          <SelectContent>
+            {contacts.map((contact) => (
+              <SelectItem key={contact.id} value={contact.id}>
+                {contact.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="subject">Subject</Label>
+        <Input
+          id="subject"
+          placeholder="Subject of communication"
+          value={subject}
+          onChange={(e) => setSubject(e.target.value)}
+        />
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="content">Content</Label>
+        <Textarea
+          id="content"
+          placeholder="Content of communication"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+        />
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="date">Date</Label>
+        <Input
+          type="datetime-local"
+          id="date"
+          value={date ? date.toISOString().slice(0, 16) : ''}
+          onChange={(e) => setDate(e.target.value ? new Date(e.target.value) : null)}
+        />
+      </div>
+      <Button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? (
+          <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        ) : (
+          <PlusCircle className="mr-2 h-4 w-4" />
+        )}
+        Add Communication
+      </Button>
+    </form>
   );
 };
 

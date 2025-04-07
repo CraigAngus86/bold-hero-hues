@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,7 +33,6 @@ const PlayerEditor: React.FC<PlayerEditorProps> = ({ player, onBack }) => {
   const [imageUrl, setImageUrl] = useState(player.image_url || '');
   const [isSaving, setIsSaving] = useState(false);
 
-  // Add a previous club to the list
   const handleAddPreviousClub = () => {
     if (newPreviousClub.trim()) {
       setPreviousClubs([...previousClubs, newPreviousClub.trim()]);
@@ -42,19 +40,16 @@ const PlayerEditor: React.FC<PlayerEditorProps> = ({ player, onBack }) => {
     }
   };
 
-  // Remove a previous club from the list
   const handleRemovePreviousClub = (index: number) => {
     const updatedClubs = [...previousClubs];
     updatedClubs.splice(index, 1);
     setPreviousClubs(updatedClubs);
   };
 
-  // Handle image upload completion
   const handleImageUpload = (url: string) => {
     setImageUrl(url);
   };
 
-  // Save player data
   const handleSave = async () => {
     setIsSaving(true);
     try {
@@ -76,7 +71,7 @@ const PlayerEditor: React.FC<PlayerEditorProps> = ({ player, onBack }) => {
       if (player.id) {
         await updateTeamMember(updatedPlayer);
       } else {
-        await addTeamMember(updatedPlayer);
+        await addTeamMember(updatedPlayer, 'player');
       }
       
       onBack();

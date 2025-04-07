@@ -6,4 +6,3 @@ export type MemberType = 'player' | 'staff' | 'coach' | 'official' | 'management
 // Re-export from teamStore.ts 
 export { useTeamStore } from './teamStore';
 export type { TeamMember };
-export { MemberType };

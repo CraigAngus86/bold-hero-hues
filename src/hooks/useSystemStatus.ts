@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { getSystemStatus } from '@/services/logs/systemLogsService';
-import { SystemStatus } from '@/types/system';
+import { SystemStatus } from '@/types/system/status';
 
 export function useSystemStatus() {
     const [status, setStatus] = useState<SystemStatus | null>(null);
@@ -13,7 +13,7 @@ export function useSystemStatus() {
         setError(null);
         try {
             const response = await getSystemStatus();
-            if (response.success && response.data) {
+            if (response.data) {
                 setStatus(response.data);
             } else {
                 throw new Error(response.error || 'Failed to fetch system status');

@@ -34,7 +34,7 @@ import {
 import { Sponsor } from '@/types/sponsors';
 import { deleteSponsor } from '@/services/sponsorsService';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useMutation } from 'react-query';
+import { useMutation } from '@tanstack/react-query';
 
 interface SponsorsListProps {
   sponsors: Sponsor[];

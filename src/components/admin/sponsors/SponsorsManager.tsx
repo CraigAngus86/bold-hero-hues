@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { PlusCircle } from 'lucide-react';
+import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2 } from 'lucide-react';
-import { getSponsors } from '@/services/sponsorsDbService';
+import { getSponsors } from '@/services/sponsorsService';
 import SponsorsList from './SponsorsList';
 import SponsorEditor from './SponsorEditor';
 import SponsorsSettings from './SponsorsSettings';
-import TierManagement from './TierManagement';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const SponsorsManager: React.FC = () => {
   const [activeTab, setActiveTab] = useState('sponsors');

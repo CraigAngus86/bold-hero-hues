@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { getSystemStatus } from '@/services/logs/systemLogsService';
-import { SystemStatus } from '@/types/system';
+import { SystemStatus } from '@/types/system/status';
 
 export function useDashboardRefresh(refreshInterval = 30000) {
     const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
@@ -13,7 +13,7 @@ export function useDashboardRefresh(refreshInterval = 30000) {
         try {
             // Fetch system status
             const statusResponse = await getSystemStatus();
-            if (statusResponse.success && statusResponse.data) {
+            if (statusResponse.data) {
                 setSystemStatus(statusResponse.data);
             }
             

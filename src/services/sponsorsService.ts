@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { 
   Sponsor, 
@@ -205,9 +204,29 @@ export const useSponsorsStore = create<SponsorsStore>((set, get) => ({
   },
 }));
 
+// Add this function to the existing sponsorsService.ts
+export const getSponsorCategories = async () => {
+  try {
+    // Mock sponsor categories
+    const categories = [
+      { id: '1', name: 'Match Day Sponsor' },
+      { id: '2', name: 'Kit Sponsor' },
+      { id: '3', name: 'Stand Sponsor' },
+      { id: '4', name: 'Youth Development Sponsor' }
+    ];
+
+    return { success: true, data: categories, error: null };
+  } catch (error) {
+    console.error('Error fetching sponsor categories:', error);
+    return { success: false, data: [], error: 'Failed to fetch sponsor categories' };
+  }
+};
+
+// Re-export the required function to avoid import issues
+export { getAllSponsors as getSponsors } from './sponsorsDbService';
+
 // Re-export functions from sponsorsDbService for easier access
 export {
-  getAllSponsors, 
   fetchSponsorById, 
   createSponsor, 
   updateSponsor, 

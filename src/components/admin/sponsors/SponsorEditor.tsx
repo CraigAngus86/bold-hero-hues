@@ -12,7 +12,7 @@ import {
   Users, 
   X 
 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import {
@@ -94,7 +94,6 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({
     },
   });
 
-  // Fetch tiers for dropdown
   const { data: tiers, isLoading: isLoadingTiers } = useQuery({
     queryKey: ['sponsorshipTiers'],
     queryFn: async () => {
@@ -106,11 +105,10 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({
     },
   });
 
-  // Fetch sponsor data if in edit mode
-  const { data: sponsor, isLoading } = useQuery({
+  const { data: sponsor, isLoading: isLoadingSponsor } = useQuery({
     queryKey: ['sponsor', sponsorId],
     queryFn: async () => {
-      const response = await getSponsorById(sponsorId!);
+      const response = await fetchSponsorById(sponsorId!);
       if (!response.success) {
         throw new Error(response.error || 'Failed to load sponsor');
       }
@@ -119,7 +117,6 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({
     enabled: !!sponsorId
   });
 
-  // Update form with sponsor data when loaded
   useEffect(() => {
     if (sponsor) {
       setLogoUrl(sponsor.logo_url || null);
@@ -154,12 +151,14 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: Partial<Sponsor>) => {
+    mutationFn: async (data: Partial<Sponsor>) => {
       const updatedData = {
         ...data,
         tier: data.tier as "gold" | "silver" | "bronze" | "platinum",
-        start_date: data.start_date ? data.start_date.toISOString().split('T')[0] : undefined,
-        end_date: data.end_date ? data.end_date.toISOString().split('T')[0] : undefined
+        start_date: data.start_date instanceof Date ? 
+          data.start_date.toISOString().split('T')[0] : data.start_date,
+        end_date: data.end_date instanceof Date ? 
+          data.end_date.toISOString().split('T')[0] : data.end_date
       };
       
       return updateSponsor(sponsorId!, updatedData);
@@ -175,12 +174,14 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: Omit<Sponsor, "id">) => {
+    mutationFn: async (data: Omit<Sponsor, "id">) => {
       const sponsorData = {
         ...data,
         tier: data.tier as "gold" | "silver" | "bronze" | "platinum",
-        start_date: data.start_date ? (typeof data.start_date === 'string' ? data.start_date : data.start_date.toISOString().split('T')[0]) : undefined,
-        end_date: data.end_date ? (typeof data.end_date === 'string' ? data.end_date : data.end_date.toISOString().split('T')[0]) : undefined
+        start_date: data.start_date instanceof Date ? 
+          data.start_date.toISOString().split('T')[0] : data.start_date,
+        end_date: data.end_date instanceof Date ? 
+          data.end_date.toISOString().split('T')[0] : data.end_date
       };
       
       return createSponsor(sponsorData);
@@ -202,14 +203,13 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({
         logo_url: logoUrl,
       };
       
-      // Remove undefined/null fields that shouldn't be sent
       if (!sponsorData.description) delete sponsorData.description;
       if (!sponsorData.website_url) delete sponsorData.website_url;
       
       if (isEditMode && sponsorId) {
         updateMutation.mutate(sponsorData);
       } else {
-        createMutation.mutate(sponsorData as Omit<Sponsor, 'id'>);
+        createMutation.mutate(sponsorData as any);
       }
     } catch (error) {
       console.error('Error saving sponsor:', error);
@@ -217,7 +217,8 @@ const SponsorEditor: React.FC<SponsorEditorProps> = ({
     }
   };
 
-  const isLoading = isLoading || isLoadingTiers || form.formState.isSubmitting;
+  const isFormSubmitting = form.formState.isSubmitting;
+  const isLoading = isLoadingSponsor || isLoadingTiers || isFormSubmitting;
 
   return (
     <div className="space-y-6">

@@ -1,19 +1,25 @@
 
-export type SystemStatusName = 'healthy' | 'warning' | 'degraded' | 'critical' | 'error' | 'unknown' | 'offline' | 'maintenance';
-
-export interface SystemStatusItem {
-  name: string;
-  status: SystemStatusName;
-  value?: string;
-  lastChecked: Date;
-  description?: string;
-}
-
 export interface SystemStatus {
-  database: SystemStatusItem;
-  api: SystemStatusItem;
-  storage: SystemStatusItem;
-  auth: SystemStatusItem;
-  overall: SystemStatusName;
-  lastUpdated: Date;
+  status: 'online' | 'degraded' | 'offline';
+  lastChecked: Date;
+  overall_status?: string;
+  systemStatus?: string;
+  services: {
+    database: boolean;
+    storage: boolean;
+    authentication: boolean;
+    api: boolean;
+  };
 }
+
+export type SystemStatusName = 
+  | 'database' 
+  | 'storage' 
+  | 'authentication' 
+  | 'api' 
+  | 'cache' 
+  | 'media' 
+  | 'fixtures' 
+  | 'news' 
+  | 'users' 
+  | 'tickets';

@@ -1,55 +1,16 @@
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Fixture } from '@/types/fixtures';
 import { useFixturesData } from '@/components/home/fixtures/useFixturesData';
-import { fetchLeagueTableFromSupabase } from '@/services/supabase/leagueDataService';
-import { TeamStats } from '@/types/fixtures';
 
 export const useFixturesDisplay = () => {
-  // Renamed to match what's expected in the components
-  const { upcomingMatches, recentMatches, isLoading: fixturesLoading, nextMatch } = useFixturesData();
-  const [leagueData, setLeagueData] = useState<TeamStats[]>([]);
-  const [isLeagueLoading, setIsLeagueLoading] = useState(true);
-  const [nextMatchWithTickets, setNextMatchWithTickets] = useState<any>(null);
+  const { isLoading, upcomingFixtures, recentResults, nextMatch } = useFixturesData();
   
-  // Fetch league table data
-  useEffect(() => {
-    const getLeagueData = async () => {
-      setIsLeagueLoading(true);
-      try {
-        const data = await fetchLeagueTableFromSupabase();
-        if (data) {
-          setLeagueData(data);
-        }
-      } catch (error) {
-        console.error('Error loading league table:', error);
-      } finally {
-        setIsLeagueLoading(false);
-      }
-    };
-    
-    getLeagueData();
-  }, []);
-  
-  // Set next match with tickets info
-  useEffect(() => {
-    if (nextMatch && nextMatch.ticket_link) {
-      setNextMatchWithTickets({
-        ...nextMatch,
-        hasTickets: true
-      });
-    } else if (nextMatch) {
-      setNextMatchWithTickets({
-        ...nextMatch,
-        hasTickets: false
-      });
-    }
-  }, [nextMatch]);
-  
+  // Map to component-specific props
   return {
-    upcomingMatches,
-    recentMatches,
-    leagueData,
-    isLoading: fixturesLoading || isLeagueLoading,
-    nextMatchWithTickets
+    isLoading,
+    upcomingMatches: upcomingFixtures,
+    recentMatches: recentResults,
+    nextMatch
   };
 };

@@ -1,301 +1,241 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
-import { ChevronRightIcon, TicketIcon, ClipboardIcon, CalendarDaysIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import MatchCard from './MatchCard';
-
-interface MatchProps {
-  id: string;
-  homeTeam: string;
-  awayTeam: string;
-  date: string;
-  time: string;
-  venue: string;
-  competition: string;
-  isCompleted?: boolean;
-  homeScore?: number;
-  awayScore?: number;
-  ticketLink?: string;
-  matchReportLink?: string;
-}
+import { Calendar, Clock, MapPin, Ticket } from 'lucide-react';
+import { formatDate } from '@/utils/date';
 
 const MatchCenter: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'fixtures' | 'results'>('fixtures');
-  
-  // Mock fixtures data
-  const fixtures: MatchProps[] = [
+  // Mock data
+  const upcomingMatches = [
     {
-      id: 'fixture-1',
+      id: '1',
       homeTeam: "Banks o' Dee",
       awayTeam: "Formartine United",
       date: "2025-05-15",
       time: "15:00",
       venue: "Spain Park",
       competition: "Highland League",
-      ticketLink: "/tickets/fixture-1"
+      ticketLink: "/tickets/match-1"
     },
     {
-      id: 'fixture-2',
+      id: '2',
+      homeTeam: "Buckie Thistle",
       awayTeam: "Banks o' Dee",
-      homeTeam: "Turriff United",
       date: "2025-05-22",
-      time: "15:00",
-      venue: "The Haughs",
+      time: "19:45",
+      venue: "Victoria Park",
       competition: "Highland League",
-      ticketLink: "/tickets/fixture-2"
+      ticketLink: "/tickets/match-2"
     },
     {
-      id: 'fixture-3',
+      id: '3',
       homeTeam: "Banks o' Dee",
-      awayTeam: "Huntly FC",
-      date: "2025-06-05",
-      time: "19:45",
+      awayTeam: "Brechin City",
+      date: "2025-05-29",
+      time: "15:00",
       venue: "Spain Park",
       competition: "Highland League Cup",
-      ticketLink: "/tickets/fixture-3"
+      ticketLink: "/tickets/match-3"
     }
   ];
   
-  // Mock results data
-  const results: MatchProps[] = [
+  const recentResults = [
     {
       id: 'result-1',
       homeTeam: "Banks o' Dee",
       awayTeam: "Keith FC",
-      date: "2025-05-01",
-      time: "15:00",
-      venue: "Spain Park",
-      competition: "Highland League",
-      isCompleted: true,
       homeScore: 3,
       awayScore: 1,
-      matchReportLink: "/match-reports/result-1"
+      date: "2025-05-01",
+      competition: "Highland League"
     },
     {
       id: 'result-2',
+      homeTeam: "Fraserburgh",
       awayTeam: "Banks o' Dee",
-      homeTeam: "Buckie Thistle",
-      date: "2025-04-24",
-      time: "15:00",
-      venue: "Victoria Park",
-      competition: "Highland League",
-      isCompleted: true,
-      homeScore: 2,
+      homeScore: 1,
       awayScore: 2,
-      matchReportLink: "/match-reports/result-2"
+      date: "2025-04-24",
+      competition: "Highland League"
     },
     {
       id: 'result-3',
       homeTeam: "Banks o' Dee",
-      awayTeam: "Brechin City",
+      awayTeam: "Huntly",
+      homeScore: 2,
+      awayScore: 2,
       date: "2025-04-17",
-      time: "15:00",
-      venue: "Spain Park",
-      competition: "Highland League",
-      isCompleted: true,
-      homeScore: 0,
-      awayScore: 1,
-      matchReportLink: "/match-reports/result-3"
+      competition: "Highland League"
     }
   ];
-  
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-  
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.4 }
-    }
-  };
-  
+
   return (
-    <section className="py-16 bg-gray-50">
+    <section className="py-16 bg-white relative">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <motion.h2 
-            className="text-3xl md:text-4xl font-bold text-team-blue mb-4"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-          >
-            Match Center
-          </motion.h2>
-          <motion.div 
-            className="w-24 h-1 bg-accent-500 mx-auto"
-            initial={{ width: 0 }}
-            whileInView={{ width: 96 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          ></motion.div>
-          <motion.p
-            className="mt-4 max-w-2xl mx-auto text-gray-600"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-          >
-            Stay updated with the latest fixtures and results for Banks o' Dee FC
-          </motion.p>
+          <h2 className="text-3xl md:text-4xl font-bold text-team-blue mb-4">Match Center</h2>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Stay updated with our upcoming fixtures and recent results.
+          </p>
         </div>
         
-        {/* Tabs */}
-        <div className="flex justify-center mb-8">
-          <div className="inline-flex rounded-md shadow-sm">
-            <button
-              type="button"
-              className={cn(
-                "px-4 py-2 text-sm font-medium rounded-l-md focus:outline-none",
-                activeTab === 'fixtures'
-                  ? "bg-team-blue text-white"
-                  : "bg-white text-team-blue hover:bg-gray-50"
-              )}
-              onClick={() => setActiveTab('fixtures')}
-            >
-              <CalendarDaysIcon className="inline-block h-4 w-4 mr-2" />
-              Upcoming Fixtures
-            </button>
-            <button
-              type="button"
-              className={cn(
-                "px-4 py-2 text-sm font-medium rounded-r-md focus:outline-none",
-                activeTab === 'results'
-                  ? "bg-team-blue text-white"
-                  : "bg-white text-team-blue hover:bg-gray-50"
-              )}
-              onClick={() => setActiveTab('results')}
-            >
-              <ClipboardIcon className="inline-block h-4 w-4 mr-2" />
-              Recent Results
-            </button>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {activeTab === 'fixtures' ? (
-            <motion.div
-              className="col-span-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-            >
-              {fixtures.map((fixture) => (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Upcoming Matches */}
+          <div>
+            <h3 className="text-xl font-bold text-team-blue mb-6 border-b border-gray-200 pb-2">Upcoming Fixtures</h3>
+            
+            <div className="space-y-4">
+              {upcomingMatches.map((match, index) => (
                 <motion.div
-                  key={fixture.id}
-                  variants={itemVariants}
+                  key={match.id}
+                  className="card-premium bg-white shadow-card rounded-lg overflow-hidden"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
                 >
-                  <MatchCard
-                    homeTeam={fixture.homeTeam}
-                    awayTeam={fixture.awayTeam}
-                    date={fixture.date}
-                    time={fixture.time}
-                    venue={fixture.venue}
-                    competition={fixture.competition}
-                    ticketLink={fixture.ticketLink}
-                  />
+                  <div className="p-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-sm font-semibold bg-gray-100 px-2 py-1 rounded">
+                        {match.competition}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="text-right flex-1">
+                        <p className="font-bold text-lg">{match.homeTeam}</p>
+                        <p className="text-xs text-gray-500">
+                          {match.venue === "Spain Park" ? "HOME" : ""}
+                        </p>
+                      </div>
+                      
+                      <div className="flex flex-col items-center mx-4">
+                        <span className="text-xl font-bold px-3 py-1">VS</span>
+                      </div>
+                      
+                      <div className="text-left flex-1">
+                        <p className="font-bold text-lg">{match.awayTeam}</p>
+                        <p className="text-xs text-gray-500">
+                          {match.venue !== "Spain Park" ? "AWAY" : ""}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between mt-4 text-sm text-gray-600">
+                      <div className="flex items-center">
+                        <Calendar className="h-4 w-4 mr-1" />
+                        <span>{formatDate(match.date)}</span>
+                      </div>
+                      
+                      <div className="flex items-center">
+                        <Clock className="h-4 w-4 mr-1" />
+                        <span>{match.time}</span>
+                      </div>
+                      
+                      <div className="flex items-center">
+                        <MapPin className="h-4 w-4 mr-1" />
+                        <span>{match.venue}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4">
+                      <a 
+                        href={match.ticketLink}
+                        className="flex items-center justify-center w-full bg-team-blue text-white py-2 rounded hover:bg-opacity-90 transition-colors btn-hover-effect"
+                      >
+                        <Ticket className="h-4 w-4 mr-2" />
+                        Get Tickets
+                      </a>
+                    </div>
+                  </div>
                 </motion.div>
               ))}
-            </motion.div>
-          ) : (
-            <motion.div
-              className="col-span-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-            >
-              {results.map((result) => (
-                <motion.div
-                  key={result.id}
-                  variants={itemVariants}
-                >
-                  <MatchCard
-                    homeTeam={result.homeTeam}
-                    awayTeam={result.awayTeam}
-                    date={result.date}
-                    time={result.time}
-                    venue={result.venue}
-                    competition={result.competition}
-                    isCompleted={result.isCompleted}
-                    homeScore={result.homeScore}
-                    awayScore={result.awayScore}
-                    matchReportLink={result.matchReportLink}
-                  />
-                </motion.div>
-              ))}
-            </motion.div>
-          )}
-        </div>
-        
-        <div className="mt-8 text-center">
-          <Button
-            variant="outline"
-            className="border-team-blue text-team-blue hover:bg-team-blue/5"
-            asChild
-          >
-            <a href={activeTab === 'fixtures' ? "/fixtures" : "/results"}>
-              View All {activeTab === 'fixtures' ? 'Fixtures' : 'Results'}
-              <ChevronRightIcon className="ml-1 h-4 w-4" />
-            </a>
-          </Button>
-        </div>
-        
-        {/* Call to Action - Season Tickets */}
-        <motion.div
-          className="mt-16 bg-team-blue rounded-lg overflow-hidden shadow-lg"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2">
-            <div className="p-8 flex flex-col justify-center">
-              <h3 className="text-white font-bold text-2xl md:text-3xl mb-4">
-                Season 2025/26 Tickets
-              </h3>
-              <p className="text-white/80 mb-6">
-                Get your season ticket now for priority access to all home league fixtures at Spain Park. Enjoy special member benefits and discounts throughout the season.
-              </p>
-              <div className="flex items-center space-x-2">
+              
+              <div className="text-center mt-6">
                 <a 
-                  href="/tickets/season"
-                  className="inline-block bg-accent-500 text-team-blue font-bold px-6 py-3 rounded hover:bg-accent-600 transition-colors shadow-md"
+                  href="/fixtures" 
+                  className="inline-flex items-center text-team-blue font-medium hover:underline text-animated-underline"
                 >
-                  <TicketIcon className="inline-block h-5 w-5 mr-2" />
-                  Buy Season Tickets
-                </a>
-                <a 
-                  href="/tickets/info"
-                  className="inline-block bg-white/20 text-white font-medium px-6 py-3 rounded hover:bg-white/30 transition-colors"
-                >
-                  Learn More
+                  View All Fixtures
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </a>
               </div>
             </div>
-            <div className="hidden md:block relative">
-              <img 
-                src="/lovable-uploads/0617ed5b-43b8-449c-870e-5bba374f7cb4.png"
-                alt="Fans celebrating at Spain Park"
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-team-blue to-transparent"></div>
+          </div>
+          
+          {/* Recent Results */}
+          <div>
+            <h3 className="text-xl font-bold text-team-blue mb-6 border-b border-gray-200 pb-2">Recent Results</h3>
+            
+            <div className="space-y-4">
+              {recentResults.map((result, index) => (
+                <motion.div
+                  key={result.id}
+                  className="card-premium bg-white shadow-card rounded-lg overflow-hidden"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                >
+                  <div className="p-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-sm font-semibold bg-gray-100 px-2 py-1 rounded">
+                        {result.competition}
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        {formatDate(result.date)}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="text-right flex-1">
+                        <p className={`font-bold text-lg ${result.homeTeam === "Banks o' Dee" ? "text-team-blue" : ""}`}>
+                          {result.homeTeam}
+                        </p>
+                      </div>
+                      
+                      <div className="flex flex-col items-center mx-4">
+                        <div className="bg-gray-800 text-white px-4 py-2 rounded font-bold">
+                          {result.homeScore} - {result.awayScore}
+                        </div>
+                        <span className="text-xs text-gray-500 mt-1">FULL TIME</span>
+                      </div>
+                      
+                      <div className="text-left flex-1">
+                        <p className={`font-bold text-lg ${result.awayTeam === "Banks o' Dee" ? "text-team-blue" : ""}`}>
+                          {result.awayTeam}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4">
+                      <a 
+                        href={`/match-report/${result.id}`}
+                        className="flex items-center justify-center w-full bg-gray-100 text-gray-800 py-2 rounded hover:bg-gray-200 transition-colors"
+                      >
+                        Match Report
+                      </a>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+              
+              <div className="text-center mt-6">
+                <a 
+                  href="/results" 
+                  className="inline-flex items-center text-team-blue font-medium hover:underline text-animated-underline"
+                >
+                  View All Results
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </a>
+              </div>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

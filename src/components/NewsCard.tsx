@@ -1,97 +1,95 @@
 
-import { motion } from 'framer-motion';
-import { CalendarIcon } from 'lucide-react';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
 
 interface NewsCardProps {
   title: string;
   excerpt: string;
-  image: string;
-  date: string;
-  category: string;
+  image?: string;
+  date?: string;
+  category?: string;
+  slug?: string;
   featured?: boolean;
-  size?: 'small' | 'medium' | 'large';  // Added size option
+  size?: 'small' | 'medium' | 'large';
   className?: string;
 }
 
-const NewsCard = ({
+const NewsCard: React.FC<NewsCardProps> = ({
   title,
   excerpt,
   image,
   date,
   category,
+  slug = '#',
   featured = false,
   size = 'medium',
-  className,
-}: NewsCardProps) => {
+  className
+}) => {
+  const imageHeight = size === 'small' ? 'h-40' : size === 'large' ? 'h-64' : 'h-52';
+  
+  // Format date for display
+  const formattedDate = date ? new Date(date).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  }) : '';
+  
+  // Define a list of fallback images
+  const getFallbackImage = () => {
+    const fallbackImages = [
+      '/public/banks-o-dee-dark-logo.png',
+      '/public/Spain_Park_Slider_1920x1080.jpg',
+      '/public/Keith_Slider_1920x1080.jpg',
+      '/public/HLC_Slider_1920x1080.jpg'
+    ];
+    return fallbackImages[Math.floor(Math.random() * fallbackImages.length)];
+  };
+  
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-100px" }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      className={cn(
-        "group rounded-lg overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl bg-white h-full flex flex-col",
-        featured ? "md:col-span-2" : "",
-        size === 'large' ? "lg:col-span-2" : "",
-        size === 'small' ? "lg:col-span-1" : "",
-        className
-      )}
-    >
-      <div className={cn(
-        "overflow-hidden relative",
-        size === 'small' ? "h-44" : "h-64",
-        size === 'large' ? "h-80" : ""
-      )}>
-        <div className="absolute top-0 left-0 z-10 m-4">
-          <Badge className="bg-[#c5e7ff] hover:bg-[#c5e7ff]/90 text-[#00105a] text-xs font-semibold">
-            {category}
-          </Badge>
+    <Link to={`/news/${slug}`} className="block h-full">
+      <div className={cn('card-premium overflow-hidden h-full hover:shadow-lg transition-shadow border border-gray-200', className)}>
+        <div className={`relative ${imageHeight} overflow-hidden`}>
+          <img 
+            src={image || getFallbackImage()} 
+            alt={title}
+            className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.onerror = null;
+              target.src = getFallbackImage();
+            }}
+          />
+          {category && (
+            <div className="absolute top-3 left-3">
+              <span className="bg-white/80 backdrop-blur-sm text-team-blue px-3 py-1 text-xs font-semibold rounded">
+                {category}
+              </span>
+            </div>
+          )}
         </div>
-        <img 
-          src={image} 
-          alt={title}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-        />
+        
+        <div className="p-4">
+          {size === 'large' ? (
+            <h3 className="text-xl md:text-2xl font-bold mb-2 line-clamp-2">{title}</h3>
+          ) : (
+            <h4 className="text-lg font-bold mb-2 line-clamp-2">{title}</h4>
+          )}
+          
+          {size !== 'small' && (
+            <p className="mb-3 line-clamp-3 text-gray-600">{excerpt}</p>
+          )}
+          
+          {formattedDate && (
+            <div className="text-sm text-gray-500">{formattedDate}</div>
+          )}
+        </div>
+        
+        {featured && (
+          <div className="card-accent-corner"></div>
+        )}
       </div>
-      
-      <div className={cn(
-        "p-6 flex-1 flex flex-col",
-        size === 'large' ? "p-8" : "",
-        size === 'small' ? "p-4" : ""
-      )}>
-        <div className="flex items-center mb-3 text-sm text-gray-500">
-          <CalendarIcon className="w-4 h-4 mr-2" />
-          <span>{date}</span>
-        </div>
-        
-        <h3 className={cn(
-          "font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-[#00105a] transition-colors",
-          size === 'large' ? "text-2xl" : "text-xl",
-          size === 'small' ? "text-lg" : ""
-        )}>
-          {title}
-        </h3>
-        
-        <p className={cn(
-          "text-gray-600 mb-4 flex-1",
-          size === 'small' ? "line-clamp-2" : "line-clamp-3",
-          size === 'large' ? "text-lg" : ""
-        )}>
-          {excerpt}
-        </p>
-        
-        <div className="mt-auto">
-          <button className="text-[#00105a] font-medium inline-flex items-center transition-colors hover:text-[#00105a]/70">
-            Read Full Story
-            <svg className="w-4 h-4 ml-1 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
-          </button>
-        </div>
-      </div>
-    </motion.div>
+    </Link>
   );
 };
 

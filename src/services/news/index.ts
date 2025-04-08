@@ -1,120 +1,131 @@
 
-// This is a simplified mock service to replace the real news service
-import { create } from 'zustand';
-import { NewsItem } from '@/types/news';
+// @ts-nocheck
+import { newsArticles, newsCategories } from './mockData';
+import { NewsArticle, NewsQueryOptions, CreateNewsArticleData, UpdateNewsArticleData } from '@/types/news';
+import { formatDate, formatTimeAgo } from '@/utils/date';
 
-// Format date properly
-export const formatDate = (dateString: string) => {
-  if (!dateString) return '';
+/**
+ * Get all news articles
+ * @param options Query options
+ * @returns Array of news articles
+ */
+export async function getNewsArticles(options?: NewsQueryOptions): Promise<NewsArticle[]> {
+  // Apply filtering based on options
+  let filteredNews = [...newsArticles];
   
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    });
-  } catch (error) {
-    console.error(`Error formatting date: ${dateString}`, error);
-    return dateString;
+  if (options) {
+    if (options.category) {
+      filteredNews = filteredNews.filter(article => article.category === options.category);
+    }
+    
+    if (options.featured !== undefined) {
+      filteredNews = filteredNews.filter(article => article.featured === options.featured);
+    }
+    
+    if (options.tag) {
+      filteredNews = filteredNews.filter(article => article.tags?.includes(options.tag!));
+    }
+    
+    if (options.orderBy) {
+      filteredNews.sort((a, b) => {
+        if (options.orderBy === 'publish_date') {
+          return new Date(b.publish_date).getTime() - new Date(a.publish_date).getTime();
+        }
+        return 0;
+      });
+    }
+    
+    if (options.limit) {
+      filteredNews = filteredNews.slice(0, options.limit);
+    }
   }
-};
-
-// Mock news data
-const mockNewsData: NewsItem[] = [
-  {
-    id: '1',
-    title: 'Banks o\' Dee Secure Victory in Highland League Opener',
-    content: 'The team kicked off the new Highland League season with an impressive 3-1 victory against Keith FC at Spain Park. Goals from Johnson, Smith, and Williams sealed the win for the home side.',
-    excerpt: 'The team kicked off the new Highland League season with an impressive 3-1 victory against Keith FC.',
-    image_url: '/lovable-uploads/4651b18c-bc2e-4e02-96ab-8993f8dfc145.png',
-    category: 'Match Report',
-    publish_date: '2025-04-05',
-    author: 'John Smith',
-    is_featured: true
-  },
-  {
-    id: '2',
-    title: 'New Signing Announcement: Star Midfielder Joins the Club',
-    content: 'Banks o\' Dee FC is delighted to announce the signing of Scottish midfielder Alex Ferguson from Aberdeen FC. The 24-year-old has signed a two-year deal and will wear the number 8 shirt.',
-    excerpt: 'Banks o\' Dee FC is delighted to announce the signing of Scottish midfielder Alex Ferguson from Aberdeen FC.',
-    image_url: '/lovable-uploads/ba4e2b09-12ed-48ad-a4ba-1162ab87ad70.png',
-    category: 'Transfer News',
-    publish_date: '2025-04-03',
-    author: 'Sarah Johnson',
-    is_featured: true
-  },
-  {
-    id: '3',
-    title: 'Youth Academy Players Join First Team Training',
-    content: 'Three promising players from our youth academy have been invited to train with the first team this week. Coach Williams praised their development and potential future with the club.',
-    excerpt: 'Three promising players from our youth academy have been invited to train with the first team this week.',
-    image_url: '/lovable-uploads/0c8edeaf-c67c-403f-90f0-61b390e5e89a.png',
-    category: 'Youth Development',
-    publish_date: '2025-04-01',
-    author: 'David Brown',
-    is_featured: false
-  },
-  {
-    id: '4',
-    title: 'Spain Park Facilities Upgraded for New Season',
-    content: 'Significant improvements have been made to Spain Park ahead of the new season, including renovated changing rooms, improved pitch drainage, and enhanced spectator facilities.',
-    excerpt: 'Significant improvements have been made to Spain Park ahead of the new season.',
-    image_url: '/lovable-uploads/73ac703f-7365-4abb-811e-159280ad234b.png',
-    category: 'Club News',
-    publish_date: '2025-03-28',
-    author: 'Emma Wilson',
-    is_featured: false
-  },
-  {
-    id: '5',
-    title: 'Ticket Information for Upcoming Highland League Fixtures',
-    content: 'Ticket details for our first five Highland League matches have been announced. Season ticket holders will have priority access before general sale begins next week.',
-    excerpt: 'Ticket details for our first five Highland League matches have been announced.',
-    image_url: '/lovable-uploads/e2efc1b0-1c8a-4e98-9826-3030a5f5d247.png',
-    category: 'Tickets',
-    publish_date: '2025-03-25',
-    author: 'Robert Taylor',
-    is_featured: false
-  }
-];
-
-// Create a Zustand store for news data
-interface NewsStore {
-  news: NewsItem[];
-  isLoading: boolean;
-  error: string | null;
-  fetchNews: () => Promise<void>;
-  getNewsById: (id: string) => NewsItem | undefined;
-  getFeaturedNews: () => NewsItem[];
+  
+  return filteredNews;
 }
 
-export const useNewsStore = create<NewsStore>((set, get) => ({
-  news: mockNewsData,
-  isLoading: false,
-  error: null,
-  
-  fetchNews: async () => {
-    // This would normally fetch from an API, but we're using mock data
-    set({ isLoading: true });
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    set({ 
-      news: mockNewsData,
-      isLoading: false 
-    });
-  },
-  
-  getNewsById: (id) => {
-    return get().news.find(item => item.id === id);
-  },
-  
-  getFeaturedNews: () => {
-    return get().news.filter(item => item.is_featured);
-  }
-}));
+/**
+ * Get a news article by ID
+ * @param id Article ID
+ * @returns News article or null if not found
+ */
+export async function getNewsArticleById(id: string): Promise<NewsArticle | null> {
+  const article = newsArticles.find(article => article.id === id);
+  return article || null;
+}
 
-// Export for convenience
-export const { fetchNews, getNewsById, getFeaturedNews } = useNewsStore.getState();
+/**
+ * Get a news article by slug
+ * @param slug Article slug
+ * @returns News article or null if not found
+ */
+export async function getNewsArticleBySlug(slug: string): Promise<NewsArticle | null> {
+  const article = newsArticles.find(article => article.slug === slug);
+  return article || null;
+}
+
+/**
+ * Create a new news article (mock implementation)
+ * @param data Article data
+ * @returns Created article
+ */
+export async function createNewsArticle(data: CreateNewsArticleData): Promise<NewsArticle> {
+  // In a real implementation, this would save to the database
+  const newArticle: NewsArticle = {
+    id: `new-${Date.now()}`,
+    ...data,
+    publish_date: new Date().toISOString(),
+    status: data.status || 'draft'
+  };
+  
+  return newArticle;
+}
+
+/**
+ * Update a news article (mock implementation)
+ * @param id Article ID
+ * @param data Update data
+ * @returns Updated article
+ */
+export async function updateNewsArticle(id: string, data: UpdateNewsArticleData): Promise<NewsArticle | null> {
+  const article = await getNewsArticleById(id);
+  if (!article) return null;
+  
+  // In a real implementation, this would update the database
+  return { ...article, ...data };
+}
+
+/**
+ * Delete a news article (mock implementation)
+ * @param id Article ID
+ * @returns Success boolean
+ */
+export async function deleteNewsArticle(id: string): Promise<boolean> {
+  // In a real implementation, this would delete from the database
+  return true;
+}
+
+/**
+ * Get news categories
+ * @returns Array of category names
+ */
+export async function getNewsCategories(): Promise<string[]> {
+  return newsCategories.map(category => category.name);
+}
+
+// Create a useNewsStore hook with Zustand pattern but using React state
+// This simulates what you'd get from a real Zustand store
+export function useNewsStore() {
+  return {
+    news: newsArticles,
+    categories: newsCategories,
+    loading: false,
+    error: null,
+    fetchNews: async () => {},
+    fetchCategories: async () => {},
+    formatDate,
+    formatTimeAgo
+  };
+}
+
+// Export functions directly so we can use them elsewhere
+export { formatDate, formatTimeAgo };

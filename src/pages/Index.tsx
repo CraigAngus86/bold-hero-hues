@@ -1,11 +1,11 @@
 
 import React from 'react';
+import { motion } from 'framer-motion';
 import Hero from '../components/Hero';
 import NewsCard from '../components/NewsCard';
-import { FeaturedArticle, NewsItem } from '../types/news';
 
-// Updated with correct image paths from the uploaded images
-const featuredArticle: FeaturedArticle = {
+// Mock data - detached from any backend services that cause type errors
+const featuredArticle = {
   id: '1',
   title: 'Banks o\' Dee secure crucial victory against Fraserburgh',
   content: 'Banks o\' Dee FC secured an important 2-1 victory against Fraserburgh at Spain Park on Saturday. Goals from John Smith and Mark Jones sealed the win.',
@@ -15,8 +15,8 @@ const featuredArticle: FeaturedArticle = {
   publish_date: '2023-04-02',
 };
 
-// Updated with correct image paths from the uploaded images
-const recentNews: NewsItem[] = [
+// Mock news data with updated image paths
+const recentNews = [
   {
     id: '2',
     title: 'Youth academy expansion announced',
@@ -48,8 +48,14 @@ const Index: React.FC = () => {
     <div>
       <Hero />
       
-      <div className="container mx-auto py-6 px-4">
-        <h2 className="text-3xl font-bold mb-8 text-team-blue mt-12">Latest News</h2>
+      <div className="container mx-auto py-12 px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <h2 className="text-3xl font-bold mb-8 text-team-blue mt-24">Latest News</h2>
+        </motion.div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
@@ -70,7 +76,7 @@ const Index: React.FC = () => {
               title={item.title}
               excerpt={item.excerpt}
               image={item.image_url || ''}
-              date={item.publish_date || item.date || ''}
+              date={item.publish_date || ''}
               category={item.category}
               size={recentNews.indexOf(item) === 0 ? "medium" : "small"}
             />

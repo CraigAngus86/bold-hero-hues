@@ -1,8 +1,9 @@
 
 import React, { useRef, useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useAnimation, useInView } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 // Mock sponsors data
 const mainSponsor = {
@@ -49,6 +50,36 @@ const SponsorsSection: React.FC = () => {
   const sponsorsRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
+  
+  const sectionRef = useRef(null);
+  const isInView = useInView(sectionRef, { once: true, margin: "-50px" });
+  const controls = useAnimation();
+  
+  useEffect(() => {
+    if (isInView) {
+      controls.start("visible");
+    }
+  }, [isInView, controls]);
+  
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+  
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5 }
+    }
+  };
 
   // Check if scroll arrows should be visible
   const checkScrollPosition = () => {
@@ -88,37 +119,50 @@ const SponsorsSection: React.FC = () => {
   };
 
   return (
-    <section className="py-16 bg-white">
+    <section ref={sectionRef} className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
-        <h2 className="text-2xl md:text-3xl font-bold text-center text-team-blue mb-12">Our Sponsors</h2>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-12"
+        >
+          <h2 className="text-3xl font-bold text-team-blue mb-4">Our Partners</h2>
+          <p className="text-gray-600">Proud sponsors and supporters of Banks o' Dee FC</p>
+        </motion.div>
         
         {/* Main Sponsor */}
-        <div className="mb-12">
-          <h3 className="text-lg font-semibold text-center text-gray-600 mb-4">Principal Partner</h3>
-          <motion.div 
-            className="bg-white shadow-sm rounded-xl p-8 flex items-center justify-center max-w-2xl mx-auto border border-gray-200"
-            whileHover={{ y: -5 }}
-            transition={{ type: "spring", stiffness: 300 }}
-          >
-            <a 
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="mb-12"
+        >
+          <h3 className="text-center text-lg font-semibold text-gray-600 mb-4">Principal Partner</h3>
+          <div className="bg-white shadow-card rounded-xl p-8 flex items-center justify-center max-w-2xl mx-auto border border-gray-100">
+            <motion.a 
               href={mainSponsor.url} 
-              target="_blank" 
+              target="_blank"
               rel="noopener noreferrer" 
               className="transition-transform hover:scale-105 focus:outline-none"
               aria-label={mainSponsor.name}
+              whileHover={{ 
+                scale: 1.05,
+                transition: { duration: 0.3 }
+              }}
             >
               <img 
                 src={mainSponsor.logo} 
                 alt={mainSponsor.name} 
                 className="max-h-32 max-w-full object-contain mix-blend-multiply" 
               />
-            </a>
-          </motion.div>
-        </div>
+            </motion.a>
+          </div>
+        </motion.div>
         
         {/* Secondary Sponsors */}
         <div>
-          <h3 className="text-lg font-semibold text-center text-gray-600 mb-4">Official Partners</h3>
+          <h3 className="text-center text-lg font-semibold text-gray-600 mb-6">Official Partners</h3>
           
           <div className="relative">
             {/* Left Arrow */}
@@ -146,51 +190,73 @@ const SponsorsSection: React.FC = () => {
             )}
             
             {/* Sponsors Scrollable Container */}
-            <div 
+            <motion.div 
               ref={sponsorsRef}
               className="flex overflow-x-auto gap-6 py-4 px-2 scrollbar-hide"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              variants={containerVariants}
+              initial="hidden"
+              animate={controls}
             >
               {secondarySponsors.map((sponsor) => (
                 <motion.div 
                   key={sponsor.id} 
-                  className="flex-shrink-0 w-[200px]"
-                  whileHover={{ y: -5 }}
-                  transition={{ type: "spring", stiffness: 300 }}
+                  className="flex-shrink-0 w-[220px]"
+                  variants={itemVariants}
                 >
-                  <div className="bg-white shadow-sm rounded-lg p-6 h-32 flex items-center justify-center border border-gray-200 relative group">
-                    <a 
+                  <div className="bg-white shadow-card rounded-lg p-6 h-36 flex items-center justify-center border border-gray-100 relative group">
+                    <motion.a 
                       href={sponsor.url} 
-                      target="_blank" 
+                      target="_blank"
                       rel="noopener noreferrer"
-                      className="transition-transform hover:scale-105 focus:outline-none"
+                      className="transition-all focus:outline-none w-full h-full flex items-center justify-center"
                       aria-label={sponsor.name}
+                      whileHover={{ scale: 1.05 }}
+                      transition={{ type: "spring", stiffness: 300 }}
                     >
                       <img 
                         src={sponsor.logo} 
                         alt={sponsor.name} 
                         className="max-h-20 max-w-full object-contain mix-blend-multiply" 
                       />
-                    </a>
+                    </motion.a>
                     
                     {/* Hover tooltip */}
-                    <div className="absolute bottom-0 left-0 right-0 bg-team-blue text-white text-xs py-1 text-center opacity-0 group-hover:opacity-100 group-hover:bottom-[-20px] transition-all duration-200">
+                    <div className="absolute opacity-0 group-hover:opacity-100 bottom-0 left-0 right-0 bg-team-blue text-white text-xs py-1.5 text-center translate-y-0 group-hover:translate-y-full transition-all duration-200 pointer-events-none">
                       {sponsor.name}
                     </div>
                   </div>
                 </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
           
-          <div className="text-center mt-8">
-            <p className="text-gray-600 mb-4">Interested in sponsoring Banks o' Dee FC?</p>
-            <a href="/sponsorship" className="inline-block text-team-blue hover:underline font-medium">
-              View Sponsorship Opportunities →
-            </a>
-          </div>
+          <motion.div 
+            className="text-center mt-12"
+            initial={{ opacity: 0 }}
+            animate={isInView ? { opacity: 1 } : { opacity: 0 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+          >
+            <div className="max-w-xl mx-auto mb-6 bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+              <h4 className="font-bold text-team-blue mb-2">Become a Club Partner</h4>
+              <p className="text-gray-600 mb-4">
+                Support your local club and gain exposure for your business with our range of sponsorship opportunities.
+              </p>
+              <div className="flex justify-center gap-4">
+                <a href="/sponsorship" className="inline-block text-team-blue bg-gray-100 hover:bg-gray-200 font-medium px-4 py-2 rounded transition-colors">
+                  Sponsorship Packages
+                </a>
+                <a href="/contact" className="inline-block bg-team-blue text-white hover:bg-opacity-90 font-medium px-4 py-2 rounded transition-colors">
+                  Contact Us
+                </a>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </div>
+      
+      {/* Diagonal divider */}
+      <div className="section-divider-diagonal mt-8"></div>
     </section>
   );
 };

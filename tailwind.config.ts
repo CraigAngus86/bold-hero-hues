@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -84,7 +85,8 @@ export default {
 					gray: '#f0f0f0',
 					darkGray: '#333333',
 					red: '#CF142B',
-					white: '#FFFFFF'
+					white: '#FFFFFF',
+					gold: '#FFD700',
 				},
 				gray: {
 					50: '#F9FAFB',
@@ -109,23 +111,29 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				}
 			},
-			typography: {
-				DEFAULT: {
-					css: {
-						h1: 'text-3xl md:text-4xl font-bold text-primary-800',
-						h2: 'text-2xl md:text-3xl font-bold text-primary-800',
-						h3: 'text-xl md:text-2xl font-semibold text-primary-800',
-						h4: 'text-lg md:text-xl font-semibold text-primary-800',
-						subtitle: 'text-lg font-medium text-primary-600',
-						body: 'text-base text-gray-700',
-						small: 'text-sm text-gray-500',
-					}
-				}
+			fontFamily: {
+				sans: ['Open Sans', 'system-ui', 'sans-serif'],
+				heading: ['Montserrat', 'system-ui', 'sans-serif'],
+				display: ['Montserrat', 'system-ui', 'sans-serif']
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
+			},
+			boxShadow: {
+				'team': '0 4px 14px 0 rgba(0, 16, 90, 0.1)',
+				'card': '0 10px 25px rgba(0, 0, 0, 0.1), 0 5px 10px rgba(0, 0, 0, 0.05)',
+				'card-hover': '0 15px 35px rgba(0, 0, 0, 0.15), 0 5px 15px rgba(0, 0, 0, 0.1)',
+				'button': '0 4px 6px rgba(0, 0, 0, 0.1)',
+				'inner': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)',
+			},
+			backgroundImage: {
+				'primary-gradient': 'linear-gradient(135deg, #00105A 0%, #001A8D 100%)',
+				'accent-gradient': 'linear-gradient(135deg, #00105A 0%, #FFD700 100%)',
+				'focus-gradient': 'linear-gradient(135deg, #001A8D 0%, #0026C2 100%)',
+				'card-gradient': 'linear-gradient(to bottom, rgba(255,255,255,0.05), rgba(255,255,255,0))',
+				'diagonal-pattern': 'linear-gradient(135deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%), linear-gradient(225deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%), linear-gradient(315deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%), linear-gradient(45deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%)'
 			},
 			keyframes: {
 				'accordion-down': {
@@ -189,6 +197,19 @@ export default {
 						transform: 'scale(1)',
 						opacity: '1'
 					}
+				},
+				'background-shift': {
+					'0%': { backgroundPosition: '0% 50%' },
+					'50%': { backgroundPosition: '100% 50%' },
+					'100%': { backgroundPosition: '0% 50%' }
+				},
+				'pulse': {
+					'0%, 100%': { transform: 'scale(1)' },
+					'50%': { transform: 'scale(1.05)' }
+				},
+				'border-pulse': {
+					'0%, 100%': { borderColor: 'rgba(255, 215, 0, 0.6)' },
+					'50%': { borderColor: 'rgba(255, 215, 0, 1)' }
 				}
 			},
 			animation: {
@@ -198,11 +219,10 @@ export default {
 				'fade-out': 'fade-out 0.4s ease-out',
 				'slide-in': 'slide-in 0.6s ease-out',
 				'slide-out': 'slide-out 0.6s ease-out',
-				'scale-up': 'scale-up 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
-			},
-			fontFamily: {
-				sans: ['Inter', 'system-ui', 'sans-serif'],
-				display: ['Montserrat', 'system-ui', 'sans-serif']
+				'scale-up': 'scale-up 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+				'background-shift': 'background-shift 30s ease infinite',
+				'pulse': 'pulse 2s infinite ease-in-out',
+				'border-pulse': 'border-pulse 2s infinite ease-in-out'
 			},
 			spacing: {
 				'section': '2rem',

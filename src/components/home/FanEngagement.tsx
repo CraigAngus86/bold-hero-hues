@@ -1,337 +1,523 @@
 
 import React, { useState } from 'react';
-import { Check, Mail, User, Award, Users, MessageSquare, Shield } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { Calendar, Trophy, Star, MessageSquare, Twitter, Facebook, Instagram, Send } from 'lucide-react';
 
-// Mock data
-const fanOfTheMonth = {
-  name: "Jamie MacDonald",
-  photo: "/lovable-uploads/46e4429e-478d-4098-9cf9-fb6444adfc3b.png",
-  quote: "I've been supporting Banks o' Dee for over 30 years. Through the highs and lows, there's no club I'd rather follow. The atmosphere at Spain Park is always brilliant!",
-  since: "Supporter since 1992"
+// Utility function to apply staggered animations to children
+const staggerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
 };
 
-const pollOptions = [
-  { id: '1', name: 'Michael Smith', votes: 42 },
-  { id: '2', name: 'David Johnson', votes: 28 },
-  { id: '3', name: 'Alex Thompson', votes: 35 },
-  { id: '4', name: 'Ryan Williams', votes: 21 }
-];
-
-const totalVotes = pollOptions.reduce((sum, option) => sum + option.votes, 0);
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.4
+    }
+  }
+};
 
 const FanEngagement: React.FC = () => {
+  const [pollChoice, setPollChoice] = useState<string | null>(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [email, setEmail] = useState('');
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [hasVoted, setHasVoted] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleVote = () => {
-    if (!selectedOption) return;
-    setHasVoted(true);
-    toast.success("Thanks for voting! Your choice has been recorded.");
+  
+  // Mock Fan of the Month data
+  const fanOfMonth = {
+    name: "James Anderson",
+    image: "/lovable-uploads/9cecca5c-daf2-4f52-a6ca-06e02ca9ea44.png",
+    quote: "I've been supporting the Dee for over 30 years, through thick and thin. The atmosphere at Spain Park just keeps getting better!",
+    since: 1991
   };
-
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    // Simulate API call
+  
+  // Mock Poll data
+  const pollData = {
+    question: "Who will be our Man of the Match against Formartine United?",
+    options: [
+      { id: "player1", name: "Michael Philipson", votes: 42 },
+      { id: "player2", name: "Kane Winton", votes: 38 },
+      { id: "player3", name: "Mark Gilmour", votes: 27 },
+      { id: "player4", name: "Lachie MacLeod", votes: 15 }
+    ]
+  };
+  
+  // Mock Social Media posts
+  const socialPosts = [
+    {
+      id: "post1",
+      platform: "twitter",
+      author: "Banks o' Dee FC",
+      content: "FULL TIME: Banks o' Dee FC 3-1 Keith FC. An impressive performance from the team today!",
+      date: "2 hours ago",
+      likes: 24,
+      comments: 5,
+      image: "/lovable-uploads/73ac703f-7365-4abb-811e-159280ad234b.png"
+    },
+    {
+      id: "post2",
+      platform: "instagram",
+      author: "bankso.deefc",
+      content: "Congratulations to our April Player of the Month, chosen by the fans!",
+      date: "Yesterday",
+      likes: 87,
+      comments: 12,
+      image: "/lovable-uploads/7f997ef4-9019-4660-9e9e-4e230d7b1eb3.png"
+    },
+    {
+      id: "post3",
+      platform: "facebook",
+      author: "Banks o' Dee Football Club",
+      content: "Ticket information for our upcoming Scottish Cup fixture is now available on our website.",
+      date: "2 days ago",
+      likes: 56,
+      comments: 8
+    }
+  ];
+  
+  // Calculate total votes for the poll
+  const totalVotes = pollData.options.reduce((sum, option) => sum + option.votes, 0);
+  
+  // Handle poll vote
+  const handleVote = (optionId: string) => {
+    setPollChoice(optionId);
     setTimeout(() => {
-      if (email.includes('@')) {
-        toast.success("Thanks for subscribing to our newsletter!");
-        setEmail('');
-      } else {
-        toast.error("Please enter a valid email address");
-      }
-      setIsSubmitting(false);
-    }, 800);
+      setIsSubmitted(true);
+    }, 500);
   };
-
+  
+  // Handle newsletter signup
+  const handleNewsletterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    alert(`Thank you for subscribing with ${email}!`);
+    setEmail('');
+  };
+  
+  // Platform Icon Component
+  const PlatformIcon = ({ platform }: { platform: string }) => {
+    switch (platform) {
+      case 'twitter':
+        return <Twitter className="h-4 w-4 text-blue-400" />;
+      case 'facebook':
+        return <Facebook className="h-4 w-4 text-blue-600" />;
+      case 'instagram':
+        return <Instagram className="h-4 w-4 text-pink-600" />;
+      default:
+        return null;
+    }
+  };
+  
   return (
-    <section className="py-16 bg-gray-50">
+    <section className="py-16 bg-pattern-diagonal bg-team-blue">
       <div className="container mx-auto px-4">
-        <h2 className="text-2xl md:text-3xl font-bold text-center text-team-blue mb-12">Fan Engagement</h2>
+        <div className="text-center mb-12">
+          <motion.h2 
+            className="text-3xl md:text-4xl font-bold text-white mb-4"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            Fan Zone
+          </motion.h2>
+          <motion.div 
+            className="w-24 h-1 bg-accent-500 mx-auto"
+            initial={{ width: 0 }}
+            whileInView={{ width: 96 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          ></motion.div>
+        </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Fan Zone */}
-          <Card className="overflow-hidden border border-gray-200 hover:shadow-md transition-shadow">
-            <CardHeader className="bg-team-blue text-white py-4 px-6">
-              <CardTitle className="flex items-center text-xl">
-                <Users className="w-5 h-5 mr-2" />
-                Fan of the Month
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="flex flex-col items-center text-center">
-                <div className="w-32 h-32 rounded-full border-4 border-team-lightBlue overflow-hidden mb-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Fan of the Month */}
+          <motion.div 
+            className="lg:col-span-4"
+            variants={itemVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            <div className="bg-white rounded-lg overflow-hidden shadow-card h-full">
+              <div className="bg-accent-gradient p-4 text-center text-team-blue">
+                <Trophy className="inline-block h-5 w-5 mr-2" />
+                <span className="font-bold">FAN OF THE MONTH</span>
+              </div>
+              
+              <div className="p-6 text-center">
+                <div className="relative w-24 h-24 mx-auto mb-4">
                   <img 
-                    src={fanOfTheMonth.photo} 
-                    alt={fanOfTheMonth.name} 
-                    className="w-full h-full object-cover"
+                    src={fanOfMonth.image} 
+                    alt={fanOfMonth.name}
+                    className="w-24 h-24 rounded-full object-cover border-4 border-accent-500"
                   />
+                  <div className="absolute -bottom-2 -right-2 bg-accent-500 text-team-blue text-xs font-bold px-2 py-1 rounded-full">
+                    Since {fanOfMonth.since}
+                  </div>
                 </div>
-                <h3 className="text-lg font-bold text-team-blue">{fanOfTheMonth.name}</h3>
-                <p className="text-sm text-gray-500 mb-4">{fanOfTheMonth.since}</p>
                 
-                <blockquote className="italic text-gray-700 mb-6">
-                  "{fanOfTheMonth.quote}"
-                </blockquote>
+                <h3 className="font-bold text-xl text-team-blue mb-3">{fanOfMonth.name}</h3>
                 
-                <div className="w-full">
-                  <h4 className="font-semibold text-team-blue mb-3">Share Your Story</h4>
-                  <Button variant="outline" className="w-full border-team-blue text-team-blue hover:bg-team-blue hover:text-white">
-                    Submit Your Story
-                  </Button>
+                <div className="relative">
+                  <div className="absolute -top-3 -left-1 text-accent-500 text-4xl opacity-50">"</div>
+                  <p className="italic text-gray-600 mb-4 relative z-10">{fanOfMonth.quote}</p>
+                  <div className="absolute -bottom-3 -right-1 text-accent-500 text-4xl opacity-50">"</div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          {/* Social Media Feed */}
-          <Card className="overflow-hidden border border-gray-200 hover:shadow-md transition-shadow">
-            <CardHeader className="bg-team-blue text-white py-4 px-6">
-              <CardTitle className="flex items-center text-xl">
-                <MessageSquare className="w-5 h-5 mr-2" />
-                Social Media
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 space-y-4">
-              {/* Twitter Post */}
-              <div className="border border-gray-200 rounded-lg p-4 hover:bg-blue-50 transition-colors">
-                <div className="flex items-center mb-2">
-                  <div className="w-10 h-10 rounded-full bg-[#1DA1F2] flex items-center justify-center text-white">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path>
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <p className="font-semibold text-sm">@BanksODeeFCOfficial</p>
-                    <p className="text-xs text-gray-500">2 hours ago</p>
-                  </div>
-                </div>
-                <p className="text-sm mb-2">Exciting win yesterday! The team showed great determination. Next fixture: Formartine United at home this Saturday. #BanksODee #HighlandLeague</p>
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>12 Likes</span>
-                  <span>3 Retweets</span>
-                  <span>2 Comments</span>
-                </div>
-              </div>
-              
-              {/* Facebook Post */}
-              <div className="border border-gray-200 rounded-lg p-4 hover:bg-blue-50 transition-colors">
-                <div className="flex items-center mb-2">
-                  <div className="w-10 h-10 rounded-full bg-[#1877F2] flex items-center justify-center text-white">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <p className="font-semibold text-sm">Banks o' Dee FC</p>
-                    <p className="text-xs text-gray-500">Yesterday</p>
-                  </div>
-                </div>
-                <p className="text-sm mb-2">New merchandise now available in our club shop! Get your hands on the new away kit for the 2025/26 season. #BanksODee</p>
-                <div className="rounded-lg overflow-hidden h-32 mb-2">
-                  <img src="/lovable-uploads/0c8edeaf-c67c-403f-90f0-61b390e5e89a.png" alt="New merchandise" className="w-full h-full object-cover" />
-                </div>
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>24 Likes</span>
-                  <span>8 Comments</span>
-                  <span>5 Shares</span>
-                </div>
-              </div>
-              
-              {/* Instagram Post */}
-              <div className="border border-gray-200 rounded-lg p-4 hover:bg-blue-50 transition-colors">
-                <div className="flex items-center mb-2">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600 flex items-center justify-center text-white">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <p className="font-semibold text-sm">banksofdee_official</p>
-                    <p className="text-xs text-gray-500">3 days ago</p>
-                  </div>
-                </div>
-                <div className="rounded-lg overflow-hidden h-36 mb-2">
-                  <img src="/lovable-uploads/cb95b9fb-0f2d-42ef-9788-10509a80ed6e.png" alt="Youth Academy" className="w-full h-full object-cover" />
-                </div>
-                <p className="text-sm mb-2">Youth Academy in action this weekend! Great to see the next generation of talent coming through. #BanksODee #YouthDevelopment</p>
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>56 Likes</span>
-                  <span>4 Comments</span>
-                </div>
-              </div>
-              
-              <div className="flex justify-center mt-4">
-                <div className="flex space-x-4">
-                  <a href="https://twitter.com/banksofdeefc" target="_blank" rel="noopener noreferrer" className="text-[#1DA1F2] hover:text-[#1a91da]">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                      <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path>
-                    </svg>
-                  </a>
-                  <a href="https://facebook.com/banksofdeefc" target="_blank" rel="noopener noreferrer" className="text-[#1877F2] hover:text-[#166fe5]">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
-                    </svg>
-                  </a>
-                  <a href="https://instagram.com/banksofdee_official" target="_blank" rel="noopener noreferrer" className="text-[#E4405F] hover:text-[#d62e50]">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-                    </svg>
-                  </a>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          {/* Newsletter Signup */}
-          <Card className="overflow-hidden border border-gray-200 hover:shadow-md transition-shadow">
-            <CardHeader className="bg-team-blue text-white py-4 px-6">
-              <CardTitle className="flex items-center text-xl">
-                <Mail className="w-5 h-5 mr-2" />
-                Newsletter
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <h3 className="text-lg font-semibold text-team-blue mb-2">Stay Updated</h3>
-              <p className="text-gray-600 text-sm mb-4">
-                Join our mailing list to receive the latest news, updates, and special offers directly to your inbox.
-              </p>
-              
-              <form onSubmit={handleSubscribe} className="mb-6">
-                <div className="mb-3">
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                  <input
-                    type="email"
-                    id="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-team-blue"
-                    required
-                  />
-                </div>
-                <Button 
-                  type="submit" 
-                  className="w-full bg-team-blue hover:bg-blue-800 text-white"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? 'Subscribing...' : 'Subscribe'}
-                </Button>
-              </form>
-              
-              <div className="border-t border-gray-200 pt-4">
-                <h4 className="font-medium text-team-blue mb-3">Subscriber Benefits:</h4>
-                <ul className="space-y-2">
-                  <li className="flex items-center text-sm text-gray-600">
-                    <Check className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-                    <span>Early access to home match tickets</span>
-                  </li>
-                  <li className="flex items-center text-sm text-gray-600">
-                    <Check className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-                    <span>Exclusive interviews with players and staff</span>
-                  </li>
-                  <li className="flex items-center text-sm text-gray-600">
-                    <Check className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-                    <span>Special discount offers in the club shop</span>
-                  </li>
-                  <li className="flex items-center text-sm text-gray-600">
-                    <Check className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-                    <span>Monthly prize draws</span>
-                  </li>
-                </ul>
-              </div>
-              
-              <p className="text-xs text-gray-500 mt-4">
-                By subscribing, you agree to our <a href="/privacy" className="text-team-blue hover:underline">Privacy Policy</a> and consent to receive emails from Banks o' Dee FC. You can unsubscribe at any time.
-              </p>
-            </CardContent>
-          </Card>
-          
-          {/* Match Poll - Appears on mobile only */}
-          <Card className="overflow-hidden border border-gray-200 hover:shadow-md transition-shadow md:hidden">
-            <CardHeader className="bg-team-blue text-white py-4 px-6">
-              <CardTitle className="flex items-center text-xl">
-                <Award className="w-5 h-5 mr-2" />
-                Man of the Match
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <h3 className="text-lg font-medium text-team-blue mb-4">Who was your Man of the Match vs. Keith FC?</h3>
-              
-              {!hasVoted ? (
-                <div className="space-y-3">
-                  {pollOptions.map(option => (
-                    <div 
-                      key={option.id}
-                      className={`border rounded-lg p-3 cursor-pointer transition-all ${
-                        selectedOption === option.id ? 'border-team-blue bg-team-lightBlue/20' : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                      onClick={() => setSelectedOption(option.id)}
-                    >
-                      <div className="flex items-center">
-                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
-                          <User className="h-6 w-6 text-gray-600" />
-                        </div>
-                        <span className="font-medium">{option.name}</span>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  <Button 
-                    onClick={handleVote}
-                    disabled={!selectedOption}
-                    className="w-full mt-4 bg-team-blue hover:bg-blue-800 text-white"
+                
+                <div className="mt-6">
+                  <a 
+                    href="/fans/nominate"
+                    className="inline-block bg-team-blue text-white font-medium px-5 py-2 rounded hover:bg-opacity-90 transition-colors btn-hover-effect"
                   >
-                    Submit Vote
-                  </Button>
+                    Nominate a Fan
+                  </a>
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  <p className="text-green-600 font-medium flex items-center">
-                    <Check className="w-4 h-4 mr-1" /> Thanks for voting!
-                  </p>
-                  
+              </div>
+            </div>
+          </motion.div>
+          
+          {/* Interactive Poll */}
+          <motion.div 
+            className="lg:col-span-4"
+            variants={itemVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+          >
+            <div className="bg-white rounded-lg overflow-hidden shadow-card h-full">
+              <div className="bg-primary-gradient p-4 text-center text-white">
+                <Star className="inline-block h-5 w-5 mr-2 text-accent-500" />
+                <span className="font-bold">FAN POLL</span>
+              </div>
+              
+              <div className="p-6">
+                <h3 className="font-bold text-lg text-team-blue mb-4">{pollData.question}</h3>
+                
+                {!isSubmitted ? (
                   <div className="space-y-3">
-                    {pollOptions.map(option => {
+                    {pollData.options.map(option => (
+                      <button
+                        key={option.id}
+                        onClick={() => handleVote(option.id)}
+                        className={cn(
+                          "w-full text-left p-3 rounded border transition-colors",
+                          pollChoice === option.id 
+                            ? "border-team-blue bg-team-blue/5" 
+                            : "border-gray-200 hover:border-team-blue/50"
+                        )}
+                      >
+                        <span className="font-medium text-team-blue">{option.name}</span>
+                      </button>
+                    ))}
+                    
+                    <div className="mt-6 text-center">
+                      <button
+                        onClick={() => pollChoice && setIsSubmitted(true)}
+                        disabled={!pollChoice}
+                        className={cn(
+                          "px-5 py-2 rounded font-medium transition-colors",
+                          pollChoice 
+                            ? "bg-accent-500 text-team-blue hover:bg-accent-600" 
+                            : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                        )}
+                      >
+                        Submit Vote
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {pollData.options.map(option => {
                       const percentage = Math.round((option.votes / totalVotes) * 100);
-                      const isSelected = option.id === selectedOption;
                       
                       return (
-                        <div key={option.id} className="space-y-1">
-                          <div className="flex justify-between text-sm">
-                            <span className={isSelected ? "font-semibold text-team-blue" : ""}>{option.name}</span>
-                            <span className="text-gray-500">{percentage}%</span>
+                        <div key={option.id} className="mb-3">
+                          <div className="flex justify-between text-sm mb-1">
+                            <span className={cn(
+                              "font-medium",
+                              pollChoice === option.id ? "text-team-blue" : "text-gray-600"
+                            )}>
+                              {option.name}
+                            </span>
+                            <span className="font-bold">
+                              {percentage}%
+                            </span>
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2.5">
-                            <div 
-                              className={`h-2.5 rounded-full ${isSelected ? 'bg-team-blue' : 'bg-gray-400'}`}
-                              style={{ width: `${percentage}%` }}
-                            ></div>
+                          
+                          <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                            <motion.div
+                              className={cn(
+                                "h-2.5 rounded-full",
+                                pollChoice === option.id ? "bg-accent-500" : "bg-team-blue"
+                              )}
+                              initial={{ width: 0 }}
+                              animate={{ width: `${percentage}%` }}
+                              transition={{ duration: 1, ease: "easeOut" }}
+                            ></motion.div>
                           </div>
                         </div>
                       );
                     })}
                     
-                    <p className="text-xs text-gray-500 text-center mt-2">
-                      Total votes: {totalVotes}
-                    </p>
+                    <div className="mt-4 text-center text-gray-500 text-sm">
+                      <p>Total votes: {totalVotes}</p>
+                      <p className="mt-1">Thank you for your vote!</p>
+                    </div>
+                    
+                    <div className="mt-6 text-center">
+                      <a 
+                        href="/polls"
+                        className="inline-block bg-gray-100 text-team-blue font-medium px-5 py-2 rounded hover:bg-gray-200 transition-colors"
+                      >
+                        More Polls
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
+          
+          {/* Social Media Feed */}
+          <motion.div 
+            className="lg:col-span-4"
+            variants={itemVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+          >
+            <div className="bg-white rounded-lg overflow-hidden shadow-card h-full">
+              <div className="bg-primary-gradient p-4 text-center text-white">
+                <MessageSquare className="inline-block h-5 w-5 mr-2 text-accent-500" />
+                <span className="font-bold">SOCIAL MEDIA</span>
+              </div>
+              
+              <div className="p-4">
+                <motion.div 
+                  className="space-y-4 custom-scrollbar overflow-y-auto"
+                  style={{ maxHeight: '400px' }}
+                  variants={staggerVariants}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                >
+                  {socialPosts.map((post) => (
+                    <motion.div 
+                      key={post.id}
+                      variants={itemVariants}
+                      className="border border-gray-100 rounded-lg p-4 hover:border-team-blue/30 transition-colors"
+                    >
+                      <div className="flex items-center mb-3">
+                        <PlatformIcon platform={post.platform} />
+                        <span className="font-medium text-sm ml-2">{post.author}</span>
+                        <span className="ml-auto text-xs text-gray-500">{post.date}</span>
+                      </div>
+                      
+                      <p className="text-sm text-gray-600 mb-3">{post.content}</p>
+                      
+                      {post.image && (
+                        <div className="mb-3 rounded-md overflow-hidden">
+                          <img 
+                            src={post.image}
+                            alt="Social media post"
+                            className="w-full h-32 object-cover"
+                          />
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center text-xs text-gray-500">
+                        <span className="mr-4">{post.likes} likes</span>
+                        <span>{post.comments} comments</span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </motion.div>
+                
+                <div className="mt-6 flex justify-center space-x-4">
+                  <a 
+                    href="https://twitter.com/BanksDee"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-blue-400 hover:bg-blue-500 text-white p-2 rounded-full transition-colors"
+                  >
+                    <Twitter className="h-5 w-5" />
+                  </a>
+                  <a 
+                    href="https://www.facebook.com/banksofdeefc"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full transition-colors"
+                  >
+                    <Facebook className="h-5 w-5" />
+                  </a>
+                  <a 
+                    href="https://www.instagram.com/banksofdeefc"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 text-white p-2 rounded-full hover:shadow-lg transition-all"
+                  >
+                    <Instagram className="h-5 w-5" />
+                  </a>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+        
+        {/* Newsletter Signup */}
+        <motion.div
+          className="mt-12 bg-white rounded-lg overflow-hidden shadow-card"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-2">
+            <div className="p-8 lg:p-10">
+              <h3 className="font-bold text-2xl text-team-blue mb-4">Subscribe to our Newsletter</h3>
+              <p className="text-gray-600 mb-6">
+                Stay up to date with all the latest news, match information, and exclusive content from Banks o' Dee FC.
+              </p>
+              
+              <div className="space-y-4 mb-6">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 mt-0.5">
+                    <div className="h-5 w-5 rounded-full bg-accent-500 flex items-center justify-center">
+                      <svg className="h-3 w-3 text-team-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  </div>
+                  <span className="ml-2.5 text-gray-700">Match previews and reports</span>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 mt-0.5">
+                    <div className="h-5 w-5 rounded-full bg-accent-500 flex items-center justify-center">
+                      <svg className="h-3 w-3 text-team-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  </div>
+                  <span className="ml-2.5 text-gray-700">Exclusive interviews and content</span>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 mt-0.5">
+                    <div className="h-5 w-5 rounded-full bg-accent-500 flex items-center justify-center">
+                      <svg className="h-3 w-3 text-team-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  </div>
+                  <span className="ml-2.5 text-gray-700">Early access to ticket information</span>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 mt-0.5">
+                    <div className="h-5 w-5 rounded-full bg-accent-500 flex items-center justify-center">
+                      <svg className="h-3 w-3 text-team-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  </div>
+                  <span className="ml-2.5 text-gray-700">Special offers and discounts</span>
+                </div>
+              </div>
+              
+              <form onSubmit={handleNewsletterSubmit} className="space-y-4">
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                    Your Email Address
+                  </label>
+                  <div className="flex">
+                    <input
+                      type="email"
+                      id="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="flex-grow px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-team-blue focus:border-transparent"
+                      placeholder="example@email.com"
+                      required
+                    />
+                    <button
+                      type="submit"
+                      className="bg-team-blue text-white px-4 py-2 rounded-r-md hover:bg-opacity-90 transition-colors flex items-center"
+                    >
+                      Subscribe
+                      <Send className="h-4 w-4 ml-2" />
+                    </button>
                   </div>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                
+                <p className="text-xs text-gray-500">
+                  By subscribing, you agree to our <a href="/privacy" className="text-team-blue hover:underline">Privacy Policy</a>.
+                  We will never share your information with third parties.
+                </p>
+              </form>
+            </div>
+            
+            <div className="hidden lg:block relative bg-gradient-to-br from-team-blue to-primary-500 overflow-hidden">
+              <div className="absolute inset-0 bg-pattern-diagonal opacity-10"></div>
+              <div className="p-10 relative z-10 h-full flex flex-col justify-center">
+                <Calendar className="h-12 w-12 text-accent-500 mb-6" />
+                <h3 className="font-bold text-2xl text-white mb-4">Upcoming Events</h3>
+                <ul className="space-y-4">
+                  <li className="flex items-start">
+                    <div className="bg-white/20 rounded p-1.5 mr-3">
+                      <span className="text-white text-xs font-bold">MAY</span>
+                      <div className="text-accent-500 text-lg font-bold leading-none">15</div>
+                    </div>
+                    <div>
+                      <span className="text-white font-medium">Home vs Formartine United</span>
+                      <p className="text-white/80 text-sm">Highland League - 3:00 PM</p>
+                    </div>
+                  </li>
+                  
+                  <li className="flex items-start">
+                    <div className="bg-white/20 rounded p-1.5 mr-3">
+                      <span className="text-white text-xs font-bold">MAY</span>
+                      <div className="text-accent-500 text-lg font-bold leading-none">22</div>
+                    </div>
+                    <div>
+                      <span className="text-white font-medium">Away vs Turriff United</span>
+                      <p className="text-white/80 text-sm">Highland League - 3:00 PM</p>
+                    </div>
+                  </li>
+                  
+                  <li className="flex items-start">
+                    <div className="bg-white/20 rounded p-1.5 mr-3">
+                      <span className="text-white text-xs font-bold">JUN</span>
+                      <div className="text-accent-500 text-lg font-bold leading-none">05</div>
+                    </div>
+                    <div>
+                      <span className="text-white font-medium">Fan Appreciation Day</span>
+                      <p className="text-white/80 text-sm">Spain Park - 12:00 PM</p>
+                    </div>
+                  </li>
+                </ul>
+                
+                <a 
+                  href="/events"
+                  className="mt-6 inline-flex items-center text-white hover:text-accent-500 transition-colors"
+                >
+                  View All Events
+                  <ChevronRightIcon className="h-4 w-4 ml-1" />
+                </a>
+              </div>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </section>
   );

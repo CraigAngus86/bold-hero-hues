@@ -1,270 +1,301 @@
 
-import React from 'react';
-import { Calendar, Clock, MapPin, Ticket } from 'lucide-react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from '@/lib/utils';
+import { ChevronRightIcon, TicketIcon, ClipboardIcon, CalendarDaysIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import MatchCard from './MatchCard';
 
-// Mock data
-const upcomingFixtures = [
-  {
-    id: 'fix-1',
-    date: '2025-05-15',
-    time: '15:00',
-    competition: 'Highland League',
-    homeTeam: 'Banks o\' Dee',
-    awayTeam: 'Formartine United',
-    venue: 'Spain Park',
-    ticketsAvailable: true
-  },
-  {
-    id: 'fix-2',
-    date: '2025-05-22',
-    time: '19:45',
-    competition: 'Highland League Cup',
-    homeTeam: 'Buckie Thistle',
-    awayTeam: 'Banks o\' Dee',
-    venue: 'Victoria Park',
-    ticketsAvailable: true
-  },
-  {
-    id: 'fix-3',
-    date: '2025-05-29',
-    time: '15:00',
-    competition: 'Highland League',
-    homeTeam: 'Banks o\' Dee',
-    awayTeam: 'Fraserburgh',
-    venue: 'Spain Park',
-    ticketsAvailable: false
-  },
-  {
-    id: 'fix-4',
-    date: '2025-06-05',
-    time: '15:00',
-    competition: 'Scottish Cup',
-    homeTeam: 'Banks o\' Dee',
-    awayTeam: 'Brora Rangers',
-    venue: 'Spain Park',
-    ticketsAvailable: false
-  }
-];
-
-const recentResults = [
-  {
-    id: 'res-1',
-    date: '2025-05-01',
-    competition: 'Highland League',
-    homeTeam: 'Banks o\' Dee',
-    homeScore: 3,
-    awayTeam: 'Keith FC',
-    awayScore: 1,
-    hasMatchReport: true
-  },
-  {
-    id: 'res-2',
-    date: '2025-04-24',
-    competition: 'Highland League Cup',
-    homeTeam: 'Huntly',
-    homeScore: 0,
-    awayTeam: 'Banks o\' Dee',
-    awayScore: 2,
-    hasMatchReport: true
-  },
-  {
-    id: 'res-3',
-    date: '2025-04-17',
-    competition: 'Highland League',
-    homeTeam: 'Banks o\' Dee',
-    homeScore: 1,
-    awayTeam: 'Deveronvale',
-    awayScore: 1,
-    hasMatchReport: true
-  },
-  {
-    id: 'res-4',
-    date: '2025-04-10',
-    competition: 'Highland League',
-    homeTeam: 'Inverurie Loco Works',
-    homeScore: 0,
-    awayTeam: 'Banks o\' Dee',
-    awayScore: 3,
-    hasMatchReport: false
-  }
-];
-
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
-};
-
-const isBanksODee = (team: string) => {
-  return team.toLowerCase().includes('banks') && team.toLowerCase().includes('dee');
-};
-
-const getResultClass = (homeTeam: string, homeScore: number, awayScore: number) => {
-  const isBanksHome = isBanksODee(homeTeam);
-  
-  if (isBanksHome && homeScore > awayScore) return 'text-green-600 font-bold';
-  if (!isBanksHome && homeScore < awayScore) return 'text-green-600 font-bold';
-  if (homeScore === awayScore) return 'text-amber-600';
-  return 'text-red-600';
-};
+interface MatchProps {
+  id: string;
+  homeTeam: string;
+  awayTeam: string;
+  date: string;
+  time: string;
+  venue: string;
+  competition: string;
+  isCompleted?: boolean;
+  homeScore?: number;
+  awayScore?: number;
+  ticketLink?: string;
+  matchReportLink?: string;
+}
 
 const MatchCenter: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<'fixtures' | 'results'>('fixtures');
+  
+  // Mock fixtures data
+  const fixtures: MatchProps[] = [
+    {
+      id: 'fixture-1',
+      homeTeam: "Banks o' Dee",
+      awayTeam: "Formartine United",
+      date: "2025-05-15",
+      time: "15:00",
+      venue: "Spain Park",
+      competition: "Highland League",
+      ticketLink: "/tickets/fixture-1"
+    },
+    {
+      id: 'fixture-2',
+      awayTeam: "Banks o' Dee",
+      homeTeam: "Turriff United",
+      date: "2025-05-22",
+      time: "15:00",
+      venue: "The Haughs",
+      competition: "Highland League",
+      ticketLink: "/tickets/fixture-2"
+    },
+    {
+      id: 'fixture-3',
+      homeTeam: "Banks o' Dee",
+      awayTeam: "Huntly FC",
+      date: "2025-06-05",
+      time: "19:45",
+      venue: "Spain Park",
+      competition: "Highland League Cup",
+      ticketLink: "/tickets/fixture-3"
+    }
+  ];
+  
+  // Mock results data
+  const results: MatchProps[] = [
+    {
+      id: 'result-1',
+      homeTeam: "Banks o' Dee",
+      awayTeam: "Keith FC",
+      date: "2025-05-01",
+      time: "15:00",
+      venue: "Spain Park",
+      competition: "Highland League",
+      isCompleted: true,
+      homeScore: 3,
+      awayScore: 1,
+      matchReportLink: "/match-reports/result-1"
+    },
+    {
+      id: 'result-2',
+      awayTeam: "Banks o' Dee",
+      homeTeam: "Buckie Thistle",
+      date: "2025-04-24",
+      time: "15:00",
+      venue: "Victoria Park",
+      competition: "Highland League",
+      isCompleted: true,
+      homeScore: 2,
+      awayScore: 2,
+      matchReportLink: "/match-reports/result-2"
+    },
+    {
+      id: 'result-3',
+      homeTeam: "Banks o' Dee",
+      awayTeam: "Brechin City",
+      date: "2025-04-17",
+      time: "15:00",
+      venue: "Spain Park",
+      competition: "Highland League",
+      isCompleted: true,
+      homeScore: 0,
+      awayScore: 1,
+      matchReportLink: "/match-reports/result-3"
+    }
+  ];
+  
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+  
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.4 }
+    }
+  };
+  
   return (
-    <section className="py-16 bg-white">
+    <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
-        <h2 className="text-2xl md:text-3xl font-bold text-center text-team-blue mb-12">Match Center</h2>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-          {/* Fixture List */}
-          <Card className="overflow-hidden border border-gray-200 hover:shadow-md transition-shadow">
-            <CardHeader className="bg-team-blue text-white py-4 px-6">
-              <CardTitle className="flex items-center text-xl">
-                <Calendar className="w-5 h-5 mr-2" />
-                Upcoming Fixtures
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                {upcomingFixtures.map((fixture) => (
-                  <motion.div 
-                    key={fixture.id}
-                    className="border-b border-gray-100 last:border-0 pb-4 last:pb-0"
-                    whileHover={{ x: 4 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="flex items-center mb-1 text-team-blue font-medium">
-                          <Calendar className="w-4 h-4 mr-1" />
-                          <span>{formatDate(fixture.date)}</span>
-                          <span className="mx-2">•</span>
-                          <Clock className="w-4 h-4 mr-1" />
-                          <span>{fixture.time}</span>
-                        </div>
-                        
-                        <div className="text-xs bg-gray-100 rounded-full px-2 py-1 inline-block mb-2">
-                          {fixture.competition}
-                        </div>
-                        
-                        <div className="flex items-center space-x-2">
-                          <span className={isBanksODee(fixture.homeTeam) ? "font-bold" : ""}>
-                            {fixture.homeTeam}
-                          </span>
-                          <span className="text-gray-400">vs</span>
-                          <span className={isBanksODee(fixture.awayTeam) ? "font-bold" : ""}>
-                            {fixture.awayTeam}
-                          </span>
-                        </div>
-                        
-                        <div className="flex items-center mt-1 text-sm text-gray-600">
-                          <MapPin className="w-4 h-4 mr-1" />
-                          <span>{fixture.venue}</span>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center">
-                        {fixture.ticketsAvailable ? (
-                          <Link to={`/tickets/${fixture.id}`}>
-                            <Button size="sm" variant="outline" className="flex items-center space-x-1 text-sm border-team-blue text-team-blue hover:bg-team-blue hover:text-white">
-                              <Ticket className="w-4 h-4" />
-                              <span>Tickets</span>
-                            </Button>
-                          </Link>
-                        ) : (
-                          <span className="text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-500">Tickets soon</span>
-                        )}
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-              
-              <div className="mt-6 text-center">
-                <Link to="/fixtures">
-                  <Button variant="outline" className="border-team-blue text-team-blue hover:bg-team-blue hover:text-white">
-                    View All Fixtures
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-          
-          {/* Results */}
-          <Card className="overflow-hidden border border-gray-200 hover:shadow-md transition-shadow">
-            <CardHeader className="bg-team-blue text-white py-4 px-6">
-              <CardTitle className="flex items-center text-xl">
-                <Clock className="w-5 h-5 mr-2" />
-                Recent Results
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                {recentResults.map((result) => (
-                  <motion.div 
-                    key={result.id}
-                    className="border-b border-gray-100 last:border-0 pb-4 last:pb-0"
-                    whileHover={{ x: 4 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="flex items-center mb-1">
-                          <Calendar className="w-4 h-4 mr-1 text-gray-500" />
-                          <span className="text-gray-500">{formatDate(result.date)}</span>
-                        </div>
-                        
-                        <div className="text-xs bg-gray-100 rounded-full px-2 py-1 inline-block mb-2">
-                          {result.competition}
-                        </div>
-                        
-                        <div className="flex items-center">
-                          <span className={`${isBanksODee(result.homeTeam) ? "font-bold" : ""} mr-2`}>
-                            {result.homeTeam}
-                          </span>
-                          <span className={`px-2 py-0.5 rounded ${getResultClass(result.homeTeam, result.homeScore, result.awayScore)}`}>
-                            {result.homeScore}
-                          </span>
-                          <span className="mx-1">-</span>
-                          <span className={`px-2 py-0.5 rounded ${getResultClass(result.awayTeam, result.awayScore, result.homeScore)}`}>
-                            {result.awayScore}
-                          </span>
-                          <span className={`${isBanksODee(result.awayTeam) ? "font-bold" : ""} ml-2`}>
-                            {result.awayTeam}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        {result.hasMatchReport && (
-                          <Link to={`/news/match-report/${result.id}`}>
-                            <Button 
-                              size="sm" 
-                              variant="ghost" 
-                              className="text-xs text-team-blue hover:bg-team-lightBlue/20"
-                            >
-                              Match Report
-                            </Button>
-                          </Link>
-                        )}
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-              
-              <div className="mt-6 text-center">
-                <Link to="/results">
-                  <Button variant="outline" className="border-team-blue text-team-blue hover:bg-team-blue hover:text-white">
-                    View All Results
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="text-center mb-12">
+          <motion.h2 
+            className="text-3xl md:text-4xl font-bold text-team-blue mb-4"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            Match Center
+          </motion.h2>
+          <motion.div 
+            className="w-24 h-1 bg-accent-500 mx-auto"
+            initial={{ width: 0 }}
+            whileInView={{ width: 96 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          ></motion.div>
+          <motion.p
+            className="mt-4 max-w-2xl mx-auto text-gray-600"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            Stay updated with the latest fixtures and results for Banks o' Dee FC
+          </motion.p>
         </div>
+        
+        {/* Tabs */}
+        <div className="flex justify-center mb-8">
+          <div className="inline-flex rounded-md shadow-sm">
+            <button
+              type="button"
+              className={cn(
+                "px-4 py-2 text-sm font-medium rounded-l-md focus:outline-none",
+                activeTab === 'fixtures'
+                  ? "bg-team-blue text-white"
+                  : "bg-white text-team-blue hover:bg-gray-50"
+              )}
+              onClick={() => setActiveTab('fixtures')}
+            >
+              <CalendarDaysIcon className="inline-block h-4 w-4 mr-2" />
+              Upcoming Fixtures
+            </button>
+            <button
+              type="button"
+              className={cn(
+                "px-4 py-2 text-sm font-medium rounded-r-md focus:outline-none",
+                activeTab === 'results'
+                  ? "bg-team-blue text-white"
+                  : "bg-white text-team-blue hover:bg-gray-50"
+              )}
+              onClick={() => setActiveTab('results')}
+            >
+              <ClipboardIcon className="inline-block h-4 w-4 mr-2" />
+              Recent Results
+            </button>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {activeTab === 'fixtures' ? (
+            <motion.div
+              className="col-span-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+            >
+              {fixtures.map((fixture) => (
+                <motion.div
+                  key={fixture.id}
+                  variants={itemVariants}
+                >
+                  <MatchCard
+                    homeTeam={fixture.homeTeam}
+                    awayTeam={fixture.awayTeam}
+                    date={fixture.date}
+                    time={fixture.time}
+                    venue={fixture.venue}
+                    competition={fixture.competition}
+                    ticketLink={fixture.ticketLink}
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
+          ) : (
+            <motion.div
+              className="col-span-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+            >
+              {results.map((result) => (
+                <motion.div
+                  key={result.id}
+                  variants={itemVariants}
+                >
+                  <MatchCard
+                    homeTeam={result.homeTeam}
+                    awayTeam={result.awayTeam}
+                    date={result.date}
+                    time={result.time}
+                    venue={result.venue}
+                    competition={result.competition}
+                    isCompleted={result.isCompleted}
+                    homeScore={result.homeScore}
+                    awayScore={result.awayScore}
+                    matchReportLink={result.matchReportLink}
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </div>
+        
+        <div className="mt-8 text-center">
+          <Button
+            variant="outline"
+            className="border-team-blue text-team-blue hover:bg-team-blue/5"
+            asChild
+          >
+            <a href={activeTab === 'fixtures' ? "/fixtures" : "/results"}>
+              View All {activeTab === 'fixtures' ? 'Fixtures' : 'Results'}
+              <ChevronRightIcon className="ml-1 h-4 w-4" />
+            </a>
+          </Button>
+        </div>
+        
+        {/* Call to Action - Season Tickets */}
+        <motion.div
+          className="mt-16 bg-team-blue rounded-lg overflow-hidden shadow-lg"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2">
+            <div className="p-8 flex flex-col justify-center">
+              <h3 className="text-white font-bold text-2xl md:text-3xl mb-4">
+                Season 2025/26 Tickets
+              </h3>
+              <p className="text-white/80 mb-6">
+                Get your season ticket now for priority access to all home league fixtures at Spain Park. Enjoy special member benefits and discounts throughout the season.
+              </p>
+              <div className="flex items-center space-x-2">
+                <a 
+                  href="/tickets/season"
+                  className="inline-block bg-accent-500 text-team-blue font-bold px-6 py-3 rounded hover:bg-accent-600 transition-colors shadow-md"
+                >
+                  <TicketIcon className="inline-block h-5 w-5 mr-2" />
+                  Buy Season Tickets
+                </a>
+                <a 
+                  href="/tickets/info"
+                  className="inline-block bg-white/20 text-white font-medium px-6 py-3 rounded hover:bg-white/30 transition-colors"
+                >
+                  Learn More
+                </a>
+              </div>
+            </div>
+            <div className="hidden md:block relative">
+              <img 
+                src="/lovable-uploads/0617ed5b-43b8-449c-870e-5bba374f7cb4.png"
+                alt="Fans celebrating at Spain Park"
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-team-blue to-transparent"></div>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </section>
   );

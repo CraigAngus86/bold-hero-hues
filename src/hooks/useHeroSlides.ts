@@ -64,7 +64,7 @@ export const useHeroSlides = (): UseHeroSlidesReturn => {
         const mockSlides: HeroSlide[] = [
           {
             id: '1',
-            image_url: '/lovable-uploads/9ca9c466-2008-4fa8-8258-979a7b5ae9f8.jpeg',
+            image_url: '/public/Training-04.jpg',
             title: 'Welcome to Banks o\' Dee FC',
             subtitle: 'Home of Spain Park, Aberdeen',
             link_text: 'Learn More',
@@ -72,7 +72,7 @@ export const useHeroSlides = (): UseHeroSlidesReturn => {
           },
           {
             id: '2',
-            image_url: '/lovable-uploads/74f0cf13-9569-4b38-a479-b24192aeb21f.jpeg',
+            image_url: '/public/Post-Match-Reaction-Players.jpg',
             title: 'Join us at Spain Park',
             subtitle: 'Support the team in our upcoming fixtures',
             link_text: 'View Fixtures',
@@ -80,7 +80,7 @@ export const useHeroSlides = (): UseHeroSlidesReturn => {
           },
           {
             id: '3',
-            image_url: '/lovable-uploads/0c8edeaf-c67c-403f-90f0-61b390e5e89a.png',
+            image_url: '/public/Keith_Slider_1920x1080.jpg',
             title: 'Latest Club News',
             subtitle: 'Stay up to date with all things Banks o\' Dee',
             link_text: 'Read More',

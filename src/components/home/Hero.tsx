@@ -20,7 +20,7 @@ const Hero: React.FC = () => {
   const slides: HeroSlide[] = [
     {
       id: '1',
-      imageUrl: '/lovable-uploads/banks-o-dee-dark-logo.png',
+      imageUrl: '/public/banks-o-dee-dark-logo.png',
       title: 'Welcome to Banks o\' Dee FC',
       subtitle: 'Home of Spain Park, Aberdeen',
       linkText: 'Learn More',
@@ -28,7 +28,7 @@ const Hero: React.FC = () => {
     },
     {
       id: '2',
-      imageUrl: '/lovable-uploads/4651b18c-bc2e-4e02-96ab-8993f8dfc145.png',
+      imageUrl: '/public/Spain_Park_Slider_1920x1080.jpg',
       title: 'Join us at Spain Park',
       subtitle: 'Support the team in our upcoming fixtures',
       linkText: 'View Fixtures',
@@ -36,7 +36,7 @@ const Hero: React.FC = () => {
     },
     {
       id: '3',
-      imageUrl: '/lovable-uploads/0c8edeaf-c67c-403f-90f0-61b390e5e89a.png',
+      imageUrl: '/public/Keith_Slider_1920x1080.jpg',
       title: 'Latest Club News',
       subtitle: 'Stay up to date with all things Banks o\' Dee',
       linkText: 'Read More',

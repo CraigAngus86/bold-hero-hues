@@ -14,35 +14,35 @@ const MediaGalleryModern: React.FC = () => {
     {
       id: 1,
       type: 'image',
-      src: '/lovable-uploads/74f0cf13-9569-4b38-a479-b24192aeb21f.jpeg',
+      src: '/public/Post-Match-Reaction-Players.jpg',
       alt: 'Ladies U15 team photo',
       title: 'Ladies U15 Team'
     },
     {
       id: 2,
       type: 'video',
-      thumbnail: '/lovable-uploads/0c8edeaf-c67c-403f-90f0-61b390e5e89a.png',
+      thumbnail: '/public/Keith_Slider_1920x1080.jpg',
       alt: 'Scotland Cup U20 match',
       title: 'Scotland Cup U20 Highlights'
     },
     {
       id: 3,
       type: 'image',
-      src: '/lovable-uploads/9ca9c466-2008-4fa8-8258-979a7b5ae9f8.jpeg',
+      src: '/public/Training-04.jpg',
       alt: 'Girls team in action',
       title: 'Girls Team Action'
     },
     {
       id: 4,
       type: 'image',
-      src: '/lovable-uploads/a4a5a911-98e0-48ad-95dc-f7cb62d5af63.jpeg',
+      src: '/public/Training-02.jpg',
       alt: 'Junior training session',
       title: 'Junior Training'
     },
     {
       id: 5,
       type: 'image',
-      src: '/lovable-uploads/8cc4f482-ddc3-4ec8-9bc0-95e302028272.jpeg',
+      src: '/public/HLC_Slider_1920x1080.jpg',
       alt: 'Youth section players',
       title: 'Youth Development'
     }

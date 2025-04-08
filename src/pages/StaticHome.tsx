@@ -21,7 +21,7 @@ const StaticHome = () => {
     id: '1',
     title: 'Banks o\' Dee Secure Victory in Highland League Opener',
     content: 'The team kicked off the new Highland League season with an impressive 3-1 victory against Keith FC at Spain Park. Goals from Johnson, Smith, and Williams sealed the win for the home side.',
-    image_url: '/lovable-uploads/4651b18c-bc2e-4e02-96ab-8993f8dfc145.png',
+    image_url: '/public/Spain_Park_Slider_1920x1080.jpg',
     category: 'Match Report',
     publish_date: '2025-04-05'
   };
@@ -60,7 +60,7 @@ const StaticHome = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <img 
-                src="/lovable-uploads/banks-o-dee-dark-logo.png" 
+                src="/public/banks-o-dee-dark-logo.png" 
                 alt="Banks o' Dee FC Logo" 
                 className="h-16 mr-3"
               />
@@ -141,7 +141,7 @@ const StaticHome = () => {
             <div>
               <div className="flex items-center mb-4">
                 <img 
-                  src="/lovable-uploads/banks-o-dee-dark-logo.png" 
+                  src="/public/banks-o-dee-dark-logo.png" 
                   alt="Banks o' Dee FC Logo" 
                   className="h-12 mr-3"
                 />

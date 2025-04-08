@@ -20,28 +20,28 @@ const ShopPreview: React.FC = () => {
       id: '1',
       name: '2024/25 Home Kit',
       price: 45,
-      image: '/lovable-uploads/banks-o-dee-dark-logo.png',
+      image: '/public/banks-o-dee-dark-logo.png',
       category: 'kits'
     },
     {
       id: '2',
       name: 'Training Jacket',
       price: 35,
-      image: '/lovable-uploads/banks-o-dee-dark-logo.png',
+      image: '/public/banks-o-dee-dark-logo.png',
       category: 'training'
     },
     {
       id: '3',
       name: 'Club Scarf',
       price: 15,
-      image: '/lovable-uploads/banks-o-dee-dark-logo.png',
+      image: '/public/banks-o-dee-dark-logo.png',
       category: 'accessories'
     },
     {
       id: '4',
       name: 'Beanie Hat',
       price: 12,
-      image: '/lovable-uploads/banks-o-dee-dark-logo.png',
+      image: '/public/banks-o-dee-dark-logo.png',
       category: 'accessories'
     }
   ];
@@ -91,7 +91,7 @@ const ShopPreview: React.FC = () => {
             <Card className="overflow-hidden h-full">
               <div className="relative h-40">
                 <img 
-                  src="/lovable-uploads/0c8edeaf-c67c-403f-90f0-61b390e5e89a.png" 
+                  src="/public/Keith_Slider_1920x1080.jpg"
                   alt="Season Tickets" 
                   className="w-full h-full object-cover"
                 />
@@ -108,24 +108,14 @@ const ShopPreview: React.FC = () => {
                 <h4 className="font-bold text-lg mb-2">Benefits include:</h4>
                 <ul className="list-disc list-inside mb-6 space-y-1 text-gray-600">
                   <li>All home league matches</li>
-                  <li>Priority cup tickets</li>
-                  <li>10% discount at club shop</li>
-                  <li>Free digital match programme</li>
-                  <li>Exclusive members events</li>
+                  <li>Priority cup match tickets</li>
+                  <li>10% off in the club shop</li>
+                  <li>Monthly newsletter</li>
                 </ul>
                 
-                <div className="flex justify-between items-center border-t border-gray-200 pt-4">
-                  <div>
-                    <p className="text-sm text-gray-600">From</p>
-                    <p className="text-2xl font-bold text-team-blue">£120</p>
-                  </div>
-                  
-                  <Button asChild>
-                    <Link to="/tickets/season-tickets">
-                      Buy Now <ArrowRight className="ml-1 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
+                <Button className="w-full bg-team-blue hover:bg-team-blue/90">
+                  Buy Season Ticket
+                </Button>
               </CardContent>
             </Card>
           </div>

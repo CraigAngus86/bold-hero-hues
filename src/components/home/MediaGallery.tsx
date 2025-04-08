@@ -7,37 +7,37 @@ const MediaGallery: React.FC = () => {
   const galleryImages = [
     {
       id: '1',
-      src: '/lovable-uploads/a4a5a911-98e0-48ad-95dc-f7cb62d5af63.jpeg',
+      src: '/public/Training-02.jpg',
       caption: 'Junior section coaching session',
       category: 'Youth'
     },
     {
       id: '2',
-      src: '/lovable-uploads/9ca9c466-2008-4fa8-8258-979a7b5ae9f8.jpeg',
+      src: '/public/Training-04.jpg',
       caption: 'Girls team in action',
       category: 'Youth'
     },
     {
       id: '3',
-      src: '/lovable-uploads/0c8edeaf-c67c-403f-90f0-61b390e5e89a.png',
+      src: '/public/Keith_Slider_1920x1080.jpg',
       caption: 'U20s Scotland Cup match',
       category: 'Match Day'
     },
     {
       id: '4',
-      src: '/lovable-uploads/4651b18c-bc2e-4e02-96ab-8993f8dfc145.png',
+      src: '/public/Spain_Park_Slider_1920x1080.jpg',
       caption: 'Youth section training',
       category: 'Youth'
     },
     {
       id: '5',
-      src: '/lovable-uploads/74f0cf13-9569-4b38-a479-b24192aeb21f.jpeg',
+      src: '/public/Post-Match-Reaction-Players.jpg',
       caption: 'Youth team group photo',
       category: 'Events'
     },
     {
       id: '6',
-      src: '/lovable-uploads/8cc4f482-ddc3-4ec8-9bc0-95e302028272.jpeg',
+      src: '/public/HLC_Slider_1920x1080.jpg',
       caption: 'Youth development session',
       category: 'Training'
     }

@@ -23,7 +23,7 @@ const FeaturedContentGrid: React.FC<FeaturedContentGridProps> = ({
   // Ensure featuredArticle has a valid image URL
   const articleWithImage = {
     ...featuredArticle,
-    image_url: featuredArticle.image_url || '/lovable-uploads/banks-o-dee-dark-logo.png'
+    image_url: featuredArticle.image_url || '/public/banks-o-dee-dark-logo.png'
   };
 
   return (

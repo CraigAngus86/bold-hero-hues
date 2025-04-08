@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -15,9 +16,9 @@ const Hero = () => {
     .slice(0, 3)
     .map((item, index) => {
       const images = [
-        '/lovable-uploads/banks-o-dee-dark-logo.png',
-        '/lovable-uploads/0c8edeaf-c67c-403f-90f0-61b390e5e89a.png',
-        '/lovable-uploads/4651b18c-bc2e-4e02-96ab-8993f8dfc145.png'
+        '/public/banks-o-dee-dark-logo.png',
+        '/public/Keith_Slider_1920x1080.jpg',
+        '/public/Spain_Park_Slider_1920x1080.jpg'
       ];
       return {
         ...item,
@@ -82,7 +83,7 @@ const Hero = () => {
         >
           <div className="absolute inset-0 bg-gradient-to-t from-[#00105a]/90 to-[#00105a]/30 z-10" />
           <img 
-            src={heroNews[currentIndex]?.image_url || '/lovable-uploads/banks-o-dee-dark-logo.png'} 
+            src={heroNews[currentIndex]?.image_url || '/public/banks-o-dee-dark-logo.png'} 
             alt={heroNews[currentIndex]?.title || 'Banks o\' Dee FC'}
             className="object-cover w-full h-full"
           />

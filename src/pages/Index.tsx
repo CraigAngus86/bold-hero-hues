@@ -11,7 +11,7 @@ const featuredArticle: FeaturedArticle = {
   content: 'Banks o\' Dee FC secured an important 2-1 victory against Fraserburgh at Spain Park on Saturday. Goals from John Smith and Mark Jones sealed the win.',
   excerpt: 'Banks o\' Dee FC secured an important 2-1 victory against Fraserburgh at Spain Park on Saturday.',
   category: 'Match Report',
-  image_url: '/lovable-uploads/banks-o-dee-dark-logo.png',
+  image_url: '/public/banks-o-dee-dark-logo.png',
   publish_date: '2023-04-02',
 };
 
@@ -22,7 +22,7 @@ const recentNews: NewsItem[] = [
     title: 'Youth academy expansion announced',
     excerpt: 'The club is proud to announce a significant expansion of our youth development program.',
     category: 'Club News',
-    image_url: '/lovable-uploads/4651b18c-bc2e-4e02-96ab-8993f8dfc145.png',
+    image_url: '/public/Spain_Park_Slider_1920x1080.jpg',
     publish_date: '2023-03-28',
   },
   {
@@ -30,7 +30,7 @@ const recentNews: NewsItem[] = [
     title: 'New sponsorship deal with local business',
     excerpt: 'Banks o\' Dee FC is delighted to announce a new partnership with Aberdeen-based company.',
     category: 'Sponsorship',
-    image_url: '/lovable-uploads/0c8edeaf-c67c-403f-90f0-61b390e5e89a.png',
+    image_url: '/public/Keith_Slider_1920x1080.jpg',
     publish_date: '2023-03-25',
   },
   {
@@ -38,7 +38,7 @@ const recentNews: NewsItem[] = [
     title: 'Ticket information for upcoming cup fixture',
     excerpt: 'Important information regarding tickets for our upcoming Scottish Cup fixture.',
     category: 'Tickets',
-    image_url: '/lovable-uploads/8cc4f482-ddc3-4ec8-9bc0-95e302028272.jpeg',
+    image_url: '/public/HLC_Slider_1920x1080.jpg',
     publish_date: '2023-03-22',
   }
 ];

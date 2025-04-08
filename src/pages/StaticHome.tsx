@@ -60,7 +60,7 @@ const StaticHome = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <img 
-                src="/lovable-uploads/587f8bd1-4140-4179-89f8-dc2ac1b2e072.png" 
+                src="/lovable-uploads/banks-o-dee-dark-logo.png" 
                 alt="Banks o' Dee FC Logo" 
                 className="h-16 mr-3"
               />
@@ -141,7 +141,7 @@ const StaticHome = () => {
             <div>
               <div className="flex items-center mb-4">
                 <img 
-                  src="/lovable-uploads/587f8bd1-4140-4179-89f8-dc2ac1b2e072.png" 
+                  src="/lovable-uploads/banks-o-dee-dark-logo.png" 
                   alt="Banks o' Dee FC Logo" 
                   className="h-12 mr-3"
                 />

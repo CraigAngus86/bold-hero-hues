@@ -1,8 +1,10 @@
 
 /**
- * Format a date string into a readable format
+ * Format a date string to a more readable format
+ * @param dateString - The date string to format
+ * @returns Formatted date string in the format "DD Month YYYY"
  */
-export function formatDate(dateString: string): string {
+export const formatDate = (dateString: string): string => {
   if (!dateString) return '';
   
   try {
@@ -13,69 +15,33 @@ export function formatDate(dateString: string): string {
       year: 'numeric'
     });
   } catch (error) {
-    console.error(`Error formatting date: ${dateString}`, error);
-    return dateString;
+    console.error('Error formatting date:', error);
+    return dateString; // Return original string if there's an error
   }
-}
+};
 
 /**
- * Format a date string into a time string
+ * Format time to 12-hour format with AM/PM
+ * @param timeString - Time in 24-hour format (HH:MM)
+ * @returns Formatted time in 12-hour format with AM/PM
  */
-export function formatTime(dateString: string): string {
-  if (!dateString) return '';
+export const formatTime = (timeString: string): string => {
+  if (!timeString) return '';
   
   try {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('en-GB', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  } catch (error) {
-    console.error(`Error formatting time: ${dateString}`, error);
-    return '';
-  }
-}
-
-/**
- * Check if a date is in the past
- */
-export function isDatePassed(dateString: string): boolean {
-  if (!dateString) return false;
-  
-  try {
-    const date = new Date(dateString);
-    const today = new Date();
-    return date < today;
-  } catch (error) {
-    console.error(`Error checking if date is passed: ${dateString}`, error);
-    return false;
-  }
-}
-
-/**
- * Format a date range (e.g., "15-18 May 2025")
- */
-export function formatDateRange(startDate: string, endDate: string): string {
-  if (!startDate || !endDate) return '';
-  
-  try {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    
-    // Same month and year
-    if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
-      return `${start.getDate()}-${end.getDate()} ${start.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}`;
+    // If timeString is already in the right format, just return it
+    if (timeString.includes('AM') || timeString.includes('PM')) {
+      return timeString;
     }
     
-    // Same year, different month
-    if (start.getFullYear() === end.getFullYear()) {
-      return `${start.getDate()} ${start.toLocaleDateString('en-GB', { month: 'long' })} - ${end.getDate()} ${end.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}`;
-    }
+    // Handle "HH:MM" format
+    const [hours, minutes] = timeString.split(':').map(Number);
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const hour12 = hours % 12 || 12;
     
-    // Different years
-    return `${start.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} - ${end.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+    return `${hour12}:${minutes.toString().padStart(2, '0')} ${period}`;
   } catch (error) {
-    console.error(`Error formatting date range: ${startDate} - ${endDate}`, error);
-    return '';
+    console.error('Error formatting time:', error);
+    return timeString; // Return original string if there's an error
   }
-}
+};

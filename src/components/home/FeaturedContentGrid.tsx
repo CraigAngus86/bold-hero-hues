@@ -119,7 +119,7 @@ const FeaturedContentGrid: React.FC<FeaturedContentGridProps> = ({
               </div>
               
               <div className="flex space-x-1 mt-3">
-                {leaguePosition.form.map((result: string, index: number) => (
+                {leaguePosition.form && leaguePosition.form.map((result: string, index: number) => (
                   <span 
                     key={index} 
                     className={`w-6 h-6 flex items-center justify-center text-xs font-bold rounded-full ${

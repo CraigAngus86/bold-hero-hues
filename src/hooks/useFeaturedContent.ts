@@ -2,13 +2,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
-// Updated mock data for featured content with new images
+// Updated mock data for featured content with correct image paths
 const mockFeaturedItems = [
   {
     id: uuidv4(),
     title: 'Banks O\' Dee Secure Highland League Title',
     content: 'In a thrilling match, Banks O\' Dee secured the Highland League title with a 3-1 victory.',
-    image: '/new_images/banks-O-Dee-Junior-Training-2.jpeg',
+    image: '/lovable-uploads/8cc4f482-ddc3-4ec8-9bc0-95e302028272.jpeg',
     date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     type: 'news',
     slug: 'banks-o-dee-secure-highland-league-title'
@@ -17,7 +17,7 @@ const mockFeaturedItems = [
     id: uuidv4(),
     title: 'New Stadium Development Update',
     content: 'Progress on the new stadium development continues with the completion of the main stand foundations.',
-    image: '/new_images/banks-O-Dee-Junior-Training-1.jpeg',
+    image: '/lovable-uploads/a4a5a911-98e0-48ad-95dc-f7cb62d5af63.jpeg',
     date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
     type: 'news',
     slug: 'new-stadium-development-update'
@@ -26,7 +26,7 @@ const mockFeaturedItems = [
     id: uuidv4(),
     title: 'Club Announces New Sponsor',
     content: 'Banks O\' Dee FC is proud to announce a new sponsorship deal with a leading local business.',
-    image: '/new_images/Banks-O-Dee-Girls.jpeg',
+    image: '/lovable-uploads/9ca9c466-2008-4fa8-8258-979a7b5ae9f8.jpeg',
     date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
     type: 'news',
     slug: 'club-announces-new-sponsor'
@@ -35,7 +35,7 @@ const mockFeaturedItems = [
     id: uuidv4(),
     title: 'Youth Team Wins Regional Cup',
     content: 'Our U18 team has won the regional youth cup after a penalty shootout victory.',
-    image: '/new_images/Junior-Section-Coach-1.jpeg',
+    image: '/lovable-uploads/74f0cf13-9569-4b38-a479-b24192aeb21f.jpeg',
     date: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
     type: 'news',
     slug: 'youth-team-wins-regional-cup'

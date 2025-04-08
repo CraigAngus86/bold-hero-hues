@@ -3,41 +3,41 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 const MediaGallery: React.FC = () => {
-  // Updated gallery images with new uploads
+  // Updated gallery images with correctly formatted image paths
   const galleryImages = [
     {
       id: '1',
-      src: '/new_images/Junior-Section-Coach-2.jpeg',
+      src: '/lovable-uploads/a4a5a911-98e0-48ad-95dc-f7cb62d5af63.jpeg',
       caption: 'Junior section coaching session',
       category: 'Youth'
     },
     {
       id: '2',
-      src: '/new_images/Banks-O-Dee-Girls-2.jpeg',
+      src: '/lovable-uploads/9ca9c466-2008-4fa8-8258-979a7b5ae9f8.jpeg',
       caption: 'Girls team in action',
       category: 'Youth'
     },
     {
       id: '3',
-      src: '/new_images/Scotland-Cup-U20-banks-O-Dee.jpeg',
+      src: '/lovable-uploads/0c8edeaf-c67c-403f-90f0-61b390e5e89a.png',
       caption: 'U20s Scotland Cup match',
       category: 'Match Day'
     },
     {
       id: '4',
-      src: '/new_images/Youth-Section-2.jpeg',
+      src: '/lovable-uploads/4651b18c-bc2e-4e02-96ab-8993f8dfc145.png',
       caption: 'Youth section training',
       category: 'Youth'
     },
     {
       id: '5',
-      src: '/new_images/Youth-Section-3.jpeg',
+      src: '/lovable-uploads/74f0cf13-9569-4b38-a479-b24192aeb21f.jpeg',
       caption: 'Youth team group photo',
       category: 'Events'
     },
     {
       id: '6',
-      src: '/new_images/Youth-Section-1.jpeg',
+      src: '/lovable-uploads/8cc4f482-ddc3-4ec8-9bc0-95e302028272.jpeg',
       caption: 'Youth development session',
       category: 'Training'
     }

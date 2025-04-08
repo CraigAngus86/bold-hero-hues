@@ -60,11 +60,11 @@ export const useHeroSlides = (): UseHeroSlidesReturn => {
         // Simulate API loading
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        // Updated hero slide data with new images
+        // Updated hero slide data with correct image paths
         const mockSlides: HeroSlide[] = [
           {
             id: '1',
-            image_url: '/new_images/banks-O-Dee-Ladies-U15-2.jpeg',
+            image_url: '/lovable-uploads/9ca9c466-2008-4fa8-8258-979a7b5ae9f8.jpeg',
             title: 'Welcome to Banks o\' Dee FC',
             subtitle: 'Home of Spain Park, Aberdeen',
             link_text: 'Learn More',
@@ -72,7 +72,7 @@ export const useHeroSlides = (): UseHeroSlidesReturn => {
           },
           {
             id: '2',
-            image_url: '/new_images/banks-O-Dee-Ladies-U15-1.jpeg',
+            image_url: '/lovable-uploads/74f0cf13-9569-4b38-a479-b24192aeb21f.jpeg',
             title: 'Join us at Spain Park',
             subtitle: 'Support the team in our upcoming fixtures',
             link_text: 'View Fixtures',
@@ -80,7 +80,7 @@ export const useHeroSlides = (): UseHeroSlidesReturn => {
           },
           {
             id: '3',
-            image_url: '/new_images/Scotland-Cup-U20-banks-O-Dee.jpeg',
+            image_url: '/lovable-uploads/0c8edeaf-c67c-403f-90f0-61b390e5e89a.png',
             title: 'Latest Club News',
             subtitle: 'Stay up to date with all things Banks o\' Dee',
             link_text: 'Read More',

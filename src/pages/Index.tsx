@@ -4,25 +4,25 @@ import Hero from '../components/Hero';
 import NewsCard from '../components/NewsCard';
 import { FeaturedArticle, NewsItem } from '../types/news';
 
-// Updated with new images
+// Updated with correct image paths from the uploaded images
 const featuredArticle: FeaturedArticle = {
   id: '1',
   title: 'Banks o\' Dee secure crucial victory against Fraserburgh',
   content: 'Banks o\' Dee FC secured an important 2-1 victory against Fraserburgh at Spain Park on Saturday. Goals from John Smith and Mark Jones sealed the win.',
   excerpt: 'Banks o\' Dee FC secured an important 2-1 victory against Fraserburgh at Spain Park on Saturday.',
   category: 'Match Report',
-  image_url: '/new_images/Scotland-Cup-U20-banks-O-Dee.jpeg',
+  image_url: '/lovable-uploads/banks-o-dee-dark-logo.png',
   publish_date: '2023-04-02',
 };
 
-// Updated with new images
+// Updated with correct image paths from the uploaded images
 const recentNews: NewsItem[] = [
   {
     id: '2',
     title: 'Youth academy expansion announced',
     excerpt: 'The club is proud to announce a significant expansion of our youth development program.',
     category: 'Club News',
-    image_url: '/new_images/banks-O-Dee-Junior-Training-1.jpeg',
+    image_url: '/lovable-uploads/4651b18c-bc2e-4e02-96ab-8993f8dfc145.png',
     publish_date: '2023-03-28',
   },
   {
@@ -30,7 +30,7 @@ const recentNews: NewsItem[] = [
     title: 'New sponsorship deal with local business',
     excerpt: 'Banks o\' Dee FC is delighted to announce a new partnership with Aberdeen-based company.',
     category: 'Sponsorship',
-    image_url: '/new_images/Banks-O-Dee-Girls.jpeg',
+    image_url: '/lovable-uploads/0c8edeaf-c67c-403f-90f0-61b390e5e89a.png',
     publish_date: '2023-03-25',
   },
   {
@@ -38,7 +38,7 @@ const recentNews: NewsItem[] = [
     title: 'Ticket information for upcoming cup fixture',
     excerpt: 'Important information regarding tickets for our upcoming Scottish Cup fixture.',
     category: 'Tickets',
-    image_url: '/new_images/banks-O-Dee-Ladies-U15-2.jpeg',
+    image_url: '/lovable-uploads/8cc4f482-ddc3-4ec8-9bc0-95e302028272.jpeg',
     publish_date: '2023-03-22',
   }
 ];

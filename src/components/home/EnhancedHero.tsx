@@ -57,7 +57,7 @@ const formatDate = (dateStr: string) => {
 };
 
 const EnhancedHero: React.FC = () => {
-  // Mock data - in a real implementation, this would come from an API or database
+  // Mock data with updated image paths
   const slides: HeroSlide[] = [
     {
       id: '1',

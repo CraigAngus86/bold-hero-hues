@@ -20,6 +20,12 @@ const FeaturedContentGrid: React.FC<FeaturedContentGridProps> = ({
     return <div className="container mx-auto px-4 py-12">Loading...</div>;
   }
 
+  // Ensure featuredArticle has a valid image URL
+  const articleWithImage = {
+    ...featuredArticle,
+    image_url: featuredArticle.image_url || '/lovable-uploads/banks-o-dee-dark-logo.png'
+  };
+
   return (
     <div className="container mx-auto px-4 py-12">
       <h2 className="text-2xl font-bold text-team-blue mb-8">Featured Content</h2>
@@ -34,12 +40,12 @@ const FeaturedContentGrid: React.FC<FeaturedContentGridProps> = ({
           transition={{ duration: 0.5 }}
         >
           <NewsCard
-            title={featuredArticle.title}
-            excerpt={featuredArticle.excerpt}
-            category={featuredArticle.category}
-            date={featuredArticle.publish_date}
-            imageUrl={featuredArticle.image_url}
-            link={`/news/${featuredArticle.id}`}
+            title={articleWithImage.title}
+            excerpt={articleWithImage.excerpt}
+            category={articleWithImage.category}
+            date={articleWithImage.publish_date}
+            imageUrl={articleWithImage.image_url}
+            link={`/news/${articleWithImage.id}`}
             featured={true}
           />
         </motion.div>

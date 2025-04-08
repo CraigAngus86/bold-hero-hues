@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -13,7 +12,18 @@ const Hero = () => {
   const { news } = useNewsStore();
   const heroNews = [...news]
     .sort((a, b) => new Date(b.publish_date).getTime() - new Date(a.publish_date).getTime())
-    .slice(0, 3);
+    .slice(0, 3)
+    .map((item, index) => {
+      const images = [
+        '/lovable-uploads/banks-o-dee-dark-logo.png',
+        '/lovable-uploads/0c8edeaf-c67c-403f-90f0-61b390e5e89a.png',
+        '/lovable-uploads/4651b18c-bc2e-4e02-96ab-8993f8dfc145.png'
+      ];
+      return {
+        ...item,
+        image_url: images[index] || item.image_url || item.image
+      };
+    });
   
   const goToNext = () => {
     setCurrentIndex((prevIndex) => 
@@ -63,7 +73,7 @@ const Hero = () => {
     >
       <AnimatePresence initial={false}>
         <motion.div
-          key={heroNews[currentIndex].id}
+          key={heroNews[currentIndex]?.id}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -72,8 +82,8 @@ const Hero = () => {
         >
           <div className="absolute inset-0 bg-gradient-to-t from-[#00105a]/90 to-[#00105a]/30 z-10" />
           <img 
-            src={heroNews[currentIndex].image_url || heroNews[currentIndex].image} 
-            alt={heroNews[currentIndex].title}
+            src={heroNews[currentIndex]?.image_url || '/lovable-uploads/banks-o-dee-dark-logo.png'} 
+            alt={heroNews[currentIndex]?.title || 'Banks o\' Dee FC'}
             className="object-cover w-full h-full"
           />
         </motion.div>
@@ -82,7 +92,7 @@ const Hero = () => {
       <div className="container mx-auto px-4 relative z-20 h-full flex flex-col justify-end pb-20">
         <AnimatePresence mode="wait">
           <motion.div
-            key={heroNews[currentIndex].id}
+            key={heroNews[currentIndex]?.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -93,20 +103,20 @@ const Hero = () => {
             className="max-w-4xl"
           >
             <span className="inline-block px-3 py-1 mb-4 bg-[#c5e7ff] text-[#00105a] text-xs font-semibold rounded">
-              {heroNews[currentIndex].category}
+              {heroNews[currentIndex]?.category}
             </span>
             <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight">
-              {heroNews[currentIndex].title}
+              {heroNews[currentIndex]?.title}
             </h2>
             <p className="text-lg md:text-xl text-white/80 mb-6 max-w-2xl">
-              {heroNews[currentIndex].excerpt}
+              {heroNews[currentIndex]?.excerpt}
             </p>
             <div className="flex items-center space-x-6">
-              <a href={`/news/${heroNews[currentIndex].id}`} className="bg-white text-[#00105a] font-medium px-6 py-3 rounded hover:bg-gray-100 transition-colors">
+              <a href={`/news/${heroNews[currentIndex]?.id}`} className="bg-white text-[#00105a] font-medium px-6 py-3 rounded hover:bg-gray-100 transition-colors">
                 Read More
               </a>
               <span className="text-white/70 text-sm">
-                {formatDate(heroNews[currentIndex].publish_date || heroNews[currentIndex].date || '')}
+                {formatDate(heroNews[currentIndex]?.publish_date || heroNews[currentIndex]?.date || '')}
               </span>
             </div>
           </motion.div>

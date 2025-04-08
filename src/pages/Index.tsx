@@ -48,8 +48,8 @@ const Index: React.FC = () => {
     <div>
       <Hero />
       
-      <div className="container mx-auto py-12 px-4">
-        <h2 className="text-3xl font-bold mb-8">Latest News</h2>
+      <div className="container mx-auto py-6 px-4">
+        <h2 className="text-3xl font-bold mb-8 text-team-blue mt-12">Latest News</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">

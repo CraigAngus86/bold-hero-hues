@@ -9,42 +9,42 @@ import { cn } from '@/lib/utils';
 const { H2, Body } = Typography;
 
 const MediaGalleryModern: React.FC = () => {
-  // Mock images for the gallery
+  // Updated with new images
   const mediaItems = [
     {
       id: 1,
       type: 'image',
-      src: '/lovable-uploads/02654c64-77bc-4a05-ae93-7c8173d0dc3c.png',
-      alt: 'Match action shot',
-      title: 'Match vs Opponents'
+      src: '/new_images/banks-O-Dee-Ladies-U15-1.jpeg',
+      alt: 'Ladies U15 team photo',
+      title: 'Ladies U15 Team'
     },
     {
       id: 2,
       type: 'video',
-      thumbnail: '/lovable-uploads/587f8bd1-4140-4179-89f8-dc2ac1b2e072.png',
-      alt: 'Goal celebration',
-      title: 'Latest Goal Highlights'
+      thumbnail: '/new_images/Scotland-Cup-U20-banks-O-Dee.jpeg',
+      alt: 'Scotland Cup U20 match',
+      title: 'Scotland Cup U20 Highlights'
     },
     {
       id: 3,
       type: 'image',
-      src: '/lovable-uploads/940ac3a1-b89d-40c9-957e-217a64371120.png',
-      alt: 'Team group photo',
-      title: 'Team Photo'
+      src: '/new_images/Banks-O-Dee-Girls.jpeg',
+      alt: 'Girls team in action',
+      title: 'Girls Team Action'
     },
     {
       id: 4,
       type: 'image',
-      src: '/lovable-uploads/73ac703f-7365-4abb-811e-159280ad234b.png',
-      alt: 'Stadium view',
-      title: 'Our Stadium'
+      src: '/new_images/banks-O-Dee-Junior-Training-1.jpeg',
+      alt: 'Junior training session',
+      title: 'Junior Training'
     },
     {
       id: 5,
       type: 'image',
-      src: '/lovable-uploads/b937e144-e94f-4e75-881f-1e560c6b520a.png',
-      alt: 'Trophy celebration',
-      title: 'Cup Winners'
+      src: '/new_images/Youth-Section-1.jpeg',
+      alt: 'Youth section players',
+      title: 'Youth Development'
     }
   ];
 

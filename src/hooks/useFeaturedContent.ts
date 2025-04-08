@@ -2,13 +2,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
-// Mock data for featured content
+// Updated mock data for featured content with new images
 const mockFeaturedItems = [
   {
     id: uuidv4(),
     title: 'Banks O\' Dee Secure Highland League Title',
     content: 'In a thrilling match, Banks O\' Dee secured the Highland League title with a 3-1 victory.',
-    image: '/lovable-uploads/banks-o-dee-logo.png',
+    image: '/new_images/banks-O-Dee-Junior-Training-2.jpeg',
     date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     type: 'news',
     slug: 'banks-o-dee-secure-highland-league-title'
@@ -17,7 +17,7 @@ const mockFeaturedItems = [
     id: uuidv4(),
     title: 'New Stadium Development Update',
     content: 'Progress on the new stadium development continues with the completion of the main stand foundations.',
-    image: '/lovable-uploads/e2efc1b0-1c8a-4e98-9826-3030a5f5d247.png',
+    image: '/new_images/banks-O-Dee-Junior-Training-1.jpeg',
     date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
     type: 'news',
     slug: 'new-stadium-development-update'
@@ -26,7 +26,7 @@ const mockFeaturedItems = [
     id: uuidv4(),
     title: 'Club Announces New Sponsor',
     content: 'Banks O\' Dee FC is proud to announce a new sponsorship deal with a leading local business.',
-    image: '/lovable-uploads/cb95b9fb-0f2d-42ef-9788-10509a80ed6e.png',
+    image: '/new_images/Banks-O-Dee-Girls.jpeg',
     date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
     type: 'news',
     slug: 'club-announces-new-sponsor'
@@ -35,7 +35,7 @@ const mockFeaturedItems = [
     id: uuidv4(),
     title: 'Youth Team Wins Regional Cup',
     content: 'Our U18 team has won the regional youth cup after a penalty shootout victory.',
-    image: '/lovable-uploads/587f8bd1-4140-4179-89f8-dc2ac1b2e072.png',
+    image: '/new_images/Junior-Section-Coach-1.jpeg',
     date: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
     type: 'news',
     slug: 'youth-team-wins-regional-cup'

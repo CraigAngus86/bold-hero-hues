@@ -1,127 +1,84 @@
 
-// Fix the import for FeaturedArticle
-import { FeaturedArticle } from '@/types/news';
+import React from 'react';
+import Hero from '../components/Hero';
+import NewsCard from '../components/NewsCard';
+import { FeaturedArticle, NewsItem } from '../types/news';
 
-// Featured articles data
-const featuredArticles: FeaturedArticle[] = [
-  {
-    id: '1',
-    title: 'Match Preview: Highland League Showdown',
-    image_url: '/placeholder-image.jpg',
-    category: 'News',
-    publish_date: new Date().toISOString(),
-    excerpt: 'This weekend sees a crucial match in the Highland League...'
-  },
+// Updated with new images
+const featuredArticle: FeaturedArticle = {
+  id: '1',
+  title: 'Banks o\' Dee secure crucial victory against Fraserburgh',
+  content: 'Banks o\' Dee FC secured an important 2-1 victory against Fraserburgh at Spain Park on Saturday. Goals from John Smith and Mark Jones sealed the win.',
+  excerpt: 'Banks o\' Dee FC secured an important 2-1 victory against Fraserburgh at Spain Park on Saturday.',
+  category: 'Match Report',
+  image_url: '/new_images/Scotland-Cup-U20-banks-O-Dee.jpeg',
+  publish_date: '2023-04-02',
+};
+
+// Updated with new images
+const recentNews: NewsItem[] = [
   {
     id: '2',
-    title: 'New Player Signing Announcement',
-    image_url: '/placeholder-image.jpg',
-    category: 'News',
-    publish_date: new Date().toISOString(),
-    excerpt: 'We are delighted to announce our newest player signing...'
+    title: 'Youth academy expansion announced',
+    excerpt: 'The club is proud to announce a significant expansion of our youth development program.',
+    category: 'Club News',
+    image_url: '/new_images/banks-O-Dee-Junior-Training-1.jpeg',
+    publish_date: '2023-03-28',
+  },
+  {
+    id: '3',
+    title: 'New sponsorship deal with local business',
+    excerpt: 'Banks o\' Dee FC is delighted to announce a new partnership with Aberdeen-based company.',
+    category: 'Sponsorship',
+    image_url: '/new_images/Banks-O-Dee-Girls.jpeg',
+    publish_date: '2023-03-25',
+  },
+  {
+    id: '4',
+    title: 'Ticket information for upcoming cup fixture',
+    excerpt: 'Important information regarding tickets for our upcoming Scottish Cup fixture.',
+    category: 'Tickets',
+    image_url: '/new_images/banks-O-Dee-Ladies-U15-2.jpeg',
+    publish_date: '2023-03-22',
   }
 ];
 
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-
-export default function IndexPage() {
+const Index: React.FC = () => {
   return (
-    <div className="container mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-6">Welcome to the Highland League App</h1>
-
-      <section className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">Featured News</h2>
+    <div>
+      <Hero />
+      
+      <div className="container mx-auto py-12 px-4">
+        <h2 className="text-3xl font-bold mb-8">Latest News</h2>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredArticles.map((item) => (
-            <Card key={item.id}>
-              <CardHeader>
-                <CardTitle>{item.title}</CardTitle>
-                <CardDescription>{item.category} - {new Date(item.publish_date).toLocaleDateString()}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <img src={item.image_url} alt={item.title} className="w-full h-48 object-cover mb-4 rounded" />
-                <p>{item.excerpt}</p>
-              </CardContent>
-              <CardFooter>
-                <Button>Read More</Button>
-              </CardFooter>
-            </Card>
+          <div className="lg:col-span-2">
+            <NewsCard 
+              title={featuredArticle.title}
+              excerpt={featuredArticle.excerpt}
+              image={featuredArticle.image_url}
+              date={featuredArticle.publish_date}
+              category={featuredArticle.category}
+              featured={true}
+              size="large"
+            />
+          </div>
+          
+          {recentNews.map((item) => (
+            <NewsCard
+              key={item.id}
+              title={item.title}
+              excerpt={item.excerpt}
+              image={item.image_url || ''}
+              date={item.publish_date || item.date || ''}
+              category={item.category}
+              size={recentNews.indexOf(item) === 0 ? "medium" : "small"}
+            />
           ))}
         </div>
-      </section>
-
-      <section className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">Upcoming Fixtures</h2>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Home Team</TableHead>
-              <TableHead>Away Team</TableHead>
-              <TableHead>Venue</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow>
-              <TableCell>2023-09-16</TableCell>
-              <TableCell>Buckie Thistle</TableCell>
-              <TableCell>Inverness Caledonian</TableCell>
-              <TableCell>Victoria Park</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>2023-09-23</TableCell>
-              <TableCell>Nairn County</TableCell>
-              <TableCell>Clachnacuddin</TableCell>
-              <TableCell>Station Park</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </section>
-
-      <section>
-        <h2 className="text-2xl font-semibold mb-4">League Standings</h2>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Position</TableHead>
-              <TableHead>Team</TableHead>
-              <TableHead>Points</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow>
-              <TableCell>1</TableCell>
-              <TableCell>Brechin City</TableCell>
-              <TableCell>9</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>2</TableCell>
-              <TableCell>Buckie Thistle</TableCell>
-              <TableCell>7</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </section>
+      </div>
     </div>
   );
-}
+};
+
+export default Index;

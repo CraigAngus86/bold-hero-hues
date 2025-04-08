@@ -3,43 +3,43 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 const MediaGallery: React.FC = () => {
-  // Mock gallery images
+  // Updated gallery images with new uploads
   const galleryImages = [
     {
       id: '1',
-      src: '/lovable-uploads/4651b18c-bc2e-4e02-96ab-8993f8dfc145.png',
-      caption: 'Match action from recent game against Keith FC',
-      category: 'Match Day'
+      src: '/new_images/Junior-Section-Coach-2.jpeg',
+      caption: 'Junior section coaching session',
+      category: 'Youth'
     },
     {
       id: '2',
-      src: '/lovable-uploads/0c8edeaf-c67c-403f-90f0-61b390e5e89a.png',
-      caption: 'Youth academy training session',
+      src: '/new_images/Banks-O-Dee-Girls-2.jpeg',
+      caption: 'Girls team in action',
       category: 'Youth'
     },
     {
       id: '3',
-      src: '/lovable-uploads/8f2cd33f-1e08-494a-9aaa-65792ee9418a.png',
-      caption: 'Community outreach program',
-      category: 'Community'
+      src: '/new_images/Scotland-Cup-U20-banks-O-Dee.jpeg',
+      caption: 'U20s Scotland Cup match',
+      category: 'Match Day'
     },
     {
       id: '4',
-      src: '/lovable-uploads/73ac703f-7365-4abb-811e-159280ad234b.png',
-      caption: 'Spain Park stadium on match day',
-      category: 'Facilities'
+      src: '/new_images/Youth-Section-2.jpeg',
+      caption: 'Youth section training',
+      category: 'Youth'
     },
     {
       id: '5',
-      src: '/lovable-uploads/122628af-86b4-4d7f-bfe3-01d4bf03d053.png',
-      caption: 'Player signing session with fans',
+      src: '/new_images/Youth-Section-3.jpeg',
+      caption: 'Youth team group photo',
       category: 'Events'
     },
     {
       id: '6',
-      src: '/lovable-uploads/7f997ef4-9019-4660-9e9e-4e230d7b1eb3.png',
-      caption: 'Highland League trophy presentation',
-      category: 'Achievements'
+      src: '/new_images/Youth-Section-1.jpeg',
+      caption: 'Youth development session',
+      category: 'Training'
     }
   ];
 
